@@ -120,7 +120,7 @@ export const FilterPill = ({ label, isActive, onClick }) => {
     return (
         <button
             onClick={onClick}
-            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${isActive
+            className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${isActive
                 ? 'bg-indigo-600 text-white'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
@@ -144,7 +144,7 @@ export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all'
                 <button
                     key={filter}
                     onClick={() => onFilterChange(filter)}
-                    className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === filter
+                    className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === filter
                         ? activeColorClass
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
@@ -159,7 +159,7 @@ export const FilterPillGroup = ({ activeFilter, onFilterChange, filters = ['all'
 export const DateRangePicker = ({ dateRange, onDateChange }) => {
     return (
         <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
-            <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Range:</span>
+            <span className="text-2xs font-bold text-slate-400 uppercase mr-1">Range:</span>
             <input
                 type="date"
                 name="from"
@@ -487,7 +487,7 @@ export const PartyNameCell = ({ name, phone }) => {
         <TableCell>
             <div className="flex flex-col">
                 <span className="font-bold text-slate-900 dark:text-white capitalize">{name || 'Walk-in'}</span>
-                {phone && <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{phone}</span>}
+                {phone && <span className="text-2xs font-bold text-slate-400 uppercase tracking-tight">{phone}</span>}
             </div>
         </TableCell>
     );
@@ -503,7 +503,7 @@ export const TransactionTypeBadge = ({ type = 'sale' }) => {
     };
 
     return (
-        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${styles[type] || styles.sale}`}>
+        <span className={`text-2xs font-black uppercase px-2 py-0.5 rounded-md ${styles[type] || styles.sale}`}>
             {type}
         </span>
     );
@@ -512,7 +512,7 @@ export const TransactionTypeBadge = ({ type = 'sale' }) => {
 export const PaymentTypeCell = ({ method }) => {
     return (
         <TableCell>
-            <span className="uppercase text-[10px] font-black text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+            <span className="uppercase text-2xs font-black text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                 {method || '-'}
             </span>
         </TableCell>
@@ -545,7 +545,7 @@ export const BalanceCell = ({ total, paid, formatCurrency }) => {
         return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatted}</span>;
     }
     return (
-        <span className="text-emerald-500 text-[10px] font-black bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
+        <span className="text-emerald-500 text-2xs font-black bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
             Settled
         </span>
     );
@@ -563,7 +563,7 @@ export const StatusBadge = ({ status }) => {
     };
 
     return (
-        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${styles[status] || styles.draft}`}>
+        <span className={`px-3 py-1 rounded-lg text-2xs font-black uppercase tracking-wider ${styles[status] || styles.draft}`}>
             {status}
         </span>
     );

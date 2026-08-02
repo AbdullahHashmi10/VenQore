@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FinalTester/config/phpunit.categories.xml — CATEGORY LANES
+  ==========================================================
+
+  These suites OVERLAP ON PURPOSE. A single test can be both "Financial" and
+  "Ledger"; a guardrail can also be "Security". That is useful for targeted
+  runs and for the dashboard's per-area breakdown.
+
+  BECAUSE THEY OVERLAP, THIS FILE MUST ALWAYS BE RUN WITH AN EXPLICIT
+  testsuite flag. Never run it bare. The BAT launchers in FinalTester always
+  pass one; see README.md for the exact command lines.
+
+  A bare run would execute shared tests several times and inflate every count.
+  The canonical, each-test-exactly-once definition is FinalTester/phpunit.xml.
+
+  Paths are relative to this file, hence the ../tests prefix.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="../bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         cacheDirectory="../.phpunit.cache"
+>
+    <extensions>
+        <bootstrap class="Tests\Support\RunLedger\RunLedgerExtension"/>
+        <bootstrap class="Tests\Support\Live\LiveMetricsExtension"/>
+    </extensions>
+
+    <testsuites>
+
+        <!-- ============ FINANCIAL ENGINE ============================== -->
+        <testsuite name="Financial">
+            <directory suffix="Test.php">../tests/Feature/Money</directory>
+            <directory suffix="Test.php">../tests/Feature/Golden</directory>
+            <directory suffix="Test.php">../tests/Feature/Heart</directory>
+            <directory suffix="Test.php">../tests/Feature/Module05</directory>
+            <directory suffix="Test.php">../tests/Feature/Module20</directory>
+            <file>../tests/Feature/PaymentAllocationTest.php</file>
+            <file>../tests/Feature/DebitNoteTest.php</file>
+            <file>../tests/Feature/MigrateOpeningBalancesTest.php</file>
+        </testsuite>
+
+        <!-- ============ ACCOUNTING / LEDGER =========================== -->
+        <testsuite name="Ledger">
+            <file>../tests/Feature/LedgerAccountingIntegrationTest.php</file>
+            <file>../tests/Feature/Guardrails/AccountingIntegrityGuardTest.php</file>
+            <file>../tests/Feature/Guardrails/LedgerCorruptionAlertTest.php</file>
+            <file>../tests/Feature/Guardrails/PaymentAllocationTriggerTest.php</file>
+            <file>../tests/Feature/Golden/CogsReconciliationTest.php</file>
+            <file>../tests/Feature/Golden/FinancialCoreVerificationTest.php</file>
+            <file>../tests/Feature/Golden/LedgerTruthSweepTest.php</file>
+            <file>../tests/Feature/V3/Scenarios/AccountingServiceTest.php</file>
+            <file>../tests/Feature/Core/BalanceConsistencyTest.php</file>
+        </testsuite>
+
+        <!-- ============ POS TERMINAL ================================== -->
+        <testsuite name="POS">
+            <directory suffix="Test.php">../tests/Feature/Module03</directory>
+            <file>../tests/Feature/PosFeaturesTest.php</file>
+            <file>../tests/Feature/Money/PosOpenReturnTest.php</file>
+            <file>../tests/Feature/Money/PosBankAccountsPropsTest.php</file>
+            <file>../tests/Feature/Money/PreSaleConversionTest.php</file>
+            <file>../tests/Feature/Production/LegacyPosCogsPinningTest.php</file>
+            <file>../tests/Feature/TerminalAppIntegrationTest.php</file>
+        </testsuite>
+
+        <!-- ============ INVENTORY / MANUFACTURING ===================== -->
+        <testsuite name="Inventory">
+            <directory suffix="Test.php">../tests/Feature/Module08</directory>
+            <directory suffix="Test.php">../tests/Feature/Module09</directory>
+            <file>../tests/Feature/Core/FifoDeterminismTest.php</file>
+            <file>../tests/Feature/Golden/FifoBatchVerificationTest.php</file>
+            <file>../tests/Feature/Guardrails/FifoConcurrencyRaceTest.php</file>
+            <file>../tests/Feature/V3/Scenarios/FifoServiceTest.php</file>
+            <file>../tests/Feature/V3/Scenarios/ManufacturingServiceTest.php</file>
+            <file>../tests/Feature/Money/LowStockWarehouseTest.php</file>
+            <file>../tests/Feature/Money/FractionalQtyTest.php</file>
+            <file>../tests/Feature/Money/FractionalQtyAdjacentTest.php</file>
+            <file>../tests/Feature/SmartFulfillmentTest.php</file>
+        </testsuite>
+
+        <!-- ============ REPORTS ======================================= -->
+        <testsuite name="Reports">
+            <directory suffix="Test.php">../tests/Feature/Module12</directory>
+            <directory suffix="Test.php">../tests/Feature/Reports</directory>
+            <file>../tests/Feature/Money/ReportReconciliationTest.php</file>
+            <file>../tests/Feature/Money/SupplierStatementTest.php</file>
+            <file>../tests/Feature/Golden/ReportOutputTest.php</file>
+            <file>../tests/Feature/Golden/FilterMatrixTest.php</file>
+            <file>../tests/Feature/V3/Scenarios/SettlementAndReportServiceTest.php</file>
+        </testsuite>
+
+        <!-- ============ SECURITY ====================================== -->
+        <testsuite name="Security">
+            <file>../tests/Feature/Money/IdorSweepTest.php</file>
+            <file>../tests/Feature/Money/GranularPermissionTest.php</file>
+            <file>../tests/Feature/Money/GatingTest.php</file>
+            <file>../tests/Feature/Guardrails/PermissionBypassGuardTest.php</file>
+            <file>../tests/Feature/Guardrails/MassAssignmentGuardTest.php</file>
+            <file>../tests/Feature/Guardrails/TenantIsolationSweepGuardTest.php</file>
+            <file>../tests/Feature/Guardrails/TerminalOwnershipGuardTest.php</file>
+            <file>../tests/Feature/Guardrails/HeartbeatOwnershipGuardTest.php</file>
+            <file>../tests/Feature/Reports/CrossTenantReportLeakTest.php</file>
+            <file>../tests/Feature/LegacyAdminPasscodeTest.php</file>
+            <file>../tests/Feature/Chat/SmartCaptureSafetyTest.php</file>
+            <file>../tests/Feature/Chat/SmartCaptureHardeningTest.php</file>
+            <file>../tests/Feature/Tools/RateLimitTest.php</file>
+        </testsuite>
+
+        <!-- ============ PERMISSIONS =================================== -->
+        <testsuite name="Permissions">
+            <file>../tests/Feature/Money/GranularPermissionTest.php</file>
+            <file>../tests/Feature/Guardrails/PermissionBypassGuardTest.php</file>
+            <file>../tests/Feature/PlanLimitsEnforcerTest.php</file>
+            <file>../tests/Feature/PlanManagementTest.php</file>
+            <file>../tests/Feature/Core/PlanTruthFailClosedTest.php</file>
+        </testsuite>
+
+        <!-- ============ TENANT ISOLATION ============================== -->
+        <testsuite name="TenantIsolation">
+            <directory suffix="Test.php">../tests/Feature/Module01</directory>
+            <file>../tests/Feature/Guardrails/TenantIsolationSweepGuardTest.php</file>
+            <file>../tests/Feature/Reports/CrossTenantReportLeakTest.php</file>
+            <file>../tests/Feature/Money/IdorSweepTest.php</file>
+            <file>../tests/Feature/Money/TenantTimezoneTest.php</file>
+            <file>../tests/Feature/StoreUniqueNameTest.php</file>
+        </testsuite>
+
+        <!-- ============ ROUTES ======================================== -->
+        <testsuite name="Routes">
+            <file>../tests/Feature/ZiggyRouteIntegrityTest.php</file>
+            <file>../tests/Feature/RouteParameterRegressionTest.php</file>
+            <file>../tests/Feature/OwnersDailyPulseTest.php</file>
+            <file>../tests/Routes/FullRouteSweepTest.php</file>
+            <file>../tests/Feature/Smoke/InertiaPageRenderTest.php</file>
+        </testsuite>
+
+        <!-- ============ GUARDRAILS =================================== -->
+        <testsuite name="Guardrails">
+            <directory suffix="Test.php">../tests/Feature/Guardrails</directory>
+            <directory suffix="Test.php">../tests/Feature/Core</directory>
+        </testsuite>
+
+        <!-- ============ API ========================================== -->
+        <testsuite name="API">
+            <file>../tests/Feature/TerminalAppIntegrationTest.php</file>
+            <file>../tests/Feature/Module19/RealTimeNotificationTest.php</file>
+            <file>../tests/Feature/Module10/WooCommerceTest.php</file>
+            <file>../tests/Feature/Production/WooWebhookJournalPinningTest.php</file>
+        </testsuite>
+
+        <!-- ============ VENSYNQ ====================================== -->
+        <testsuite name="VenSynQ">
+            <directory suffix="Test.php">../tests/Feature/Module19</directory>
+        </testsuite>
+
+        <!-- ============ AI ENGINE ==================================== -->
+        <testsuite name="AI">
+            <directory suffix="Test.php">../tests/Feature/Module14</directory>
+            <directory suffix="Test.php">../tests/Feature/Chat</directory>
+        </testsuite>
+
+        <!-- ============ OFFLINE SYNC ================================= -->
+        <testsuite name="OfflineSync">
+            <directory suffix="Test.php">../tests/Feature/Module18</directory>
+            <file>../tests/Feature/Guardrails/OfflineSyncIdempotencyGuardTest.php</file>
+        </testsuite>
+
+        <!-- ============ DATABASE ===================================== -->
+        <testsuite name="Database">
+            <file>../tests/Feature/MigrationTest.php</file>
+            <file>../tests/Feature/MigrateOpeningBalancesTest.php</file>
+            <file>../tests/Feature/SystemResetTest.php</file>
+            <file>../tests/Feature/ProductDeletionTest.php</file>
+            <file>../tests/Feature/Money/CascadeDeleteAuditTest.php</file>
+            <file>../tests/Feature/Money/HistoryImmutabilityTest.php</file>
+        </testsuite>
+
+        <!-- ============ REGRESSION =================================== -->
+        <testsuite name="Regression">
+            <file>../tests/Feature/RegressionFixesTest.php</file>
+            <file>../tests/Feature/ModalValidationRegressionTest.php</file>
+            <file>../tests/Feature/LayoutAndAdminUsersRegressionTest.php</file>
+            <file>../tests/Feature/RouteParameterRegressionTest.php</file>
+            <directory suffix="Test.php">../tests/Feature/Production</directory>
+            <file>../tests/Feature/Core/RecentFixesAuditTest.php</file>
+        </testsuite>
+
+        <!-- ============ PERFORMANCE ================================== -->
+        <testsuite name="Performance">
+            <directory suffix="Test.php">../tests/Performance</directory>
+        </testsuite>
+
+        <!-- ============ SMOKE ======================================== -->
+        <testsuite name="Smoke">
+            <directory suffix="Test.php">../tests/Feature/Smoke</directory>
+            <directory suffix="Test.php">../tests/Feature/DemoStore</directory>
+        </testsuite>
+
+        <!-- ============ FAST LANE ====================================
+             Unit + pure-logic Tools. No migrate:fresh, no Golden seed.
+             Designed to finish in well under a minute so it can be run
+             on every save.
+             ========================================================== -->
+        <testsuite name="Fast">
+            <directory suffix="Test.php">../tests/Unit</directory>
+            <directory suffix="Test.php">../tests/Feature/Tools</directory>
+        </testsuite>
+
+    </testsuites>
+
+    <php>
+        <env name="APP_NAME"               value="VenQore FinalTester"/>
+        <env name="APP_ENV"                value="testing"/>
+        <env name="APP_KEY"                value="base64:2yEI71seB86Bj2BjZitdmFfCsRVzPqp56iV6TCJ5wx0="/>
+        <env name="APP_DEBUG"              value="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS"          value="4"/>
+        <env name="BROADCAST_CONNECTION"   value="null"/>
+        <env name="CACHE_STORE"            value="array"/>
+        <env name="CACHE_DRIVER"           value="array"/>
+        <env name="DB_CONNECTION"          value="mysql"/>
+        <env name="DB_HOST"                value="127.0.0.1"/>
+        <env name="DB_PORT"                value="3306"/>
+        <env name="DB_DATABASE"            value="amd_pos_test"/>
+        <env name="DB_USERNAME"            value="root"/>
+        <env name="DB_PASSWORD"            value=""/>
+        <env name="SMOKE_DB_DATABASE"      value="amd_pos_test"/>
+        <env name="QUEUE_CONNECTION"       value="sync"/>
+        <env name="MAIL_MAILER"            value="array"/>
+        <env name="SESSION_DRIVER"         value="array"/>
+        <env name="WOOCOMMERCE_KEY"        value=""/>
+        <env name="WOOCOMMERCE_SECRET"     value=""/>
+        <env name="WOOCOMMERCE_URL"        value=""/>
+        <env name="PULSE_ENABLED"          value="false"/>
+        <env name="TELESCOPE_ENABLED"      value="false"/>
+        <env name="NIGHTWATCH_ENABLED"     value="false"/>
+        <env name="HORIZON_ENABLED"        value="false"/>
+    </php>
+</phpunit>

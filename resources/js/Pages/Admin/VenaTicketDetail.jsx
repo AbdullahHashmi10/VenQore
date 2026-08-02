@@ -77,7 +77,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                         <h1 className="text-base font-black text-slate-900 dark:text-white tracking-tight truncate">
                             {ticket.subject}
                         </h1>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-1xs text-slate-400">
                             From <strong className="text-slate-600 dark:text-slate-300">{ticket.requester_name}</strong>
                             {ticket.requester_email && <> · {ticket.requester_email}</>}
                             {ticket.tenant && isPlatform && <> · {ticket.tenant.name}</>}
@@ -104,13 +104,13 @@ export default function VenaTicketDetail({ ticket, context }) {
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1">Session ID</div>
+                                <div className="text-3xs font-black uppercase tracking-wider text-slate-400 mb-1">Session ID</div>
                                 <div className="text-xs font-mono text-slate-600 dark:text-slate-300 truncate">
                                     {header.match(/Session UUID:\s*([a-f0-9-]+)/i)?.[1]?.slice(0, 12) || '—'}…
                                 </div>
                             </div>
                             <div>
-                                <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1">Escalation Reason</div>
+                                <div className="text-3xs font-black uppercase tracking-wider text-slate-400 mb-1">Escalation Reason</div>
                                 <div className="flex items-center gap-1">
                                     {escalationCfg ? (
                                         <>
@@ -123,7 +123,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                                 </div>
                             </div>
                             <div>
-                                <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1">Priority</div>
+                                <div className="text-3xs font-black uppercase tracking-wider text-slate-400 mb-1">Priority</div>
                                 <span className={`text-xs font-black uppercase tracking-wider ${
                                     ticket.priority === 'high' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'
                                 }`}>
@@ -131,7 +131,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                                 </span>
                             </div>
                             <div>
-                                <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1">Created</div>
+                                <div className="text-3xs font-black uppercase tracking-wider text-slate-400 mb-1">Created</div>
                                 <div className="text-xs text-slate-600 dark:text-slate-300">
                                     {new Date(ticket.created_at).toLocaleString('en-GB', {
                                         day: 'numeric', month: 'short', year: 'numeric',
@@ -149,7 +149,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                                 <MessageSquare size={13} className="text-indigo-500 dark:text-indigo-400" />
                             </div>
                             <h2 className="text-sm font-black text-slate-900 dark:text-white">Chat Transcript</h2>
-                            <span className="text-[10px] font-bold text-slate-400 ml-auto">{lines.length} messages</span>
+                            <span className="text-2xs font-bold text-slate-400 ml-auto">{lines.length} messages</span>
                         </div>
 
                         <div className="p-5 space-y-3">
@@ -164,7 +164,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                                     if (isSystem) {
                                         return (
                                             <div key={i} className="flex justify-center">
-                                                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/40 dark:border-slate-700/40 rounded-full text-[9px] text-slate-500 font-bold uppercase tracking-wider text-center max-w-sm">
+                                                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/40 dark:border-slate-700/40 rounded-full text-3xs text-slate-500 font-bold uppercase tracking-wider text-center max-w-sm">
                                                     {line.body}
                                                 </span>
                                             </div>
@@ -180,7 +180,7 @@ export default function VenaTicketDetail({ ticket, context }) {
                                                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none'
                                                         : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border border-emerald-100 dark:border-emerald-800 rounded-tl-none'
                                             }`}>
-                                                <div className="text-[9px] font-black uppercase tracking-wider mb-0.5 opacity-60">
+                                                <div className="text-3xs font-black uppercase tracking-wider mb-0.5 opacity-60">
                                                     {isBot ? 'Vena' : line.sender}
                                                     {line.time && <span className="ml-2 opacity-60 normal-case font-normal">{line.time.slice(11, 16)}</span>}
                                                 </div>

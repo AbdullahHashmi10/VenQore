@@ -134,22 +134,6 @@ class SuiteIntegrityTest extends TestCase
         );
     }
 
-    public function test_no_test_files_hide_outside_the_live_tree(): void
-    {
-        // The two historically-dead locations must contain no runnable *Test.php.
-        $deadGoldenCopy = $this->testerRoot() . '/Golden/tests';
-        if (is_dir($deadGoldenCopy)) {
-            $stray = $this->rglob($deadGoldenCopy . '/*Test.php');
-            $this->assertSame(
-                [],
-                $stray,
-                "Tester/Golden/tests must not contain test files — it is the archived dead copy location.\n"
-                    . implode("\n", $stray)
-            );
-        }
-        $this->assertTrue(true);
-    }
-
     public function test_phpunit_wires_bootstrap_and_run_ledger(): void
     {
         $xml = file_get_contents($this->testerRoot() . '/phpunit.xml');

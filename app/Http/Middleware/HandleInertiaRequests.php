@@ -25,6 +25,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
+        if (! app()->environment('production')) {
+            return null;
+        }
+
         if (file_exists($manifest = public_path('build/manifest.json'))) {
             return md5_file($manifest);
         }
@@ -42,7 +46,7 @@ class HandleInertiaRequests extends Middleware
     {
         // Scope Inertia SSR: enable SSR ONLY for public marketing routes, keep tenant app 100% client-side SPA
         $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register')
-            || $request->is('/', 'features', 'pricing', 'about', 'contact', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products');
+            || $request->is('/', 'features', 'features/*', 'pricing', 'about', 'contact', 'roadmap', 'solutions', 'solutions/*', 'compare', 'compare/*', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products', 'partners', 'partners/*', 'docs', 'docs/*');
 
         config(['inertia.ssr.enabled' => $isMarketingRoute]);
 

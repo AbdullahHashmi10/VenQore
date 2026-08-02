@@ -1150,7 +1150,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 flex flex-col items-center justify-center">
-                            <span className="text-[11px] font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                            <span className="text-1xs font-black text-slate-400 uppercase block tracking-wider mb-1.5">
                                 Change Due
                             </span>
                             <span className="text-2xl font-black text-indigo-400 block whitespace-nowrap">
@@ -1158,7 +1158,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </span>
                         </div>
                         <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 text-center">
-                            <span className="text-[11px] font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                            <span className="text-1xs font-black text-slate-400 uppercase block tracking-wider mb-1.5">
                                 Total Items
                             </span>
                             <span className="text-2xl font-black text-white block">
@@ -2104,7 +2104,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             >
                                 <button
                                     onClick={() => setSelectedCategory(null)}
-                                    className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border ${
+                                    className={`px-3 py-1.5 rounded-full text-1xs font-black transition-all shrink-0 border ${
                                         selectedCategory === null
                                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -2116,14 +2116,14 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <button
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.id)}
-                                        className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border flex items-center gap-1.5 ${
+                                        className={`px-3 py-1.5 rounded-full text-1xs font-black transition-all shrink-0 border flex items-center gap-1.5 ${
                                             selectedCategory === cat.id
                                                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }`}
                                     >
                                         <span>{cat.name}</span>
-                                        <span className={`text-[9px] px-1 py-0.2 rounded-full shrink-0 ${
+                                        <span className={`text-3xs px-1 py-0.2 rounded-full shrink-0 ${
                                             selectedCategory === cat.id 
                                                 ? 'bg-white/20 text-white' 
                                                 : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
@@ -2184,7 +2184,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             <h4 className="font-black text-slate-800 dark:text-white leading-snug break-words text-lg">
                                                                 {product.name}
                                                             </h4>
-                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
+                                                            <span className="text-2xs text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
                                                                 {product.category?.name || product.category_name || 'General'}
                                                             </span>
                                                         </div>
@@ -2193,13 +2193,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     {/* Right Section: Stock Qty and Price */}
                                                     <div className="text-right shrink-0 flex items-center gap-4">
                                                         <div>
-                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
+                                                            <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
                                                             <span className={`text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                                 {formatNumber(product.stock_quantity || 0, 0)}
                                                             </span>
                                                         </div>
                                                         <div className="min-w-[75px]">
-                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
+                                                            <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
                                                             <span className="font-black text-sky-500 dark:text-sky-400 block leading-none text-lg">
                                                                 {formatCurrency(product.price || product.selling_price || 0, store || settings)}
                                                             </span>
@@ -2260,11 +2260,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
                                         <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
+                                    <span className="text-2xs font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
                                 </label>
                             )}
                         </div>
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
+                        <span className={`px-2 py-0.5 rounded-lg font-black text-2xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
                         </span>
                     </div>
@@ -2274,7 +2274,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             <p className="text-xs font-bold text-red-500 mb-2 uppercase tracking-wider">⚠ Return Mode Active</p>
                             {posReturnMode === 'open' ? (
                                 <div className="space-y-2">
-                                    <p className="text-[10px] text-red-400 mb-2">Add items to return. Optionally enter a reference number to link to the original sale.</p>
+                                    <p className="text-2xs text-red-400 mb-2">Add items to return. Optionally enter a reference number to link to the original sale.</p>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -2297,7 +2297,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 </div>
                             ) : posReturnMode === 'customer_or_reference' ? (
                                 <div className="space-y-2">
-                                    <p className="text-[10px] text-red-400 mb-2">Search by customer or enter a reference number.</p>
+                                    <p className="text-2xs text-red-400 mb-2">Search by customer or enter a reference number.</p>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -2318,7 +2318,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    <p className="text-[10px] text-red-400 mb-2">Enter the original sale reference number to load items for return.</p>
+                                    <p className="text-2xs text-red-400 mb-2">Enter the original sale reference number to load items for return.</p>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -2347,7 +2347,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             <div key={item.cartItemId} className="bg-white dark:bg-slate-800 px-3 py-2.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between gap-3 text-xs relative group overflow-hidden">
                                 {/* Left Section: Index, name, category, stock warning */}
                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                                    <span className="text-2xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
                                         {index + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
@@ -2355,11 +2355,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             {item.name}
                                         </h4>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                                            <span className="text-3xs text-slate-400 font-bold uppercase tracking-wider">
                                                 {item.category}
                                             </span>
                                             {item.qty > item.stock && (
-                                                <span className="text-[9px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
+                                                <span className="text-3xs font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
                                                     ⚠️ Over Stock ({item.stock})
                                                 </span>
                                             )}
@@ -2373,11 +2373,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         {hasDiscountPerm ? (
                                             <button
                                                 onClick={() => openItemDiscountModal(item)}
-                                                className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
+                                                className="text-1xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
                                             >
                                                 {item.discount > 0 ? (
                                                     <>
-                                                        <span className="line-through text-[9px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                        <span className="line-through text-3xs text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
                                                         <span>{formatCurrency(item.price, store || settings)}</span>
                                                     </>
                                                 ) : (
@@ -2385,12 +2385,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 )}
                                             </button>
                                         ) : (
-                                            <span className="text-[11px] font-black text-slate-900 dark:text-white">
+                                            <span className="text-1xs font-black text-slate-900 dark:text-white">
                                                 {formatCurrency(item.price, store || settings)}
                                             </span>
                                         )}
                                         {item.discount > 0 && (
-                                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                            <span className="text-3xs font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                                                 Disc: -{formatCurrency(item.discount, store || settings)}
                                             </span>
                                         )}
@@ -2399,7 +2399,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <button
                                         onClick={() => openConverterModal(item)}
                                         title="Edit Price / Qty / Total"
-                                        className="text-[11px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
+                                        className="text-1xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
                                     >
                                         ⇄
                                     </button>
@@ -2454,12 +2454,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 {/* Right Section: Line Total & Trash */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     <div className="text-right min-w-[75px]">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
+                                        <span className="text-4xs font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
                                         <span className="font-black text-slate-900 dark:text-white text-sm block leading-none">
                                             {formatCurrency(item.price * item.qty, store || settings)}
                                         </span>
                                         {(settings?.show_margin_percentage === '1' || settings?.show_margin_percentage === true) && item.cost_price > 0 && (
-                                            <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 block leading-none mt-0.5">
+                                            <span className="text-4xs font-bold text-emerald-600 dark:text-emerald-400 block leading-none mt-0.5">
                                                 Margin: {Math.round(((item.price - item.cost_price) / item.price) * 100)}%
                                             </span>
                                         )}
@@ -2492,7 +2492,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm uppercase">
                             <Receipt size={18} className="text-emerald-600 dark:text-emerald-400" /> Payment Details
                         </h2>
-                        <span className="px-2 py-0.5 rounded-lg font-black text-[10px] bg-slate-200 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700/50">
+                        <span className="px-2 py-0.5 rounded-lg font-black text-2xs bg-slate-200 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700/50">
                             #{activeSale.id}
                         </span>
                     </div>
@@ -2538,7 +2538,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             <User size={20} />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] uppercase font-black text-slate-500 block mb-0.5">Customer / Party</label>
+                                            <label className="text-2xs uppercase font-black text-slate-500 block mb-0.5">Customer / Party</label>
                                             <span className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {activeSale.customer?.name || 'Walk-in Customer'}
                                             </span>
@@ -2564,9 +2564,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         }}
                                         className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
-                                        <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
+                                        <label className="text-3xs uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
                                         <div className="flex items-center gap-1.5">
-                                            <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
+                                            <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-2xs font-bold">%</div>
                                             <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                                 {activeSale.discountType === 'percentage'
                                                     ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
@@ -2585,7 +2585,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
                                         className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
-                                        <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Method</label>
+                                        <label className="text-3xs uppercase font-bold text-slate-500 block mb-0.5">Method</label>
                                         <div className="flex items-center gap-1.5">
                                             <CreditCard size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                                             <span className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">{paymentMethod}</span>
@@ -2622,10 +2622,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             bankAccounts.length > 0 ? (
                                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-inner animate-in fade-in slide-in-from-top-1 duration-200">
                                     <div className="flex justify-between items-center mb-2 px-1">
-                                        <label className="text-[10px] uppercase font-black text-slate-500 block">Deposit To Account</label>
+                                        <label className="text-2xs uppercase font-black text-slate-500 block">Deposit To Account</label>
                                         <button 
                                             onClick={() => setShowQuickAccountModal(true)}
-                                            className="text-[9px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                                            className="text-3xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
                                         >
                                             + Add New
                                         </button>
@@ -2666,9 +2666,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <div className="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 animate-in shake duration-300">
                                     <div className="flex items-center gap-2 mb-2">
                                         <AlertCircle size={14} className="text-rose-500" />
-                                        <span className="text-[10px] uppercase font-black text-rose-500">No Bank Accounts Found</span>
+                                        <span className="text-2xs uppercase font-black text-rose-500">No Bank Accounts Found</span>
                                     </div>
-                                    <p className="text-[11px] text-slate-400 mb-3 leading-tight">
+                                    <p className="text-1xs text-slate-400 mb-3 leading-tight">
                                         You need at least one bank/online account to receive digital payments.
                                     </p>
                                     <button 
@@ -2712,7 +2712,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     : (parsedTaxRates.find(t => parseFloat(t.rate) === parseFloat(taxRate))?.name + ` (${taxRate}%)` || `${taxRate}%`)
                                                 }
                                             </span>
-                                            <span className="text-slate-400 text-[10px]">▼</span>
+                                            <span className="text-slate-400 text-2xs">▼</span>
                                         </button>
                                         
                                         {taxDropdownOpen && (
@@ -2763,12 +2763,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <div className="flex items-center gap-2">
                                         <button 
                                             onClick={() => setPaymentModalOpen(true)}
-                                            className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider"
+                                            className="text-3xs font-black text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider"
                                             title="Open multi-method split payment options"
                                         >
                                             + Split Payment
                                         </button>
-                                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
+                                        <span className="text-2xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
                                             {paymentMethod.toUpperCase()}
                                         </span>
                                     </div>
@@ -2803,10 +2803,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 : 'bg-red-500/10 border-red-500/20'
                                 }`}>
                                 <div className="flex justify-between items-center">
-                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {changeDue >= 0 ? 'Change Due' : 'Shortage'}
                                     </span>
-                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {formatCurrency(Math.abs(changeDue), store || settings)}
                                     </span>
                                 </div>
@@ -2919,54 +2919,54 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* Bottom Bar - Shortcuts Strip (Moved Outside) */}
-            <div className="bg-slate-900 dark:bg-slate-950 border-t border-slate-800 flex items-center justify-between px-6 py-1.5 text-[11px] font-bold text-slate-400 shadow-lg shrink-0 z-10 select-none">
+            <div className="bg-slate-900 dark:bg-slate-950 border-t border-slate-800 flex items-center justify-between px-6 py-1.5 text-1xs font-bold text-slate-400 shadow-lg shrink-0 z-10 select-none">
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F1</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F1</span>
                     <span>Search</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F2</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F2</span>
                     <span>Qty</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F3</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F3</span>
                     <span>Item Disc</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F4</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F4</span>
                     <span>Remove</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F5</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F5</span>
                     <span>Price</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F11</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F11</span>
                     <span>Customer</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F12</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">F12</span>
                     <span>Remarks</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^S</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">^S</span>
                     <span>Save</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^P</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">^P</span>
                     <span>Print</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
-                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">Alt+Z</span>
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-3xs font-mono border border-slate-700">Alt+Z</span>
                     <span>Fullscr</span>
                 </div>
             </div>
@@ -3050,7 +3050,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
                                 <h3 className="text-base font-black uppercase tracking-tight">Apply <span className="text-emerald-400">Discount</span></h3>
-                                <p className="text-[11px] text-slate-400">Select type and discount value</p>
+                                <p className="text-1xs text-slate-400">Select type and discount value</p>
                             </div>
                             <button onClick={() => setGlobalDiscountModal({ show: false, type: 'fixed', value: '' })} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
                                 <X size={18} className="text-slate-500 hover:text-white" />
@@ -3080,7 +3080,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             {globalDiscountModal.type === 'percentage' && (
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-[10px] uppercase font-bold text-slate-500 block">Presets (Hold to Edit)</label>
+                                        <label className="text-2xs uppercase font-bold text-slate-500 block">Presets (Hold to Edit)</label>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         {discountPresets.map((val, idx) => {
@@ -3128,7 +3128,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                             {/* Discount Value Input field */}
                             <div>
-                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">
+                                <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">
                                     {globalDiscountModal.type === 'percentage' ? 'Discount Percentage (%)' : `Discount Value (${getCurrencySymbol(store || settings)})`}
                                 </label>
                                 <input
@@ -3188,7 +3188,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         
                         <div className="p-6 space-y-4">
                             <div>
-                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">Account Name</label>
+                                <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Account Name</label>
                                 <input 
                                     id="quick-acc-name"
                                     type="text" 
@@ -3199,7 +3199,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">Type</label>
+                                    <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Type</label>
                                     <select id="quick-acc-type" className="w-full bg-slate-800 border-white/5 rounded-xl py-3 px-4 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none">
                                         <option value="checking">Checking</option>
                                         <option value="savings">Savings</option>
@@ -3207,7 +3207,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">Bank Name</label>
+                                    <label className="text-2xs uppercase font-bold text-slate-500 block mb-1.5">Bank Name</label>
                                     <input 
                                         id="quick-acc-bank"
                                         type="text" 
@@ -3419,7 +3419,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                         {/* Mode toggle: what does Total changing affect? */}
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">When Total changes, recalculate:</p>
+                            <p className="text-2xs font-bold text-slate-400 uppercase mb-2">When Total changes, recalculate:</p>
                             <div className="flex gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
                                 <button
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'price' }))}
@@ -3443,7 +3443,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             { label: 'Total', field: 'total', icon: (getCurrencySymbol(store || settings)), color: 'amber' },
                         ].map(({ label, field, icon, color }) => (
                             <div key={field}>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
+                                <label className="text-2xs font-bold text-slate-400 uppercase block mb-1">{label}</label>
                                 <div className="relative">
                                     <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-black text-sm text-${color}-500`}>{icon}</span>
                                     <input
@@ -3528,7 +3528,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase text-slate-400 tracking-tighter">OFFLINE</span>
+                                                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-2xs font-black uppercase text-slate-400 tracking-tighter">OFFLINE</span>
                                                     <span className="font-black text-slate-800 dark:text-white">{sale.data.customer_name || 'Walk-in Customer'}</span>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-xs font-bold text-slate-500">

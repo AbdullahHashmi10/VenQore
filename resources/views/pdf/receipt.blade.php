@@ -263,7 +263,7 @@
     </div>
 
     <div class="footer">
-        <p>{!! nl2br(e($settings['print_terms'] ?? $settings['receipt_footer_message'] ?? 'Thank you for your business!')) !!}<br>Software by VENQORE</p>
+        <p>{!! nl2br(e($settings['print_terms'] ?? $settings['receipt_footer_message'] ?? 'Thank you for your business!')) !!}<br>Powered by <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener" style="color: #4f46e5; text-decoration: none; font-weight: bold;">VenQore</a></p>
     </div>
 </body>
 </html>

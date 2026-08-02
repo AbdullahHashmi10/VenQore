@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function DiscountReport({ invoices = [], filters = {} }) {
     const {
         store
@@ -95,9 +96,9 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
         });
 
         return [
-            { name: 'Light (<5%)', value: low, color: '#10b981' }, // Emerald
-            { name: 'Standard (5-15%)', value: medium, color: '#3b82f6' }, // Blue
-            { name: 'Heavy (>15%)', value: high, color: '#f43f5e' } // Rose
+            { name: 'Light (<5%)', value: low, color: vq.emerald[500] }, // Emerald
+            { name: 'Standard (5-15%)', value: medium, color: vq.blue[500] }, // Blue
+            { name: 'Heavy (>15%)', value: high, color: vq.rose[500] } // Rose
         ].filter(d => d.value > 0);
     }, [processedData]);
 
@@ -208,14 +209,14 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                                             type="date"
                                             value={customStart}
                                             onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-rose-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-rose-500"
                                         />
                                         <span className="text-slate-400">-</span>
                                         <input
                                             type="date"
                                             value={customEnd}
                                             onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-rose-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-rose-500"
                                         />
                                         <button onClick={applyCustomRange} className="p-1.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700">
                                             <ArrowLeft size={10} className="rotate-180" />
@@ -349,7 +350,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                                                     ))}
                                                 </Pie>
                                                 <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                     itemStyle={{ color: '#fff' }}
                                                 />
                                                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
@@ -357,7 +358,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                                         </ResponsiveContainer>
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                             <div className="text-center">
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Avg</p>
+                                                <p className="text-2xs text-slate-400 font-bold uppercase">Avg</p>
                                                 <p className="text-xl font-black text-rose-600 dark:text-rose-400">
                                                     {stats.count > 0 ? (stats.totalDiscount / (stats.totalDiscount + processedData.reduce((a, c) => a + Number(c.total_amount), 0)) * 100).toFixed(1) : 0}%
                                                 </p>
@@ -379,13 +380,13 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                                         <BarChart data={topCustomers} layout="vertical" margin={{ left: 10, right: 30 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
                                             <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
                                             <RechartsTooltip
-                                                cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                 formatter={(value) => formatCurrency(value)}
                                             />
-                                            <Bar dataKey="value" fill="#f43f5e" radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
+                                            <Bar dataKey="value" fill={vq.rose[500]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -422,10 +423,10 @@ function StatCard({ title, value, icon, color, footer }) {
                 <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
                     {icon}
                 </div>
-                {footer && <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
+                {footer && <span className="text-2xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
             </div>
             <div className="relative z-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
                 <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-0.5">{value}</h3>
             </div>
             <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none group-hover:scale-110 transition-transform duration-500`} />
@@ -443,7 +444,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
         >
             <div className={`flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 {label}
-                <div className={`flex flex-col text-[8px] leading-none ${isActive ? 'text-rose-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-rose-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
                     <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
                     <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
                 </div>
@@ -453,7 +454,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
 }
 
 function DiscountBadge({ pct }) {
-    if (pct < 5) return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold rounded">{pct.toFixed(1)}%</span>;
-    if (pct < 15) return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold rounded">{pct.toFixed(1)}%</span>;
-    return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-[10px] font-bold rounded animate-pulse">{pct.toFixed(1)}%</span>;
+    if (pct < 5) return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">{pct.toFixed(1)}%</span>;
+    if (pct < 15) return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-2xs font-bold rounded">{pct.toFixed(1)}%</span>;
+    return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-2xs font-bold rounded animate-pulse">{pct.toFixed(1)}%</span>;
 }

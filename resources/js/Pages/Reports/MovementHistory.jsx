@@ -18,6 +18,7 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatNumber } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function MovementHistory({ movements = [], filters = {}, products = [], warehouses = [] }) {
     const {
         store
@@ -76,8 +77,8 @@ export default function MovementHistory({ movements = [], filters = {}, products
     const chartConfig = {
         type: 'bar', // or 'area'
         bars: [
-            { dataKey: 'In', fill: '#10b981', name: 'Inbound' },
-            { dataKey: 'Out', fill: '#ef4444', name: 'Outbound' }
+            { dataKey: 'In', fill: vq.emerald[500], name: 'Inbound' },
+            { dataKey: 'Out', fill: vq.red[500], name: 'Outbound' }
         ],
         xAxisKey: 'name'
     };
@@ -138,7 +139,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
                     <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">
                         {new Date(row.created_at).toLocaleDateString()}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-1xs text-slate-400 font-mono">
                         {new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                 </div>
@@ -160,7 +161,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
                     </div>
                     <div>
                         <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1" title={row.product?.name}>{row.product?.name || 'Unknown Item'}</div>
-                        <div className="text-[10px] font-mono text-slate-500">{row.product?.sku || 'NO-SKU'}</div>
+                        <div className="text-2xs font-mono text-slate-500">{row.product?.sku || 'NO-SKU'}</div>
                     </div>
                 </div>
             )
@@ -224,7 +225,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
                     <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
                         {row.user?.name || 'System'}
                     </div>
-                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xs font-bold text-slate-500">
                         {row.user?.name ? row.user.name.charAt(0) : 'S'}
                     </div>
                 </div>

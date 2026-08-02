@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { tokens, BRAND, GRADIENTS, statusColor, fmtCompact } from './theme';
+import { vq } from '@/theme/runtime';
 import {
     Search, X, ChevronLeft, ChevronRight, Inbox, AlertTriangle,
     ArrowUpRight, ArrowDownRight, Loader2, Construction, Check, ChevronDown,
@@ -75,8 +76,8 @@ export function Button({ children, variant = 'primary', size = 'md', icon: Icon,
         primary: { background: GRADIENTS.brand, color: '#fff', border: '1px solid transparent', boxShadow: '0 8px 20px -6px rgba(99,102,241,.5)' },
         secondary: { background: t.inputBg, color: t.ink, border: `1px solid ${t.border2}` },
         ghost: { background: 'transparent', color: t.sub, border: '1px solid transparent' },
-        danger: { background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.35)' },
-        success: { background: 'rgba(16,185,129,0.12)', color: '#34d399', border: '1px solid rgba(16,185,129,0.35)' },
+        danger: { background: 'rgba(239,68,68,0.12)', color: vq.red[400], border: '1px solid rgba(239,68,68,0.35)' },
+        success: { background: 'rgba(16,185,129,0.12)', color: vq.emerald[400], border: '1px solid rgba(16,185,129,0.35)' },
     }[variant];
     return (
         <button

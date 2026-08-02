@@ -308,19 +308,19 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
-                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -329,7 +329,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
             </div>
 
             {orientation === 'landscape' && (
-                <p className="text-center text-[11px] text-amber-600 dark:text-amber-400 mb-3 -mt-2">
+                <p className="text-center text-1xs text-amber-600 dark:text-amber-400 mb-3 -mt-2">
                     Landscape printing is not yet supported for downloads — this previews the layout only. The downloaded PDF will still print in portrait.
                 </p>
             )}
@@ -377,7 +377,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                                     {extraCount} more identical register section{extraCount === 1 ? '' : 's'} will be included in the PDF
                                 </p>
                             </div>
-                            <p className="text-[11px] text-slate-400 mb-3">
+                            <p className="text-1xs text-slate-500 dark:text-slate-400 mb-3">
                                 Each repeats the same {currency} denomination table and blank Expected/Counted/Over-Short lines shown above, with its own header fields. Edit each register's name, date, shift, counted-by and verified-by below — the full denomination table isn't repeated here to keep this preview readable.
                             </p>
                             <div className="space-y-2">
@@ -407,12 +407,12 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                         </div>
                     </div>
 
-                    <p className="text-center text-[10px] text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
+                    <p className="text-center text-2xs text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
                 </div>
             </div>
             </div>
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 Denomination Count/Subtotal and Expected/Counted/Over-Short cells stay blank by design — click any other field above to edit it.
             </p>
         </ToolShell>
@@ -429,19 +429,19 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
             {/* Meta table */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
                 <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-400 w-24 shrink-0">Date</span>
+                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Date</span>
                     <EditableText as="date" value={register.date} onChange={(v) => onChange('date', v)} className="flex-1" />
                 </div>
                 <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-400 w-24 shrink-0">Shift</span>
+                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Shift</span>
                     <EditableText value={register.shift} onChange={(v) => onChange('shift', v)} placeholder="Morning" className="flex-1" />
                 </div>
                 <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-400 w-24 shrink-0">Counted By</span>
+                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Counted By</span>
                     <EditableText value={register.counted_by} onChange={(v) => onChange('counted_by', v)} placeholder="Cashier name" className="flex-1" />
                 </div>
                 <div className="flex items-center gap-2 border border-slate-200 px-2 py-1.5">
-                    <span className="text-slate-400 w-24 shrink-0">Verified By</span>
+                    <span className="text-slate-500 dark:text-slate-400 w-24 shrink-0">Verified By</span>
                     <EditableText value={register.verified_by} onChange={(v) => onChange('verified_by', v)} placeholder="Manager name" className="flex-1" />
                 </div>
             </div>
@@ -449,7 +449,7 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
             {/* Denomination table — labels are fixed data, Count/Subtotal are blank write-in cells */}
             <table className="w-full mb-4 border-collapse">
                 <thead>
-                    <tr className="text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 bg-slate-100">
+                    <tr className="text-left text-2xs font-bold uppercase tracking-wide text-slate-500 bg-slate-100">
                         <th className="border border-slate-300 px-2 py-1.5 w-[34%]">
                             <EditableText value={headers.denomination} onChange={(v) => onHeaderChange('denomination', v)} pulse={false} className="normal-case font-bold" />
                         </th>
@@ -476,13 +476,13 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
                         <>
                             <tr>
                                 <td className="border border-slate-200 px-2 py-2 text-xs">Coins (all denominations)</td>
-                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-400">—</td>
+                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-500 dark:text-slate-400">—</td>
                                 <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
                                 <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
                             </tr>
                             <tr>
                                 <td className="border border-slate-200 px-2 py-2 text-xs">Notes / Bills (all denominations)</td>
-                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-400">—</td>
+                                <td className="border border-slate-200 px-2 py-2 text-xs text-right text-slate-500 dark:text-slate-400">—</td>
                                 <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
                                 <td className="border border-slate-200 px-2 py-2"><BlankCell /></td>
                             </tr>
@@ -508,7 +508,7 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
                 <div className="grid grid-cols-2 gap-3 items-center border border-slate-200 px-2 py-2">
                     <div>
                         <span className="text-slate-600 block">Over / Short</span>
-                        <span className="text-[10px] text-slate-400">Formula: Total Counted − Expected Amount. Positive = over, negative = short.</span>
+                        <span className="text-2xs text-slate-500 dark:text-slate-400">Formula: Total Counted − Expected Amount. Positive = over, negative = short.</span>
                     </div>
                     <BlankCell />
                 </div>
@@ -518,11 +518,11 @@ function RegisterSection({ register, onChange, symbol, denominations, headers, o
             <div className="grid grid-cols-2 gap-6 text-xs text-slate-500 mt-6">
                 <div className="border-t border-slate-900 pt-1.5">
                     Counted By Signature
-                    <div className="text-slate-400">Time: ____________________</div>
+                    <div className="text-slate-500 dark:text-slate-400">Time: ____________________</div>
                 </div>
                 <div className="border-t border-slate-900 pt-1.5 text-right">
                     Verified By Signature (Manager)
-                    <div className="text-slate-400">Time: ____________________</div>
+                    <div className="text-slate-500 dark:text-slate-400">Time: ____________________</div>
                 </div>
             </div>
         </div>

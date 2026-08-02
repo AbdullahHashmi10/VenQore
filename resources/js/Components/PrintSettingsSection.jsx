@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
  */
 import { createPortal } from 'react-dom';
 
+import { vq } from '@/theme/runtime';
 // ... (imports remain the same, ensuring createPortal is added)
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
@@ -228,9 +229,9 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
                                     showCancelButton: true,
                                     confirmButtonText: 'Yes, Save Settings',
                                     cancelButtonText: 'Cancel',
-                                    background: '#1e293b',
+                                    background: vq.slate[800],
                                     color: '#fff',
-                                    confirmButtonColor: '#4f46e5',
+                                    confirmButtonColor: vq.indigo[600],
                                     target: isFullScreen ? document.getElementById('fullscreen-portal-root') || 'body' : 'body'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
@@ -614,7 +615,7 @@ const Section = ({ title, icon: Icon, children }) => (
 );
 
 const Label = ({ children }) => (
-    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">{children}</div>
+    <div className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">{children}</div>
 );
 
 const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
@@ -720,16 +721,16 @@ const SelectInput = ({ label, value, onChange, options }) => (
 // Basic accessible color picker row
 const ColorPicker = ({ label, value, onChange }) => {
     const colors = [
-        { c: '#0f172a', n: 'Black' },
-        { c: '#4f46e5', n: 'Indigo' },
-        { c: '#2563eb', n: 'Blue' },
-        { c: '#0891b2', n: 'Cyan' },
-        { c: '#059669', n: 'Emerald' },
-        { c: '#dc2626', n: 'Red' },
-        { c: '#d97706', n: 'Amber' },
-        { c: '#7c3aed', n: 'Violet' },
-        { c: '#db2777', n: 'Pink' },
-        { c: '#57534e', n: 'Stone' },
+        { c: vq.slate[900], n: 'Black' },
+        { c: vq.indigo[600], n: 'Indigo' },
+        { c: vq.blue[600], n: 'Blue' },
+        { c: vq.cyan[600], n: 'Cyan' },
+        { c: vq.emerald[600], n: 'Emerald' },
+        { c: vq.red[600], n: 'Red' },
+        { c: vq.amber[600], n: 'Amber' },
+        { c: vq.violet[600], n: 'Violet' },
+        { c: vq.pink[600], n: 'Pink' },
+        { c: vq.stone[600], n: 'Stone' },
     ];
 
     return (
@@ -777,7 +778,7 @@ const LogoUploader = ({ data, setData }) => (
             ) : (
                 <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 gap-1">
                     <ImageIcon size={20} />
-                    <span className="text-[9px] font-bold">No Logo</span>
+                    <span className="text-3xs font-bold">No Logo</span>
                 </div>
             )}
 
@@ -805,7 +806,7 @@ const LogoUploader = ({ data, setData }) => (
                     <Upload size={14} />
                     {data.print_logo_path ? 'Change Logo' : 'Upload Logo'}
                 </label>
-                <p className="text-[10px] text-slate-400 mt-2 leading-tight">
+                <p className="text-2xs text-slate-400 mt-2 leading-tight">
                     Recommended: PNG with transparent background. Max 2MB.
                 </p>
             </div>

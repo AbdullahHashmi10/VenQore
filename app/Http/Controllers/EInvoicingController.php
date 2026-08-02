@@ -12,7 +12,7 @@ class EInvoicingController extends Controller
     {
         PlanGate::enforce('e_invoicing');
 
-        return Inertia::render('EInvoicing/Dashboard', [
+        return Inertia::render('EInvoicing/EInvoicing', [
             'invoices' => [],
         ]);
     }

@@ -683,7 +683,7 @@ export default function WelcomeTourModal({ store }) {
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             {currentStep === 'stock_value' ? 'Inventory Status' : 'Add First Purchase'}
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-indigo-400">
                             {currentStep === 'stock_value' ? 'Step 1 of 2' : 'Step 2 of 2'}
                         </span>
                     </div>

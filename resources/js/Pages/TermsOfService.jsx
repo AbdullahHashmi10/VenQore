@@ -1,6 +1,7 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Scale, Shield } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Scale, Shield } from 'lucide-react';
+import MarketingLayout from '@/Pages/Marketing/Shared/MarketingLayout';
 
 /**
  * TermsOfService.jsx — Pre-Launch Checklist §12
@@ -13,40 +14,21 @@ export default function TermsOfService() {
 
     const Section = ({ title, children }) => (
         <section className="mb-10">
-            <h2 className="text-xl font-bold text-white mb-3 pb-2 border-b border-white/10">{title}</h2>
-            <div className="space-y-3 text-slate-300 leading-relaxed">{children}</div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3 pb-2 border-b border-slate-900/[0.08] dark:border-white/10">{title}</h2>
+            <div className="space-y-3 text-slate-600 dark:text-slate-300 leading-relaxed">{children}</div>
         </section>
     );
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans">
-            <Head>
-                <title>Terms of Service — VenQore</title>
-                <meta name="description" content="VenQore Terms of Service. Read our terms before signing up." />
-            </Head>
-
-            {/* Subtle background */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/3 w-96 h-96 bg-indigo-900/10 rounded-full blur-[120px]" />
-                <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 mix-blend-overlay" />
-            </div>
-
-            {/* Nav */}
-            <nav className="relative z-10 flex items-center justify-between gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
-                <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <img src="/images/logo.png" alt="VenQore" className="h-8 sm:h-9 object-contain shrink-0" />
-                    <span className="font-black text-base sm:text-lg truncate">VenQore<span className="text-indigo-400">.</span></span>
-                </Link>
-                <Link href="/" className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 hover:text-white transition-colors shrink-0">
-                    <ArrowLeft size={14} className="shrink-0" /> <span className="hidden xs:inline">Back to Home</span><span className="xs:hidden">Home</span>
-                </Link>
-            </nav>
-
-            <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <MarketingLayout
+            title="Terms of Service — VenQore"
+            description="VenQore Terms of Service. Read our terms before signing up."
+        >
+            <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-32 md:pt-36 pb-14">
                 {/* Header */}
                 <div className="flex items-center gap-3 sm:gap-4 mb-10">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                        <Scale size={26} className="text-indigo-400" />
+                        <Scale size={26} className="text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="min-w-0">
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">Terms of Service</h1>
@@ -54,7 +36,7 @@ export default function TermsOfService() {
                     </div>
                 </div>
 
-                <p className="text-slate-300 mb-10 p-4 rounded-xl bg-white/5 border border-white/10 text-sm leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-300 mb-10 p-4 rounded-xl bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 text-sm leading-relaxed">
                     Please read these Terms of Service carefully before using VenQore. By creating an account or using any part of the Service, you agree to be bound by these terms.
                 </p>
 
@@ -70,7 +52,7 @@ export default function TermsOfService() {
  
                 <Section title="3. Account Registration">
                     <p>You must provide accurate, complete, and current information when creating an account. You are responsible for maintaining the security of your account credentials.</p>
-                    <p>You are responsible for all activity that occurs under your account. Notify us immediately at <a href="mailto:support@venqore.com" className="text-indigo-400 hover:underline">support@venqore.com</a> if you suspect unauthorized access.</p>
+                    <p>You are responsible for all activity that occurs under your account. Notify us immediately at <a href="mailto:support@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">support@venqore.com</a> if you suspect unauthorized access.</p>
                     <p>One account per business entity. Sharing accounts between unrelated businesses is not permitted.</p>
                 </Section>
  
@@ -78,7 +60,7 @@ export default function TermsOfService() {
                     <p>Paid subscriptions are billed monthly or annually through Lemon Squeezy. By subscribing, you authorize recurring charges to your payment method.</p>
                     <p>All prices are in USD unless otherwise stated. Taxes may apply depending on your jurisdiction.</p>
                     <p>You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not provide prorated refunds for partial billing periods, except as required by applicable law.</p>
-                    {/* <p><strong className="text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p> */}
+                    {/* <p><strong className="text-slate-900 dark:text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p> */}
                 </Section>
 
                 <Section title="5. Free Trial">
@@ -89,12 +71,12 @@ export default function TermsOfService() {
                 <Section title="6. Data Ownership & Privacy">
                     <p>You own your data. We do not claim any ownership over the business data you store in VenQore (products, customers, sales records, etc.).</p>
                     <p>We will not sell, rent, or share your business data with third parties except as required to operate the Service (e.g., cloud storage providers) or as required by law.</p>
-                    <p>See our <Link href="/privacy" className="text-indigo-400 hover:underline">Privacy Policy</Link> for full details on data handling.</p>
+                    <p>See our <Link href="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link> for full details on data handling.</p>
                 </Section>
 
                 <Section title="7. Acceptable Use">
                     <p>You agree not to use the Service to:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-400">
+                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
                         <li>Violate any applicable law or regulation</li>
                         <li>Store or transmit illegal, harmful, or fraudulent content</li>
                         <li>Attempt to gain unauthorized access to the Service or other accounts</li>
@@ -122,7 +104,7 @@ export default function TermsOfService() {
 
                 <Section title="11. Termination">
                     <p>Either party may terminate this agreement at any time. Upon termination:</p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-400">
+                    <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400">
                         <li>Your access to the Service will be revoked</li>
                         <li>Your data will be retained for 30 days to allow export</li>
                         <li>After 30 days, all data will be permanently deleted</li>
@@ -140,18 +122,18 @@ export default function TermsOfService() {
 
                 <Section title="14. Contact">
                     <p>For questions about these Terms of Service:</p>
-                    <p><a href="mailto:legal@venqore.com" className="text-indigo-400 hover:underline">legal@venqore.com</a></p>
+                    <p><a href="mailto:legal@venqore.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">legal@venqore.com</a></p>
                     <p>VenQore · support@venqore.com</p>
                 </Section>
 
-                <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between text-sm text-slate-600">
-                    <p>© {new Date().getFullYear()} VenQore. All rights reserved.</p>
-                    <div className="flex gap-4">
-                        <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
-                        {/* <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refund Policy</Link> */}
-                    </div>
+                <div className="mt-12 pt-8 border-t border-slate-900/[0.06] dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-slate-500">
+                    <p>Related: read our{' '}
+                        <Link href="/privacy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Privacy Policy</Link>{' '}and{' '}
+                        <Link href="/refund-policy" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">Refund Policy</Link>.
+                    </p>
+                    <Link href="/pricing" className="font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">See plans &amp; pricing →</Link>
                 </div>
             </div>
-        </div>
+        </MarketingLayout>
     );
 }

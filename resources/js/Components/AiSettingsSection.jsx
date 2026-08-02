@@ -37,14 +37,14 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
                     }}
                     className={`cursor-pointer group relative p-6 rounded-[2rem] border-[3px] transition-all duration-300 overflow-hidden ${data.ai_provider === 'gemini' ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-xl shadow-indigo-500/10 scale-[1.01]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-indigo-200 dark:hover:border-slate-600 opacity-80 hover:opacity-100'}`}
                 >
-                    {data.ai_provider === 'gemini' && <div className="absolute top-5 right-5 bg-indigo-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-indigo-500/30">Active</div>}
+                    {data.ai_provider === 'gemini' && <div className="absolute top-5 right-5 bg-indigo-600 text-white text-2xs font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-indigo-500/30">Active</div>}
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
                             <Sparkles size={20} />
                         </div>
                         <div>
                             <h4 className="text-lg font-black text-slate-800 dark:text-white leading-tight">Google Gemini</h4>
-                            <span className="inline-block mt-1 text-[10px] font-black text-emerald-600 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Free Tier Available</span>
+                            <span className="inline-block mt-1 text-2xs font-black text-emerald-600 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Free Tier Available</span>
                         </div>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-6">
@@ -83,10 +83,10 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
                         </div>
                         <div className="bg-white/80 dark:bg-slate-900/50 p-4 rounded-xl border border-indigo-100 dark:border-indigo-500/10">
                             <p className="text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-2 flex items-center gap-1.5">
-                                <span className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-[10px]">?</span>
+                                <span className="w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-2xs">?</span>
                                 How to get Free Key:
                             </p>
-                            <ol className="text-[10px] text-slate-600 dark:text-slate-400 space-y-1.5 list-decimal ml-3 marker:font-bold marker:text-indigo-500">
+                            <ol className="text-2xs text-slate-600 dark:text-slate-400 space-y-1.5 list-decimal ml-3 marker:font-bold marker:text-indigo-500">
                                 <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-indigo-600 font-bold underline hover:text-indigo-700">Google AI Studio</a>.</li>
                                 <li>Sign in & Click <strong>"Create API Key"</strong>.</li>
                                 <li>Select <strong>"Gemini API"</strong> project.</li>
@@ -110,14 +110,14 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
                     }}
                     className={`cursor-pointer group relative p-6 rounded-[2rem] border-[3px] transition-all duration-300 ${data.ai_provider === 'openai' ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10 shadow-xl shadow-emerald-500/10 scale-[1.01]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-emerald-200 dark:hover:border-slate-600 opacity-80 hover:opacity-100'}`}
                 >
-                    {data.ai_provider === 'openai' && <div className="absolute top-5 right-5 bg-emerald-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/30">Active</div>}
+                    {data.ai_provider === 'openai' && <div className="absolute top-5 right-5 bg-emerald-600 text-white text-2xs font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-emerald-500/30">Active</div>}
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                             <Globe size={20} />
                         </div>
                         <div>
                             <h4 className="text-lg font-black text-slate-800 dark:text-white leading-tight">OpenAI GPT-4</h4>
-                            <span className="inline-block mt-1 text-[10px] font-black text-amber-600 bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Paid Subscription</span>
+                            <span className="inline-block mt-1 text-2xs font-black text-amber-600 bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Paid Subscription</span>
                         </div>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-6">

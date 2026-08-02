@@ -85,9 +85,7 @@ class FilterMatrixTest extends OutputVerificationTestCase
             ->where('name', 'like', '%Sara%')
             ->value('id');
 
-        if (!$saraId) {
-            $this->markTestSkipped('CUST-SARA not found');
-        }
+        $this->assertNotNull($saraId, 'CUST-SARA not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $props = $this->reportGet('reports/sales', [
             'from'     => '2025-02-01',
@@ -132,9 +130,7 @@ class FilterMatrixTest extends OutputVerificationTestCase
             ->where('name', 'like', '%Sara%')
             ->value('id');
 
-        if (!$saraId) {
-            $this->markTestSkipped('CUST-SARA not found');
-        }
+        $this->assertNotNull($saraId, 'CUST-SARA not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $saraProp   = $this->reportGet('reports/sales', ['from' => '2025-01-01', 'to' => '2025-02-28', 'party_id' => $saraId]);
         $saraRevenue = (float)($this->findKey($saraProp, 'total_revenue') ?? 0);
@@ -259,9 +255,7 @@ class FilterMatrixTest extends OutputVerificationTestCase
             ->where('tenant_id', self::TENANT_ID)
             ->value('id');
 
-        if (!$productId) {
-            $this->markTestSkipped('No products found for Golden Company');
-        }
+        $this->assertNotNull($productId, 'No products found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $props = $this->reportGet('reports/inventory-movement', [
             'from'       => self::YEAR_START,

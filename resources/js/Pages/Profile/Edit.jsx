@@ -76,7 +76,12 @@ export default function Edit({ mustVerifyEmail, status }) {
 
     // Preferences
     const [preferences, setPreferences] = useState({
-        dark_mode: localStorage.getItem('amd_theme') === 'dark',
+        // Fall back to the live <html> class: with no saved choice the theme
+        // is resolved per-route by ThemeContext, so localStorage may be empty
+        // while the app is still rendering in dark.
+        dark_mode: localStorage.getItem('amd_theme')
+            ? localStorage.getItem('amd_theme') === 'dark'
+            : document.documentElement.classList.contains('dark'),
         senior_mode: settings?.senior_mode === '1',
     });
 
@@ -350,7 +355,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                <span className={`text-2xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
                                                     {item.isDone ? 'Done' : 'Pending'}
                                                 </span>
                                             </div>

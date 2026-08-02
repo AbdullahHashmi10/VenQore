@@ -153,7 +153,7 @@ export default function FilterPanel({
                     <Filter size={compact ? 14 : 16} className="text-slate-400" />
                     <span className={`font-semibold ${compact ? 'text-xs uppercase tracking-wider' : 'text-sm'} text-slate-700 dark:text-slate-200`}>Filters</span>
                     {hasActiveFilters && (
-                        <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded">
+                        <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-bold rounded">
                             Active
                         </span>
                     )}
@@ -166,7 +166,7 @@ export default function FilterPanel({
                             {hasActiveFilters && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onReset(); }}
-                                    className="px-2 py-0.5 text-[10px] font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 transition-colors"
+                                    className="px-2 py-0.5 text-2xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 transition-colors"
                                 >
                                     Clear
                                 </button>
@@ -174,7 +174,7 @@ export default function FilterPanel({
                             {onApply && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onApply(); }}
-                                    className="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 transition-colors"
+                                    className="px-2 py-0.5 text-2xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 transition-colors"
                                 >
                                     Apply
                                 </button>

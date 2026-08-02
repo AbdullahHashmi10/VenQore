@@ -5,6 +5,7 @@ import { X, Sparkles, TrendingUp, RefreshCcw, AlertTriangle, Clock, DollarSign, 
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function OpportunityIntelligencePanel({ isOpen, onClose, recommendation, stats }) {
     const { store, settings } = usePage().props;
     if (!isOpen || !recommendation) return null;
@@ -155,10 +156,10 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     <div key={i} className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-sm">
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[10px] font-black">{n.user.charAt(0)}</div>
+                                                <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-2xs font-black">{n.user.charAt(0)}</div>
                                                 <span className="text-xs font-black dark:text-white uppercase tracking-tight">{n.user}</span>
                                             </div>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase">{n.date}</span>
+                                            <span className="text-2xs font-bold text-slate-400 uppercase">{n.date}</span>
                                         </div>
                                         <p className="text-base text-slate-600 dark:text-slate-400 font-medium italic">"{n.text}"</p>
                                     </div>
@@ -170,7 +171,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     {/* Opportunity Status Sidebar */}
                     <div className="lg:col-span-1 space-y-6">
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
-                            <h4 className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-6">Current Status</h4>
+                            <h4 className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-6">Current Status</h4>
                             <div className="space-y-3">
                                 {[
                                     { id: 'in-progress', label: 'In Progress', color: 'bg-indigo-50 border-indigo-200 text-indigo-600' },
@@ -212,11 +213,11 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                             
                             <div className="grid grid-cols-2 gap-8">
                                 <div>
-                                    <p className="text-[10px] text-red-400 font-black uppercase tracking-[0.2em] mb-2">Monthly Loss</p>
+                                    <p className="text-2xs text-red-400 font-black uppercase tracking-[0.2em] mb-2">Monthly Loss</p>
                                     <p className="text-3xl font-black text-red-600">{formatCurrency(monthlyLoss, store || settings)}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-red-400 font-black uppercase tracking-[0.2em] mb-2">Yearly Risk</p>
+                                    <p className="text-2xs text-red-400 font-black uppercase tracking-[0.2em] mb-2">Yearly Risk</p>
                                     <p className="text-3xl font-black text-red-600">{formatCurrency(yearlyLoss, store || settings)}</p>
                                 </div>
                             </div>
@@ -253,7 +254,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                             </div>
                                             <span className="text-sm font-black dark:text-slate-200 uppercase tracking-tight">{item.name}</span>
                                         </div>
-                                        <span className={`text-[10px] font-black uppercase ${item.color}`}>{item.stock}</span>
+                                        <span className={`text-2xs font-black uppercase ${item.color}`}>{item.stock}</span>
                                     </div>
                                 ))}
                             </div>
@@ -281,9 +282,9 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                         <div className="h-full w-[75%] bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                     <div className="flex justify-between mt-4">
-                        <span className="text-[10px] font-black text-slate-400 uppercase">Declining</span>
-                        <span className="text-[10px] font-black text-slate-400 uppercase">Steady</span>
-                        <span className="text-[10px] font-black text-indigo-600 uppercase">Strong Demand</span>
+                        <span className="text-2xs font-black text-slate-400 uppercase">Declining</span>
+                        <span className="text-2xs font-black text-slate-400 uppercase">Steady</span>
+                        <span className="text-2xs font-black text-indigo-600 uppercase">Strong Demand</span>
                     </div>
                 </div>
             </div>
@@ -311,7 +312,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     </div>
                                     <div className="space-y-2 pt-2">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{item.date}</span>
+                                            <span className="text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{item.date}</span>
                                             <div className="w-1.5 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
                                             <span className="text-sm font-black dark:text-white uppercase tracking-tight">{item.event}</span>
                                         </div>
@@ -329,13 +330,13 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
                             <div className="space-y-8">
                                 <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-3">Recovery Luck</p>
+                                    <p className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-3">Recovery Luck</p>
                                     <p className="text-4xl font-black text-emerald-500">80%</p>
                                     <p className="text-xs text-slate-500 font-bold mt-1 uppercase italic">High Re-engagement Rate</p>
                                 </div>
                                 <div className="h-0.5 bg-slate-100 dark:bg-slate-800 rounded-full" />
                                 <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Past Outreach</p>
+                                    <p className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-2">Past Outreach</p>
                                     <p className="text-2xl font-black dark:text-white">4 Attempted</p>
                                     <p className="text-xs text-slate-500 font-bold mt-1 italic leading-tight">Last touch via Phone Call</p>
                                 </div>
@@ -474,33 +475,33 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                 <AreaChart data={realChartData}>
                                     <defs>
                                         <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888810" />
                                     <XAxis 
                                         dataKey="name" 
-                                        stroke="#64748b" 
+                                        stroke={vq.slate[500]} 
                                         fontSize={11} 
                                         axisLine={false} 
                                         tickLine={false} 
-                                        tick={{fill: '#64748b', fontWeight: 'bold'}}
+                                        tick={{fill: vq.slate[500], fontWeight: 'bold'}}
                                         dy={15}
                                     />
                                     <YAxis 
-                                        stroke="#64748b" 
+                                        stroke={vq.slate[500]} 
                                         fontSize={11} 
                                         axisLine={false} 
                                         tickLine={false} 
-                                        tick={{fill: '#64748b', fontWeight: 'bold'}}
+                                        tick={{fill: vq.slate[500], fontWeight: 'bold'}}
                                         tickFormatter={(value) => formatCurrency(value, store || settings)}
                                         dx={-15}
                                     />
                                     <Tooltip 
                                         contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold', padding: '16px' }}
                                     />
-                                    <Area type="monotone" dataKey="value" stroke="#4f46e5" fillOpacity={1} fill="url(#colorVal)" strokeWidth={5} />
+                                    <Area type="monotone" dataKey="value" stroke={vq.indigo[600]} fillOpacity={1} fill="url(#colorVal)" strokeWidth={5} />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -511,17 +512,17 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Likely Order Value</p>
+                            <p className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-2">Likely Order Value</p>
                             <p className="text-2xl font-black dark:text-white">{formatCurrency(recommendation.potential_revenue, store || settings)}</p>
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Order Frequency</p>
+                            <p className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-2">Order Frequency</p>
                             <p className="text-2xl font-black dark:text-white">Every {data.adbo || '8'} Days</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 ml-2">Mostly Purchased Products</p>
+                        <p className="text-2xs text-slate-400 font-black uppercase tracking-widest mb-2 ml-2">Mostly Purchased Products</p>
                         {realProducts.map((prod, i) => (
                             <div key={i} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl group">
                                 <div className="flex items-center gap-4">
@@ -559,7 +560,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     {recommendation.party?.name || 'Unknown Customer'}
                                 </h2>
                                 <div className="flex items-center gap-3">
-                                    <div className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 rounded-full text-[10px] font-black border border-indigo-200 dark:border-indigo-800 uppercase tracking-widest">
+                                    <div className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 rounded-full text-2xs font-black border border-indigo-200 dark:border-indigo-800 uppercase tracking-widest">
                                         Beta AI Intelligence
                                     </div>
                                     <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">• {recommendation.title}</span>
@@ -609,12 +610,12 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 <div className="p-10 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                            <div className={`px-4 py-2 rounded-xl text-2xs font-black uppercase tracking-widest border ${
                                 recommendation.priority === 'urgent' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-orange-50 text-orange-600 border-orange-200'
                             }`}>
                                 {recommendation.priority} Urgency
                             </div>
-                            <div className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl text-[10px] font-black border border-indigo-100 dark:border-indigo-800 uppercase tracking-widest">
+                            <div className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-xl text-2xs font-black border border-indigo-100 dark:border-indigo-800 uppercase tracking-widest">
                                 {recommendation.type} Detected
                             </div>
                         </div>

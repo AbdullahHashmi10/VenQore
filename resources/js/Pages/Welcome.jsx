@@ -15,8 +15,8 @@ const safeRoute = (name) => {
 // --- VISUAL COMPONENTS ---
 
 const NebulaBackground = () => (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#020010]">
-        <div className="absolute inset-0 bg-[#020010]" />
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-void-950">
+        <div className="absolute inset-0 bg-void-950" />
 
         {/* Animated Gradient Orbs */}
         <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/20 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen" />
@@ -225,7 +225,7 @@ export default function Welcome() {
     const sections = ['hero', 'intelligence', 'operations', 'resilience', 'final'];
 
     return (
-        <div className="fixed inset-0 z-[100] bg-[#020010] text-white font-sans selection:bg-indigo-500/50 h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar cursor-none">
+        <div className="fixed inset-0 z-[100] bg-void-950 text-white font-sans selection:bg-indigo-500/50 h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar cursor-none">
             <Head title="Welcome to VenQore" />
             <NebulaBackground />
             <CustomCursor />

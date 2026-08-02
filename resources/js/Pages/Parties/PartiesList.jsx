@@ -351,13 +351,13 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                 <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2"
+                        className="flex items-center gap-1 text-2xs font-bold text-slate-500 uppercase shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     {!isStatsExpanded && (
-                        <div className="text-[10px] font-bold text-slate-500 truncate">
+                        <div className="text-2xs font-bold text-slate-500 truncate">
                             <span className="text-emerald-600">Rec: {formatCurrency(stats.receivables)}</span>
                             <span className="mx-1">|</span>
                             <span className="text-rose-600">Pay: {formatCurrency(stats.payables)}</span>
@@ -372,7 +372,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
                                 <Users size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Parties</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Parties</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.total || 0}</p>
                     </div>
@@ -381,7 +381,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
                                 <UserCheck size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Customers</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Customers</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
                     </div>
@@ -390,7 +390,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
                                 <TrendingUp size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">To Receive</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">To Receive</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.receivables)}</p>
                     </div>
@@ -399,7 +399,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             <div className="p-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg shrink-0">
                                 <TrendingDown size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Payables</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Payables</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-rose-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.payables)}</p>
                     </div>
@@ -436,7 +436,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             </div>
                             <button
                                 onClick={handleCreate}
-                                className="ml-1 px-2.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-md font-bold text-[10px]"
+                                className="ml-1 px-2.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-md font-bold text-2xs"
                             >
                                 <Plus size={12} /> Add
                             </button>
@@ -465,19 +465,19 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                     {showMobileFilters && (
                         <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
+                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
                                 <div className="flex bg-slate-100 dark:bg-slate-850 rounded-lg p-1 gap-1 flex-1">
                                     <button
                                         onClick={() => { handleTypeFilter('all'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-705 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >All</button>
                                     <button
                                         onClick={() => { handleTypeFilter('customer'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'customer' ? 'bg-white dark:bg-slate-705 text-blue-650 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'customer' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >Customers</button>
                                     <button
                                         onClick={() => { handleTypeFilter('supplier'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'supplier' ? 'bg-white dark:bg-slate-705 text-amber-650 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'supplier' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >Suppliers</button>
                                 </div>
                             </div>
@@ -498,21 +498,21 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
                             <button
                                 onClick={() => handleTypeFilter('all')}
-                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'all'
+                                className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'all'
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                     }`}
                             >All</button>
                             <button
                                 onClick={() => handleTypeFilter('customer')}
-                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'customer'
+                                className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'customer'
                                     ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-sm shadow-blue-500/20'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                     }`}
                             >Customers</button>
                             <button
                                 onClick={() => handleTypeFilter('supplier')}
-                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'supplier'
+                                className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'supplier'
                                     ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-500/20'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                     }`}
@@ -592,30 +592,30 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                     </th>
                                     <th
                                         onClick={() => handleSort('name')}
-                                        className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                     >
                                         <div className="flex items-center gap-1">
                                             Party Name <SortIcon columnKey="name" />
                                         </div>
                                     </th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                         Type
                                     </th>
                                     <th
                                         onClick={() => handleSort('balance')}
-                                        className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
+                                        className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
                                     >
                                         <div className="flex items-center justify-end gap-1">
                                             Balance <SortIcon columnKey="balance" />
                                         </div>
                                     </th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
                                         Credit Limit
                                     </th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         Phone
                                     </th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                         Actions
                                     </th>
                                 </tr>
@@ -654,12 +654,12 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-sm text-slate-800 dark:text-white">{party.name}</p>
-                                                        {party.email && <p className="text-[10px] text-slate-400">{party.email}</p>}
+                                                        {party.email && <p className="text-2xs text-slate-400">{party.email}</p>}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="p-3 text-center">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${party.type === 'customer'
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${party.type === 'customer'
                                                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                                                     : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                                     }`}>
@@ -674,7 +674,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                                         }`}>
                                                         {formatCurrency(Math.abs(party.current_balance || 0))}
                                                     </span>
-                                                    <p className="text-[10px] text-slate-400">
+                                                    <p className="text-2xs text-slate-400">
                                                         {party.current_balance > 0 ? (party.type === 'customer' ? 'To Receive' : 'To Pay') :
                                                             party.current_balance < 0 ? (party.type === 'customer' ? 'To Pay' : 'To Receive') : 'Settled'}
                                                     </p>
@@ -770,7 +770,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                             <div>
                                                 <p className="font-bold text-slate-850 dark:text-white text-xs">{party.name}</p>
                                                 {party.phone && (
-                                                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">{party.phone}</p>
+                                                    <p className="text-2xs text-slate-500 font-mono mt-0.5">{party.phone}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -781,14 +781,14 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                             }`}>
                                                 {formatCurrency(Math.abs(party.current_balance || 0))}
                                             </span>
-                                            <p className="text-[9px] text-slate-400 uppercase font-bold tracking-tight">
+                                            <p className="text-3xs text-slate-400 uppercase font-bold tracking-tight">
                                                 {party.current_balance > 0 ? (party.type === 'customer' ? 'To Receive' : 'To Pay') :
                                                     party.current_balance < 0 ? (party.type === 'customer' ? 'To Pay' : 'To Receive') : 'Settled'}
                                             </p>
                                         </div>
                                     </div>
                                     
-                                    <div className="flex items-center justify-between text-[10px] text-slate-500 bg-slate-50/50 dark:bg-slate-900/50 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                    <div className="flex items-center justify-between text-2xs text-slate-500 bg-slate-50/50 dark:bg-slate-900/50 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                         <span>Limit: {party.credit_limit ? formatCurrency(party.credit_limit) : '-'}</span>
                                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                                             <button onClick={() => handleViewLedger(party)} className="p-1 text-slate-400 hover:text-indigo-600 rounded">

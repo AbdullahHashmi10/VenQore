@@ -10,7 +10,7 @@ import { PauseCircle, CreditCard, ArrowRight, LogOut } from 'lucide-react';
  */
 export default function StoreSuspended({ store_name, plan, billing_url }) {
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans flex items-center justify-center p-6">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-6">
             <Head title="Store Suspended — VenQore" />
 
             <div className="fixed inset-0 pointer-events-none">

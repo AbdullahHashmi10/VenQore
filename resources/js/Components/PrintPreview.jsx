@@ -2,6 +2,7 @@ import React from 'react';
 import { Scissors } from 'lucide-react';
 import { formatCurrency, formatNumber, numberToWords } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 const getExtraChargesList = (calculations) => {
     try {
         if (calculations.extra_charge_label && typeof calculations.extra_charge_label === 'string' && calculations.extra_charge_label.startsWith('[')) {
@@ -83,7 +84,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
     const marginRight = (parseFloat(data.margin_right) || 0) * MM_TO_PX;
 
     // Theme Color
-    const themeColor = data.print_theme_color || '#4f46e5';
+    const themeColor = data.print_theme_color || vq.indigo[600];
 
     // Parse Real Sale Data vs. Dummy Preview Data
     let items = [];
@@ -306,7 +307,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             </div>
 
             {/* Dimensions Indicator (Helper) */}
-            <div className={`absolute -bottom-8 left-0 w-full text-center text-[10px] font-mono opacity-50 ${mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div className={`absolute -bottom-8 left-0 w-full text-center text-2xs font-mono opacity-50 ${mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                 {Math.round(width / MM_TO_PX)}mm x {Math.round(minHeight / MM_TO_PX)}mm
             </div>
         </div>
@@ -361,7 +362,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
             <div className="text-right">
                 <div className="font-black text-slate-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
                 <div className="text-sm font-bold text-slate-600 mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
-                {data.print_original_copy && <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Original Copy</div>}
+                {data.print_original_copy && <div className="text-2xs font-bold uppercase tracking-widest text-slate-400 mt-1">Original Copy</div>}
                 <div className="text-xs text-slate-500 mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
             </div>
         </div>
@@ -409,7 +410,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             <td className="p-3 font-medium text-left">
                                 <div>{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-slate-400 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -532,6 +533,18 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
+                <div className="text-2xs text-slate-400 font-medium pt-2">
+                    Powered by{' '}
+                    <a
+                        href="https://venqore.com?utm_source=invoice_footer"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 font-bold hover:underline"
+                    >
+                        VenQore
+                    </a>
+                </div>
+
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
                 {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
                     <div className="flex justify-between items-end text-xs mt-6 pt-4 border-t border-dashed border-slate-200">
@@ -545,19 +558,19 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             {data.print_received_by && (
                                 <div className="text-center">
                                     <div className="w-28 border-b border-slate-300 h-6"></div>
-                                    <div className="text-[10px] text-slate-500 mt-1">Received By</div>
+                                    <div className="text-2xs text-slate-500 mt-1">Received By</div>
                                 </div>
                             )}
                             {data.print_delivered_by && (
                                 <div className="text-center">
                                     <div className="w-28 border-b border-slate-300 h-6"></div>
-                                    <div className="text-[10px] text-slate-500 mt-1">Delivered By</div>
+                                    <div className="text-2xs text-slate-500 mt-1">Delivered By</div>
                                 </div>
                             )}
                             {data.print_acknowledgement && (
                                 <div className="text-center">
                                     <div className="w-36 border-b border-slate-300 h-6"></div>
-                                    <div className="text-[10px] text-slate-500 mt-1">Customer Acknowledgement</div>
+                                    <div className="text-2xs text-slate-500 mt-1">Customer Acknowledgement</div>
                                 </div>
                             )}
                         </div>
@@ -569,7 +582,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         <div className="text-center">
                             <div className="h-10"></div>
                             <div className="border-t border-slate-300 w-32"></div>
-                            <div className="text-[10px] font-bold text-slate-500 mt-1">{data.print_signature_text}</div>
+                            <div className="text-2xs font-bold text-slate-500 mt-1">{data.print_signature_text}</div>
                         </div>
                     </div>
                 )}
@@ -663,7 +676,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                             <td className="border border-slate-800 p-2 text-left">
                                 <div>{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -748,19 +761,19 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                         {data.print_received_by && (
                             <div className="text-center">
                                 <div className="w-28 border-b border-slate-800 h-6"></div>
-                                <div className="text-[10px] mt-1">Received By</div>
+                                <div className="text-2xs mt-1">Received By</div>
                             </div>
                         )}
                         {data.print_delivered_by && (
                             <div className="text-center">
                                 <div className="w-28 border-b border-slate-800 h-6"></div>
-                                <div className="text-[10px] mt-1">Delivered By</div>
+                                <div className="text-2xs mt-1">Delivered By</div>
                             </div>
                         )}
                         {data.print_acknowledgement && (
                             <div className="text-center">
                                 <div className="w-36 border-b border-slate-800 h-6"></div>
-                                <div className="text-[10px] mt-1">Customer Acknowledgement</div>
+                                <div className="text-2xs mt-1">Customer Acknowledgement</div>
                             </div>
                         )}
                     </div>
@@ -772,7 +785,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                     <div className="text-center font-bold">
                         <div className="h-10"></div>
                         <div className="border-t border-slate-800 w-32"></div>
-                        <div className="text-[10px] mt-1">{data.print_signature_text}</div>
+                        <div className="text-2xs mt-1">{data.print_signature_text}</div>
                     </div>
                 </div>
             )}
@@ -806,6 +819,17 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
             {headerContent}
             {billToContent}
             {mainContent}
+            <div className="text-2xs text-slate-400 font-medium pt-2 text-center mt-auto">
+                Powered by{' '}
+                <a
+                    href="https://venqore.com?utm_source=invoice_footer"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#4f46e5', fontWeight: 'bold' }}
+                >
+                    VenQore
+                </a>
+            </div>
         </div>
     );
 };
@@ -858,7 +882,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                             <td className="py-4 text-left">
                                 <div className="font-bold">{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                    <div className="text-2xs text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
                                         {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
                                         {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
                                         {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
@@ -938,19 +962,19 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                         {data.print_received_by && (
                             <div className="text-center">
                                 <div className="w-28 border-b-2 border-slate-900 h-6"></div>
-                                <div className="text-[10px] mt-1">Received By</div>
+                                <div className="text-2xs mt-1">Received By</div>
                             </div>
                         )}
                         {data.print_delivered_by && (
                             <div className="text-center">
                                 <div className="w-28 border-b-2 border-slate-900 h-6"></div>
-                                <div className="text-[10px] mt-1">Delivered By</div>
+                                <div className="text-2xs mt-1">Delivered By</div>
                             </div>
                         )}
                         {data.print_acknowledgement && (
                             <div className="text-center">
                                 <div className="w-36 border-b-2 border-slate-900 h-6"></div>
-                                <div className="text-[10px] mt-1">Customer Acknowledgement</div>
+                                <div className="text-2xs mt-1">Customer Acknowledgement</div>
                             </div>
                         )}
                     </div>
@@ -962,7 +986,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                     <div className="text-center font-bold">
                         <div className="h-10"></div>
                         <div className="border-t-2 border-slate-900 w-32"></div>
-                        <div className="text-[10px] mt-1">{data.print_signature_text}</div>
+                        <div className="text-2xs mt-1">{data.print_signature_text}</div>
                     </div>
                 </div>
             )}
@@ -996,6 +1020,17 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
             {headerContent}
             {billToContent}
             {mainContent}
+            <div className="text-2xs text-slate-400 font-medium pt-2 text-center mt-auto">
+                Powered by{' '}
+                <a
+                    href="https://venqore.com?utm_source=invoice_footer"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#4f46e5', fontWeight: 'bold' }}
+                >
+                    VenQore
+                </a>
+            </div>
         </div>
     );
 };
@@ -1280,6 +1315,11 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
+                <div className="text-[0.75em] opacity-60 mt-2">
+                    Powered by{' '}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                </div>
+
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
                 {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
                     <div className="flex flex-col items-center text-[0.85em] gap-1 border-t border-dashed border-black pt-2 mt-2">
@@ -1559,6 +1599,11 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </div>
                 )}
 
+                <div className="text-[0.75em] opacity-60 mt-1">
+                    Powered by{' '}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                </div>
+
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
                 {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
                     <div className="flex flex-col text-[0.9em] gap-1 border-t border-black border-dashed pt-2 mt-2">
@@ -1809,6 +1854,11 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                         {!data.print_terms && !data.thermal_custom_footer && 'THANK YOU FOR VISITING'}
                     </div>
                 )}
+
+                <div className="text-[0.7em] opacity-60 mt-2">
+                    Powered by{' '}
+                    <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener noreferrer" style={{ color: '#4f46e5', fontWeight: 'bold' }}>VenQore</a>
+                </div>
 
                 {/* Received / Delivered / Acknowledgement / Payment Mode */}
                 {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (

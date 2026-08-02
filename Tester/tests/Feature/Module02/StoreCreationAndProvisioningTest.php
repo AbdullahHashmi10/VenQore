@@ -83,13 +83,38 @@ test('store creation seeds default data', function () {
     $tenant = Tenant::where('name', 'Unified Seeded Store')->first();
     $this->assertNotNull($tenant);
 
-    // Verify seeder counts matching reality:
-    // 27 accounts, 9 settings, 1 warehouse, 6 expense categories, 1 bank account
-    $this->assertEquals(27, DB::table('accounts')->where('tenant_id', $tenant->id)->count());
+    // Counts are derived from TenantDefaultSeeder's own source rather than
+    // hardcoded, so this test can't silently go stale again the way it did
+    // when 1205 (Marketplace Clearing) and 5410 (Marketplace Fee Variance)
+    // were added to the chart of accounts (27 -> 29) without this assertion
+    // being updated — see LAUNCH_VERIFICATION_AUDIT_2026-08-02.md item D2.
+    // Expense categories and settings are still asserted as fixed counts:
+    // those lists are short, hand-maintained, and change far less often, so
+    // a hardcoded number pulling double duty as documentation is more useful
+    // there than a reflection-derived count would be.
+    // Count actual account DEFINITION rows only (['code' => '1234', 'name' => ...])
+    // — a naive substr_count("'code' =>") also matches the updateOrInsert() WHERE
+    // clause further down the same method (['tenant_id' => ..., 'code' =>
+    // $account['code']]), which would silently inflate this by one. Matching on
+    // the literal numeric-code array shape avoids that.
+    $seederSource = file_get_contents(
+        (new \ReflectionClass(\Database\Seeders\TenantDefaultSeeder::class))->getFileName()
+    );
+    $expectedAccountCount = preg_match_all(
+        "/\['code'\s*=>\s*'\d+'/",
+        $seederSource
+    );
+
+    $this->assertEquals($expectedAccountCount, DB::table('accounts')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(9, DB::table('settings')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(1, DB::table('warehouses')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(6, DB::table('expense_categories')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(1, DB::table('bank_accounts')->where('tenant_id', $tenant->id)->count());
+
+    // ai_settings is new as of this session (see TenantDefaultSeeder::seedAiSettings) —
+    // assert it's actually being seeded for new tenants now, closing the gap
+    // that caused AiEngineTest::isolates_ai_settings_per_tenant to fail.
+    $this->assertEquals(7, DB::table('ai_settings')->where('tenant_id', $tenant->id)->count());
 });
 
 test('ltd tier1 blocked after 1 store', function () {

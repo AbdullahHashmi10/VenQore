@@ -126,7 +126,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                                     store_slug: store.slug
                                 }) : "#"} className="min-w-0 group cursor-pointer block">
                                     <h2 className="text-base font-black text-white tracking-tight group-hover:text-indigo-400 transition-colors">Reports</h2>
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-400">Hub Access</p>
+                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-indigo-400">Hub Access</p>
                                 </Link>
                             )}
                             <button
@@ -150,7 +150,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                                             <button
                                                 type="button"
                                                 onClick={() => toggleGroup(idx)}
-                                                className={`w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
+                                                className={`w-full flex items-center justify-between px-3 py-1.5 text-3xs font-black uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <GroupIcon size={10} />
@@ -186,7 +186,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
 
                                                             {!sidebarCollapsed && (
                                                                 <div className="relative z-10 flex-1 min-w-0">
-                                                                    <p className={`text-[11px] font-bold tracking-tight ${isActive ? 'text-white' : 'text-slate-300'}`}>{report.title}</p>
+                                                                    <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-slate-300'}`}>{report.title}</p>
                                                                 </div>
                                                             )}
                                                         </Link>

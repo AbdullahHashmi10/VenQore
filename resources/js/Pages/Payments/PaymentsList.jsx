@@ -46,7 +46,7 @@ function PaymentRow({ item, type, store }) {
             {/* Party */}
             <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${isIn ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-2xs font-black shrink-0 ${isIn ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                             : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'
                         }`}>
                         {(item.party?.name || 'G')[0].toUpperCase()}
@@ -56,7 +56,7 @@ function PaymentRow({ item, type, store }) {
                             {item.party?.name || <span className="text-slate-400 italic">No party</span>}
                         </p>
                         {item.reference && (
-                            <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            <span className="text-2xs font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                                 {item.reference}
                             </span>
                         )}
@@ -65,7 +65,7 @@ function PaymentRow({ item, type, store }) {
             </td>
             {/* Method */}
             <td className="px-4 py-3">
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-2xs font-bold text-slate-600 dark:text-slate-400 uppercase">
                     <MethodIcon method={item.method} />
                     {item.method || '—'}
                 </span>
@@ -110,7 +110,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                         <p className="text-sm font-black text-slate-800 dark:text-white">
                             {isIn ? 'Payment In' : 'Payment Out'}
                         </p>
-                        <p className="text-[10px] text-slate-500">
+                        <p className="text-2xs text-slate-500">
                             {isIn ? 'Money received' : 'Money sent'}
                         </p>
                     </div>
@@ -119,7 +119,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                     <p className={`text-lg font-black tabular-nums ${accent.text}`}>
                         {formatCurrency(stats?.total || 0, store)}
                     </p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-2xs text-slate-400">
                         {payments.length} records · Today: {formatCurrency(stats?.today || 0, store)}
                     </p>
                 </div>
@@ -291,11 +291,11 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                                 <ArrowDownCircle size={15} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Received</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Received</p>
                                 <p className="text-base font-black text-emerald-600">{formatCurrency(totalIn, store)}</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-emerald-500">{formatCurrency(todayIn, store)}</span></p>
+                        <p className="text-2xs text-slate-400">Today: <span className="font-bold text-emerald-500">{formatCurrency(todayIn, store)}</span></p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
@@ -304,11 +304,11 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                                 <ArrowUpCircle size={15} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Paid Out</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Paid Out</p>
                                 <p className="text-base font-black text-rose-600">{formatCurrency(totalOut, store)}</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-rose-500">{formatCurrency(todayOut, store)}</span></p>
+                        <p className="text-2xs text-slate-400">Today: <span className="font-bold text-rose-500">{formatCurrency(todayOut, store)}</span></p>
                     </div>
 
                     <div className={`px-4 py-2.5 rounded-xl border shadow-sm flex items-center justify-between ${netFlow >= 0
@@ -320,13 +320,13 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                                 {netFlow >= 0 ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Net Cash Flow</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">Net Cash Flow</p>
                                 <p className={`text-base font-black tabular-nums ${netFlow >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
                                     {netFlow >= 0 ? '+' : '−'} {formatCurrency(Math.abs(netFlow), store)}
                                 </p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">{filteredIn.length + filteredOut.length} transactions</p>
+                        <p className="text-2xs text-slate-400">{filteredIn.length + filteredOut.length} transactions</p>
                     </div>
                 </div>
 
@@ -338,7 +338,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                             <button
                                 key={p.val}
                                 onClick={() => handlePeriod(p.val)}
-                                className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${period === p.val
+                                className={`px-3 py-1 text-2xs font-bold uppercase rounded-full transition-all ${period === p.val
                                         ? 'bg-indigo-600 text-white shadow-sm'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                                     }`}

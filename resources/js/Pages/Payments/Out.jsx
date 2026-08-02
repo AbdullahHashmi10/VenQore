@@ -86,13 +86,13 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
         const bal = parseFloat(selectedParty.current_balance || 0);
         const dir = selectedParty.balance_direction || (bal > 0 ? 'To Receive' : bal < 0 ? 'To Pay' : 'Settled');
         if (Math.abs(bal) < 0.01) return (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-bold">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-2xs font-bold">
                 <Minus size={10} /> Settled
             </span>
         );
         const isReceive = dir === 'To Receive';
         return (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${isReceive ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold ${isReceive ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
                 {isReceive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                 {dir}: {formatCurrency(Math.abs(bal), store?.currency_symbol)}
             </span>
@@ -130,7 +130,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
                         </div>
                         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedParty.name}</span>
                         {selectedParty.type && (
-                            <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${selectedParty.type === 'customer' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                            <span className={`text-3xs font-bold uppercase px-1.5 py-0.5 rounded-full ${selectedParty.type === 'customer' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                                 {selectedParty.type}
                             </span>
                         )}
@@ -159,14 +159,14 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{party.name}</p>
-                                    <p className="text-[10px] text-slate-400 truncate">{party.phone || party.email || party.type}</p>
+                                    <p className="text-2xs text-slate-400 truncate">{party.phone || party.email || party.type}</p>
                                 </div>
                                 {!settled && (
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${dir === 'To Receive' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                    <span className={`text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${dir === 'To Receive' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                                         {dir}: {formatCurrency(Math.abs(bal), store?.currency_symbol)}
                                     </span>
                                 )}
-                                {settled && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">Settled</span>}
+                                {settled && <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">Settled</span>}
                             </button>
                         );
                     })}
@@ -281,7 +281,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
 
                             {/* Party Search */}
                             <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                                <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                                     Pay To <span className="text-red-500">*</span>
                                 </label>
                                 <PartySearchField
@@ -295,7 +295,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                             {/* Date + Amount */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                                         Date <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -310,7 +310,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                     {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date[0]}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                                         Amount <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -329,7 +329,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
 
                             {/* Payment Method Selector */}
                             <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                                <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                                     Payment Method <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-4 gap-2">
@@ -340,7 +340,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                                 key={m.value}
                                                 type="button"
                                                 onClick={() => setFormData(p => ({ ...p, payment_method: m.value }))}
-                                                className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border-2 transition-all text-[10px] font-bold uppercase ${isSelected
+                                                className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border-2 transition-all text-2xs font-bold uppercase ${isSelected
                                                     ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400'
                                                     : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50 dark:bg-slate-800/40'
                                                     }`}
@@ -356,7 +356,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                             {/* Bank Account (conditional) */}
                             {formData.payment_method === 'bank' && (
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Bank Account</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Bank Account</label>
                                     <select
                                         value={formData.bank_account_id}
                                         onChange={e => setFormData(p => ({ ...p, bank_account_id: e.target.value }))}
@@ -371,7 +371,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                             {/* Reference + Description */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Reference No.</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Reference No.</label>
                                     <div className="relative">
                                         <Hash size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input
@@ -384,7 +384,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Description</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Description</label>
                                     <div className="relative">
                                         <FileText size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input

@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function CustomerInsights({ data = [], stats = [], filters = {} }) {
     const { store } = usePage().props;
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -57,7 +58,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
     // Top 5 Customers by spend for Bar Chart
     const chartData = useMemo(() => {
-        const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899'];
+        const COLORS = [vq.indigo[500], vq.violet[500], vq.purple[500], vq.fuchsia[500], vq.pink[500]];
         return [...data]
             .sort((a, b) => (b.total_spend || 0) - (a.total_spend || 0))
             .slice(0, 5)
@@ -121,13 +122,13 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                     <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
                         <Calendar size={15} className="text-slate-400 ml-1.5" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Period:</span>
+                        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wide">Period:</span>
                         <div className="flex bg-slate-100 dark:bg-slate-900/50 p-0.5 rounded-lg">
                             {[{ id: 'today', label: 'Today' }, { id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    className={`px-2.5 py-1 rounded text-2xs font-black uppercase tracking-wider transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
                                     {opt.label}
                                 </button>
@@ -160,7 +161,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                         return (
                             <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
                                     <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">{valPrefix}{s.value}</h3>
                                 </div>
                                 <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
@@ -211,18 +212,18 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                         >
                                             <td className="px-6 py-3.5">
                                                 <div className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{row.party_name}</div>
-                                                <div className="text-[9px] text-slate-400 font-mono mt-0.5">Last Active: {row.last_purchase_at || 'N/A'}</div>
+                                                <div className="text-3xs text-slate-400 font-mono mt-0.5">Last Active: {row.last_purchase_at || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-3.5 text-right font-mono font-semibold text-slate-500">{row.invoice_count}</td>
                                             <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-800 dark:text-slate-200">
                                                 {formatCurrency(row.total_spend, store)}
-                                                <span className="block text-[10px] text-slate-400 font-sans font-medium">Avg: {formatCurrency(row.avg_invoice_value, store)}</span>
+                                                <span className="block text-2xs text-slate-400 font-sans font-medium">Avg: {formatCurrency(row.avg_invoice_value, store)}</span>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <div className="text-[10px] font-bold text-indigo-500 flex items-center gap-1">
+                                                <div className="text-2xs font-bold text-indigo-500 flex items-center gap-1">
                                                     <Award size={10} /> {row.favorite_category || 'N/A'}
                                                 </div>
-                                                <div className="text-[9px] text-slate-400 italic mt-0.5 truncate w-36">Top: {row.most_bought_item || 'N/A'}</div>
+                                                <div className="text-3xs text-slate-400 italic mt-0.5 truncate w-36">Top: {row.most_bought_item || 'N/A'}</div>
                                             </td>
                                         </tr>
                                     ))}
@@ -240,10 +241,10 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             <div className="flex-1 relative">
                                 <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
                                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} className="dark:stroke-slate-800" />
                                         <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} />
                                         <YAxis tick={{ fontSize: 9 }} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                             {chartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -282,18 +283,18 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 space-y-2">
                                     <h4 className="text-xs font-bold text-indigo-300 mb-0.5 flex items-center gap-2"><Award size={12} /> Top Spender</h4>
-                                    <p className="text-[11px] text-slate-300">
+                                    <p className="text-1xs text-slate-300">
                                         Your top buyer in this period is <strong className="text-white">{vipCustomers[0]?.party_name || 'N/A'}</strong> with a total spend of <strong className="text-emerald-400">{formatCurrency(vipCustomers[0]?.total_spend || 0, store)}</strong>.
                                     </p>
                                 </div>
 
                                 <div className="space-y-2 pt-2 border-t border-white/10">
-                                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Top Spenders (VIP Cluster)</h4>
+                                    <h4 className="text-2xs font-black uppercase text-slate-400 tracking-wider">Top Spenders (VIP Cluster)</h4>
                                     {vipCustomers.map((c, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => handleSelectCustomer(c)}
-                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-[11px] transition-all cursor-pointer group"
+                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-1xs transition-all cursor-pointer group"
                                         >
                                             <span className="text-slate-300 font-medium truncate w-32 group-hover:text-indigo-400">{c.party_name}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(c.total_spend, store)}</span>
@@ -302,7 +303,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-[10px] text-slate-400">
+                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-2xs text-slate-400">
                                 Displays live ledger summaries. Click on any row to open the complete invoice log and itemized purchase breakdown.
                             </div>
                         </div>
@@ -319,7 +320,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                 <div className="relative z-10 flex justify-between items-center">
                                     <div className="space-y-1">
-                                        <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                        <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
                                             Spender Profile Analysis
                                         </span>
                                         <h2 className="text-2xl font-black tracking-tight mt-1">{selectedCustomer.party_name}</h2>
@@ -382,7 +383,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                                                     <td className="py-2.5 px-3 text-slate-500 font-mono">{inv.date}</td>
                                                                     <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-250">
                                                                         {inv.invoice_no}
-                                                                        <span className={`inline-block ml-2 px-1 text-[8px] rounded uppercase font-black ${inv.status === 'posted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/20'}`}>{inv.status}</span>
+                                                                        <span className={`inline-block ml-2 px-1 text-4xs rounded uppercase font-black ${inv.status === 'posted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20' : 'bg-amber-100 text-amber-600 dark:bg-amber-950/20'}`}>{inv.status}</span>
                                                                     </td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(inv.amount, store)}</td>
                                                                 </tr>
@@ -415,7 +416,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                                                 <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
                                                                     <td className="py-2.5 px-3">
                                                                         <span className="font-bold text-slate-700 dark:text-slate-250 block">{item.name}</span>
-                                                                        <span className="text-[9px] text-slate-400 font-mono">{item.sku}</span>
+                                                                        <span className="text-3xs text-slate-400 font-mono">{item.sku}</span>
                                                                     </td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-500">{item.quantity}</td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(item.total_spent, store)}</td>

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     BarChart,
     Bar,
@@ -286,7 +287,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                                     {processedTransactions.map((item, idx) => (
                                         <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
                                             <td className="p-3">
-                                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${item.flow === 'in'
+                                                <span className={`text-2xs font-bold uppercase px-2 py-1 rounded-full ${item.flow === 'in'
                                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                         : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
                                                     }`}>
@@ -352,15 +353,15 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                     <BarChart data={chartData} margin={{ left: 0, right: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
                                         <Tooltip
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                            cursor={{ fill: '#f1f5f9', opacity: 0.4 }}
+                                            cursor={{ fill: vq.slate[100], opacity: 0.4 }}
                                             formatter={(value) => formatCurrency(value, store)}
                                         />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                             {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={['#6366f1', '#ec4899', '#10b981', '#f59e0b'][index % 4]} />
+                                                <Cell key={`cell-${index}`} fill={[vq.indigo[500], vq.pink[500], vq.emerald[500], vq.amber[500]][index % 4]} />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -382,7 +383,7 @@ function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', 
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                     {prefix}{isCurrency ? formatCurrency(value || 0, store) : (value || 0)}
                 </h3>
-                {subtext && <p className="text-[10px] text-slate-400 mt-1">{subtext}</p>}
+                {subtext && <p className="text-2xs text-slate-400 mt-1">{subtext}</p>}
             </div>
             <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform`}>
                 {icon}

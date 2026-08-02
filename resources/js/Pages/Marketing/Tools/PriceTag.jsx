@@ -208,7 +208,7 @@ export default function PriceTagTool({
             <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
                 <div className="w-56">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
+                    <p className="text-2xs text-slate-500 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
                 </div>
                 <div className="w-40">
                     <Select value={currencySymbol} onChange={setCurrencySymbol} options={CURRENCIES} />
@@ -265,12 +265,12 @@ export default function PriceTagTool({
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Nothing sent until you download</span>
+                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">Nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={buildPdf}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -294,12 +294,12 @@ export default function PriceTagTool({
                         />
                     </div>
                     <div className="flex items-center justify-between">
-                        <p className="text-xs text-slate-400">Lines starting with 'name,price' headers are auto-skipped. Parsing loads the grid below.</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Lines starting with 'name,price' headers are auto-skipped. Parsing loads the grid below.</p>
                         <button
                             type="button"
                             onClick={parseBulk}
                             disabled={parsing || !bulkText.trim()}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40"
                         >
                             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             Parse & Load Grid
@@ -325,7 +325,7 @@ export default function PriceTagTool({
                                             onChange={(v) => updateTag(row.id, 'badge', v)}
                                             placeholder="badge"
                                             emptyLabel=""
-                                            className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${row.badge ? 'bg-red-500 text-white' : 'text-transparent'}`}
+                                            className={`text-3xs font-bold uppercase px-1.5 py-0.5 rounded-full ${row.badge ? 'bg-red-500 text-white' : 'text-transparent'}`}
                                         />
                                     </div>
 
@@ -334,7 +334,7 @@ export default function PriceTagTool({
                                         type="button"
                                         onClick={() => removeTag(row.id)}
                                         disabled={rows.length <= 1}
-                                        className="absolute -top-2 -left-2 opacity-0 group-hover:opacity-100 disabled:opacity-0 bg-white border border-slate-200 rounded-full p-1 text-slate-400 hover:text-red-500 shadow-sm transition-opacity z-10"
+                                        className="absolute -top-2 -left-2 opacity-0 group-hover:opacity-100 disabled:opacity-0 bg-white border border-slate-200 rounded-full p-1 text-slate-500 dark:text-slate-400 hover:text-red-500 shadow-sm transition-opacity z-10"
                                         title="Remove tag"
                                     >
                                         <Trash2 size={11} />
@@ -346,7 +346,7 @@ export default function PriceTagTool({
                                         value={row.name}
                                         onChange={(v) => updateTag(row.id, 'name', v)}
                                         placeholder="Product name"
-                                        className="block text-[11px] font-bold leading-tight pr-8 mb-0.5"
+                                        className="block text-1xs font-bold leading-tight pr-8 mb-0.5"
                                     />
 
                                     {/* SKU */}
@@ -356,7 +356,7 @@ export default function PriceTagTool({
                                         onChange={(v) => updateTag(row.id, 'sku', v)}
                                         placeholder="SKU"
                                         emptyLabel="SKU"
-                                        className="block text-[9px] text-slate-400 font-mono mt-1 mb-0.5"
+                                        className="block text-3xs text-slate-500 dark:text-slate-400 font-mono mt-1 mb-0.5"
                                     />
 
                                     {/* Price box */}
@@ -367,7 +367,7 @@ export default function PriceTagTool({
                                                 value={row.was_price}
                                                 onChange={(v) => updateTag(row.id, 'was_price', v)}
                                                 formatDisplay={fmtMoney}
-                                                className="text-[10px] text-slate-400 line-through"
+                                                className="text-2xs text-slate-500 dark:text-slate-400 line-through"
                                             />
                                         )}
                                         <EditableText
@@ -383,7 +383,7 @@ export default function PriceTagTool({
                                         <button
                                             type="button"
                                             onClick={() => updateTag(row.id, 'was_price', row.price || '0.00')}
-                                            className="mt-0.5 text-[9px] text-slate-300 hover:text-indigo-500 underline"
+                                            className="mt-0.5 text-3xs text-slate-600 dark:text-slate-300 hover:text-indigo-500 underline"
                                         >
                                             + was price
                                         </button>
@@ -396,10 +396,10 @@ export default function PriceTagTool({
                                                 key={b}
                                                 type="button"
                                                 onClick={() => updateTag(row.id, 'badge', row.badge === b ? '' : b)}
-                                                className={`text-[8px] font-bold px-1 py-0.5 rounded transition-colors ${
+                                                className={`text-4xs font-bold px-1 py-0.5 rounded transition-colors ${
                                                     row.badge === b
                                                         ? 'bg-red-500 text-white'
-                                                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                                        : 'bg-slate-100 text-slate-500 dark:text-slate-400 hover:bg-slate-200'
                                                 }`}
                                             >
                                                 {b}
@@ -421,18 +421,18 @@ export default function PriceTagTool({
                             type="button"
                             onClick={addTag}
                             disabled={rows.length >= maxRows}
-                            className="flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 min-h-[92px] text-slate-400 hover:text-indigo-500 hover:border-indigo-300 transition-colors disabled:opacity-40"
+                            className="flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 min-h-[92px] text-slate-500 dark:text-slate-400 hover:text-indigo-500 hover:border-indigo-300 transition-colors disabled:opacity-40"
                         >
                             <Plus size={18} />
-                            <span className="text-[10px] font-bold uppercase tracking-wide">Add tag</span>
+                            <span className="text-2xs font-bold uppercase tracking-wide">Add tag</span>
                         </button>
                     </div>
 
-                    <p className="text-[11px] text-slate-400 text-center mt-4">{rows.length} / {maxRows} tags — click any field on a tag to edit it</p>
+                    <p className="text-1xs text-slate-500 dark:text-slate-400 text-center mt-4">{rows.length} / {maxRows} tags — click any field on a tag to edit it</p>
                 </div>
             )}
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 This preview matches your downloaded PDF sheet layout — click anything above to edit it. Print at 100% / "Actual size".
             </p>
         </ToolShell>

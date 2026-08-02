@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+import { vq } from '@/theme/runtime';
 export default function HealthWidget() {
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
@@ -49,7 +50,7 @@ export default function HealthWidget() {
             padding: '24px',
             backdropFilter: 'blur(16px)',
             boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-            color: '#f8fafc',
+            color: vq.slate[50],
             transition: 'all 0.3s ease'
         }}>
             
@@ -135,25 +136,25 @@ export default function HealthWidget() {
                                     </div>
                                     <div>
                                         <div className="text-xs font-bold text-slate-200">{config.name}</div>
-                                        <div className="text-[10px] text-slate-500 mt-0.5">{config.desc}</div>
+                                        <div className="text-2xs text-slate-500 mt-0.5">{config.desc}</div>
                                     </div>
                                 </div>
 
                                 {result ? (
                                     result.ok ? (
-                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">PASS</span>
+                                        <span className="text-2xs font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">PASS</span>
                                     ) : (
-                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md">FAIL</span>
+                                        <span className="text-2xs font-bold px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md">FAIL</span>
                                     )
                                 ) : (
-                                    <span className="text-[10px] text-slate-600 font-bold">...</span>
+                                    <span className="text-2xs text-slate-600 font-bold">...</span>
                                 )}
                             </div>
 
                             {result && (
                                 <div style={{ 
                                     fontSize: '11px', 
-                                    color: result.ok ? '#94a3b8' : '#f87171', 
+                                    color: result.ok ? vq.slate[400] : vq.red[400], 
                                     lineHeight: '1.4',
                                     marginTop: '8px',
                                     borderTop: '1px solid rgba(255, 255, 255, 0.04)',
@@ -169,7 +170,7 @@ export default function HealthWidget() {
 
             {/* Footer timestamp */}
             {checkedAt && (
-                <div className="text-right text-[10px] text-slate-500 font-mono mt-4">
+                <div className="text-right text-2xs text-slate-500 font-mono mt-4">
                     Diagnostics refreshed at: {new Date(checkedAt).toLocaleString()}
                 </div>
             )}

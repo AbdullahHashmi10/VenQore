@@ -119,7 +119,7 @@ export default function Error({ status = 500, message }) {
                 </div>
 
                 {/* Ref code */}
-                <p className="text-center mt-4 text-[11px] text-slate-400 dark:text-slate-600 font-mono">
+                <p className="text-center mt-4 text-1xs text-slate-400 dark:text-slate-600 font-mono">
                     REF · {Date.now().toString(36).toUpperCase()}
                 </p>
             </div>

@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { Head, Link } from '@inertiajs/react';
+import { vq } from '@/theme/runtime';
 import MarketingLayout, {
     RevealOnScroll, MagneticButton, SectionLabel
 } from './Shared/MarketingLayout';
 import {
     AlertTriangle, ArrowRight, BarChart3, Bot, Boxes, Brain, Calculator, Check,
     CheckCircle2, ChevronRight, Cpu, Factory, Gauge, Globe, Layers, Loader2, Lock,
-    Mic, Minus, Package, Plus, Receipt, RefreshCw, Repeat, ScanBarcode, Search,
-    ShoppingCart, Sparkles, Trash2, TrendingUp, Truck, Upload, Wallet, Warehouse, X
+    Mic, Minus, Package, Percent, Plus, Receipt, RefreshCw, Repeat, ScanBarcode,
+    Search, ShieldCheck, ShoppingCart, Sparkles, Target, Trash2, TrendingDown,
+    TrendingUp, Truck, Upload, Users, Wallet, Warehouse, X
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -16,669 +19,17 @@ import {
    Nothing here saves data — it's a guided simulation of the actual UI.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── local hooks ─────────────────────────────────────────────────────────── */
-function usePRM() {
-    const [r, setR] = useState(false);
-    useEffect(() => {
-        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-        const on = () => setR(mq.matches); on();
-        mq.addEventListener?.('change', on);
-        return () => mq.removeEventListener?.('change', on);
-    }, []);
-    return r;
-}
-function useInView(threshold = 0.25) {
-    const ref = useRef(null);
-    const [v, setV] = useState(false);
-    useEffect(() => {
-        const el = ref.current; if (!el) return;
-        const o = new IntersectionObserver(([e]) => setV(e.isIntersecting), { threshold });
-        o.observe(el); return () => o.disconnect();
-    }, [threshold]);
-    return [ref, v];
-}
-const group = (n, d = 0) => {
-    const v = d > 0 ? Number(n).toFixed(d) : String(Math.round(n));
-    const [i, dec] = v.split('.');
-    const gi = i.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return dec ? `${gi}.${dec}` : gi;
-};
-/* animated, grouped number */
-const Num = ({ end, prefix = '', suffix = '', d = 0, dur = 1600 }) => {
-    const reduced = usePRM();
-    const [val, setVal] = useState(0);
-    const [ref, v] = useInView(0.4);
-    const ran = useRef(false);
-    useEffect(() => {
-        if (!v || ran.current) return; ran.current = true;
-        if (reduced) { setVal(end); return; }
-        const s = performance.now();
-        const tick = (now) => {
-            const p = Math.min((now - s) / dur, 1);
-            setVal((1 - Math.pow(1 - p, 4)) * end);
-            if (p < 1) requestAnimationFrame(tick); else setVal(end);
-        };
-        requestAnimationFrame(tick);
-    }, [v, reduced, end, dur]);
-    return <span ref={ref}>{prefix}{group(val, d)}{suffix}</span>;
-};
-
-/* ── App-window frame that wraps each simulated product screen ────────────── */
-const ACCENTS = {
-    indigo: 'text-indigo-300', emerald: 'text-emerald-300', violet: 'text-violet-300',
-    blue: 'text-blue-300', amber: 'text-amber-300', cyan: 'text-cyan-300',
-};
-function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', children }) {
-    return (
-        <div className="relative rounded-[1.5rem] border border-white/[0.08] bg-[#0a0820]/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-                <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-rose-400/70" />
-                    <span className="w-3 h-3 rounded-full bg-amber-400/70" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-400/70" />
-                </div>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
-                    <Lock size={10} className="text-slate-500" />
-                    <span className="text-[10px] font-mono text-slate-400">{url}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vqf-blink" />
-                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${ACCENTS[accent] || ACCENTS.indigo}`}>{badge}</span>
-                </div>
-            </div>
-            <div className="p-4 sm:p-6">{children}</div>
-        </div>
-    );
-}
-
-/* small reusable pill tabs */
-const PillTabs = ({ tabs, value, onChange, size = 'sm' }) => (
-    <div className="inline-flex bg-white/[0.04] p-0.5 rounded-lg">
-        {tabs.map(t => (
-            <button key={t} onClick={() => onChange(t)}
-                className={`${size === 'sm' ? 'px-2.5 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'} font-bold rounded-md transition-all ${value === t ? 'bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>
-                {t}
-            </button>
-        ))}
-    </div>
-);
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 1 · PROFIT & LOSS REPORT  (the hero report)
-   ═══════════════════════════════════════════════════════════════════════════ */
-const PL_SETS = {
-    'This Month': { rev: 1245670, cogs: 473355, exp: 287400 },
-    'Last Month': { rev: 1086400, cogs: 423700, exp: 271500 },
-    'This Year':  { rev: 13980500, cogs: 5312000, exp: 3140000 },
-};
-const Donut = ({ segments, size = 132 }) => {
-    const reduced = usePRM();
-    const [ref, v] = useInView(0.4);
-    const r = (size - 16) / 2, C = 2 * Math.PI * r, total = segments.reduce((s, x) => s + x.value, 0) || 1;
-    let acc = 0;
-    return (
-        <div ref={ref} className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-            <svg width={size} height={size} className="-rotate-90">
-                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
-                {segments.map((s, i) => {
-                    const frac = s.value / total, len = frac * C, off = acc; acc += len;
-                    return <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none" stroke={s.color} strokeWidth="12"
-                        strokeDasharray={`${(reduced || v) ? len : 0} ${C}`} strokeDashoffset={-off}
-                        style={{ transition: reduced ? 'none' : `stroke-dasharray 1.1s cubic-bezier(0.22,1,0.36,1) ${i * 0.18}s` }} />;
-                })}
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Net Margin</span>
-                <span className="text-xl font-black text-emerald-400">{((segments[2].value / total) * 100).toFixed(0)}%</span>
-            </div>
-        </div>
-    );
-};
-const ProfitLossDemo = () => {
-    const [range, setRange] = useState('This Month');
-    const [phase, setPhase] = useState('idle'); // idle | analyzing | done
-    const s = PL_SETS[range];
-    const gross = s.rev - s.cogs, net = gross - s.exp;
-    const gm = ((gross / s.rev) * 100).toFixed(1), nm = ((net / s.rev) * 100).toFixed(1);
-    const analyze = () => { setPhase('analyzing'); setTimeout(() => setPhase('done'), 1700); };
-    useEffect(() => { setPhase('idle'); }, [range]);
-    const kpis = [
-        { l: 'Revenue', v: s.rev, c: 'text-white', ic: TrendingUp, tone: 'text-indigo-300 bg-indigo-500/15' },
-        { l: 'COGS (FIFO)', v: s.cogs, c: 'text-amber-300', ic: Package, tone: 'text-amber-300 bg-amber-500/15' },
-        { l: 'Expenses', v: s.exp, c: 'text-rose-300', ic: Receipt, tone: 'text-rose-300 bg-rose-500/15' },
-        { l: 'Net Profit', v: net, c: 'text-emerald-300', ic: Wallet, tone: 'text-emerald-300 bg-emerald-500/15' },
-    ];
-    return (
-        <DemoFrame title="Profit & Loss" url="app.venqore.com/reports/profit-loss" accent="emerald">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-emerald-500" />
-                    <div>
-                        <div className="text-[15px] font-black text-white tracking-tight">Profit &amp; Loss Statement</div>
-                        <div className="text-[10px] text-slate-500">Verified from the double-entry ledger</div>
-                    </div>
-                </div>
-                <PillTabs tabs={['This Month', 'Last Month', 'This Year']} value={range} onChange={setRange} size="md" />
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-                {kpis.map((k) => (
-                    <div key={k.l} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-1.5 rounded-lg ${k.tone}`}><k.ic size={13} /></div>
-                            <span className="text-[9px] font-black uppercase tracking-wide text-slate-500">{k.l}</span>
-                        </div>
-                        <div className={`text-base sm:text-lg font-black tabular-nums ${k.c}`}>$<Num end={k.v} /></div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 flex items-center gap-4">
-                    <Donut segments={[
-                        { name: 'COGS', value: s.cogs, color: '#f59e0b' },
-                        { name: 'Expenses', value: s.exp, color: '#ef4444' },
-                        { name: 'Net', value: Math.max(0, net), color: '#10b981' },
-                    ]} />
-                    <div className="space-y-2 text-[11px]">
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /><span className="text-slate-400">COGS</span><span className="ml-auto text-slate-300 font-bold">{((s.cogs / s.rev) * 100).toFixed(0)}%</span></div>
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500" /><span className="text-slate-400">Expenses</span><span className="ml-auto text-slate-300 font-bold">{((s.exp / s.rev) * 100).toFixed(0)}%</span></div>
-                        <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-slate-400">Net Profit</span><span className="ml-auto text-emerald-300 font-bold">{nm}%</span></div>
-                        <div className="pt-1 mt-1 border-t border-white/5 flex items-center gap-2"><span className="text-slate-500">Gross margin</span><span className="ml-auto text-white font-bold">{gm}%</span></div>
-                    </div>
-                </div>
-
-                <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-300" /><span className="text-[13px] font-bold text-white">AI Analysis</span></div>
-                        {phase !== 'done' && (
-                            <button onClick={analyze} disabled={phase === 'analyzing'}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-400/30 text-violet-200 text-[11px] font-bold hover:bg-violet-500/25 transition-colors disabled:opacity-60">
-                                {phase === 'analyzing' ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</> : <><Brain size={12} /> Analyze with AI</>}
-                            </button>
-                        )}
-                    </div>
-                    {phase === 'idle' && <p className="text-slate-500 text-[12px] leading-relaxed">Click <span className="text-violet-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
-                    {phase === 'analyzing' && (
-                        <div className="space-y-2 animate-pulse">
-                            <div className="h-3 w-3/4 bg-white/5 rounded" /><div className="h-3 w-2/3 bg-white/5 rounded" /><div className="h-3 w-1/2 bg-white/5 rounded" />
-                        </div>
-                    )}
-                    {phase === 'done' && (
-                        <div className="vqf-in space-y-2.5">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="text-2xl font-black text-emerald-400">{Math.round(parseFloat(nm) + 50)}<span className="text-sm text-slate-500">/100</span></div>
-                                <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded-full">Financially Healthy</span>
-                            </div>
-                            {[
-                                { ic: CheckCircle2, c: 'text-emerald-400', t: 'Strong gross margin', d: `At ${gm}%, your product pricing leaves healthy room for overheads.` },
-                                { ic: AlertTriangle, c: 'text-amber-400', t: 'Watch overheads', d: `Expenses are ${((s.exp / s.rev) * 100).toFixed(0)}% of revenue — trim toward the 30% benchmark.` },
-                                { ic: TrendingUp, c: 'text-indigo-400', t: 'Reinvest to grow', d: 'You are profitable — consider routing 20% of net profit into marketing.' },
-                            ].map((x, i) => (
-                                <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/[0.02] border border-white/5">
-                                    <x.ic size={15} className={`${x.c} mt-0.5 shrink-0`} />
-                                    <div><div className="text-[12px] font-bold text-slate-200">{x.t}</div><div className="text-[11px] text-slate-500 leading-snug">{x.d}</div></div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </DemoFrame>
-    );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 2 · POS — simulated invoice builder
-   ═══════════════════════════════════════════════════════════════════════════ */
-const POS_PRODUCTS = [
-    { id: 1, e: '🥤', n: 'Cola 500ml', p: 80 }, { id: 2, e: '🍫', n: 'Dark Choco', p: 120 },
-    { id: 3, e: '🧴', n: 'Hand Wash', p: 210 }, { id: 4, e: '🍞', n: 'Bread Loaf', p: 95 },
-    { id: 5, e: '🥛', n: 'Milk 1L', p: 160 }, { id: 6, e: '🧃', n: 'Mango Juice', p: 140 },
-    { id: 7, e: '☕', n: 'Coffee Jar', p: 540 }, { id: 8, e: '🍪', n: 'Cookies', p: 110 },
-];
-const PosInvoiceDemo = () => {
-    const [cart, setCart] = useState([{ ...POS_PRODUCTS[0], q: 2 }, { ...POS_PRODUCTS[3], q: 1 }]);
-    const [pay, setPay] = useState('Cash');
-    const [done, setDone] = useState(false);
-    const add = (p) => setCart(c => { const f = c.find(x => x.id === p.id); return f ? c.map(x => x.id === p.id ? { ...x, q: x.q + 1 } : x) : [...c, { ...p, q: 1 }]; });
-    const dec = (id) => setCart(c => c.flatMap(x => x.id === id ? (x.q > 1 ? [{ ...x, q: x.q - 1 }] : []) : [x]));
-    const del = (id) => setCart(c => c.filter(x => x.id !== id));
-    const sub = cart.reduce((s, x) => s + x.p * x.q, 0);
-    const tax = Math.round(sub * 0.05), total = sub + tax;
-    return (
-        <DemoFrame title="POS" url="app.venqore.com/pos" accent="indigo">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* product grid */}
-                <div className="lg:col-span-3">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="relative flex-1 max-w-xs">
-                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                            <div className="w-full pl-8 pr-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] text-slate-500">Scan barcode or search…</div>
-                        </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 ml-3 hidden sm:block">F1 Search · F4 Pay</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {POS_PRODUCTS.map(p => (
-                            <button key={p.id} onClick={() => add(p)}
-                                className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left hover:border-indigo-400/40 hover:bg-indigo-500/10 transition-all active:scale-95">
-                                <div className="text-xl mb-1.5 group-hover:scale-110 transition-transform">{p.e}</div>
-                                <div className="text-[11px] font-bold text-slate-200 truncate">{p.n}</div>
-                                <div className="text-[11px] font-black text-indigo-300">Rs {p.p}</div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                {/* cart */}
-                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-3 flex flex-col">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Cart</span>
-                        <span className="text-[10px] text-slate-500">{cart.reduce((s, x) => s + x.q, 0)} items</span>
-                    </div>
-                    {done ? (
-                        <div className="flex-1 flex flex-col items-center justify-center py-8 vqf-in">
-                            <div className="w-14 h-14 rounded-full bg-emerald-500/15 flex items-center justify-center mb-3"><Check size={28} className="text-emerald-400" /></div>
-                            <div className="text-white font-black">Sale completed</div>
-                            <div className="text-[11px] text-slate-500 mb-1">Journal posted · stock deducted (FIFO)</div>
-                            <div className="text-[11px] text-emerald-400 font-mono">Rs {group(total)} · {pay}</div>
-                            <button onClick={() => { setDone(false); setCart([{ ...POS_PRODUCTS[0], q: 2 }]); }} className="mt-4 text-[11px] font-bold text-indigo-300 hover:underline">New sale</button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="flex-1 space-y-1.5 min-h-[120px] max-h-[180px] overflow-y-auto pr-1">
-                                {cart.length === 0 && <div className="text-center text-[11px] text-slate-600 py-10">Tap a product to add</div>}
-                                {cart.map(x => (
-                                    <div key={x.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/5">
-                                        <span className="text-base">{x.e}</span>
-                                        <div className="min-w-0 flex-1"><div className="text-[11px] font-bold text-slate-200 truncate">{x.n}</div><div className="text-[10px] text-slate-500">Rs {x.p}</div></div>
-                                        <div className="flex items-center gap-1">
-                                            <button onClick={() => dec(x.id)} className="w-5 h-5 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300"><Minus size={11} /></button>
-                                            <span className="w-5 text-center text-[11px] font-bold text-white tabular-nums">{x.q}</span>
-                                            <button onClick={() => add(x)} className="w-5 h-5 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300"><Plus size={11} /></button>
-                                            <button onClick={() => del(x.id)} className="w-5 h-5 rounded bg-rose-500/10 hover:bg-rose-500/20 flex items-center justify-center text-rose-400 ml-0.5"><Trash2 size={11} /></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-2 pt-2 border-t border-white/5 space-y-1 text-[11px]">
-                                <div className="flex justify-between text-slate-400"><span>Subtotal</span><span className="tabular-nums">Rs {group(sub)}</span></div>
-                                <div className="flex justify-between text-slate-400"><span>VAT 5%</span><span className="tabular-nums">Rs {group(tax)}</span></div>
-                                <div className="flex justify-between text-white font-black text-sm pt-0.5"><span>Total</span><span className="tabular-nums">Rs {group(total)}</span></div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-1.5 mt-2.5">
-                                {['Cash', 'Card', 'Split'].map(m => (
-                                    <button key={m} onClick={() => setPay(m)} className={`py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide border transition-all ${pay === m ? 'bg-indigo-500/20 border-indigo-400/50 text-indigo-200' : 'bg-white/[0.03] border-white/10 text-slate-500'}`}>{m}</button>
-                                ))}
-                            </div>
-                            <button onClick={() => cart.length && setDone(true)} className="mt-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#05130c] font-black text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2 disabled:opacity-50" disabled={!cart.length}>
-                                <CheckCircle2 size={15} /> Complete Sale
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-        </DemoFrame>
-    );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 3 · SMART CAPTURE — image / audio → AI draft (Bring-Your-Own-Key)
-   ═══════════════════════════════════════════════════════════════════════════ */
-const SC_IMAGE = {
-    action: 'Purchase', supplier: 'Khan Distributors', date: 'Today',
-    items: [
-        { n: 'Cola 500ml (×24 case)', sku: 'BEV-COLA-500', qty: 5, price: 1680 },
-        { n: 'Dark Choco Bar', sku: 'SNK-CHOCO-01', qty: 40, price: 78 },
-        { n: 'Mango Juice 1L', sku: 'BEV-MNGO-1L', qty: 12, price: 132 },
-    ],
-};
-const SC_AUDIO = {
-    action: 'Sale', party: 'Bilal General Store (Credit)',
-    transcript: '“Sold three Cola, two Hand Wash and one Coffee jar to Bilal on credit.”',
-    items: [
-        { n: 'Cola 500ml', sku: 'BEV-COLA-500', qty: 3, price: 80 },
-        { n: 'Hand Wash', sku: 'CARE-HW-01', qty: 2, price: 210 },
-        { n: 'Coffee Jar', sku: 'BEV-COFF-JR', qty: 1, price: 540 },
-    ],
-};
-const Waveform = ({ active }) => (
-    <div className="flex items-end gap-1 h-10">
-        {Array.from({ length: 28 }).map((_, i) => (
-            <span key={i} className={`w-1 rounded-full ${active ? 'bg-violet-400 vqf-wave' : 'bg-white/15'}`}
-                style={{ height: active ? undefined : '20%', animationDelay: `${(i % 7) * 0.09}s` }} />
-        ))}
-    </div>
-);
-const SmartCaptureDemo = () => {
-    const reduced = usePRM();
-    const [tab, setTab] = useState('Image');
-    const [phase, setPhase] = useState('idle'); // idle | working | extracted | confirmed
-    const [t, setT] = useState(0);
-    const data = tab === 'Image' ? SC_IMAGE : SC_AUDIO;
-    useEffect(() => { setPhase('idle'); setT(0); }, [tab]);
-    useEffect(() => {
-        if (phase !== 'working') return;
-        if (tab === 'Audio') { const iv = setInterval(() => setT(x => x + 1), 900); return () => clearInterval(iv); }
-    }, [phase, tab]);
-    const run = () => { setPhase('working'); setTimeout(() => setPhase('extracted'), reduced ? 0 : 1900); };
-    const total = data.items.reduce((s, x) => s + x.qty * x.price, 0);
-    return (
-        <DemoFrame title="Smart Capture" url="app.venqore.com/capture" badge="AI · BYOK" accent="violet">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-violet-500" />
-                    <div>
-                        <div className="text-[15px] font-black text-white tracking-tight">Smart Capture</div>
-                        <div className="text-[10px] text-slate-500">Snap a bill or speak — AI turns it into a transaction</div>
-                    </div>
-                </div>
-                <PillTabs tabs={['Image', 'Audio']} value={tab} onChange={setTab} size="md" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* capture stage */}
-                <div className="lg:col-span-2">
-                    <div className="relative rounded-xl border border-dashed border-white/15 bg-white/[0.02] h-[208px] flex flex-col items-center justify-center overflow-hidden">
-                        {tab === 'Image' ? (
-                            <>
-                                <div className="w-28 rounded-md bg-white/90 p-2 shadow-xl rotate-[-3deg]">
-                                    <div className="h-1.5 w-10 bg-slate-800 rounded mb-1.5" />
-                                    {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-1 bg-slate-300 rounded mb-1" style={{ width: `${90 - i * 9}%` }} />)}
-                                    <div className="h-1.5 w-12 bg-emerald-500 rounded mt-1.5 ml-auto" />
-                                </div>
-                                {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-violet-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
-                                <div className="mt-3 text-[10px] text-slate-500">Sample supplier invoice</div>
-                            </>
-                        ) : (
-                            <>
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-violet-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
-                                    <Mic size={26} className={phase === 'working' ? 'text-violet-300' : 'text-slate-400'} />
-                                </div>
-                                <Waveform active={phase === 'working'} />
-                                <div className="mt-2 text-[11px] font-mono text-slate-500">{phase === 'working' ? `00:0${t}` : '00:00'}</div>
-                            </>
-                        )}
-                    </div>
-                    {phase === 'idle' && (
-                        <button onClick={run} className="mt-3 w-full py-2.5 rounded-xl bg-violet-500/15 border border-violet-400/30 text-violet-200 font-bold text-[12px] hover:bg-violet-500/25 transition-colors flex items-center justify-center gap-2">
-                            {tab === 'Image' ? <><Upload size={14} /> Scan sample invoice</> : <><Mic size={14} /> Record sample voice note</>}
-                        </button>
-                    )}
-                    {phase === 'working' && (
-                        <div className="mt-3 w-full py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-slate-400 font-bold text-[12px] flex items-center justify-center gap-2">
-                            <Loader2 size={14} className="animate-spin" /> {tab === 'Image' ? 'Reading invoice…' : 'Transcribing…'}
-                        </div>
-                    )}
-                </div>
-
-                {/* extraction result */}
-                <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 min-h-[208px]">
-                    {phase === 'idle' || phase === 'working' ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center">
-                            <Sparkles size={22} className="text-violet-300 mb-2" />
-                            <div className="text-[13px] font-bold text-white mb-1">AI extraction</div>
-                            <p className="text-[11px] text-slate-500 max-w-xs">Your own AI key reads the {tab === 'Image' ? 'photo' : 'audio'}, detects whether it’s a sale, purchase or expense, and matches every line to a product in your catalog.</p>
-                        </div>
-                    ) : (
-                        <div className="vqf-in">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Detected</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${data.action === 'Sale' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{data.action}</span>
-                                    <span className="text-[11px] text-slate-400">→ {data.supplier || data.party}</span>
-                                </div>
-                                {phase === 'confirmed' && <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300"><Check size={12} /> Draft created</span>}
-                            </div>
-                            {data.transcript && <div className="mb-2 text-[11px] italic text-violet-200/80">{data.transcript}</div>}
-                            <div className="space-y-1.5 mb-3">
-                                {data.items.map((it, i) => (
-                                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5 vqf-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                                        <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-slate-200 truncate">{it.n}</div><div className="text-[9px] font-mono text-slate-500">matched · {it.sku}</div></div>
-                                        <div className="text-[11px] text-slate-400 tabular-nums">{it.qty} × {it.price}</div>
-                                        <div className="text-[11px] font-bold text-white tabular-nums w-16 text-right">Rs {group(it.qty * it.price)}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                                <span className="text-[12px] font-black text-white">Total <span className="text-slate-500 font-normal">({data.items.length} lines)</span></span>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[13px] font-black text-white tabular-nums">Rs {group(total)}</span>
-                                    {phase === 'extracted' && <button onClick={() => setPhase('confirmed')} className="px-3 py-1.5 rounded-lg bg-emerald-500 text-[#05130c] text-[11px] font-black hover:bg-emerald-400 transition-colors flex items-center gap-1.5"><Check size={12} /> Confirm &amp; Record</button>}
-                                    {phase === 'confirmed' && <button onClick={() => setPhase('idle')} className="text-[11px] font-bold text-indigo-300 hover:underline">Try again</button>}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </DemoFrame>
-    );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 4 · VENSYNQ — multi-channel command center
-   ═══════════════════════════════════════════════════════════════════════════ */
-const VQ_CHANNELS = [
-    { k: 'Amazon', c: '#FF9900', rev: 482300, units: 1240, comm: 15, net: 96400, stock: 'In sync', tone: 'ok', fulfil: 'FBA' },
-    { k: 'eBay', c: '#0968f6', rev: 213900, units: 540, comm: 11, net: 41200, stock: 'In sync', tone: 'ok', fulfil: 'FBM' },
-    { k: 'TikTok Shop', c: '#69C9D0', rev: 168400, units: 690, comm: 8, net: 52800, stock: 'Low (4 SKU)', tone: 'warn', fulfil: 'JIT' },
-    { k: 'Etsy', c: '#f1641e', rev: 74200, units: 210, comm: 6.5, net: 18900, stock: 'In sync', tone: 'ok', fulfil: 'FBM' },
-    { k: 'WooCommerce', c: '#7f54b3', rev: 156000, units: 430, comm: 0, net: 61500, stock: 'Oversold (1)', tone: 'bad', fulfil: 'FBM' },
-];
-const STOCK_TONE = { ok: 'text-emerald-300 bg-emerald-500/10', warn: 'text-amber-300 bg-amber-500/10', bad: 'text-rose-300 bg-rose-500/10' };
-const VenSynQDemo = () => {
-    const [syncing, setSyncing] = useState(false);
-    const totalRev = VQ_CHANNELS.reduce((s, c) => s + c.rev, 0);
-    const totalNet = VQ_CHANNELS.reduce((s, c) => s + c.net, 0);
-    const best = VQ_CHANNELS.reduce((a, b) => (b.net / b.rev > a.net / a.rev ? b : a));
-    const maxNet = Math.max(...VQ_CHANNELS.map(c => c.net));
-    return (
-        <DemoFrame title="VenSynQ" url="app.venqore.com/vensynq" badge="MULTI-CHANNEL" accent="blue">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-blue-500" />
-                    <div>
-                        <div className="text-[15px] font-black text-white tracking-tight">VenSynQ — Channel Command Center</div>
-                        <div className="text-[10px] text-slate-500">One inventory, every marketplace, true net margin</div>
-                    </div>
-                </div>
-                <button onClick={() => { setSyncing(true); setTimeout(() => setSyncing(false), 1400); }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 border border-blue-400/30 text-blue-200 text-[11px] font-bold hover:bg-blue-500/25 transition-colors">
-                    <RefreshCw size={12} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing…' : 'Sync now'}
-                </button>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-slate-500 mb-1">Gross Revenue</div><div className="text-lg font-black text-white tabular-nums">Rs <Num end={totalRev} /></div></div>
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-slate-500 mb-1">Net Profit</div><div className="text-lg font-black text-emerald-300 tabular-nums">Rs <Num end={totalNet} /></div></div>
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-slate-500 mb-1">Channels</div><div className="text-lg font-black text-white">{VQ_CHANNELS.length} <span className="text-[10px] text-slate-500 font-bold">connected</span></div></div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-emerald-300/80 mb-1">Most profitable</div><div className="text-lg font-black text-emerald-300">{best.k}</div></div>
-            </div>
-
-            <div className="space-y-2">
-                {VQ_CHANNELS.map((c) => (
-                    <div key={c.k} className="grid grid-cols-12 items-center gap-2 p-2.5 rounded-xl border border-white/[0.06] bg-white/[0.015] hover:bg-white/[0.03] transition-colors">
-                        <div className="col-span-4 sm:col-span-3 flex items-center gap-2.5 min-w-0">
-                            <span className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0" style={{ background: c.c + '22', color: c.c }}>{c.k[0]}</span>
-                            <div className="min-w-0"><div className="text-[12px] font-bold text-white truncate">{c.k}</div><div className="text-[9px] text-slate-500">{c.units} units · {c.fulfil}</div></div>
-                        </div>
-                        <div className="hidden sm:block col-span-3">
-                            <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${(c.net / maxNet) * 100}%`, background: c.c }} /></div>
-                            <div className="text-[9px] text-slate-500 mt-1">net margin {((c.net / c.rev) * 100).toFixed(0)}%</div>
-                        </div>
-                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-[9px] text-slate-500">Revenue</div><div className="text-[12px] font-bold text-white tabular-nums">Rs {group(c.rev)}</div></div>
-                        <div className="col-span-4 sm:col-span-2 text-right"><div className="text-[9px] text-slate-500">Net · {c.comm}% fee</div><div className="text-[12px] font-bold text-emerald-300 tabular-nums">Rs {group(c.net)}</div></div>
-                        <div className="col-span-12 sm:col-span-2 flex sm:justify-end"><span className={`px-2 py-1 rounded-full text-[9px] font-black ${STOCK_TONE[c.tone]}`}>{c.stock}</span></div>
-                    </div>
-                ))}
-            </div>
-        </DemoFrame>
-    );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 5 · AI GROWTH ENGINE — proactive business signals
-   ═══════════════════════════════════════════════════════════════════════════ */
-const GROWTH_SIGNALS = [
-    { ic: Boxes, tone: 'amber', tag: 'Stockout Risk', title: 'SKU-492 · Alpha 12', conf: 88, text: 'Selling 3.2/day — current stock runs out in ~5 days.', action: 'Draft purchase order', actIc: Truck },
-    { ic: AlertTriangle, tone: 'rose', tag: 'Churn Rising', title: 'Ali Traders', conf: 72, text: 'Order frequency dropped 46% vs their 6-month average.', action: 'Send WhatsApp offer', actIc: Sparkles },
-    { ic: Repeat, tone: 'emerald', tag: 'Return Predicted', title: 'Bilal General Store', conf: 64, text: 'Buys ~every 9 days. Due to reorder in 3 days.', action: 'Schedule reminder', actIc: CheckCircle2 },
-];
-const GTONE = {
-    amber: { c: 'text-amber-300', b: 'bg-amber-500/15', bar: 'bg-amber-400' },
-    rose: { c: 'text-rose-300', b: 'bg-rose-500/15', bar: 'bg-rose-400' },
-    emerald: { c: 'text-emerald-300', b: 'bg-emerald-500/15', bar: 'bg-emerald-400' },
-};
-const GrowthEngineDemo = () => {
-    const reduced = usePRM();
-    const [ref, v] = useInView(0.3);
-    const [asked, setAsked] = useState(false);
-    return (
-        <DemoFrame title="Growth Engine" url="app.venqore.com/growth" badge="AI ENGINE" accent="violet">
-            <div className="flex items-center gap-2 mb-4">
-                <span className="w-1.5 h-5 rounded-full bg-violet-500" />
-                <div>
-                    <div className="text-[15px] font-black text-white tracking-tight">Growth Engine</div>
-                    <div className="text-[10px] text-slate-500">Three models watching your business so you act before problems do</div>
-                </div>
-            </div>
-            <div ref={ref} className="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-4">
-                {GROWTH_SIGNALS.map((s, i) => {
-                    const t = GTONE[s.tone];
-                    return (
-                        <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3.5 flex flex-col">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`p-1.5 rounded-lg ${t.b} ${t.c}`}><s.ic size={14} /></div>
-                                <span className={`text-[9px] font-black uppercase tracking-widest ${t.c}`}>{s.tag}</span>
-                            </div>
-                            <div className="text-[13px] font-bold text-white mb-1">{s.title}</div>
-                            <p className="text-[11px] text-slate-500 leading-snug mb-3 flex-1">{s.text}</p>
-                            <div className="flex items-center justify-between text-[9px] text-slate-500 mb-1"><span>Confidence</span><span className="font-bold">{s.conf}%</span></div>
-                            <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden mb-3">
-                                <div className={`h-full rounded-full ${t.bar}`} style={{ width: (reduced || v) ? `${s.conf}%` : 0, transition: 'width 1.1s cubic-bezier(0.22,1,0.36,1)' }} />
-                            </div>
-                            <button className={`w-full py-1.5 rounded-lg ${t.b} ${t.c} text-[10px] font-bold flex items-center justify-center gap-1.5 hover:brightness-125 transition-all`}>
-                                <s.actIc size={11} /> {s.action}
-                            </button>
-                        </div>
-                    );
-                })}
-            </div>
-            {/* ask in plain English */}
-            <div className="rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-3.5">
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center"><Bot size={15} className="text-violet-300" /></div>
-                    <span className="text-[12px] font-bold text-white">Ask in plain English</span>
-                </div>
-                <button onClick={() => setAsked(true)} className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-[12px] text-slate-300 hover:border-violet-400/40 transition-colors mb-2">
-                    “Which 5 products made me the most profit this month?” <span className="text-violet-300 font-bold">↵</span>
-                </button>
-                {asked && (
-                    <div className="vqf-in p-3 rounded-lg bg-white/[0.03] border border-white/5">
-                        <p className="text-[12px] text-slate-200 mb-2">Your top profit drivers this month:</p>
-                        {[['Coffee Jar', 38400], ['Hand Wash', 29100], ['Dark Choco', 21850], ['Milk 1L', 18600], ['Cola 500ml', 15200]].map(([n, p], i) => (
-                            <div key={i} className="flex items-center justify-between text-[11px] py-0.5"><span className="text-slate-400">{i + 1}. {n}</span><span className="text-emerald-300 font-bold tabular-nums">Rs {group(p)}</span></div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </DemoFrame>
-    );
-};
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   DEMO 6 · COOKBOOK — recipe-based manufacturing / auto-assembly
-   ═══════════════════════════════════════════════════════════════════════════ */
-const RECIPE = {
-    out: 'Garam Masala 100g', outStock: 0,
-    raw: [
-        { n: 'Coriander', per: 40, unit: 'g', stock: 4000 },
-        { n: 'Cumin', per: 30, unit: 'g', stock: 3000 },
-        { n: 'Red Chili', per: 20, unit: 'g', stock: 2200 },
-        { n: 'Salt', per: 10, unit: 'g', stock: 5000 },
-    ],
-};
-const CookbookDemo = () => {
-    const reduced = usePRM();
-    const [mode, setMode] = useState('Make now');
-    const [qty, setQty] = useState(20);
-    const [ran, setRan] = useState(false);
-    const cost = { Coriander: 0.9, Cumin: 1.4, 'Red Chili': 1.1, Salt: 0.2 };
-    const batchCost = RECIPE.raw.reduce((s, r) => s + r.per * qty * (cost[r.n] || 1), 0);
-    const run = () => { setRan(true); setTimeout(() => setRan(false), 2600); };
-    return (
-        <DemoFrame title="Cookbook" url="app.venqore.com/cookbook" badge="MANUFACTURING" accent="amber">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-amber-500" />
-                    <div>
-                        <div className="text-[15px] font-black text-white tracking-tight">Cookbook — Auto-Assembly</div>
-                        <div className="text-[10px] text-slate-500">Build composite items from a recipe — raw stock deducts automatically</div>
-                    </div>
-                </div>
-                <PillTabs tabs={['Make now', 'Auto on sale']} value={mode} onChange={setMode} size="md" />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* recipe */}
-                <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Bill of Materials</span>
-                        <span className="text-[10px] text-slate-500">per 1 unit</span>
-                    </div>
-                    <div className="space-y-2">
-                        {RECIPE.raw.map((r, i) => {
-                            const used = r.per * qty;
-                            return (
-                                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-white/5">
-                                    <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center"><Boxes size={14} className="text-amber-300" /></div>
-                                    <div className="min-w-0 flex-1"><div className="text-[12px] font-bold text-slate-200">{r.n}</div><div className="text-[9px] text-slate-500">{r.per}{r.unit} / unit · stock {group(ran ? r.stock - used : r.stock)}{r.unit}</div></div>
-                                    <div className={`text-[11px] font-bold tabular-nums ${ran ? 'text-rose-300 vqf-in' : 'text-slate-400'}`}>−{group(used)}{r.unit}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                {/* produce */}
-                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-4 flex flex-col">
-                    <div className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">Output</div>
-                    <div className="flex items-center gap-2.5 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-lg">🧂</div>
-                        <div><div className="text-[13px] font-bold text-white">{RECIPE.out}</div><div className="text-[10px] text-slate-500">finished good · stock {ran ? qty : RECIPE.outStock}</div></div>
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[11px] text-slate-400">Quantity</span>
-                        <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={() => setQty(q => Math.max(5, q - 5))} className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300"><Minus size={12} /></button>
-                            <span className="w-8 text-center text-[13px] font-black text-white tabular-nums">{qty}</span>
-                            <button onClick={() => setQty(q => q + 5)} className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300"><Plus size={12} /></button>
-                        </div>
-                    </div>
-                    <div className="rounded-lg bg-white/[0.03] border border-white/5 p-2.5 mb-3 text-[11px]">
-                        <div className="flex justify-between text-slate-400"><span>Batch cost (FIFO)</span><span className="text-white font-bold tabular-nums">Rs {group(batchCost)}</span></div>
-                        <div className="flex justify-between text-slate-400 mt-1"><span>Cost / unit</span><span className="text-amber-300 font-bold tabular-nums">Rs {group(batchCost / qty, 1)}</span></div>
-                    </div>
-                    {ran ? (
-                        <div className="mt-auto vqf-in rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-center">
-                            <Check size={18} className="text-emerald-400 mx-auto mb-1" />
-                            <div className="text-[12px] font-bold text-white">{mode === 'Make now' ? `${qty} units produced` : 'Auto-assembled on sale'}</div>
-                            <div className="text-[10px] text-slate-500">Raw stock deducted · journal posted</div>
-                        </div>
-                    ) : (
-                        <button onClick={run} className="mt-auto w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#1a1200] font-black text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2">
-                            <Factory size={15} /> {mode === 'Make now' ? 'Produce batch' : 'Simulate a sale'}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </DemoFrame>
-    );
-};
+/* The six live demos now live in Shared/FeatureDemos so the dedicated
+   /features/{slug} deep-dive pages can render them too. */
+import {
+    usePRM, useInView, Num, DemoFrame, PillTabs,
+    ProfitLossDemo, PosInvoiceDemo, SmartCaptureDemo,
+    VenSynQDemo, GrowthEngineDemo, CookbookDemo,
+} from './Shared/FeatureDemos';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FULL FEATURE CATALOG — every capability, click any to read what it does
-   (sourced from the VenQore Product Catalog — 226+ features)
+   (sourced from the VenQore Product Catalog)
    ═══════════════════════════════════════════════════════════════════════════ */
 const FEATURE_CATS = [
     {
@@ -909,14 +260,71 @@ const FEATURE_CATS = [
         ],
     },
     {
+        key: 'growth', label: 'Growth Intelligence', icon: Brain, color: 'violet',
+        items: [
+            /* ── Customer brain ─────────────────────────────────────────── */
+            { n: 'Per-Customer Rhythm Detection', d: 'Learns how often each customer actually buys — and how consistent they are — instead of applying one average to everybody.' },
+            { n: 'Reorder Due Alerts', d: 'Tells you a regular is about to reorder so you can reach them before a competitor does.' },
+            { n: 'Late Customer Warnings', d: 'Flags a customer only when they are late by their OWN standard, measured in standard deviations of their personal buying gap.' },
+            { n: 'Churn Risk & Lost Customer Detection', d: 'Separates “slipping” from “gone”, with the lifetime revenue and profit at stake attached to each.' },
+            { n: 'Quiet Decline Detection', d: 'Catches customers who are still ordering but have halved their spend — invisible to every normal churn rule.' },
+            { n: 'Rising Star Alerts', d: 'Surfaces customers growing fast, so you can lock them in with better terms while it matters.' },
+            { n: 'Revenue Concentration Warning', d: 'Tells you when one customer has become a dangerous share of your total business.' },
+            { n: 'First-Purchase Follow-Up', d: 'Flags brand-new customers who never came back — the single highest-leverage retention moment in retail.' },
+            { n: 'Credit Limit Breach Alerts', d: 'Warns the moment a customer’s balance passes the limit you set, before you extend more credit.' },
+            { n: 'Market Basket Cross-Sell', d: 'Finds the product pairs that keep appearing on the same receipt so you can shelve or prompt them together.' },
+            { n: 'RFM Customer Segmentation', d: 'Scores every customer on Recency, Frequency and Monetary value against your own distribution — champions, at-risk, lost and more.' },
+            { n: 'Predicted Customer Lifetime Value', d: 'Projects each customer’s annual worth from their observed spend rate — explainable, not a black box.' },
+
+            /* ── Stock brain ────────────────────────────────────────────── */
+            { n: 'Velocity-Based Demand Model', d: 'Measures units-per-day across 7, 30 and 90-day windows so acceleration and collapse are both visible.' },
+            { n: 'Days-of-Cover & Stockout Dates', d: 'Projects exactly when each product runs out at its current rate.' },
+            { n: 'Lead-Time-Aware Reorder Alerts', d: 'Learns how long your suppliers actually take, then warns early enough that you can still act.' },
+            { n: 'Out-of-Stock Revenue Loss', d: 'Shows how much you are losing every week a selling product sits empty.' },
+            { n: 'Dead Stock Detection', d: 'Surfaces the cash locked in products that have stopped moving — where most small retailers’ money quietly dies.' },
+            { n: 'Overstock & Trapped Cash', d: 'Flags lines you hold months of supply of, with the excess above healthy cover priced.' },
+            { n: 'Expiry Write-Off Forecast', d: 'Calculates how much expiring stock you will realistically sell before the date, and what you will lose.' },
+            { n: 'Demand Surge Alerts', d: 'Tells you to buy deeper while a run is still happening, not after it ends.' },
+            { n: 'Return Rate Quality Flags', d: 'Highlights products customers keep returning — usually a supplier or quality problem worth catching before the next order.' },
+            { n: 'ABC Product Classification', d: 'Ranks products by revenue contribution so a stockout on an A-line is treated differently from a C-line.' },
+
+            /* ── Profit brain ───────────────────────────────────────────── */
+            { n: 'Selling-Below-Cost Detection', d: 'Catches lines where your supplier cost rose but the till price never did — using real FIFO cost, not averages.' },
+            { n: 'Margin Erosion Tracking', d: 'Compares each product’s margin this month against last, in percentage points, with the annual cost of ignoring it.' },
+            { n: 'Discount Leakage Analysis', d: 'Shows what discounting actually costs as a share of gross sales, and how that has moved.' },
+            { n: 'Price Headroom Detection', d: 'Identifies strong-demand products earning well under your own median margin, with the monthly upside quantified.' },
+            { n: 'Unprofitable Customer Detection', d: 'Finds big-revenue accounts contributing almost no profit — common, painful, and invisible on a sales report.' },
+            { n: 'Sales Mix Shift Alerts', d: 'Warns when revenue is holding but profit is falling because the MIX moved to low-margin lines.' },
+
+            /* ── Cash & operations brain ────────────────────────────────── */
+            { n: 'Aged Receivable Chasing', d: 'Groups overdue money by customer with the oldest invoice named and the ageing bucket stated.' },
+            { n: 'Receivable Concentration Risk', d: 'Warns when too much of what you are owed sits with a single customer.' },
+            { n: 'Collection Velocity Monitoring', d: 'Detects cash arriving slower than it used to, even while sales look healthy.' },
+            { n: 'Supplier Payment Planning', d: 'Surfaces the largest balances coming due so you can protect your credit terms.' },
+            { n: 'Revenue Anomaly Detection', d: 'Compares this week against the same weekdays in your own history using a median-based method that one exceptional day cannot distort.' },
+            { n: 'Peak Trading Hour Analysis', d: 'Shows the hours that carry most of your revenue so you can staff and stock around them.' },
+            { n: 'Quiet Day Identification', d: 'Finds days consistently running well below normal, so you can promote into them or cut cost.' },
+            { n: 'Cashier Discount Outlier Detection', d: 'Flags a staff member whose discount rate is far above the team median, with the monthly cost attached.' },
+
+            /* ── The engine itself ──────────────────────────────────────── */
+            { n: 'Evidence On Every Insight', d: 'Each recommendation shows the underlying numbers, so you can verify the claim instead of trusting it.' },
+            { n: 'Self-Scoring Accuracy Loop', d: 'Every prediction is checked afterwards against what actually happened, and the hit rate is published to you per insight type.' },
+            { n: 'Self-Tuning Thresholds', d: 'Insight types that prove accurate and get acted on become more sensitive; ones that keep missing get quieter automatically.' },
+            { n: 'Automatic Noise Suppression', d: 'An insight type that is repeatedly wrong or endlessly dismissed mutes itself for a few weeks — and every mute expires so it can earn its place back.' },
+            { n: 'Learns Your Scale', d: 'Median order value, reorder gap, supplier lead time and payment terms are all measured from your own trading — no hardcoded thresholds.' },
+            { n: 'Intervention-Aware Scoring', d: 'If you act and the predicted problem is avoided, that counts as a success — not a failed forecast.' },
+            { n: 'Runs Without an AI Key', d: 'Deterministic statistics over your own ledger. No LLM, no API key, no per-message cost, and identical results every run.' },
+            { n: 'Daily Business Snapshots', d: 'Records revenue, margin, basket size, receivables and inventory value every day, building the baseline the engine compares against.' },
+            { n: 'Snooze & Dismiss Memory', d: 'Insights you reject stay rejected for a cooling-off period instead of reappearing tomorrow.' },
+            { n: 'Auto-Resolving Signals', d: 'When you fix the underlying problem the insight closes itself, so the list only ever shows what is still live.' },
+        ],
+    },
+    {
         key: 'ai', label: 'AI & Administration', icon: Cpu, color: 'violet',
         items: [
             { n: 'Floating AI Assistant', d: 'Context-aware chat that answers ledger and business questions in plain English.' },
             { n: 'Smart Capture (Image & Audio)', d: 'Snap a bill or speak — AI extracts a sale, purchase or expense and matches products to your catalog.' },
             { n: 'Bring-Your-Own-Key AI', d: 'Plug in your own AI key so intelligence runs on your terms and budget.' },
-            { n: 'Customer Return Predictor', d: 'Forecasts when each customer is due back so promos land before they lapse.' },
-            { n: 'Stock Depletion Forecaster', d: 'Projects depletion per SKU and drafts purchase orders before you stock out.' },
-            { n: 'Churn Risk Detector', d: 'Flags high-value accounts losing momentum while there’s still time to act.' },
             { n: 'Multi-Tenant Store Isolation', d: 'Each store runs in a completely isolated database scope, accessible only to its users.' },
             { n: 'Three-Zone Security Architecture', d: 'Server-side partitioning between public, store and SuperAdmin layers.' },
             { n: 'SuperAdmin Command Center', d: 'An 8-tab war room monitoring store creation, subscriptions and platform metrics.' },
@@ -979,12 +387,12 @@ const FeatureExplorer = () => {
                 <div className="relative max-w-md mx-auto w-full">
                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`Search all ${TOTAL_FEATURES} features…`}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/50 text-white text-sm outline-none transition-colors" />
+                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/50 text-slate-900 dark:text-white text-sm outline-none transition-colors" />
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all ${cat === 'all' ? 'bg-white text-[#05030f] border-white' : 'bg-white/[0.03] text-slate-400 border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
+                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all ${cat === 'all' ? 'bg-white text-void-900 border-white' : 'bg-white/[0.03] text-slate-500 dark:text-slate-400 border-slate-900/[0.08] dark:border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
                     {FEATURE_CATS.map(c => (
-                        <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-slate-400 border-white/10 hover:text-white'}`}>
+                        <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-slate-500 dark:text-slate-400 border-slate-900/[0.08] dark:border-white/10 hover:text-white'}`}>
                             <c.icon size={12} /> {c.label} <span className="opacity-60">{c.items.length}</span>
                         </button>
                     ))}
@@ -998,11 +406,11 @@ const FeatureExplorer = () => {
                         className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all hover:-translate-y-0.5">
                         <div className="flex items-center gap-2 mb-2">
                             <span className={`w-7 h-7 rounded-lg flex items-center justify-center border ${CAT_COLOR[it.color]}`}><it.icon size={13} /></span>
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{it.cat}</span>
+                            <span className="text-4xs font-black uppercase tracking-widest text-slate-600">{it.cat}</span>
                             <ChevronRight size={13} className="ml-auto text-slate-700 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
                         </div>
-                        <div className="text-[13px] font-bold text-white tracking-tight mb-1">{it.n}</div>
-                        <div className="text-[11px] text-slate-500 leading-snug line-clamp-2">{it.d}</div>
+                        <div className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight mb-1">{it.n}</div>
+                        <div className="text-1xs text-slate-500 leading-snug line-clamp-2">{it.d}</div>
                     </button>
                 ))}
             </div>
@@ -1011,20 +419,20 @@ const FeatureExplorer = () => {
             {/* detail modal */}
             {sel && (
                 <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm vqf-in" onClick={() => setSel(null)}>
-                    <div className="relative max-w-lg w-full rounded-3xl border border-white/10 bg-[#0b0a1c] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="relative max-w-lg w-full rounded-3xl border border-slate-900/[0.08] dark:border-white/10 bg-void-800 p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-3xl" />
-                        <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400"><X size={16} /></button>
+                        <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900/[0.03] dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400"><X size={16} /></button>
                         <div className="flex items-center gap-3 mb-4">
                             <span className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${CAT_COLOR[sel.color]}`}><sel.icon size={22} /></span>
                             <div>
-                                <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">{sel.cat}</div>
-                                <h3 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{sel.n}</h3>
+                                <div className="text-3xs font-black uppercase tracking-widest text-slate-500">{sel.cat}</div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{sel.n}</h3>
                             </div>
                         </div>
-                        <p className="text-slate-300 leading-relaxed text-[15px] mb-5">{sel.d}</p>
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[15px] mb-5">{sel.d}</p>
                         <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/15">
-                            <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                            <span className="text-[12px] text-slate-400">Included in VenQore — verified by the same double-entry engine that powers every number.</span>
+                            <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span className="text-[12px] text-slate-500 dark:text-slate-400">Included in VenQore — verified by the same double-entry engine that powers every number.</span>
                         </div>
                     </div>
                 </div>
@@ -1035,25 +443,42 @@ const FeatureExplorer = () => {
 
 /* ── anchor nav pill ─────────────────────────────────────────────────────── */
 const JumpPill = ({ href, icon: Ic, children }) => (
-    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[11px] font-bold text-slate-300 hover:text-white hover:border-indigo-400/40 hover:bg-white/[0.06] transition-all">
+    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/10 text-1xs font-bold text-slate-600 dark:text-slate-300 hover:text-white hover:border-indigo-400/40 hover:bg-white/[0.06] transition-all">
         <Ic size={13} className="text-indigo-300" /> {children}
     </a>
 );
 
+const ACCENT_TEXTS = {
+    indigo: 'text-indigo-400 hover:text-indigo-300',
+    emerald: 'text-emerald-400 hover:text-emerald-300',
+    violet: 'text-violet-400 hover:text-violet-300',
+    blue: 'text-blue-400 hover:text-blue-300',
+    amber: 'text-amber-400 hover:text-amber-300',
+};
+
 /* ── Demo section wrapper ────────────────────────────────────────────────── */
-const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, soon, children }) => (
+const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, soon, deepDiveLink, deepDiveText, children }) => (
     <section id={id} className="vqf-anchor py-16 md:py-24 px-6">
         <div className="max-w-6xl mx-auto">
             <RevealOnScroll>
                 <div className="text-center mb-10 max-w-3xl mx-auto">
                     <SectionLabel icon={Ic}>{eyebrow}</SectionLabel>
-                    {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-[10px] font-black tracking-widest uppercase align-middle">★ Hero feature</div>}
-                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
-                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-[0.95] font-display">{title}</h2>
-                    <p className="text-slate-400 text-base md:text-lg mt-5">{lead}</p>
+                    {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-2xs font-black tracking-widest uppercase align-middle">★ Hero feature</div>}
+                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-2xs font-black tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.95] font-display">{title}</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg mt-5">{lead}</p>
                 </div>
             </RevealOnScroll>
-            <RevealOnScroll delay={0.1}>{children}</RevealOnScroll>
+            <RevealOnScroll delay={0.1}>
+                {children}
+                {deepDiveLink && (
+                    <div className="mt-8 text-center">
+                        <Link href={deepDiveLink} className={`inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider ${ACCENT_TEXTS[accent] || ACCENT_TEXTS.indigo} hover:underline`}>
+                            {deepDiveText || 'Read the Deep-Dive Feature Page'} <ArrowRight size={14} />
+                        </Link>
+                    </div>
+                )}
+            </RevealOnScroll>
         </div>
     </section>
 );
@@ -1069,7 +494,7 @@ export default function Features() {
         { e: 6, s: '', l: 'Live Demos' },
     ];
     return (
-        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, Growth Engine and Cookbook - plus a searchable catalog of all 226+ capabilities.">
+        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, the Growth Intelligence Engine and Cookbook - plus a searchable catalog of all 255+ capabilities.">
             {/* HERO */}
             <section className="relative pt-36 md:pt-44 pb-12 px-6">
                 <div className="max-w-5xl mx-auto text-center">
@@ -1081,16 +506,16 @@ export default function Features() {
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.16}>
-                        <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
-                            Six of VenQore’s flagship tools — playable right here as guided simulations of the real product. Then browse every one of the <span className="text-white font-semibold">{TOTAL_FEATURES}+ features</span>, each explained in a click.
+                        <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
+                            Six of VenQore’s flagship tools — playable right here as guided simulations of the real product. Then browse every one of the <span className="text-slate-900 dark:text-white font-semibold">{TOTAL_FEATURES}+ features</span>, each explained in a click.
                         </p>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.24}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-12 border-t border-white/[0.06] pt-8">
                             {heroStats.map((s, i) => (
                                 <div key={i} className="text-center">
-                                    <div className="text-3xl md:text-4xl font-black text-white tracking-tighter font-display"><Num end={s.e} />{s.s}</div>
-                                    <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{s.l}</div>
+                                    <div className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display"><Num end={s.e} />{s.s}</div>
+                                    <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{s.l}</div>
                                 </div>
                             ))}
                         </div>
@@ -1111,15 +536,19 @@ export default function Features() {
 
             {/* DEMO 1 · REPORTS (hero, first) */}
             <DemoSection id="reports" eyebrow="Reporting Engine" icon={BarChart3} accent="emerald" hero
-                title={<>Reports that <span className="text-emerald-400">never disagree.</span></>}
-                lead="40+ statements from one verified ledger. Here’s the live Profit & Loss — switch periods, then let AI read it for you.">
+                title={<>Reports that <span className="text-emerald-600 dark:text-emerald-400">never disagree.</span></>}
+                lead="40+ statements from one verified ledger. Here’s the live Profit & Loss — switch periods, then let AI read it for you."
+                deepDiveLink="/features/accounting"
+                deepDiveText="Deep Dive: Double-Entry Accounting Engine">
                 <ProfitLossDemo />
             </DemoSection>
 
             {/* DEMO 2 · POS */}
             <DemoSection id="pos" eyebrow="Point of Sale" icon={ShoppingCart} accent="indigo" hero
-                title={<>Ring up a sale <span className="text-indigo-400">right now.</span></>}
-                lead="This is the real POS. Add products, change quantities, pick a payment method and complete the sale — nothing is saved, it’s yours to play with.">
+                title={<>Ring up a sale <span className="text-indigo-600 dark:text-indigo-400">right now.</span></>}
+                lead="This is the real POS. Add products, change quantities, pick a payment method and complete the sale — nothing is saved, it’s yours to play with."
+                deepDiveLink="/features/point-of-sale"
+                deepDiveText="Deep Dive: Point of Sale Checkout System">
                 <PosInvoiceDemo />
             </DemoSection>
 
@@ -1137,28 +566,32 @@ export default function Features() {
                 <VenSynQDemo />
             </DemoSection>
 
-            {/* DEMO 5 · GROWTH ENGINE */}
-            <DemoSection id="growth" eyebrow="AI Growth Engine" icon={Cpu} accent="violet" hero
-                title={<>It watches, <span className="text-violet-400">so you can act.</span></>}
-                lead="Three models run continuously — predicting stockouts, flagging churn and timing customer returns — then hand you the next action.">
+            {/* DEMO 5 · GROWTH ENGINE (Intelligence Engine) */}
+            <DemoSection id="growth" eyebrow="Growth · Intelligence Engine" icon={Cpu} accent="violet" hero
+                title={<>It shows you <span className="text-violet-400">its working.</span></>}
+                lead="Four brains read your customers, stock, margin and cash — every insight comes with the numbers behind it, and every prediction is scored afterwards against what actually happened."
+                deepDiveLink="/features/growth-engine"
+                deepDiveText="Deep Dive: The Intelligence Engine">
                 <GrowthEngineDemo />
             </DemoSection>
 
             {/* DEMO 6 · COOKBOOK */}
             <DemoSection id="cookbook" eyebrow="Cookbook · Manufacturing" icon={Factory} accent="amber" hero
-                title={<>Build products from <span className="text-amber-400">recipes.</span></>}
-                lead="Define a Bill of Materials once. Produce a batch — or sell a composite item and watch raw stock deduct automatically, costed by real FIFO.">
+                title={<>Build products from <span className="text-amber-600 dark:text-amber-400">recipes.</span></>}
+                lead="Define a Bill of Materials once. Produce a batch — or sell a composite item and watch raw stock deduct automatically, costed by real FIFO."
+                deepDiveLink="/features/inventory-management"
+                deepDiveText="Deep Dive: FIFO Inventory Management">
                 <CookbookDemo />
             </DemoSection>
 
             {/* ALL FEATURES */}
-            <section id="all" className="vqf-anchor py-20 md:py-28 px-6 border-t border-white/5">
+            <section id="all" className="vqf-anchor py-20 md:py-28 px-6 border-t border-slate-900/[0.06] dark:border-white/5">
                 <div className="max-w-7xl mx-auto">
                     <RevealOnScroll>
                         <div className="text-center mb-12 max-w-3xl mx-auto">
                             <SectionLabel icon={Layers}>The complete catalog</SectionLabel>
-                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-indigo-400">Every one explained.</span></h2>
-                            <p className="text-slate-400 text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
+                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-indigo-600 dark:text-indigo-400">Every one explained.</span></h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
                         </div>
                     </RevealOnScroll>
                     <FeatureExplorer />
@@ -1170,8 +603,8 @@ export default function Features() {
                 <div className="max-w-4xl mx-auto relative">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
-                        <h2 className="text-4xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-indigo-400">your numbers.</span></h2>
-                        <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
+                        <h2 className="text-4xl md:text-7xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-indigo-600 dark:text-indigo-400">your numbers.</span></h2>
+                        <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
                             <MagneticButton href="/demo" variant="ghost">Launch Live Demo</MagneticButton>

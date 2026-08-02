@@ -234,9 +234,7 @@ class CogsReconciliationTest extends VenQoreTestCase implements RequiresGoldenCo
             ->where('code', '5000')
             ->value('id');
 
-        if (!$cogsAccountId) {
-            $this->markTestSkipped('GL 5000 account not found');
-        }
+        $this->assertNotNull($cogsAccountId, 'GL 5000 account not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $failures = [];
 
@@ -323,9 +321,7 @@ class CogsReconciliationTest extends VenQoreTestCase implements RequiresGoldenCo
             ->whereDate('s.posted_at', '2025-03-10') // TXN-SAL-004 date
             ->first();
 
-        if (!$promotionalSale) {
-            $this->markTestSkipped('TXN-SAL-004 (promotional sale) not found — seeder may not have posted it on 2025-03-10');
-        }
+        $this->assertNotNull($promotionalSale, 'TXN-SAL-004 (promotional sale) not found — seeder may not have posted it on 2025-03-10; GoldenSeedManager guarantees this data exists, so a null result here means the seeder or schema drifted.');
 
         // FIFO batch COGS for this sale
         $fifoCogs = (float) DB::table('sale_item_batches')

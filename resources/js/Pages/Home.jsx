@@ -155,7 +155,7 @@ export default function Home({ recentActivity = [] }) {
                 {/* Welcome Section */}
                 <div className="mb-10 relative z-10 shrink-0">
                     <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight mb-2 uppercase">Welcome back, {user?.name?.split(' ')[0] || 'Partner'}</h1>
-                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-widest text-[10px] font-black">Monitoring {store?.name || 'Your Store'}</p>
+                    <p className="text-slate-500 dark:text-slate-400 uppercase tracking-widest text-2xs font-black">Monitoring {store?.name || 'Your Store'}</p>
                 </div>
 
                 {/* Main Shortcuts Grid */}

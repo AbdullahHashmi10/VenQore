@@ -65,30 +65,58 @@ class PermissionBypassGuardTest extends VenQoreTestCase
         );
 
         // Verify the baseline matches the checksum in the ratchet registry.
+        //
+        // This block used to be wrapped in `if (is_file($ratchetPath) && ...)`,
+        // which meant BOTH the checksum lock and the ceiling check silently
+        // no-op'd whenever the file was absent — which it always was when this
+        // suite ran from FinalTester/ (permission_ratchet.yaml only existed
+        // under Tester/VerificationCenter/registry, and sync.php never copied
+        // it — fixed 2026-08-02, see FinalTester/Scripts/sync.php). A guard
+        // that turns itself off when its own config is missing is not a guard.
+        // Both checks below are now mandatory: no ratchet file, no
+        // Symfony\Yaml, or a malformed YAML file are hard test failures.
         $ratchetPath = dirname(__DIR__, 3) . '/VerificationCenter/registry/permission_ratchet.yaml';
-        if (is_file($ratchetPath) && class_exists(\Symfony\Component\Yaml\Yaml::class)) {
-            $ratchet = \Symfony\Component\Yaml\Yaml::parseFile($ratchetPath);
-            $expected = $ratchet['baseline_checksum_sha256'] ?? null;
-            if ($expected !== null) {
-                $actual = hash('sha256', (string) file_get_contents(self::BASELINE));
-                $this->assertSame(
-                    $expected,
-                    $actual,
-                    'Permission baseline checksum mismatch. The frozen route set changed without '
-                        . 'updating permission_ratchet.yaml. If you intentionally re-baselined, update the checksum.'
-                );
-            }
 
-            // Ratchet ceiling: the live unprotected count must not exceed max_unprotected.
-            $ceiling = (int) ($ratchet['max_unprotected'] ?? PHP_INT_MAX);
-            $this->assertLessThanOrEqual(
-                $ceiling,
-                count($current),
-                'Permission debt ratchet BREACHED: ' . count($current) . ' unprotected write routes exceed '
-                    . "the ceiling of {$ceiling}. Protect routes or (deliberately) raise the ceiling — but the "
-                    . 'ceiling must only ever DECREASE across releases.'
-            );
-        }
+        $this->assertTrue(
+            class_exists(\Symfony\Component\Yaml\Yaml::class),
+            'symfony/yaml is required to enforce the permission ratchet and is expected to be '
+                . 'present as a transitive Laravel dependency. If this fails, the ratchet cannot be '
+                . 'verified at all — treat as a build environment defect, not something to code around.'
+        );
+
+        $this->assertFileExists(
+            $ratchetPath,
+            'Permission ratchet registry missing at ' . $ratchetPath . '. This file locks the '
+                . 'baseline checksum and the unprotected-route ceiling — without it, both checks '
+                . 'silently no-op and this guard protects nothing. Restore it from git, and if you '
+                . 'run this suite from FinalTester/, confirm FinalTester/Scripts/sync.php has been '
+                . 'run so the registry copy exists there too.'
+        );
+
+        $ratchet = \Symfony\Component\Yaml\Yaml::parseFile($ratchetPath);
+
+        $expected = $ratchet['baseline_checksum_sha256'] ?? null;
+        $this->assertNotNull(
+            $expected,
+            "permission_ratchet.yaml at {$ratchetPath} has no baseline_checksum_sha256 key."
+        );
+        $actual = hash('sha256', (string) file_get_contents(self::BASELINE));
+        $this->assertSame(
+            $expected,
+            $actual,
+            'Permission baseline checksum mismatch. The frozen route set changed without '
+                . 'updating permission_ratchet.yaml. If you intentionally re-baselined, update the checksum.'
+        );
+
+        // Ratchet ceiling: the live unprotected count must not exceed max_unprotected.
+        $ceiling = (int) ($ratchet['max_unprotected'] ?? PHP_INT_MAX);
+        $this->assertLessThanOrEqual(
+            $ceiling,
+            count($current),
+            'Permission debt ratchet BREACHED: ' . count($current) . ' unprotected write routes exceed '
+                . "the ceiling of {$ceiling}. Protect routes or (deliberately) raise the ceiling — but the "
+                . 'ceiling must only ever DECREASE across releases.'
+        );
 
         $baseline = json_decode((string) file_get_contents(self::BASELINE), true) ?: [];
         $baselineSet = array_flip($baseline);

@@ -169,7 +169,7 @@ export default function PartnerSupport() {
                                 <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Partner & Owner</span>{' '}
                                 <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent vq-text-glow">Support Desk.</span>
                             </h1>
-                            <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
+                            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
                                 Submit your digital product purchase details below. We manually verify details on our backend and credit your cloud store dashboard automatically.
                             </p>
                         </div>
@@ -178,25 +178,25 @@ export default function PartnerSupport() {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20">
                             <Loader2 className="animate-spin text-indigo-500 mb-4" size={40} />
-                            <p className="text-slate-400 text-sm">Uploading details and securing communication link...</p>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Uploading details and securing communication link...</p>
                         </div>
                     ) : showSuccessScreen ? (
                         <RevealOnScroll>
                             <GlassCard className="p-8 border border-emerald-500/20 bg-slate-900/60 backdrop-blur-xl rounded-[2rem] shadow-2xl text-center space-y-6">
-                                <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                                <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
                                     <CheckCircle2 size={40} />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="text-2xl font-black text-white">Thank you for your purchase!</h2>
-                                    <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">Thank you for your purchase!</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
                                         We have received your verification request. Our systems will manually review your uploaded invoice and confirm your account eligibility. 
                                         This verification process typically takes <strong>1 to 2 business days</strong>.
                                     </p>
                                 </div>
 
                                 <div className="p-6 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 text-left max-w-xl mx-auto space-y-3">
-                                    <span className="block text-xs font-black uppercase tracking-wider text-indigo-400">Next Action Required:</span>
-                                    <p className="text-slate-300 text-xs leading-relaxed">
+                                    <span className="block text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Next Action Required:</span>
+                                    <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
                                         Please make sure you register your store on the cloud website using the <strong>EXACT SAME EMAIL</strong> address ({ticket?.requester_email}) you provided in this form. 
                                         Once verified, we will automatically credit the bonus trial days to your dashboard.
                                     </p>
@@ -204,7 +204,7 @@ export default function PartnerSupport() {
                                         <a
                                             href="/register"
                                             target="_blank"
-                                            className="inline-flex items-center gap-2 text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors"
+                                            className="inline-flex items-center gap-2 text-xs font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-300 transition-colors"
                                         >
                                             Create / Register Your New Store <ExternalLink size={12} />
                                         </a>
@@ -220,7 +220,7 @@ export default function PartnerSupport() {
                                     </button>
                                     <button
                                         onClick={handleReset}
-                                        className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-colors"
+                                        className="px-6 py-3 bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 hover:bg-white/10 text-slate-900 dark:text-white rounded-xl text-xs font-bold transition-colors"
                                     >
                                         Submit Another Verification
                                     </button>
@@ -231,13 +231,13 @@ export default function PartnerSupport() {
                         // ── CHAT SCREEN ──
                         <RevealOnScroll delay={0.1}>
                             <GlassCard className="p-8 border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl rounded-[2rem] shadow-2xl relative">
-                                <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
+                                <div className="flex items-center justify-between border-b border-slate-900/[0.06] dark:border-white/5 pb-4 mb-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center">
                                             <User size={18} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-sm text-white">{ticket.requester_name}</h3>
+                                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">{ticket.requester_name}</h3>
                                             <p className="text-slate-500 text-xs">{ticket.requester_email}</p>
                                         </div>
                                     </div>
@@ -258,11 +258,11 @@ export default function PartnerSupport() {
                                                     ? 'bg-slate-800 border-slate-700/50 text-slate-200 rounded-tl-none'
                                                     : 'bg-indigo-600/10 border-indigo-500/20 text-indigo-200 rounded-tr-none'
                                             }`}>
-                                                <div className="flex items-center gap-2 mb-1.5 text-[9px] font-bold uppercase tracking-wider">
+                                                <div className="flex items-center gap-2 mb-1.5 text-3xs font-bold uppercase tracking-wider">
                                                     {reply.is_platform_owner ? (
-                                                        <span className="text-indigo-400">Engineering Team (Owner)</span>
+                                                        <span className="text-indigo-600 dark:text-indigo-400">Engineering Team (Owner)</span>
                                                     ) : (
-                                                        <span className="text-slate-400">You (Partner)</span>
+                                                        <span className="text-slate-500 dark:text-slate-400">You (Partner)</span>
                                                     )}
                                                 </div>
                                                 <p className="whitespace-pre-wrap">{reply.body}</p>
@@ -279,7 +279,7 @@ export default function PartnerSupport() {
                                         value={replyBody}
                                         onChange={e => setReplyBody(e.target.value)}
                                         placeholder="Type support reply message..."
-                                        className="flex-1 px-5 py-4 bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/40 rounded-2xl text-white text-sm outline-none transition-all duration-300"
+                                        className="flex-1 px-5 py-4 bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/40 rounded-2xl text-slate-900 dark:text-white text-sm outline-none transition-all duration-300"
                                     />
                                     <button
                                         type="submit"
@@ -309,7 +309,7 @@ export default function PartnerSupport() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* Purchase Name */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                                 Purchase Roster Name
                                             </label>
                                             <input
@@ -324,7 +324,7 @@ export default function PartnerSupport() {
 
                                         {/* Purchase Email */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                                 Purchase Email Address
                                             </label>
                                             <input
@@ -341,7 +341,7 @@ export default function PartnerSupport() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* Purchase Source Platform */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                                 Purchased From (Platform)
                                             </label>
                                             <input
@@ -356,7 +356,7 @@ export default function PartnerSupport() {
 
                                         {/* Invoice File Attachment */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500">
+                                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-3 text-slate-500">
                                                 Upload Purchase Invoice (JPG/PNG/PDF)
                                             </label>
                                             <div className="relative w-full h-14 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 rounded-2xl flex items-center justify-between px-5 transition-all duration-500 cursor-pointer overflow-hidden">
@@ -367,7 +367,7 @@ export default function PartnerSupport() {
                                                     accept=".jpg,.jpeg,.png,.pdf,.zip,.txt,.doc,.docx"
                                                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                                 />
-                                                <span className="text-slate-400 text-xs truncate max-w-[200px]">
+                                                <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px]">
                                                     {attachmentName || 'Select invoice file...'}
                                                 </span>
                                                 <Upload size={16} className="text-slate-500" />
@@ -377,7 +377,7 @@ export default function PartnerSupport() {
 
                                     {/* Trial Status Cards Selection */}
                                     <div className="space-y-3">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+                                        <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500">
                                             Trial Status Option
                                         </label>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,13 +387,13 @@ export default function PartnerSupport() {
                                                 className={`w-full p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col gap-1 ${
                                                     trialStatus === 'started'
                                                         ? 'bg-indigo-500/10 border-indigo-500/40 text-white shadow-lg'
-                                                        : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
+                                                        : 'bg-white/[0.02] border-white/[0.06] text-slate-500 dark:text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
                                                 }`}
                                             >
                                                 <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'started' ? 'text-indigo-400' : 'text-slate-200'}`}>
                                                     Started 14-day trial
                                                 </span>
-                                                <span className="text-[11px] leading-relaxed opacity-85">Get extra 30 days added onto your existing account.</span>
+                                                <span className="text-1xs leading-relaxed opacity-85">Get extra 30 days added onto your existing account.</span>
                                             </button>
 
                                             <button
@@ -402,20 +402,20 @@ export default function PartnerSupport() {
                                                 className={`w-full p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col gap-1 ${
                                                     trialStatus === 'not_started'
                                                         ? 'bg-indigo-500/10 border-indigo-500/40 text-white shadow-lg'
-                                                        : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
+                                                        : 'bg-white/[0.02] border-white/[0.06] text-slate-500 dark:text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
                                                 }`}
                                             >
                                                 <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'not_started' ? 'text-indigo-400' : 'text-slate-200'}`}>
                                                     I haven't started trial yet
                                                 </span>
-                                                <span className="text-[11px] leading-relaxed opacity-85">Get a brand new store loaded with 45 full days of access.</span>
+                                                <span className="text-1xs leading-relaxed opacity-85">Get a brand new store loaded with 45 full days of access.</span>
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Warnings Disclaimer */}
-                                    <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-3 text-slate-400 text-xs leading-relaxed">
-                                        <Shield size={24} className="text-amber-400 shrink-0 mt-0.5" />
+                                    <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-3 text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+                                        <Shield size={24} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                         <p>
                                             <strong>Verification Check Guarantee:</strong> Every request is manually matched against platform transaction ledgers. False entries or billing logs will trigger security rejection and platform access bans.
                                         </p>
@@ -423,7 +423,7 @@ export default function PartnerSupport() {
 
                                     {/* Optional message */}
                                     <div className="relative group">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                        <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                             Additional Comments (Optional)
                                         </label>
                                         <textarea

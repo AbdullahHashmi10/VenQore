@@ -13,7 +13,7 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
     const [focused, setFocused] = useState(false);
     return (
         <div>
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
+            <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
                 {label}
             </label>
             <div className="relative group">
@@ -106,7 +106,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#020010] font-sans selection:bg-indigo-500/40 selection:text-white">
+        <div className="min-h-screen w-full flex bg-void-950 font-sans selection:bg-indigo-500/40 selection:text-white">
             <Head title="Sign In" />
 
             {/* ── Left Panel — Branding ─────────────────────── */}
@@ -149,7 +149,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                         ].map((s, i) => (
                             <div key={i} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                                 <div className="text-lg font-black text-white tracking-tighter" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.val}</div>
-                                <div className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">{s.label}</div>
+                                <div className="text-3xs text-slate-600 font-bold uppercase tracking-widest mt-1">{s.label}</div>
                             </div>
                         ))}
                     </div>
@@ -198,7 +198,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                         /* ── Passcode Mode ─────────────────────── */
                         <div className="space-y-6">
                             <div className="text-center mb-4">
-                                <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.3em] mb-6">Enter Passcode</div>
+                                <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.3em] mb-6">Enter Passcode</div>
                                 <div className="flex justify-center gap-2.5 mb-6 min-h-[20px]">
                                     {(data.passcode || '').split('').map((_, i) => (
                                         <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${displayErrors.passcode ? 'bg-red-500 animate-pulse' : 'bg-indigo-500 shadow-lg shadow-indigo-500/30'}`} />
@@ -255,8 +255,8 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                             {/* Divider */}
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/[0.06]" /></div>
-                                <div className="relative flex justify-center text-[10px]">
-                                    <span className="px-4 bg-[#020010] text-slate-500 font-bold uppercase tracking-widest">or</span>
+                                <div className="relative flex justify-center text-2xs">
+                                    <span className="px-4 bg-void-950 text-slate-500 font-bold uppercase tracking-widest">or</span>
                                 </div>
                             </div>
 
@@ -274,7 +274,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                 />
 
                                 <div>
-                                    <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400`}>Password</label>
+                                    <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400`}>Password</label>
                                     <div className="relative group">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
                                             <Lock size={18} />
@@ -311,7 +311,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
 
                                 {/* Submit */}
                                 <button type="submit" disabled={processing}
-                                    className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                                     {processing ? <><Loader2 size={18} className="animate-spin" /> Signing in...</> : <>Sign In <ArrowRight size={16} /></>}
                                 </button>
 

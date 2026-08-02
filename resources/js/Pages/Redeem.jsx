@@ -36,7 +36,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
     ];
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans">
+        <div className="min-h-screen bg-void-950 text-white font-sans">
             <Head>
                 {/* Single string child — mixing literal text with {app_name}
                     compiles to two children, and Inertia's Head serialiser calls

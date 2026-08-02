@@ -271,7 +271,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                         <Sparkles size={18} className="animate-pulse" />
                     </div>
                     {/* Small badge */}
-                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-[8px] font-black text-white px-1.5 py-0.5 rounded-full shadow">
+                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-4xs font-black text-white px-1.5 py-0.5 rounded-full shadow">
                         33%
                     </span>
                 </div>
@@ -296,7 +296,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">Onboarding Active</h4>
-                        <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">Cataloging Mode (33%)</p>
+                        <p className="text-2xs text-indigo-400 font-semibold uppercase tracking-wide">Cataloging Mode (33%)</p>
                     </div>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4 pr-6">
@@ -464,7 +464,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             {currentStep === 0 ? 'Create Product' : 'Product Guide'}
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-indigo-400">
                             Step {currentStep + 1} of {isCategoryCreationPath ? 12 : 10}
                         </span>
                     </div>
@@ -515,7 +515,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                                     </p>
                                     {liveMargin ? (
                                         <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700/50">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
+                                            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
                                             <p className="text-xs font-bold text-slate-200 mt-0.5">
                                                 Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
                                             </p>
@@ -578,7 +578,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                                     </p>
                                     {liveMargin ? (
                                         <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700/50">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
+                                            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
                                             <p className="text-xs font-bold text-slate-200 mt-0.5">
                                                 Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
                                             </p>

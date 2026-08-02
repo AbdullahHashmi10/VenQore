@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
+import { vq } from '@/theme/runtime';
 import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 
 // ── Override Apply Drawer ─────────────────────────────────────────────────────
@@ -26,17 +27,17 @@ function OverrideDrawer({ open, tenant, availableKeys, onClose }) {
     return (
         <div style={{ position:'fixed', inset:0, zIndex:50, display:'flex' }}>
             <div style={{ flex:1, background:'rgba(0,0,0,0.5)' }} onClick={onClose} />
-            <div style={{ width:500, background:'#0f172a', overflowY:'auto', boxShadow:'-4px 0 32px rgba(0,0,0,0.5)' }}>
+            <div style={{ width:500, background:vq.slate[900], overflowY:'auto', boxShadow:'-4px 0 32px rgba(0,0,0,0.5)' }}>
                 <div style={{ padding:'24px 28px 16px', borderBottom:'1px solid #1e293b', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div>
-                        <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:'#f1f5f9' }}>Apply Override</h2>
-                        <p style={{ margin:'4px 0 0', fontSize:13, color:'#64748b' }}>{tenant.name} · Plan: <b style={{color:'#94a3b8'}}>{tenant.plan}</b></p>
+                        <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:vq.slate[100] }}>Apply Override</h2>
+                        <p style={{ margin:'4px 0 0', fontSize:13, color:vq.slate[500] }}>{tenant.name} · Plan: <b style={{color:vq.slate[400]}}>{tenant.plan}</b></p>
                     </div>
-                    <button onClick={onClose} style={{ background:'none', border:'none', color:'#94a3b8', fontSize:22, cursor:'pointer' }}>✕</button>
+                    <button onClick={onClose} style={{ background:'none', border:'none', color:vq.slate[400], fontSize:22, cursor:'pointer' }}>✕</button>
                 </div>
                 <form onSubmit={submit} style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:16 }}>
-                    <div style={{ background:'#1e293b', borderRadius:10, padding:'12px 14px', fontSize:13, color:'#94a3b8' }}>
-                        <b style={{color:'#f59e0b'}}>⚡ Live Override</b> — This change takes effect immediately and invalidates the cache. The tenant will be able to use the new limit right away.
+                    <div style={{ background:vq.slate[800], borderRadius:10, padding:'12px 14px', fontSize:13, color:vq.slate[400] }}>
+                        <b style={{color:vq.amber[500]}}>⚡ Live Override</b> — This change takes effect immediately and invalidates the cache. The tenant will be able to use the new limit right away.
                     </div>
 
                     <div style={{ display:'grid', gridTemplateColumns: '1fr 1fr', gap:12 }}>
@@ -62,7 +63,7 @@ function OverrideDrawer({ open, tenant, availableKeys, onClose }) {
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                         <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
                             <input type="checkbox" checked={data.notify_user} onChange={e => setData('notify_user', e.target.checked)} />
-                            <span style={{ fontSize:14, color:'#94a3b8' }}>Send in-app notification to tenant</span>
+                            <span style={{ fontSize:14, color:vq.slate[400] }}>Send in-app notification to tenant</span>
                         </label>
 
                         {data.notify_user && (
@@ -108,11 +109,11 @@ export default function TenantOverrides({ tenants, filters }) {
 
     return (
         <OneGlanceLayout title="Tenant Overrides" mode="admin" activeMenu="Tenant Overrides">
-            <div style={{ padding:'32px 40px', minHeight:'100vh', background:'#020617' }}>
+            <div style={{ padding:'32px 40px', minHeight:'100vh', background:vq.slate[950] }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:32 }}>
                     <div>
-                        <h1 style={{ margin:0, fontSize:28, fontWeight:800, color:'#f1f5f9' }}>Tenant Overrides</h1>
-                        <p style={{ margin:'4px 0 0', color:'#64748b', fontSize:14 }}>
+                        <h1 style={{ margin:0, fontSize:28, fontWeight:800, color:vq.slate[100] }}>Tenant Overrides</h1>
+                        <p style={{ margin:'4px 0 0', color:vq.slate[500], fontSize:14 }}>
                             Apply per-tenant limit overrides. These take priority over any plan default.
                         </p>
                     </div>
@@ -135,19 +136,19 @@ export default function TenantOverrides({ tenants, filters }) {
                 </form>
 
                 {/* Tenants Table */}
-                <div style={{ background:'#0f172a', borderRadius:16, border:'1px solid #1e293b', overflow:'hidden' }}>
+                <div style={{ background:vq.slate[900], borderRadius:16, border:'1px solid #1e293b', overflow:'hidden' }}>
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:14 }}>
                         <thead>
-                            <tr style={{ background:'#1e293b' }}>
+                            <tr style={{ background:vq.slate[800] }}>
                                 {['Store','Plan','Status','Active Overrides','Actions'].map(h => (
-                                    <th key={h} style={{ padding:'12px 16px', textAlign:'left', color:'#64748b', fontWeight:600, fontSize:12, textTransform:'uppercase', letterSpacing:'0.5px' }}>{h}</th>
+                                    <th key={h} style={{ padding:'12px 16px', textAlign:'left', color:vq.slate[500], fontWeight:600, fontSize:12, textTransform:'uppercase', letterSpacing:'0.5px' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {tenants.data?.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} style={{ padding:'48px 0', textAlign:'center', color:'#475569' }}>
+                                    <td colSpan={5} style={{ padding:'48px 0', textAlign:'center', color:vq.slate[600] }}>
                                         No tenants found.
                                     </td>
                                 </tr>
@@ -155,22 +156,22 @@ export default function TenantOverrides({ tenants, filters }) {
                                 <tr
                                     key={tenant.id}
                                     style={{ borderTop: i > 0 ? '1px solid #1e293b' : 'none' }}
-                                    onMouseEnter={e => e.currentTarget.style.background = '#131c2e'}
+                                    onMouseEnter={e => e.currentTarget.style.background = vq.slate[900]}
                                     onMouseLeave={e => e.currentTarget.style.background = ''}
                                 >
                                     <td style={{ padding:'14px 16px' }}>
-                                        <div style={{ fontWeight:700, color:'#f1f5f9' }}>{tenant.name}</div>
-                                        <div style={{ fontSize:11, color:'#475569' }}>ID #{tenant.id}</div>
+                                        <div style={{ fontWeight:700, color:vq.slate[100] }}>{tenant.name}</div>
+                                        <div style={{ fontSize:11, color:vq.slate[600] }}>ID #{tenant.id}</div>
                                     </td>
                                     <td style={{ padding:'14px 16px' }}>
-                                        <span style={{ background:'#6366f122', color:'#6366f1', padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:600 }}>
+                                        <span style={{ background:vq.indigo[500], color:vq.indigo[500], padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:600 }}>
                                             {tenant.plan}
                                         </span>
                                     </td>
                                     <td style={{ padding:'14px 16px' }}>
                                         <span style={{
-                                            background: tenant.status === 'active' ? '#22c55e22' : '#f59e0b22',
-                                            color: tenant.status === 'active' ? '#22c55e' : '#f59e0b',
+                                            background: tenant.status === 'active' ? vq.green[500] : vq.amber[500],
+                                            color: tenant.status === 'active' ? vq.green[500] : vq.amber[500],
                                             padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:700,
                                         }}>
                                             {tenant.status}
@@ -181,21 +182,21 @@ export default function TenantOverrides({ tenants, filters }) {
                                             <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
                                                 {tenant.plan_overrides.map(o => (
                                                     <span key={o.id} style={{
-                                                        background:'#f59e0b22', color:'#f59e0b',
+                                                        background:vq.amber[500], color:vq.amber[500],
                                                         padding:'2px 8px', borderRadius:99, fontSize:11, fontWeight:700,
                                                         display:'flex', alignItems:'center', gap:4,
                                                     }}>
                                                         {o.override_key}: {o.override_value ?? '∞'}
                                                         <button
                                                             onClick={() => removeOverride(tenant.id, o.id)}
-                                                            style={{ background:'none', border:'none', color:'#f59e0b', cursor:'pointer', fontSize:14, padding:0, marginLeft:2 }}
+                                                            style={{ background:'none', border:'none', color:vq.amber[500], cursor:'pointer', fontSize:14, padding:0, marginLeft:2 }}
                                                             title="Remove override"
                                                         >×</button>
                                                     </span>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span style={{ color:'#475569', fontSize:12 }}>No overrides</span>
+                                            <span style={{ color:vq.slate[600], fontSize:12 }}>No overrides</span>
                                         )}
                                     </td>
                                     <td style={{ padding:'14px 16px' }}>
@@ -228,8 +229,8 @@ export default function TenantOverrides({ tenants, filters }) {
                                 key={page}
                                 onClick={() => router.get(route('platform.tenants.overrides'), { search, page })}
                                 style={{
-                                    background: page === tenants.current_page ? '#6366f1' : '#1e293b',
-                                    color: page === tenants.current_page ? '#fff' : '#94a3b8',
+                                    background: page === tenants.current_page ? vq.indigo[500] : vq.slate[800],
+                                    color: page === tenants.current_page ? '#fff' : vq.slate[400],
                                     border: '1px solid #334155', padding:'6px 14px',
                                     borderRadius:8, fontWeight:600, cursor:'pointer',
                                 }}
@@ -255,16 +256,16 @@ export default function TenantOverrides({ tenants, filters }) {
 
 const Field = ({ label, error, children }) => (
     <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-        <label style={{ fontSize:12, color:'#64748b', fontWeight:600 }}>{label}</label>
+        <label style={{ fontSize:12, color:vq.slate[500], fontWeight:600 }}>{label}</label>
         {children}
-        {error && <span style={{ fontSize:11, color:'#ef4444' }}>{error}</span>}
+        {error && <span style={{ fontSize:11, color:vq.red[500] }}>{error}</span>}
     </div>
 );
 
 const inp = {
     width:'100%', boxSizing:'border-box',
-    background:'#1e293b', border:'1px solid #334155',
-    color:'#f1f5f9', padding:'8px 12px',
+    background:vq.slate[800], border:'1px solid #334155',
+    color:vq.slate[100], padding:'8px 12px',
     borderRadius:8, fontSize:14, outline:'none', fontFamily:'inherit',
 };
 
@@ -276,13 +277,13 @@ const btnPri = {
 };
 
 const btnSec = {
-    background:'#1e293b', color:'#94a3b8',
+    background:vq.slate[800], color:vq.slate[400],
     border:'1px solid #334155', padding:'9px 20px',
     borderRadius:10, fontWeight:600, fontSize:14, cursor:'pointer',
 };
 
 const btnSmall = {
-    background:'#1e293b', color:'#94a3b8',
+    background:vq.slate[800], color:vq.slate[400],
     border:'1px solid #334155', padding:'5px 12px',
     borderRadius:7, fontWeight:600, fontSize:12, cursor:'pointer',
     whiteSpace:'nowrap',

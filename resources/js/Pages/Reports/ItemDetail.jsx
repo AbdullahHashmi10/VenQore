@@ -32,7 +32,7 @@ export default function ItemDetail({ products }) {
                                 </td>
                                 <td className="px-6 py-4 text-sm text-slate-500">{product.sku || 'N/A'}</td>
                                 <td className="px-6 py-4">
-                                    <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                                    <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-2xs font-bold text-slate-600 dark:text-slate-400 uppercase">
                                         {product.category?.name || 'Uncategorized'}
                                     </span>
                                 </td>

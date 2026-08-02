@@ -95,7 +95,7 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
 
                 <form onSubmit={submit} className="px-7 py-6 space-y-5">
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Plan to Grant</label>
+                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Plan to Grant</label>
                         <select
                             value={data.plan_id}
                             onChange={e => setData('plan_id', e.target.value)}
@@ -109,7 +109,7 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                     </div>
 
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">
                             Duration — type any amount you want
                         </label>
                         <div className="flex gap-2">
@@ -137,7 +137,7 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                     </div>
 
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                        <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">
                             Your Note (private — never shown to the customer)
                         </label>
                         <input
@@ -151,7 +151,7 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Max Uses</label>
+                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Max Uses</label>
                             <input
                                 type="number"
                                 min="1"
@@ -159,17 +159,17 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
                                 onChange={e => setData('max_redemptions', e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             />
-                            <p className="text-[11px] text-slate-500 mt-1">1 = single customer only</p>
+                            <p className="text-1xs text-slate-500 mt-1">1 = single customer only</p>
                         </div>
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Link Expires</label>
+                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Link Expires</label>
                             <input
                                 type="date"
                                 value={data.expires_at}
                                 onChange={e => setData('expires_at', e.target.value)}
                                 className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             />
-                            <p className="text-[11px] text-slate-500 mt-1">Blank = never</p>
+                            <p className="text-1xs text-slate-500 mt-1">Blank = never</p>
                         </div>
                     </div>
 
@@ -291,7 +291,7 @@ export default function AccessGrantsIndex({ grants, plans }) {
                 <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                            <thead className="bg-white/5 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-4">Plan &amp; Duration</th>
                                     <th className="px-6 py-4">Note</th>

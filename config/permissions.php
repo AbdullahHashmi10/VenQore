@@ -49,6 +49,8 @@ return [
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
+        // Marketplace / VenSynQ integrations
+        'vensynq.manage',
     ],
 
     'admin' => [
@@ -68,6 +70,8 @@ return [
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
+        // Marketplace / VenSynQ integrations
+        'vensynq.manage',
     ],
 
     'manager' => [

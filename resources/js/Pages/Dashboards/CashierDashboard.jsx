@@ -7,8 +7,9 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 // ─── Small stat tile ────────────────────────────────────────────────────────
-function StatTile({ icon: Icon, label, value, sub, color = '#6366f1' }) {
+function StatTile({ icon: Icon, label, value, sub, color = vq.indigo[500] }) {
     return (
         <div style={{
             background: 'var(--card-bg, #fff)',
@@ -30,7 +31,7 @@ function StatTile({ icon: Icon, label, value, sub, color = '#6366f1' }) {
             <div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main, #0f172a)', lineHeight: 1 }}>{value}</div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-sub, #64748b)', marginTop: 3 }}>{label}</div>
-                {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
+                {sub && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 2 }}>{sub}</div>}
             </div>
         </div>
     );
@@ -105,25 +106,25 @@ export default function CashierDashboard({ session, attendance }) {
                     onClick={() => router.visit(route('store.returns.create', { store_slug: storeSlug }))}
                     style={{
                         width: '100%', padding: '16px 28px',
-                        background: '#f8fafc',
+                        background: vq.slate[50],
                         border: '1.5px solid #e2e8f0', borderRadius: 20, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         marginBottom: 24,
                         transition: 'background 0.15s, border-color 0.15s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#6366f1'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = vq.slate[100]; e.currentTarget.style.borderColor = vq.indigo[500]; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = vq.slate[50]; e.currentTarget.style.borderColor = vq.slate[200]; }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <RotateCcw size={20} color="#6366f1" />
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: vq.slate[100], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <RotateCcw size={20} color={vq.indigo[500]} />
                         </div>
                         <div style={{ textAlign: 'left' }}>
                             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>Process Return</div>
                             <div style={{ fontSize: 12, color: 'var(--text-sub, #64748b)', marginTop: 2 }}>Handle customer item returns</div>
                         </div>
                     </div>
-                    <ArrowRight size={18} color="#94a3b8" />
+                    <ArrowRight size={18} color={vq.slate[400]} />
                 </button>
 
                 {/* Stats Row */}
@@ -133,21 +134,21 @@ export default function CashierDashboard({ session, attendance }) {
                         label="Transactions Today"
                         value={txCount}
                         sub="This session"
-                        color="#6366f1"
+                        color={vq.indigo[500]}
                     />
                     <StatTile
                         icon={DollarSign}
                         label="Session Total"
                         value={fmt(sessionAmt)}
                         sub="Cash collected"
-                        color="#10b981"
+                        color={vq.emerald[500]}
                     />
                     <StatTile
                         icon={Clock}
                         label="Time on Shift"
                         value={hoursWorked()}
                         sub={clockIn ? 'Since ' + new Date(clockIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Not clocked in'}
-                        color={isWorking ? '#f59e0b' : '#94a3b8'}
+                        color={isWorking ? vq.amber[500] : vq.slate[400]}
                     />
                 </div>
 
@@ -160,8 +161,8 @@ export default function CashierDashboard({ session, attendance }) {
                     boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 12, background: isWorking ? '#10b98115' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {isWorking ? <CheckCircle2 size={20} color="#10b981" /> : <LogIn size={20} color="#94a3b8" />}
+                        <div style={{ width: 42, height: 42, borderRadius: 12, background: isWorking ? vq.emerald[500] : vq.slate[100], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {isWorking ? <CheckCircle2 size={20} color={vq.emerald[500]} /> : <LogIn size={20} color={vq.slate[400]} />}
                         </div>
                         <div>
                             <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main, #0f172a)' }}>
@@ -175,15 +176,15 @@ export default function CashierDashboard({ session, attendance }) {
                         </div>
                     </div>
                     {isWorking && (
-                        <div style={{ padding: '5px 12px', borderRadius: 8, background: '#10b98112', border: '1px solid #10b98125', color: '#10b981', fontSize: 12, fontWeight: 700 }}>
+                        <div style={{ padding: '5px 12px', borderRadius: 8, background: vq.emerald[500], border: '1px solid #10b98125', color: vq.emerald[500], fontSize: 12, fontWeight: 700 }}>
                             Active
                         </div>
                     )}
                 </div>
 
                 {/* Restricted Access Notice */}
-                <div style={{ marginTop: 24, padding: '14px 18px', borderRadius: 14, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Package size={14} color="#94a3b8" />
+                <div style={{ marginTop: 24, padding: '14px 18px', borderRadius: 14, background: vq.slate[50], border: '1px solid #e2e8f0', fontSize: 13, color: vq.slate[500], display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Package size={14} color={vq.slate[400]} />
                     Need access to reports, inventory, or finances? Contact your Store Manager or Owner.
                 </div>
 

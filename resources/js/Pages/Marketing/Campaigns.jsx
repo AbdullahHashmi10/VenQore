@@ -43,7 +43,7 @@ export default function MarketingCampaignsIndex({ campaigns = [] }) {
                         <p className="text-slate-500 text-sm mt-1">Engage customers via WhatsApp and Email campaigns</p>
                     </div>
                     <button
-                        className="flex items-center gap-2 px-4 py-2.5 bg-pink-600 text-white rounded-xl hover:bg-pink-700 transition-colors font-bold shadow-lg shadow-pink-500/20"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-pink-600 text-slate-900 dark:text-white rounded-xl hover:bg-pink-700 transition-colors font-bold shadow-lg shadow-pink-500/20"
                     >
                         <Plus size={18} />
                         New Campaign

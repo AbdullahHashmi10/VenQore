@@ -315,9 +315,7 @@ class FinancialCoreVerificationTest extends VenQoreTestCase implements RequiresG
     public function test_F06_per_account_gl_balances_match_manifest(): void
     {
         $manifestTb = self::$manifest['trial_balance'] ?? [];
-        if (empty($manifestTb)) {
-            $this->markTestSkipped('manifest.json has no trial_balance section');
-        }
+        $this->assertNotEmpty($manifestTb, 'manifest.json has no trial_balance section — the verification pipeline guarantees this section exists; an empty result here means the manifest generation or schema drifted.');
 
         $tb      = $this->reporting->getTrialBalance(self::YEAR_END);
         $tbByCode = collect($tb['rows'])->keyBy('code');
@@ -623,9 +621,7 @@ class FinancialCoreVerificationTest extends VenQoreTestCase implements RequiresG
 
         // Query T2 P&L in T2 context
         $tenant2 = Tenant::find(self::TENANT_2_ID);
-        if (!$tenant2) {
-            $this->markTestSkipped('Tenant 2 not seeded. Run GoldenCompanySeeder first.');
-        }
+        $this->assertNotNull($tenant2, 'Tenant 2 not seeded. Run GoldenCompanySeeder first. — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $this->bindTenantContext($tenant2);
         $t2Pl = $this->reporting->getProfitAndLoss(self::YEAR_START, self::YEAR_END);
@@ -671,9 +667,7 @@ class FinancialCoreVerificationTest extends VenQoreTestCase implements RequiresG
             ->select('je.id as original_id', 'rev.id as reversal_id')
             ->get();
 
-        if ($reversedEntries->isEmpty()) {
-            $this->markTestSkipped('No reversed entries found in Golden Company — seed may not include sale returns');
-        }
+        $this->assertNotEmpty($reversedEntries, 'No reversed entries found in Golden Company — seed may not include sale returns; GoldenSeedManager guarantees this data exists, so an empty result here means the seeder or schema drifted.');
 
         foreach ($reversedEntries as $pair) {
             $origLines = DB::table('journal_items as ji')

@@ -298,20 +298,20 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Open</button>
                         <button
                             onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Used</button>
 
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Custom</button>
 
                         {activeFilter === 'custom' && (
@@ -403,15 +403,15 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Open</button>
                                 <button
                                     onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Used</button>
                             </div>
                         </div>
@@ -577,14 +577,14 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
-                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                    <p className="text-2xs text-slate-400 font-semibold">{row.supplier.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-mono text-xs font-bold text-red-600 dark:text-red-400 block">
                                                     {row.reference_number || `DN-${row.id}`}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                                     {formatDate(row.date || row.created_at)}
                                                 </span>
                                             </div>
@@ -592,10 +592,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
 
                                         {/* Row 2: Badges (Transaction type & status) */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black uppercase bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded border border-red-200/30">
+                                            <span className="text-3xs font-black uppercase bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded border border-red-200/30">
                                                 Debit Note
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
                                                 {row.status}
                                             </span>
                                         </div>
@@ -604,15 +604,15 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
                                                     <span className="text-xs font-black text-emerald-600">
                                                         {formatCurrency(row.amount, store)}
                                                     </span>
                                                 </div>
                                                 {row.reason && (
                                                     <div className="max-w-[150px] truncate">
-                                                        <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Reason</span>
-                                                        <span className="text-[10px] text-slate-500 italic">
+                                                        <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Reason</span>
+                                                        <span className="text-2xs text-slate-500 italic">
                                                             {row.reason}
                                                         </span>
                                                     </div>
@@ -623,7 +623,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                                 <Link
                                                     href={route('store.debit-notes.show', row.id)}
-                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-red-650 transition-colors"
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-red-600 transition-colors"
                                                     title="View"
                                                 >
                                                     <Eye size={16} />

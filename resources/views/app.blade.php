@@ -9,7 +9,37 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'G-404QXQB4XF');
+      // AI Referral Traffic Grouping (T8)
+      var referrer = document.referrer || '';
+      var aiReferrals = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com', 'copilot.bing.com'];
+      var isAiReferral = false;
+      for (var i = 0; i < aiReferrals.length; i++) {
+        if (referrer.indexOf(aiReferrals[i]) !== -1) {
+          isAiReferral = true;
+          break;
+        }
+      }
+
+      var gtagConfig = {};
+      if (isAiReferral) {
+        gtagConfig['traffic_type'] = 'ai_referral';
+        gtagConfig['ai_referral'] = 'true';
+        
+        // Extract platform name
+        var platform = 'unknown';
+        var match = referrer.match(/(chatgpt|openai|perplexity|claude|gemini|copilot)/i);
+        if (match) {
+          platform = match[0].toLowerCase();
+        }
+        
+        gtag('event', 'ai_referral_visit', {
+          'event_category': 'engagement',
+          'event_label': referrer,
+          'ai_platform': platform
+        });
+      }
+
+      gtag('config', 'G-404QXQB4XF', gtagConfig);
     </script>
 
     <meta charset="utf-8">
@@ -53,9 +83,10 @@
     @endforeach
     @endif
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <!-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /> -->
+    <!-- Fonts Preconnect & Swap -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/logo.png">
 

@@ -1,0 +1,26 @@
+# FinalTester — generated artifacts
+#
+# Everything here is produced by a run and can be regenerated:
+#   reports/expected.json        php Scripts/expected.php
+#   reports/summary.json         php Scripts/report.php
+#   reports/junit.xml            written by PHPUnit during a run
+#   reports/route-coverage.json  written by FullRouteSweepTest
+#
+# The test COPIES are also generated (Scripts/sync.php rebuilds them from
+# Tester/tests on every run), so they are not tracked either. The source of
+# truth for tests remains Tester/tests/ — commit changes there.
+
+tests/
+reports/*.json
+reports/*.xml
+reports/coverage/
+logs/*.log
+dashboard/node_modules/
+.phpunit.cache/
+VerificationCenter/
+!reports/.gitkeep
+!logs/.gitkeep
+
+# Exception: these two are FinalTester-owned source, not synced copies.
+!tests/Routes/
+!tests/Routes/FullRouteSweepTest.php

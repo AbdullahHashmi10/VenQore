@@ -439,9 +439,7 @@ class ReportOutputTest extends OutputVerificationTestCase
             })
             ->value('id');
 
-        if (!$saraId) {
-            $this->markTestSkipped('CUST-SARA not found in parties table — seeder may use a different name');
-        }
+        $this->assertNotNull($saraId, 'CUST-SARA not found in parties table — seeder may use a different name; GoldenSeedManager guarantees this data exists, so a null result here means the seeder or schema drifted.');
 
         $props = $this->reportGet("reports/party-ledger/{$saraId}", [
             'from' => self::YEAR_START,

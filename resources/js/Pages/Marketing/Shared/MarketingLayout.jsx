@@ -1,14 +1,24 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, MessageCircle, Lock, Menu, X, Sun, Moon } from 'lucide-react';
+import { ArrowRight, MessageCircle, Lock, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/Contexts/ThemeContext';
 
+import { vq } from '@/theme/runtime';
 /* ═══════════════════════════════════════════════════════════════════════════
-   SHARED MARKETING LAYOUT — Midnight Nebula 2.0 (now light/dark aware)
-   Background, nav and footer now carry dark: variants and read/write the
-   same ThemeContext (localStorage 'amd_theme') used by the authenticated
-   app, so a visitor's preference follows them across the whole site,
-   marketing pages and tools included. Toggle lives in the header.
+   SHARED MARKETING LAYOUT — Midnight Nebula 2.0 (light/dark aware)
+
+   Header: deliberately minimal. Four grouped entries (Product, Pricing,
+   Resources, Company) instead of ten flat links. Every SEO page the header
+   used to expose is still one click away — it now lives in a dropdown and
+   in the full footer sitemap, so internal link equity is preserved while
+   the chrome stays clean.
+
+   Theme: the toggle lives in the header on every page. First-time visitors
+   get dark on the landing page (the hero is designed for it) and light on
+   every other marketing page; see Contexts/ThemeContext.jsx. Light mode is
+   fully art-directed here — aurora blobs, drifting particles and spotlight
+   all have first-class light values, not just dimmed dark ones.
+
    All helper exports below are preserved with identical signatures.
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -21,7 +31,7 @@ export function useScrollReveal(options = {}) {
         if (!el) return;
         const observer = new IntersectionObserver(
             ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
-            { threshold: options.threshold || 0.12, rootMargin: options.rootMargin || '0px 0px -60px 0px' }
+            { threshold: options.threshold !== undefined ? options.threshold : 0, rootMargin: options.rootMargin || '0px 0px -50px 0px' }
         );
         observer.observe(el);
         return () => observer.disconnect();
@@ -82,7 +92,7 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
     const handleMouseLeave = useCallback(() => { if (btnRef.current) btnRef.current.style.transform = ''; }, []);
 
     const baseClass = variant === 'primary'
-        ? 'px-9 py-4 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] font-black text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]'
+        ? 'px-9 py-4 bg-slate-900 dark:bg-white text-white dark:text-void-900 font-black text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]'
         : variant === 'ghost'
             ? 'px-8 py-4 bg-slate-900/[0.04] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/12 text-slate-900 dark:text-white font-bold text-[15px] rounded-full hover:bg-slate-900/[0.08] dark:hover:bg-white/[0.08] hover:border-slate-900/25 dark:hover:border-white/25 backdrop-blur-md'
             : 'px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-full shadow-xl shadow-indigo-600/25';
@@ -101,7 +111,7 @@ export const MagneticButton = ({ children, href, className = '', variant = 'prim
 
 /* ── Section label ───────────────────────────────────────────────────────── */
 export const SectionLabel = ({ children, icon: Icon }) => (
-    <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 dark:border-indigo-400/20 text-indigo-600 dark:text-indigo-300 text-[10px] font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-sm">
+    <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 dark:border-indigo-400/20 text-indigo-600 dark:text-indigo-300 text-2xs font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-sm">
         {Icon && <Icon size={13} />}
         {children}
     </div>
@@ -144,25 +154,33 @@ const MkScrollProgress = () => {
     );
 };
 
-/* ── ambient background (no images — gradient keeps content crisp) ────────── */
+/* ── ambient background (no images — gradient keeps content crisp) ──────────
+   Light mode is art-directed, not a dimmed copy of dark. Dark uses luminous
+   colour on near-black; light uses saturated colour on a warm paper white,
+   with stronger blob alpha (light backgrounds swallow colour, so the same
+   numbers that read as "glow" on black read as "nothing" on white) and a
+   vignette that darkens toward the edges instead of washing out. */
 const MkAmbient = ({ isDarkMode }) => (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute inset-0" style={{
             background: isDarkMode
                 ? 'radial-gradient(120% 95% at 50% -10%, #0c0922 0%, #070518 46%, #040210 100%)'
-                : 'radial-gradient(120% 95% at 50% -10%, #f5f4ff 0%, #fbfbff 46%, #ffffff 100%)',
+                : 'radial-gradient(125% 100% at 50% -12%, #eef0ff 0%, #f7f6fd 38%, #fdfdff 72%, #ffffff 100%)',
         }} />
-        <div className="absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 vqm-beams" />
-        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.15 : 0.10}), transparent 62%)` }} />
-        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgba(139,92,246,${isDarkMode ? 0.12 : 0.08}), transparent 62%)` }} />
-        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(34,211,238,${isDarkMode ? 0.07 : 0.05}), transparent 62%)` }} />
-        <div className={`absolute inset-0 vqm-grid ${isDarkMode ? 'opacity-[0.35]' : 'opacity-[0.5]'}`} />
+        <div className={`absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 ${isDarkMode ? 'vqm-beams' : 'vqm-beams-light'}`} />
+        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.15 : 0.22}), transparent 62%)` }} />
+        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vqm-blob2" style={{ background: `radial-gradient(circle, rgba(139,92,246,${isDarkMode ? 0.12 : 0.18}), transparent 62%)` }} />
+        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vqm-blob" style={{ background: `radial-gradient(circle, rgba(34,211,238,${isDarkMode ? 0.07 : 0.14}), transparent 62%)` }} />
+        {!isDarkMode && (
+            <div className="absolute top-[18%] right-[6%] w-[34vw] h-[34vw] rounded-full blur-[200px] vqm-blob2" style={{ background: 'radial-gradient(circle, rgba(244,114,182,0.10), transparent 64%)' }} />
+        )}
+        <div className={`absolute inset-0 vqm-grid ${isDarkMode ? 'opacity-[0.35]' : 'opacity-[0.65]'}`} />
         <div className="absolute inset-0" style={{
             background: isDarkMode
                 ? 'radial-gradient(95% 75% at 50% 40%, rgba(4,2,12,0) 0%, rgba(4,2,12,0.5) 100%)'
-                : 'radial-gradient(95% 75% at 50% 40%, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 100%)',
+                : 'radial-gradient(100% 80% at 50% 34%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 52%, rgba(99,102,241,0.06) 100%)',
         }} />
-        {isDarkMode && <div className="absolute inset-0 vqm-grain opacity-[0.3]" />}
+        <div className={`absolute inset-0 vqm-grain ${isDarkMode ? 'opacity-[0.3]' : 'opacity-[0.18]'}`} />
     </div>
 );
 
@@ -175,16 +193,21 @@ const MkParticles = ({ isDarkMode }) => {
         const canvas = canvasRef.current; if (!canvas) return;
         const ctx = canvas.getContext('2d');
         let w, h, raf = 0, parts = [], running = true;
+        // Light mode needs deeper, larger, more opaque motes — a 0.3-alpha
+        // indigo dot vanishes on white but glows on black. These are tuned
+        // by eye so both themes read as the same "drifting stars" idea.
         const COLORS = isDarkMode
             ? ['rgba(129,140,248,', 'rgba(167,139,250,', 'rgba(34,211,238,']
-            : ['rgba(99,102,241,', 'rgba(139,92,246,', 'rgba(6,182,212,'];
+            : ['rgba(79,70,229,', 'rgba(124,58,237,', 'rgba(8,145,178,'];
         const resize = () => {
             w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
             const count = Math.min(60, Math.floor(w / 32));
             parts = Array.from({ length: count }, () => ({
-                x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.5 + 0.4,
+                x: Math.random() * w, y: Math.random() * h,
+                r: Math.random() * (isDarkMode ? 1.5 : 1.9) + (isDarkMode ? 0.4 : 0.6),
                 vy: -(Math.random() * 0.2 + 0.05), vx: (Math.random() - 0.5) * 0.1,
-                a: Math.random() * (isDarkMode ? 0.3 : 0.18) + 0.06, c: COLORS[(Math.random() * COLORS.length) | 0], tw: Math.random() * Math.PI * 2,
+                a: Math.random() * (isDarkMode ? 0.3 : 0.34) + (isDarkMode ? 0.06 : 0.12),
+                c: COLORS[(Math.random() * COLORS.length) | 0], tw: Math.random() * Math.PI * 2,
             }));
         };
         const draw = () => {
@@ -205,7 +228,7 @@ const MkParticles = ({ isDarkMode }) => {
         return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVis); };
     }, [reduced, isDarkMode]);
     if (reduced) return null;
-    return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 hidden md:block" style={{ opacity: 0.5 }} />;
+    return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 hidden md:block" style={{ opacity: isDarkMode ? 0.5 : 0.7 }} />;
 };
 
 /* ── cursor spotlight ────────────────────────────────────────────────────── */
@@ -227,7 +250,7 @@ const MkSpotlight = ({ isDarkMode }) => {
     if (reduced) return null;
     return (
         <div className="fixed inset-0 pointer-events-none z-[5] hidden md:block">
-            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.06 : 0.05}), transparent 60%)` }} />
+            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full" style={{ background: `radial-gradient(circle, rgba(99,102,241,${isDarkMode ? 0.06 : 0.10}), transparent 60%)` }} />
         </div>
     );
 };
@@ -247,16 +270,304 @@ const ThemeToggle = ({ isDarkMode, onToggle, compact = false }) => (
 );
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   SITE MAP — single source of truth for header dropdowns, the footer sitemap
+   and the RelatedPages block. Add a marketing page here once and it is
+   automatically reachable and internally linked from every surface.
+   ═══════════════════════════════════════════════════════════════════════════ */
+export const SITE = {
+    product: [
+        { label: 'Point of Sale', href: '/features/point-of-sale', desc: 'Fast, offline-capable terminal' },
+        { label: 'Inventory (FIFO)', href: '/features/inventory-management', desc: 'Batches, serials, real costing' },
+        { label: 'Accounting', href: '/features/accounting', desc: 'True double-entry ledger' },
+        { label: 'Offline POS', href: '/features/offline-pos', desc: 'Keep selling with no internet' },
+        { label: 'Growth Engine', href: '/features/growth-engine', desc: 'Campaigns, loyalty, retention' },
+        { label: 'All features', href: '/features', desc: 'The complete capability map' },
+    ],
+    solutions: [
+        { label: 'Pharmacy', href: '/solutions/pharmacy' },
+        { label: 'Grocery', href: '/solutions/grocery' },
+        { label: 'Electronics', href: '/solutions/electronics-store' },
+        { label: 'Clothing', href: '/solutions/clothing' },
+        { label: 'Wholesale', href: '/solutions/wholesale' },
+        { label: 'Multi-store', href: '/solutions/multi-store' },
+    ],
+    compare: [
+        { label: 'VenQore vs Square', href: '/compare/venqore-vs-square' },
+        { label: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
+        { label: 'All comparisons', href: '/compare' },
+    ],
+    resources: [
+        { label: 'Free tools', href: '/tools', desc: 'Invoices, barcodes, calculators' },
+        { label: 'Documentation', href: '/docs', desc: 'Guides and how-tos' },
+        { label: 'Blog', href: '/blog', desc: 'Retail and accounting playbooks' },
+        { label: 'Roadmap', href: '/roadmap', desc: 'What ships next' },
+        { label: 'Live demo', href: '/demo', desc: 'Try it with sample data' },
+    ],
+    // Pricing deliberately lives ONLY as a top-level header item. Listing it
+    // here too made both the "Pricing" pill and the "Company" pill light up
+    // on /pricing, which read as a bug.
+    company: [
+        { label: 'About', href: '/about' },
+        { label: 'Partners', href: '/partners' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Newsletter', href: '/subscribe' },
+    ],
+    comingSoon: [
+        { label: 'VenSynQ', href: '/vensynq', desc: 'Multi-channel stock sync' },
+        { label: 'SmartCapture', href: '/smartcapture', desc: 'Photo & voice to ledger' },
+    ],
+    legal: [
+        { label: 'Terms', href: '/terms' },
+        { label: 'Privacy', href: '/privacy' },
+        { label: 'Refunds', href: '/refund-policy' },
+    ],
+};
+
+/* Header groups — four entries, that is the whole header. Everything else
+   lives inside these panels or in the footer sitemap. */
+const NAV_GROUPS = [
+    {
+        key: 'product',
+        label: 'Product',
+        columns: [
+            { heading: 'Capabilities', items: SITE.product },
+            { heading: 'By industry', items: SITE.solutions, footerLink: { label: 'All solutions', href: '/solutions' } },
+        ],
+    },
+    { key: 'pricing', label: 'Pricing', href: '/pricing' },
+    {
+        key: 'resources',
+        label: 'Resources',
+        columns: [
+            { heading: 'Learn & use', items: SITE.resources },
+            { heading: 'Compare', items: SITE.compare },
+        ],
+    },
+    {
+        key: 'company',
+        label: 'Company',
+        columns: [
+            { heading: 'VenQore', items: SITE.company },
+            { heading: 'Coming soon', items: SITE.comingSoon },
+        ],
+    },
+];
+
+/* ── header dropdown ─────────────────────────────────────────────────────── */
+const NavDropdown = ({ group, isOpen, onOpen, onClose, isActive }) => {
+    const closeTimer = useRef(null);
+
+    const open = () => { clearTimeout(closeTimer.current); onOpen(group.key); };
+    // Small grace period so diagonal mouse travel into the panel doesn't
+    // slam it shut — the classic "menu closes before you reach it" bug.
+    const close = () => { closeTimer.current = setTimeout(onClose, 140); };
+    useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+    return (
+        <div className="relative" onMouseEnter={open} onMouseLeave={close}>
+            <button
+                type="button"
+                onClick={() => (isOpen ? onClose() : onOpen(group.key))}
+                aria-expanded={isOpen}
+                aria-haspopup="true"
+                className={`flex items-center gap-1.5 px-4 py-2 text-1xs font-bold uppercase tracking-[0.18em] rounded-full transition-colors duration-300 ${
+                    isOpen || isActive
+                        ? 'text-slate-900 dark:text-white bg-slate-900/[0.07] dark:bg-white/[0.10]'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.04]'
+                }`}
+            >
+                {group.label}
+                <ChevronDown size={13} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <div
+                className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-all duration-200 ${
+                    isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none'
+                }`}
+            >
+                <div className="w-[min(38rem,92vw)] p-6 rounded-3xl bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border border-slate-900/[0.08] dark:border-white/[0.08] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                        {group.columns.map((col) => (
+                            <div key={col.heading}>
+                                <p className="text-3xs font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-600 mb-3 px-3">
+                                    {col.heading}
+                                </p>
+                                <div className="space-y-0.5">
+                                    {col.items.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            onClick={onClose}
+                                            className="block px-3 py-2 rounded-xl hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05] transition-colors group/item"
+                                        >
+                                            <span className="block text-sm font-bold text-slate-800 dark:text-slate-200 group-hover/item:text-indigo-600 dark:group-hover/item:text-indigo-300 transition-colors">
+                                                {item.label}
+                                            </span>
+                                            {item.desc && (
+                                                <span className="block text-2xs text-slate-500 dark:text-slate-500 mt-0.5 leading-snug">
+                                                    {item.desc}
+                                                </span>
+                                            )}
+                                        </Link>
+                                    ))}
+                                    {col.footerLink && (
+                                        <Link
+                                            href={col.footerLink.href}
+                                            onClick={onClose}
+                                            className="inline-flex items-center gap-1.5 mt-2 px-3 py-2 text-2xs font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-300 hover:gap-2.5 transition-all"
+                                        >
+                                            {col.footerLink.label} <ArrowRight size={11} />
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ── mobile accordion group ──────────────────────────────────────────────── */
+const MobileNavGroup = ({ group, onNavigate }) => {
+    const [open, setOpen] = useState(false);
+
+    if (group.href) {
+        return (
+            <Link
+                href={group.href}
+                onClick={onNavigate}
+                className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            >
+                {group.label}
+            </Link>
+        );
+    }
+
+    return (
+        <div>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            >
+                {group.label}
+                <ChevronDown size={15} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+            </button>
+            <div className={`grid transition-all duration-300 ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden">
+                    <div className="pl-3 pb-2 pt-1 space-y-3">
+                        {group.columns.map((col) => (
+                            <div key={col.heading}>
+                                <p className="text-3xs font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-600 px-4 mb-1">
+                                    {col.heading}
+                                </p>
+                                {col.items.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={onNavigate}
+                                        className="block px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.03] dark:hover:bg-white/[0.04] transition-colors"
+                                    >
+                                        {item.label}
+                                    </Link>
+                                ))}
+                                {col.footerLink && (
+                                    <Link
+                                        href={col.footerLink.href}
+                                        onClick={onNavigate}
+                                        className="block px-4 py-2 rounded-lg text-sm font-bold text-indigo-600 dark:text-indigo-300"
+                                    >
+                                        {col.footerLink.label} →
+                                    </Link>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ── related pages block ─────────────────────────────────────────────────────
+   Drop this in just above the footer on any SEO page to hand the reader
+   (and the crawler) the next three or four logical destinations. */
+export const RelatedPages = ({ title = 'Keep exploring', items = [], className = '' }) => {
+    if (!items.length) return null;
+    return (
+        <section className={`px-6 pb-24 relative z-10 ${className}`}>
+            <div className="max-w-6xl mx-auto">
+                <div className="flex items-end justify-between gap-4 mb-8">
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h2>
+                    <div className="hidden sm:block flex-1 h-px bg-slate-900/[0.08] dark:bg-white/[0.08]" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {items.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className="group p-6 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.07] dark:border-white/[0.07] hover:border-indigo-500/30 hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-300"
+                        >
+                            {item.eyebrow && (
+                                <span className="block text-3xs font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-3">
+                                    {item.eyebrow}
+                                </span>
+                            )}
+                            <span className="block text-base font-black text-slate-900 dark:text-white mb-2 leading-snug">
+                                {item.label}
+                            </span>
+                            {item.desc && (
+                                <span className="block text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                                    {item.desc}
+                                </span>
+                            )}
+                            <span className="inline-flex items-center gap-1.5 text-2xs font-black uppercase tracking-[0.15em] text-slate-600 dark:text-slate-300 group-hover:gap-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-all">
+                                Read more <ArrowRight size={11} />
+                            </span>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+/* ── breadcrumb-free inline link helper ──────────────────────────────────────
+   Use for in-copy contextual links so they are visually consistent site-wide. */
+export const InlineLink = ({ href, children, className = '' }) => (
+    <Link
+        href={href}
+        className={`font-semibold text-indigo-600 dark:text-indigo-300 underline decoration-indigo-500/30 underline-offset-4 hover:decoration-indigo-500 transition-colors ${className}`}
+    >
+        {children}
+    </Link>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════
    LAYOUT
    ═══════════════════════════════════════════════════════════════════════════ */
 export default function MarketingLayout({ children, title, description }) {
     const { props } = usePage();
     const settings = props.settings || {};
     const appName = settings.app_name || 'VenQore';
-    const logo = settings.logo_url || '/images/logo.png';
+    /**
+     * PUBLIC PAGES ONLY. `/images/logo.png` is 668 KB and was being fetched
+     * twice per page (header + footer) on every marketing route — a real LCP
+     * penalty on the exact pages we want Google to like. `/images/venqore-icon.png`
+     * is the same mark at 24 KB.
+     *
+     * A tenant's own uploaded `logo_url` still wins, and the authenticated app,
+     * dashboard, print templates and PWA icons are untouched — they keep using
+     * the original asset.
+     */
+    const logo = settings.logo_url || '/images/venqore-icon.png';
     const { isDarkMode, toggleTheme } = useTheme();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenu, setMobileMenu] = useState(false);
+    const [openGroup, setOpenGroup] = useState(null);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -264,22 +575,33 @@ export default function MarketingLayout({ children, title, description }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const navLinks = [
-        { label: 'Features', href: '/features' },
-        { label: 'Pricing', href: '/pricing' },
-        { label: 'Tools', href: '/tools' },
-        { label: 'Blog', href: '/blog' },
-        { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' },
-    ];
+    // Esc closes any open dropdown; clicking outside the nav does too.
+    useEffect(() => {
+        if (!openGroup) return;
+        const onKey = (e) => { if (e.key === 'Escape') setOpenGroup(null); };
+        const onClick = (e) => { if (!e.target.closest('[data-vq-nav]')) setOpenGroup(null); };
+        document.addEventListener('keydown', onKey);
+        document.addEventListener('click', onClick);
+        return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('click', onClick); };
+    }, [openGroup]);
+
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
+    // A group is "active" when the current URL lives anywhere inside it.
+    const groupIsActive = (group) => {
+        if (group.href) return currentPath === group.href;
+        return group.columns.some((col) =>
+            col.items.some((i) => currentPath === i.href || (i.href !== '/' && currentPath.startsWith(i.href + '/')))
+            || (col.footerLink && currentPath.startsWith(col.footerLink.href))
+        );
+    };
+
     return (
-        <div className="min-h-screen bg-white dark:bg-[#04020c] text-slate-900 dark:text-white font-sans selection:bg-indigo-500/30 dark:selection:bg-indigo-500/40 overflow-x-clip antialiased transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-void-900 text-slate-900 dark:text-white font-sans selection:bg-indigo-500/30 dark:selection:bg-indigo-500/40 overflow-x-clip antialiased transition-colors duration-300">
             <Head>
                 <title>{title || `${appName}`}</title>
                 {description && <meta name="description" content={description} />}
-                <meta name="theme-color" content={isDarkMode ? '#04020c' : '#ffffff'} />
+                <meta name="theme-color" content={isDarkMode ? vq.void[900] : '#ffffff'} />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -291,36 +613,44 @@ export default function MarketingLayout({ children, title, description }) {
             <MkSpotlight isDarkMode={isDarkMode} />
 
             {/* Navigation */}
-            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-white/80 dark:bg-[#04020c]/80 backdrop-blur-2xl border-b border-slate-900/[0.06] dark:border-white/[0.06] py-3' : 'py-5'}`}>
+            <nav data-vq-nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled || openGroup ? 'bg-white/80 dark:bg-void-900/80 backdrop-blur-2xl border-b border-slate-900/[0.06] dark:border-white/[0.06] py-3' : 'py-5'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
                     <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
-                        <img src={logo} alt={appName} className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
+                        <img src={logo} alt={appName} width="36" height="36" fetchpriority="high" decoding="async" className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
                         <span className="font-black text-slate-900 dark:text-white text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                     </Link>
                     <div className="hidden lg:flex items-center gap-1">
-                        {navLinks.map(link => (
-                            <Link key={link.href} href={link.href}
-                                className={`relative px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 rounded-full ${currentPath === link.href ? 'text-slate-900 dark:text-white bg-slate-900/[0.06] dark:bg-white/[0.06]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.04]'}`}>
-                                {link.label}
-                            </Link>
+                        {NAV_GROUPS.map(group => (
+                            group.href ? (
+                                <Link key={group.key} href={group.href}
+                                    className={`px-4 py-2 text-1xs font-bold uppercase tracking-[0.18em] transition-colors duration-300 rounded-full ${currentPath === group.href ? 'text-slate-900 dark:text-white bg-slate-900/[0.07] dark:bg-white/[0.10]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.04]'}`}>
+                                    {group.label}
+                                </Link>
+                            ) : (
+                                <NavDropdown
+                                    key={group.key}
+                                    group={group}
+                                    isOpen={openGroup === group.key}
+                                    isActive={groupIsActive(group)}
+                                    onOpen={setOpenGroup}
+                                    onClose={() => setOpenGroup(null)}
+                                />
+                            )
                         ))}
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />
-                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
+                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Sign In</Link>
+                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-full text-2xs sm:text-1xs font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
                     </div>
                 </div>
-                <div className={`lg:hidden overflow-hidden transition-all duration-500 ${mobileMenu ? 'max-h-[560px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-4 sm:px-6 py-6 space-y-1 bg-white/95 dark:bg-[#04020c]/95 backdrop-blur-2xl border-t border-slate-900/[0.06] dark:border-white/[0.06]">
-                        {navLinks.map(link => (
-                            <Link key={link.href} href={link.href} onClick={() => setMobileMenu(false)}
-                                className={`block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors ${currentPath === link.href ? 'text-slate-900 dark:text-white bg-slate-900/5 dark:bg-white/5' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.04]'}`}>
-                                {link.label}
-                            </Link>
+                <div className={`lg:hidden overflow-hidden transition-all duration-500 ${mobileMenu ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="px-4 sm:px-6 py-6 space-y-1 max-h-[78vh] overflow-y-auto bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border-t border-slate-900/[0.06] dark:border-white/[0.06]">
+                        {NAV_GROUPS.map(group => (
+                            <MobileNavGroup key={group.key} group={group} onNavigate={() => setMobileMenu(false)} />
                         ))}
                         <div className="pt-3 mt-3 border-t border-slate-900/[0.06] dark:border-white/[0.06] sm:hidden">
                             <Link href="/login" onClick={() => setMobileMenu(false)}
@@ -335,49 +665,70 @@ export default function MarketingLayout({ children, title, description }) {
             <main className="relative z-10">{children}</main>
 
             {/* Footer */}
-            <footer className="border-t border-slate-900/[0.06] dark:border-white/[0.06] pt-24 pb-12 px-6 relative z-10 bg-white dark:bg-[#04020c]">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
-                    <div className="md:col-span-5">
+            <footer className="border-t border-slate-900/[0.06] dark:border-white/[0.06] pt-24 pb-12 px-6 relative z-10 bg-white dark:bg-void-900">
+                {/* Brand + CTA rail */}
+                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
+                    <div className="lg:col-span-5">
                         <Link href="/" className="flex items-center gap-3 mb-8">
-                            <img src={logo} alt={appName} className="h-10 w-auto" />
+                            <img src={logo} alt={appName} width="40" height="40" loading="lazy" decoding="async" className="h-10 w-auto" />
                             <span className="font-black text-slate-900 dark:text-white text-xl uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                         </Link>
-                        <p className="text-slate-500 dark:text-slate-500 max-w-sm leading-relaxed text-sm mb-8">
-                            The all-in-one POS &amp; ERP built on financial truth. Every sale, purchase and transfer writes a correct journal entry — automatically.
+                        <p className="text-slate-500 dark:text-slate-500 max-w-sm leading-relaxed text-sm mb-8 font-medium">
+                            Run your business, not your software. The all-in-one operating system for point of sale, inventory, and real accounting.
                         </p>
-                        <a href="https://wa.me/923091999489" className="inline-flex p-3 rounded-xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 text-slate-500 hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all duration-300">
+                        <a href="https://wa.me/923091999489" aria-label="Chat on WhatsApp" className="inline-flex p-3 rounded-xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 text-slate-500 hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all duration-300">
                             <MessageCircle size={18} />
                         </a>
                     </div>
-                    <div className="md:col-span-2">
-                        <h4 className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.3em] mb-6">Platform</h4>
-                        <ul className="space-y-3">
-                            {[{ label: 'Features', href: '/features' }, { label: 'Pricing', href: '/pricing' }, { label: 'Tools', href: '/tools' }, { label: 'Blog', href: '/blog' }, { label: 'About', href: '/about' }].map(l => (
-                                <li key={l.href}><Link href={l.href} className="text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-medium">{l.label}</Link></li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="md:col-span-2">
-                        <h4 className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.3em] mb-6">Resources</h4>
-                        <ul className="space-y-3">
-                            {[{ label: 'Contact', href: '/contact' }, { label: 'Live Demo', href: '/demo' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
-                                <li key={l.href}><Link href={l.href} className="text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-medium">{l.label}</Link></li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="md:col-span-3">
-                        <h4 className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.3em] mb-6">Start Today</h4>
-                        <p className="text-slate-500 text-sm mb-6 leading-relaxed">14-day free trial. Full access. No credit card required.</p>
-                        <Link href="/register" className="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-black uppercase tracking-[0.15em] transition-all hover:scale-105 shadow-lg shadow-indigo-600/25">
-                            Get Started <ArrowRight size={14} />
-                        </Link>
+                    <div className="lg:col-span-7 lg:justify-self-end lg:text-right">
+                        <h4 className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.3em] mb-4">Start today</h4>
+                        <p className="text-slate-500 text-sm mb-6 leading-relaxed max-w-xs lg:ml-auto">
+                            14-day trial. No credit card. Your data stays yours.
+                        </p>
+                        <div className="flex flex-wrap lg:justify-end gap-3">
+                            <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-2xs font-black uppercase tracking-[0.15em] transition-all hover:scale-105 shadow-lg shadow-indigo-600/25">
+                                Get Started <ArrowRight size={12} />
+                            </Link>
+                            <Link href="/demo" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-900/10 dark:border-white/12 text-slate-700 dark:text-slate-300 text-2xs font-black uppercase tracking-[0.15em] hover:bg-slate-900/[0.04] dark:hover:bg-white/[0.05] transition-all">
+                                Live Demo
+                            </Link>
+                        </div>
                     </div>
                 </div>
+
+                {/* Full sitemap — the header is minimal, so this is where every
+                    SEO page stays crawlable and one click from anywhere. */}
+                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-10 mb-16 pt-12 border-t border-slate-900/[0.06] dark:border-white/[0.06]">
+                    {[
+                        { heading: 'Capabilities', links: SITE.product },
+                        { heading: 'By industry', links: [...SITE.solutions, { label: 'All solutions', href: '/solutions' }] },
+                        { heading: 'Resources', links: SITE.resources },
+                        { heading: 'Compare', links: SITE.compare },
+                        // Pricing is header-only in the nav, but the footer is the
+                        // full sitemap, so it belongs here.
+                        { heading: 'Company', links: [{ label: 'Pricing', href: '/pricing' }, ...SITE.company, ...SITE.comingSoon] },
+                    ].map(col => (
+                        <div key={col.heading}>
+                            <h4 className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.3em] mb-5">{col.heading}</h4>
+                            <ul className="space-y-3">
+                                {col.links.map(l => (
+                                    <li key={l.href}>
+                                        <Link href={l.href} className="text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-medium">
+                                            {l.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-900/[0.06] dark:border-white/[0.06]">
-                    <span className="text-slate-500 dark:text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved.</span>
-                    <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-600">
-                        <Link href="/terms" className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors">Terms</Link>
-                        <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors">Privacy</Link>
+                    <span className="text-slate-500 dark:text-slate-600 text-2xs font-black uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved.</span>
+                    <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-2xs font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-600">
+                        {SITE.legal.map(l => (
+                            <Link key={l.href} href={l.href} className="hover:text-slate-900 dark:hover:text-slate-300 transition-colors">{l.label}</Link>
+                        ))}
                     </div>
                 </div>
             </footer>
@@ -400,14 +751,27 @@ export default function MarketingLayout({ children, title, description }) {
                     filter: blur(22px); transform-origin: 50% 0%;
                     animation: vqm-beamspin 26s ease-in-out infinite;
                 }
+                /* Light-mode beams: same sweep, deeper pigment so the shafts
+                   are actually perceivable against a white page. */
+                .vqm-beams-light {
+                    background: conic-gradient(from 90deg at 50% 0%,
+                        transparent 0deg, rgba(99,102,241,0.13) 10deg, transparent 22deg,
+                        transparent 44deg, rgba(139,92,246,0.11) 56deg, transparent 70deg,
+                        transparent 104deg, rgba(6,182,212,0.09) 118deg, transparent 134deg);
+                    filter: blur(26px); transform-origin: 50% 0%;
+                    animation: vqm-beamspin 26s ease-in-out infinite;
+                }
                 @keyframes vqm-beamspin { 0%,100%{transform:translateX(-50%) rotate(-7deg);} 50%{transform:translateX(-50%) rotate(7deg);} }
                 .vqm-grid { background-image:
-                    linear-gradient(rgba(99,102,241,0.05) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(99,102,241,0.05) 1px,transparent 1px);
-                    background-size: 64px 64px; }
+                    linear-gradient(rgba(99,102,241,0.055) 1px,transparent 1px),
+                    linear-gradient(90deg,rgba(99,102,241,0.055) 1px,transparent 1px);
+                    background-size: 64px 64px;
+                    mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%);
+                    -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 78%); }
                 .dark .vqm-grid { background-image:
                     linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px); }
+                    linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
+                    mask-image: none; -webkit-mask-image: none; }
                 .vqm-grain { background-image: url('/images/noise.svg'); background-repeat: repeat; }
 
                 @keyframes vq-pulse-slow { 0%,100% { opacity:.15; transform:scale(1); } 50% { opacity:.25; transform:scale(1.05); } }

@@ -233,9 +233,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
         $account1100 = DB::table('accounts')
             ->where('tenant_id', self::TENANT_ID)->where('code', '1100')->first();
 
-        if (!$account1100) {
-            $this->markTestSkipped('GL account 1100 not found for Golden Company');
-        }
+        $this->assertNotNull($account1100, 'GL account 1100 not found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $cleanGl1100 = (float) DB::table('journal_items as ji')
             ->join('journal_entries as je', 'je.id', '=', 'ji.journal_entry_id')
@@ -252,9 +250,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->whereRaw('remaining_qty > 0')
             ->first();
 
-        if (!$batch) {
-            $this->markTestSkipped('No inventory batches with remaining qty > 0');
-        }
+        $this->assertNotNull($batch, 'No inventory batches with remaining qty > 0 — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $originalQty = (float)$batch->remaining_qty;
         $tamperedQty = $originalQty * 2;
@@ -322,9 +318,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->where('code', '4000')
             ->value('id');
 
-        if (!$incomeAccountId) {
-            $this->markTestSkipped('Income account 4000 not found for Golden Company');
-        }
+        $this->assertNotNull($incomeAccountId, 'Income account 4000 not found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // CORRUPT: Insert a journal entry that looks like Tenant 2's
         //          but uses Tenant 1's account_id
@@ -411,9 +405,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->whereBetween('date', ['2025-01-09', '2025-01-11'])
             ->first();
 
-        if (!$firstSaleJe) {
-            $this->markTestSkipped('Cannot find journal entry for TXN-SAL-001 (2025-01-10)');
-        }
+        $this->assertNotNull($firstSaleJe, 'Cannot find journal entry for TXN-SAL-001 (2025-01-10) — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // Get the original journal items
         $originalItems = DB::table('journal_items')
@@ -421,9 +413,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->where('tenant_id', self::TENANT_ID)
             ->get();
 
-        if ($originalItems->isEmpty()) {
-            $this->markTestSkipped('No journal items found for the target journal entry');
-        }
+        $this->assertNotEmpty($originalItems, 'No journal items found for the target journal entry — GoldenSeedManager guarantees this data exists; an empty result here means the seeder or schema drifted.');
 
         // CORRUPT: Duplicate the journal entry with a new ID
         $dupJeId = \Illuminate\Support\Str::uuid()->toString();
@@ -506,9 +496,8 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
         $cashId = DB::table('accounts')
             ->where('tenant_id', self::TENANT_ID)->where('code', '1000')->value('id');
 
-        if (!$incomeId || !$cashId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // CORRUPT: Insert a balanced backdated entry in Jan 2025 (already-verified period)
         $backdateAmount = 25000.00;
@@ -597,9 +586,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->where('type', 'customer')
             ->first();
 
-        if (!$arParty) {
-            $this->markTestSkipped('No customer parties found for Golden Company');
-        }
+        $this->assertNotNull($arParty, 'No customer parties found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // CORRUPT: Soft-delete the party
         DB::table('parties')
@@ -673,9 +660,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->whereRaw('remaining_qty > 0')
             ->first();
 
-        if (!$batch) {
-            $this->markTestSkipped('No positive-qty batches found');
-        }
+        $this->assertNotNull($batch, 'No positive-qty batches found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         DB::table('inventory_batches')
             ->where('id', $batch->id)
@@ -737,9 +722,7 @@ class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGolde
             ->whereBetween('date', ['2025-02-01', '2025-02-28'])
             ->first();
 
-        if (!$je) {
-            $this->markTestSkipped('No non-reversed journal entry found in February 2025');
-        }
+        $this->assertNotNull($je, 'No non-reversed journal entry found in February 2025 — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // Get its income contribution
         $incomeAccount = DB::table('accounts')

@@ -181,6 +181,6 @@
         </div>
     @endif
 
-    <div class="footer">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</div>
+    <div class="footer">Powered by <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener" style="color: #4f46e5; text-decoration: none; font-weight: bold;">VenQore</a> &mdash; Free Online Invoicing &amp; Business Tools</div>
 </body>
 </html>

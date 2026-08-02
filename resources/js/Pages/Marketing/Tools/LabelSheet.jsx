@@ -220,7 +220,7 @@ export default function LabelSheetTool({
             <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10">
                 <div className="w-56">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
+                    <p className="text-2xs text-slate-500 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400" htmlFor="ls-copies">Copies</label>
@@ -261,12 +261,12 @@ export default function LabelSheetTool({
                 </div>
 
                 <div className="ml-auto flex items-center gap-3">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">{totalLabelsPreview} labels total</span>
+                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">{totalLabelsPreview} labels total</span>
                     <button
                         type="button"
                         onClick={buildPdf}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -286,7 +286,7 @@ export default function LabelSheetTool({
                         placeholder={BULK_PLACEHOLDER}
                         className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-mono leading-relaxed focus:outline-none focus:border-indigo-400/60 transition-colors"
                     />
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
+                    <p className="text-1xs text-slate-500 dark:text-slate-500 mt-2">
                         Within a block: line 1, line 2, line 3 (up to 3 lines become one label). Add a trailing <code className="font-mono text-indigo-500">x10</code> line to repeat that label 10 times.
                     </p>
                     <div className="flex items-center justify-end mt-3">
@@ -294,7 +294,7 @@ export default function LabelSheetTool({
                             type="button"
                             onClick={parseBulk}
                             disabled={parsing || !bulkText.trim()}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.01] transition-transform disabled:opacity-40"
                         >
                             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             Parse & Load Into Grid
@@ -317,7 +317,7 @@ export default function LabelSheetTool({
                                     onClick={() => removeRow(row.id)}
                                     disabled={rows.length <= 1}
                                     title="Remove label"
-                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity shadow-sm"
+                                    className="absolute top-1 right-1 p-1 rounded-md bg-white/90 text-slate-600 dark:text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity shadow-sm"
                                 >
                                     <Trash2 size={12} />
                                 </button>
@@ -336,14 +336,14 @@ export default function LabelSheetTool({
                                         value={row.line2}
                                         onChange={(v) => updateRow(row.id, 'line2', v)}
                                         placeholder="Line 2 (optional)"
-                                        className="block w-full text-[11px] leading-tight text-slate-700 mt-1 mb-1"
+                                        className="block w-full text-1xs leading-tight text-slate-700 mt-1 mb-1"
                                     />
                                     <EditableText
                                         inline={false}
                                         value={row.line3}
                                         onChange={(v) => updateRow(row.id, 'line3', v)}
                                         placeholder="Line 3 (optional)"
-                                        className="block w-full text-[10px] leading-tight text-slate-500 mt-1"
+                                        className="block w-full text-2xs leading-tight text-slate-500 mt-1"
                                     />
                                 </div>
 
@@ -376,14 +376,14 @@ export default function LabelSheetTool({
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-1" title="Repeat this label N times">
-                                        <span className="text-[9px] font-black uppercase text-slate-300">Qty</span>
+                                        <span className="text-3xs font-black uppercase text-slate-600 dark:text-slate-300">Qty</span>
                                         <EditableText
                                             as="number"
                                             min="1"
                                             max={maxRowQty}
                                             value={row.qty}
                                             onChange={(v) => updateRow(row.id, 'qty', Math.max(1, Math.min(maxRowQty, Number(v) || 1)))}
-                                            className="text-[10px] font-mono w-7 text-right text-slate-500"
+                                            className="text-2xs font-mono w-7 text-right text-slate-500"
                                         />
                                     </div>
                                 </div>
@@ -395,20 +395,20 @@ export default function LabelSheetTool({
                             type="button"
                             onClick={addRow}
                             disabled={rows.length >= maxRows}
-                            className="min-h-[92px] rounded-lg border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-indigo-500 transition-colors disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-transparent"
+                            className="min-h-[92px] rounded-lg border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-indigo-500 transition-colors disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-transparent"
                         >
                             <Plus size={16} />
-                            <span className="text-[11px] font-bold">Add label</span>
+                            <span className="text-1xs font-bold">Add label</span>
                         </button>
                     </div>
 
-                    <p className="text-[11px] text-slate-400 text-center mt-4">
+                    <p className="text-1xs text-slate-500 dark:text-slate-400 text-center mt-4">
                         {rows.length} / {maxRows} labels &middot; {totalLabelsPreview} total with quantity &amp; copies &middot; click any line to edit
                     </p>
                 </div>
             )}
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 This preview matches your downloaded PDF layout — click any label above to edit it. Print at 100% / "Actual size".
             </p>
         </ToolShell>

@@ -273,15 +273,15 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', start_date: '', end_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', start_date: '', end_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Today</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Custom</button>
                         {/* Custom Date Range */}
                         {activeFilter === 'custom' && (
@@ -373,11 +373,11 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Today</button>
                             </div>
                         </div>
@@ -511,9 +511,9 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.reference_number || `RET-${row.id}`}</span>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                            <p className="text-2xs text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
                                         </div>
-                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                        <span className="px-2 py-0.5 rounded-md text-2xs font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                                             {row.status}
                                         </span>
                                     </div>

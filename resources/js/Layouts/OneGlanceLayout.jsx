@@ -918,7 +918,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             flex flex-col amd-no-drag
                             ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                             ${isPlatformAdmin && !store 
-                                ? (isDarkMode ? 'bg-[#020617]/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-slate-200')
+                                ? (isDarkMode ? 'bg-slate-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-slate-200')
                                 : 'bg-white dark:bg-slate-950 border-r border-slate-100 dark:border-slate-900'}
                             ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
                             ${isPlatformAdmin && !store 
@@ -1176,7 +1176,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     <p className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[120px]">
                                         {props.auth?.user?.name || props.auth?.user?.email}
                                     </p>
-                                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                    <p className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">
                                         {props.auth?.user?.role === 'platform_admin' ? 'Hashmi Dashboard' : (props.auth?.user?.role || 'User')}
                                     </p>
                                 </div>
@@ -1497,7 +1497,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 <div className="p-2 border-b border-slate-100 dark:border-slate-800 flex items-end justify-between gap-3">
                                                     {props.auth?.my_stores_count > 1 ? (
                                                         <div className="flex-1">
-                                                            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Switch Store</p>
+                                                            <p className="text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Switch Store</p>
                                                             <StoreSwitcher />
                                                         </div>
                                                     ) : (
@@ -1613,8 +1613,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-xs font-semibold text-slate-800 dark:text-white">{notification.data?.title || 'Notification'}</p>
-                                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{notification.data?.message || 'No details available'}</p>
-                                                                    <p className="text-[10px] text-slate-400 mt-1">{new Date(notification.created_at).toLocaleString()}</p>
+                                                                    <p className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">{notification.data?.message || 'No details available'}</p>
+                                                                    <p className="text-2xs text-slate-400 mt-1">{new Date(notification.created_at).toLocaleString()}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1713,7 +1713,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                 <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-xs transition-opacity" onClick={() => setActiveDropdown(null)} />
                                 <div className="absolute left-3 right-3 bottom-[4.5rem] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-3 z-[120] animate-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto">
                                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                                        <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                                        <span className="text-2xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
                                             {activeDropdown} Options
                                         </span>
                                         <button onClick={() => setActiveDropdown(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 dark:text-slate-500">
@@ -1744,7 +1744,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     setIsMobileFabsOpen(!isMobileFabsOpen);
                                 }}
                                 id="mobile-fabs-toggle-bud"
-                                className="px-2.5 py-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-indigo-500/40 flex items-center gap-1 text-white shadow-lg shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                                className="px-2.5 py-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-indigo-500/40 flex items-center gap-1 text-white shadow-lg shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-2xs font-bold uppercase tracking-wider"
                             >
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500 animate-ping opacity-75" />
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500" />
@@ -1774,7 +1774,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <ShoppingCart size={20} className={`transition-transform duration-300 ${isSaleInvoiceActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale</span>
+                            <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale</span>
                             {isSaleInvoiceActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1797,7 +1797,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <ShoppingBag size={20} className={`transition-transform duration-300 ${isPurchaseActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Purchase</span>
+                            <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Purchase</span>
                             {isPurchaseActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1820,7 +1820,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <LayoutDashboard size={20} className={`transition-transform duration-300 ${isHomeActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Dashboard</span>
+                            <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Dashboard</span>
                             {isHomeActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1843,7 +1843,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <CreditCard size={20} className={`transition-transform duration-300 ${isExpenseActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Expense</span>
+                            <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Expense</span>
                             {isExpenseActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1866,7 +1866,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <Box size={20} className={`transition-transform duration-300 ${isStockActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Stock</span>
+                            <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Stock</span>
                             {isStockActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}

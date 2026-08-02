@@ -68,4 +68,9 @@ class DebitNote extends Model
     {
         return $this->hasMany(DebitNoteItem::class);
     }
+
+    public function purchase()
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'purchase_id');
+    }
 }

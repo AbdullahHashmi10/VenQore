@@ -332,7 +332,7 @@ export default function InvoiceTourGuide({ store }) {
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             B2B Invoice Tour
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-indigo-400">
                             Step {currentStep + 1} of {isCustomerCreationPath ? 10 : 5}
                         </span>
                     </div>

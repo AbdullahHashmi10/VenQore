@@ -102,7 +102,7 @@ export default function StoreSwitcher() {
                 aria-expanded={open}
             >
                 {/* Store avatar */}
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[10px] font-black text-white shrink-0 shadow-sm leading-none">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xs font-black text-white shrink-0 shadow-sm leading-none">
                     {store.name.charAt(0).toUpperCase()}
                 </div>
 
@@ -122,7 +122,7 @@ export default function StoreSwitcher() {
 
                     {/* Header */}
                     <div className="px-3 py-2 border-b border-white/8">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Your Stores</p>
+                        <p className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Your Stores</p>
                     </div>
 
                     {/* Store list */}
@@ -156,7 +156,7 @@ export default function StoreSwitcher() {
 
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold truncate leading-tight">{s.name}</p>
-                                            <p className={`text-[10px] capitalize leading-tight ${PLAN_COLORS[s.plan] ?? 'text-slate-500'}`}>
+                                            <p className={`text-2xs capitalize leading-tight ${PLAN_COLORS[s.plan] ?? 'text-slate-500'}`}>
                                                 {s.plan} · {s.role}
                                             </p>
                                         </div>

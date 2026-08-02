@@ -138,7 +138,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
+                            <thead className="bg-white/5 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-4">Redemption Code</th>
                                     <th className="px-6 py-4">Plan Tier</th>
@@ -164,7 +164,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                                     <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
                                                         <CheckCircle size={12} /> Redeemed
                                                     </div>
-                                                    <div className="text-[10px] text-slate-500 break-all">{item.redeemed_by_email}</div>
+                                                    <div className="text-2xs text-slate-500 break-all">{item.redeemed_by_email}</div>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-1.5 text-slate-500 text-xs font-bold">
@@ -204,7 +204,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                 {/* Modals */}
                 {showGenerate && (
-                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-[#020010]/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-void-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
                         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
                             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3">
                                 <Plus className="text-indigo-400" />
@@ -212,7 +212,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                             </h2>
                             <form onSubmit={handleGenerate} className="space-y-5">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Count (Max 1,000)</label>
+                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Count (Max 1,000)</label>
                                     <input 
                                         type="number" 
                                         value={data.count}
@@ -222,7 +222,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Plan Tier</label>
+                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Plan Tier</label>
                                     <select 
                                         value={data.tier}
                                         onChange={e => setData('tier', e.target.value)}
@@ -255,7 +255,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                 )}
 
                 {showImport && (
-                    <div className="fixed inset-0 bg-[#020010]/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+                    <div className="fixed inset-0 bg-void-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
                         <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] max-w-xl w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
                             <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3 text-glow">
                                 <Upload className="text-emerald-400" />
@@ -263,7 +263,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                             </h2>
                             <form onSubmit={handleImport} className="space-y-5">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Codes (Paste comma or newline separated)</label>
+                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Codes (Paste comma or newline separated)</label>
                                     <textarea 
                                         rows="8"
                                         placeholder="CODE-123, CODE-456..."
@@ -274,7 +274,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Assign to Plan Tier</label>
+                                    <label className="block text-2xs font-black uppercase tracking-widest text-slate-500 mb-2">Assign to Plan Tier</label>
                                     <select 
                                         value={data.tier}
                                         onChange={e => setData('tier', e.target.value)}

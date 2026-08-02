@@ -118,7 +118,13 @@ test('production run consumes raw materials', function () {
         'planned_qty'  => 5,
         'run_date'     => today()->toDateString(),
     ]);
-    $this->assertTrue(in_array($response->status(), [200, 201, 302]), "Production run returned {$response->status()}");
+    // ProductionRunController::store() always redirect()->back() — it never
+    // returns 200/201 on success, so those were dead branches, not real
+    // alternate outcomes. assertRedirect + no session errors catches both a
+    // validation failure (still 302, but with 'errors' in session) and a
+    // genuine 4xx/5xx, which the old multi-status check could not.
+    $response->assertRedirect();
+    $response->assertSessionDoesntHaveErrors();
 
     // Assert flour FIFO: 20 - 10 = 10
     $flourRemaining = DB::table('inventory_batches')
@@ -161,7 +167,11 @@ test('production run produces finished goods', function () {
         'bom_id' => $bomId, 'warehouse_id' => $warehouseId,
         'planned_qty' => 10, 'run_date' => today()->toDateString(),
     ]);
-    $this->assertTrue(in_array($startResponse->status(), [200, 201, 302]));
+    // Both endpoints always redirect()->back() — see the fix note in
+    // 'production run consumes raw materials' above for why 200/201 were
+    // dead branches that couldn't actually occur.
+    $startResponse->assertRedirect();
+    $startResponse->assertSessionDoesntHaveErrors();
 
     $run = DB::table('production_runs')->where('bom_id', $bomId)->first();
     $this->assertNotNull($run);
@@ -171,7 +181,8 @@ test('production run produces finished goods', function () {
     $completeResponse = $this->post("/s/{$tenant->slug}/v3/production-runs/{$run->id}/complete", [
         'actual_qty' => 10,
     ]);
-    $this->assertTrue(in_array($completeResponse->status(), [200, 201, 302]), "Complete returned {$completeResponse->status()}");
+    $completeResponse->assertRedirect();
+    $completeResponse->assertSessionDoesntHaveErrors();
 
     // Assert a manufactured FIFO batch was created for the finished-good
     $finishedBatch = DB::table('inventory_batches')
@@ -221,7 +232,8 @@ test('auto calculate assembly cost', function () {
         'planned_qty'  => 2,
         'run_date'     => today()->toDateString(),
     ]);
-    $this->assertTrue(in_array($response->status(), [200, 201, 302]), "Production run returned {$response->status()}");
+    $response->assertRedirect();
+    $response->assertSessionDoesntHaveErrors();
 
     $run = DB::table('production_runs')->where('bom_id', $bomId)->first();
     $this->assertNotNull($run);

@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function PointInTimeInventory({ data = [], stats = [], meta = {} }) {
     const { store } = usePage().props;
     const [asOfDate, setAsOfDate] = useState(meta.as_of_date || new Date().toISOString().split('T')[0]);
@@ -70,7 +71,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
             categoriesMap[catName] = (categoriesMap[catName] || 0) + val;
         });
 
-        const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6'];
+        const COLORS = [vq.indigo[500], vq.emerald[500], vq.amber[500], vq.blue[500], vq.pink[500], vq.violet[500]];
         const list = Object.entries(categoriesMap)
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value);
@@ -192,7 +193,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
 
                     <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
                         <Calendar size={15} className="text-slate-400 ml-1.5" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Target Moment:</span>
+                        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wide">Target Moment:</span>
                         <input
                             type="date"
                             value={asOfDate}
@@ -238,7 +239,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         return (
                             <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
                                     <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">{s.value}</h3>
                                 </div>
                                 <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
@@ -291,7 +292,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     <button
                                         key={opt.id}
                                         onClick={() => setStatusFilter(opt.id)}
-                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border whitespace-nowrap ${activeStyles}`}
+                                        className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all border whitespace-nowrap ${activeStyles}`}
                                     >
                                         {opt.label}
                                     </button>
@@ -325,8 +326,8 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     ) : filtered.map((row, idx) => {
                                         const qty = row.quantity || 0;
                                         let statusBadge = null;
-                                        if (qty <= 0) statusBadge = <span className="text-[9px] bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Out</span>;
-                                        else if (qty <= 15) statusBadge = <span className="text-[9px] bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Low</span>;
+                                        if (qty <= 0) statusBadge = <span className="text-3xs bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Out</span>;
+                                        else if (qty <= 15) statusBadge = <span className="text-3xs bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider shrink-0 ml-1.5">Low</span>;
                                         return (
                                             <tr 
                                                 key={row.product_id || idx} 
@@ -338,12 +339,12 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                         <span className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{row.name}</span>
                                                         {statusBadge}
                                                     </div>
-                                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">{row.sku} &bull; <span className="font-sans font-medium text-slate-400/80">{row.category}</span></div>
+                                                    <div className="text-2xs text-slate-400 font-mono mt-0.5">{row.sku} &bull; <span className="font-sans font-medium text-slate-400/80">{row.category}</span></div>
                                                 </td>
                                                 <td className="px-6 py-3 text-right font-mono font-semibold text-slate-600 dark:text-slate-300">{qty}</td>
                                                 <td className="px-6 py-3 text-right">
                                                     <span className="font-mono font-bold text-slate-700 dark:text-slate-200 block">{formatCurrency(row.stock_value, store)}</span>
-                                                    <span className="text-[9px] text-slate-400 font-mono">@{formatCurrency(row.unit_cost, store)}</span>
+                                                    <span className="text-3xs text-slate-400 font-mono">@{formatCurrency(row.unit_cost, store)}</span>
                                                 </td>
                                             </tr>
                                         );
@@ -367,7 +368,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                         <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={4} dataKey="value">
                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                                         </Pie>
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                                         <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '9px' }} />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -407,13 +408,13 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     <div className="space-y-3 animate-in fade-in duration-300">
                                         <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
                                             <div>
-                                                <span className="text-[10px] text-slate-400 font-bold block uppercase">Health Score</span>
+                                                <span className="text-2xs text-slate-400 font-bold block uppercase">Health Score</span>
                                                 <span className="text-2xl font-black text-emerald-400">{auditResult.score}/100</span>
                                             </div>
                                             {auditResult.score >= 80 ? <ShieldCheck className="text-emerald-400" size={32} /> : <AlertTriangle className="text-amber-400" size={32} />}
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                        <div className="grid grid-cols-2 gap-2 text-2xs">
                                             <div className="bg-white/5 p-2 rounded-lg text-center">
                                                 <span className="text-rose-400 font-bold text-sm block">{auditResult.outOfStockCount}</span>
                                                 <span className="text-slate-400 uppercase tracking-wide">Out of stock</span>
@@ -425,8 +426,8 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                         </div>
 
                                         <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
-                                            <h4 className="text-[10px] font-bold text-emerald-300 uppercase flex items-center gap-1.5"><DollarSign size={10} /> Capital Leaks</h4>
-                                            <p className="text-[11px] text-slate-300 leading-relaxed">
+                                            <h4 className="text-2xs font-bold text-emerald-300 uppercase flex items-center gap-1.5"><DollarSign size={10} /> Capital Leaks</h4>
+                                            <p className="text-1xs text-slate-300 leading-relaxed">
                                                 Estimated carrying costs for overstocked assets: <strong className="text-white">{formatCurrency(auditResult.potentialBleed, store)} / yr</strong>.
                                             </p>
                                         </div>
@@ -434,18 +435,18 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 ) : (
                                     <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 space-y-2">
                                         <h4 className="text-xs font-bold text-indigo-300 mb-1 flex items-center gap-2"><Activity size={12} /> AI Auditor</h4>
-                                        <p className="text-[11px] text-slate-300 leading-relaxed">Run the automated snapshot auditor to evaluate inventory turnover and capital leaks.</p>
+                                        <p className="text-1xs text-slate-300 leading-relaxed">Run the automated snapshot auditor to evaluate inventory turnover and capital leaks.</p>
                                     </div>
                                 )}
 
                                 {/* Critical warning list */}
                                 <div className="space-y-2 pt-2 border-t border-white/10">
-                                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tied-Up Capital (Top Value)</h4>
+                                    <h4 className="text-2xs font-black uppercase text-slate-400 tracking-wider">Tied-Up Capital (Top Value)</h4>
                                     {topTiedProducts.map((p, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => handleSelectItem(p)}
-                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-[11px] transition-all cursor-pointer group"
+                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-1xs transition-all cursor-pointer group"
                                         >
                                             <span className="text-slate-300 font-medium truncate w-32 group-hover:text-indigo-400">{p.name}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(p.stock_value, store)}</span>
@@ -474,7 +475,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative z-10 flex justify-between items-center">
                                         <div className="space-y-1">
-                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
                                                 Reconstructed Snapshot: {asOfDate} {asOfTime || '23:59:59'}
                                             </span>
                                             <h2 className="text-2xl font-black tracking-tight mt-1">{selectedItem.name}</h2>
@@ -542,10 +543,10 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                                     <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
                                                                         <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
                                                                             {b.id}
-                                                                            <span className="block text-[9px] text-slate-400 font-mono">Inwarded {b.date}</span>
+                                                                            <span className="block text-3xs text-slate-400 font-mono">Inwarded {b.date}</span>
                                                                         </td>
                                                                         <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-bold">{formatCurrency(b.cost, store)}</td>
-                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-semibold">{b.qtyLeft} <span className="text-[10px] text-slate-400">/ {b.receivedQty}</span></td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-semibold">{b.qtyLeft} <span className="text-2xs text-slate-400">/ {b.receivedQty}</span></td>
                                                                         <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(b.qtyLeft * b.cost, store)}</td>
                                                                     </tr>
                                                                 ))}
@@ -579,7 +580,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                                         <td className="py-2.5 px-3 text-slate-500 font-mono">{l.date}</td>
                                                                         <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
                                                                             {l.type}
-                                                                            <span className="block text-[9px] text-slate-400 font-sans">by {l.user}</span>
+                                                                            <span className="block text-3xs text-slate-400 font-sans">by {l.user}</span>
                                                                         </td>
                                                                         <td className="py-2.5 px-3 font-mono text-slate-500">{l.ref}</td>
                                                                         <td className={`py-2.5 px-3 text-right font-mono font-bold ${l.qty.startsWith('+') ? 'text-emerald-600' : 'text-rose-500'}`}>{l.qty}</td>

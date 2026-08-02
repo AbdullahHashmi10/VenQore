@@ -287,9 +287,7 @@ class FifoBatchVerificationTest extends VenQoreTestCase implements RequiresGolde
             ->keys()
             ->toArray();
 
-        if (empty($zeroRefs)) {
-            $this->markTestSkipped('No zero-qty batches declared in manifest');
-        }
+        $this->assertNotEmpty($zeroRefs, 'No zero-qty batches declared in manifest — the Golden Company seed data guarantees batches like BATCH-CBL-001/BATCH-ADP-001 exist with remaining_qty=0; an empty result here means the seeder or manifest drifted.');
 
         foreach ($zeroRefs as $ref) {
             $rows = DB::table('inventory_batches')
@@ -408,11 +406,7 @@ class FifoBatchVerificationTest extends VenQoreTestCase implements RequiresGolde
             ->where('status', 'returned')
             ->first();
 
-        if (!$reversedSale) {
-            $this->markTestSkipped(
-                'No reversed sale found in Golden Company. Ensure GoldenCompanySeeder posts TXN-SR-001.'
-            );
-        }
+        $this->assertNotNull($reversedSale, 'No reversed sale found in Golden Company. Ensure GoldenCompanySeeder posts TXN-SR-001. — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // After a full reversal, EVERY sale_item_batches row for the reversed sale
         // must be flipped to is_reversed = true (the "mark, never delete" protocol).

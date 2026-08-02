@@ -205,11 +205,11 @@ export default function Create({ invoices = [] }) {
                             
                             {data.type === 'whatsapp' ? (
                                 /* WhatsApp Mock */
-                                <div className="bg-[#efeae2] dark:bg-[#0b141a] rounded-xl p-4 min-h-[220px] flex flex-col justify-between border border-emerald-100 dark:border-emerald-950/30">
+                                <div className="bg-[#efeae2] dark:bg-void-800 rounded-xl p-4 min-h-[220px] flex flex-col justify-between border border-emerald-100 dark:border-emerald-950/30">
                                     <div className="space-y-2">
-                                        <div className="inline-block bg-white dark:bg-[#1f2c34] text-slate-800 dark:text-slate-200 rounded-2xl rounded-tl-none p-3.5 text-sm shadow-sm max-w-[85%] whitespace-pre-wrap leading-relaxed relative">
+                                        <div className="inline-block bg-white dark:bg-gray-800 text-slate-800 dark:text-slate-200 rounded-2xl rounded-tl-none p-3.5 text-sm shadow-sm max-w-[85%] whitespace-pre-wrap leading-relaxed relative">
                                             {getMessagePreview()}
-                                            <span className="block text-[10px] text-slate-400 text-right mt-1.5">
+                                            <span className="block text-2xs text-slate-400 text-right mt-1.5">
                                                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>

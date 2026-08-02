@@ -285,7 +285,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                             Product <span className="text-indigo-600">Categories (Updated)</span>
                         </h1>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-[10px] font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">
+                        <span className="text-2xs font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">
                             List View
                         </span>
                     </div>
@@ -415,7 +415,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                                                                     <div>
                                                                         <p className="font-semibold text-slate-800 dark:text-white">{row.name}</p>
                                                                         {row.parent && (
-                                                                            <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                                                                            <p className="text-2xs text-slate-400 flex items-center gap-1">
                                                                                 <FolderTree size={10} /> {row.parent.name}
                                                                             </p>
                                                                         )}

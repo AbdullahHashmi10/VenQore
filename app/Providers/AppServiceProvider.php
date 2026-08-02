@@ -17,7 +17,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // ── Growth Engine V2 ────────────────────────────────────────────
+        // These MUST be singletons.
         //
+        // ThresholdTuner memoises each tenant's insight statistics for the
+        // duration of a run. If Laravel handed out a fresh instance to every
+        // consumer (the repository, the four brains, the evaluator, the
+        // controller), each would re-query the same rows and — worse — one
+        // could act on stats another had already invalidated. GrowthDataSource
+        // is stateless but shared for the same reason: one instance, one set
+        // of prepared statements.
+        $this->app->singleton(\App\Services\Growth\GrowthDataSource::class);
+        $this->app->singleton(\App\Services\Growth\ThresholdTuner::class);
+        $this->app->singleton(\App\Services\Growth\SignalRepository::class);
+        $this->app->singleton(\App\Services\Growth\OutcomeEvaluator::class);
+        $this->app->singleton(\App\Services\Growth\MetricSnapshotter::class);
+        $this->app->singleton(\App\Services\Growth\GrowthEngine::class);
     }
 
     /**

@@ -30,7 +30,7 @@ Part of [[VenQore POS - Home]] · [[Frontend Architecture]]
 | `Invite/` | Staff invite acceptance |
 | `Labels/` | Barcode/label printing |
 | `Manufacturing/` | Production/manufacturing pages |
-| `Marketing/` (+ `Blog/`, `Shared/`) | Public marketing site: `About.jsx`, `Pricing.jsx`, `Features.jsx`, `Contact.jsx`, `VenSynQ.jsx` |
+| `Marketing/` (+ `Blog/`, `Compare/`, `Solutions/`, `Tools/`, `Shared/`) | Public marketing site: `About.jsx`, `Pricing.jsx`, `Features.jsx`, `Contact.jsx`, `Roadmap.jsx`, `VenSynQ.jsx`, `SmartCapture.jsx`, `Compare/Index.jsx`, `Compare/Show.jsx`, `Solutions/Index.jsx`, `Solutions/Show.jsx` |
 | `OnlineStore/` | Storefront/e-commerce pages |
 | `Parties/`, `Payments/` | Customers & suppliers, payment records |
 | `Platform/`, `PlatformOwner/` | Platform-level pages, distinct from SuperAdmin |

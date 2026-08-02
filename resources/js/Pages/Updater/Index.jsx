@@ -83,8 +83,8 @@ const GlobalStyles = () => (
 // BACKGROUND
 // ─────────────────────────────────────────────────────────────
 const Background = ({ active }) => (
-    <div className="fixed inset-0 overflow-hidden bg-[#050508] z-0">
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a0f] via-[#050508] to-[#0f172a]" />
+    <div className="fixed inset-0 overflow-hidden bg-zinc-950 z-0">
+        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-950 to-slate-900" />
         <div className="absolute inset-0 tech-grid opacity-30 w-[200%] -ml-[50%] h-[200%] -mt-[20%]" />
         <div className={`absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] mix-blend-screen transition-all duration-1000 ${active ? 'opacity-80 scale-150' : 'animate-pulse'}`} />
         <div className="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] bg-emerald-600/5 rounded-full blur-[100px] animate-pulse" />
@@ -408,12 +408,12 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                 <span className="text-xs font-mono text-slate-400 tracking-wider">VENQORE_UPDATER_V1.0</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="px-3 py-1 rounded text-[10px] font-mono text-slate-500 bg-white/5 uppercase tracking-widest border border-white/5">
+                                <div className="px-3 py-1 rounded text-2xs font-mono text-slate-500 bg-white/5 uppercase tracking-widest border border-white/5">
                                     Current: v{currentVersion || sysInfo?.current_version || '—'}
                                 </div>
                                 <Link
                                     href="/dashboard"
-                                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 uppercase tracking-widest border border-white/5 hover:border-white/20 transition-all flex items-center gap-1.5"
+                                    className="px-3 py-1.5 rounded-lg text-2xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 uppercase tracking-widest border border-white/5 hover:border-white/20 transition-all flex items-center gap-1.5"
                                 >
                                     <ChevronLeft size={11} /> Back to App
                                 </Link>
@@ -539,9 +539,9 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                             <div key={i} className="flex flex-col py-1.5 border-b border-white/5 last:border-0">
                                                                 <div className="flex items-center justify-between">
                                                                     <span className="text-xs font-bold text-white">v{h.version}</span>
-                                                                    <span className="text-[10px] text-slate-500">{new Date(h.updated_at).toLocaleDateString()}</span>
+                                                                    <span className="text-2xs text-slate-500">{new Date(h.updated_at).toLocaleDateString()}</span>
                                                                 </div>
-                                                                <span className="text-[10px] text-slate-400 mt-0.5">By {h.by}</span>
+                                                                <span className="text-2xs text-slate-400 mt-0.5">By {h.by}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -623,9 +623,9 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <p className="text-xs font-semibold text-emerald-400 mb-1">Your Data is Safe — Always</p>
                                             <p className="text-xs text-slate-500 leading-relaxed">
                                                 The following are <strong className="text-slate-400">never overwritten</strong> during an update:
-                                                <code className="mx-1 text-emerald-300/70 text-[11px]">.env</code>,
-                                                <code className="mx-1 text-emerald-300/70 text-[11px]">storage/app/public/</code> (your uploads),
-                                                <code className="mx-1 text-emerald-300/70 text-[11px]">storage/logs/</code>,
+                                                <code className="mx-1 text-emerald-300/70 text-1xs">.env</code>,
+                                                <code className="mx-1 text-emerald-300/70 text-1xs">storage/app/public/</code> (your uploads),
+                                                <code className="mx-1 text-emerald-300/70 text-1xs">storage/logs/</code>,
                                                 and your entire database. Only application code files are replaced.
                                             </p>
                                         </div>
@@ -682,11 +682,11 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
                                     {/* Steps preview */}
                                     <div className="bg-black/20 rounded-xl border border-white/5 p-5 mb-8">
-                                        <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-4">Deployment Steps</p>
+                                        <p className="text-2xs font-mono text-slate-500 uppercase tracking-widest mb-4">Deployment Steps</p>
                                         <div className="space-y-2">
                                             {steps.map((s, i) => (
                                                 <div key={s.id} className="flex items-center gap-3 text-sm text-slate-400">
-                                                    <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-bold shrink-0">
+                                                    <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-2xs text-slate-500 font-bold shrink-0">
                                                         {i + 1}
                                                     </div>
                                                     <span>{s.label}</span>
@@ -758,7 +758,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                     }`}>
                                                     <StatusIcon status={s.status} />
                                                 </div>
-                                                <span className="text-[9px] text-center text-slate-500 leading-tight font-mono">{s.label}</span>
+                                                <span className="text-3xs text-center text-slate-500 leading-tight font-mono">{s.label}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -878,7 +878,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold text-white">How to Increase Upload Limit</h3>
-                                    <p className="text-[10px] text-slate-500">Currently: {sysInfo?.max_zip_mb || '?'} MB — Recommended: 300 MB</p>
+                                    <p className="text-2xs text-slate-500">Currently: {sysInfo?.max_zip_mb || '?'} MB — Recommended: 300 MB</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowLimitHelp(false)} className="text-slate-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
@@ -895,7 +895,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
                             <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
                                 <h4 className="font-bold text-indigo-400 mb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 rounded bg-indigo-500/30 flex items-center justify-center text-[10px] font-bold">1</span>
+                                    <span className="w-5 h-5 rounded bg-indigo-500/30 flex items-center justify-center text-2xs font-bold">1</span>
                                     XAMPP / WAMP (Local Windows Server)
                                 </h4>
                                 <ol className="space-y-2 text-slate-400 list-decimal list-inside">
@@ -912,7 +912,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
                             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
                                 <h4 className="font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 rounded bg-emerald-500/30 flex items-center justify-center text-[10px] font-bold">2</span>
+                                    <span className="w-5 h-5 rounded bg-emerald-500/30 flex items-center justify-center text-2xs font-bold">2</span>
                                     cPanel / Shared Hosting
                                 </h4>
                                 <ol className="space-y-2 text-slate-400 list-decimal list-inside">
@@ -924,12 +924,12 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <li>Click <strong className="text-white">Apply / Save</strong>.</li>
                                     <li>Refresh this page to verify.</li>
                                 </ol>
-                                <p className="mt-2 text-[10px] text-slate-500">Note: Some shared hosts may have lower hard limits. Contact your hosting provider if the values don&apos;t change.</p>
+                                <p className="mt-2 text-2xs text-slate-500">Note: Some shared hosts may have lower hard limits. Contact your hosting provider if the values don&apos;t change.</p>
                             </div>
 
                             <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
                                 <h4 className="font-bold text-purple-400 mb-3 flex items-center gap-2">
-                                    <span className="w-5 h-5 rounded bg-purple-500/30 flex items-center justify-center text-[10px] font-bold">3</span>
+                                    <span className="w-5 h-5 rounded bg-purple-500/30 flex items-center justify-center text-2xs font-bold">3</span>
                                     Linux Server (VPS / Dedicated)
                                 </h4>
                                 <ol className="space-y-2 text-slate-400 list-decimal list-inside">
@@ -950,7 +950,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                             </div>
 
                             <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4 text-center">
-                                <p className="text-slate-500 text-[10px]">
+                                <p className="text-slate-500 text-2xs">
                                     After changing the settings and restarting, refresh this page.<br />
                                     The &quot;Upload Limit&quot; value in System Info should show <strong className="text-emerald-400">300 MB</strong>.
                                 </p>

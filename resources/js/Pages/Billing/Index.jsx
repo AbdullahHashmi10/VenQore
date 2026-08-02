@@ -3,6 +3,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Modal from '@/Components/Modal';
 import { openLemonCheckout, closeLemonCheckout, preloadLemonCheckout } from '@/lib/lemonCheckout';
+import { vq } from '@/theme/runtime';
 import {
     Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
     ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
@@ -16,12 +17,12 @@ const PKR_ENABLED = false;
 
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
-    starter:  { label: 'Starter Engine',  price: '$36/mo',  color: '#6366f1', Icon: Shield },
-    growth:   { label: 'Growth Engine',   price: '$63/mo',  color: '#8b5cf6', Icon: Zap },
-    business: { label: 'Business Engine', price: '$129/mo', color: '#f59e0b', Icon: Crown },
-    ltd_1:    { label: 'LTD — Starter',  price: '$79',      color: '#10b981', Icon: Sparkles },
-    ltd_2:    { label: 'LTD — Growth',   price: '$199',     color: '#10b981', Icon: Sparkles },
-    ltd_3:    { label: 'LTD — Business', price: '$399',     color: '#10b981', Icon: Sparkles },
+    starter:  { label: 'Starter Engine',  price: '$36/mo',  color: vq.indigo[500], Icon: Shield },
+    growth:   { label: 'Growth Engine',   price: '$63/mo',  color: vq.violet[500], Icon: Zap },
+    business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
+    ltd_1:    { label: 'LTD — Starter',  price: '$79',      color: vq.emerald[500], Icon: Sparkles },
+    ltd_2:    { label: 'LTD — Growth',   price: '$199',     color: vq.emerald[500], Icon: Sparkles },
+    ltd_3:    { label: 'LTD — Business', price: '$399',     color: vq.emerald[500], Icon: Sparkles },
 };
 
 const FEATURES = [
@@ -62,8 +63,8 @@ const SERVICE_TIERS = {
 
 function formatLimit(val) {
     if (val === null || val === undefined) return <><Infinity size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Unlimited</>;
-    if (val === false) return <XCircle size={14} color="#ef4444" style={{ display: 'inline', verticalAlign: 'middle' }} />;
-    if (val === true) return <CheckCircle2 size={14} color="#10b981" style={{ display: 'inline', verticalAlign: 'middle' }} />;
+    if (val === false) return <XCircle size={14} color={vq.red[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
+    if (val === true) return <CheckCircle2 size={14} color={vq.emerald[500]} style={{ display: 'inline', verticalAlign: 'middle' }} />;
     if (val === 'basic') return 'Basic';
     if (val === 'advanced') return 'Advanced';
     return val;
@@ -75,10 +76,10 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
     const isUnlimited = limit === null;
     const isCritical  = !isUnlimited && pct >= 90;
     const isWarning   = !isUnlimited && pct >= 70;
-    const barColor = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : color;
+    const barColor = isCritical ? vq.red[500] : isWarning ? vq.amber[500] : color;
 
     return (
-        <div className="bg-[#0b081e]/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
+        <div className="bg-slate-950/40 border border-white/[0.06] rounded-2xl p-5 shadow-inner">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.03]">
@@ -97,13 +98,13 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
             </div>
 
             {isUnlimited ? (
-                <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Unlimited</div>
+                <div className="text-2xs text-emerald-400 font-bold uppercase tracking-wider">Unlimited</div>
             ) : (
                 <>
                     <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden mb-1.5 mt-2">
                         <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full rounded-full transition-all duration-700" />
                     </div>
-                    <div className={`text-[10px] font-bold ${isCritical ? 'text-red-500' : 'text-slate-500'} uppercase tracking-wider`}>
+                    <div className={`text-2xs font-bold ${isCritical ? 'text-red-500' : 'text-slate-500'} uppercase tracking-wider`}>
                         {pct}% used
                     </div>
                 </>
@@ -131,7 +132,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
         return str;
     };
 
-    const meta = PLAN_META[planKey] ?? { label: planKey, price: '—', color: '#6366f1', Icon: Shield };
+    const meta = PLAN_META[planKey] ?? { label: planKey, price: '—', color: vq.indigo[500], Icon: Shield };
     const { Icon } = meta;
     const isLtd = planKey.startsWith('ltd');
 
@@ -197,13 +198,13 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
         >
             {isCurrent && (
                 <div 
-                    className="absolute -top-3 left-6 px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white bg-purple-600"
+                    className="absolute -top-3 left-6 px-3 py-1 rounded-full text-2xs font-black tracking-widest text-white bg-purple-600"
                 >
                     CURRENT PLAN
                 </div>
             )}
             {savingsNote && (
-                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white bg-emerald-600">
+                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-2xs font-black tracking-widest text-white bg-emerald-600">
                     {savingsNote}
                 </div>
             )}
@@ -217,12 +218,12 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                     <div className="text-sm font-bold mt-1" style={{ color: meta.color }}>
                         {displayMonthly}
                         {displayAnnualNote && (
-                            <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">
+                            <span className="text-2xs text-slate-500 font-semibold block mt-0.5">
                                 {displayAnnualNote}
                             </span>
                         )}
                         {pkrEstimate && (
-                            <span className="text-[10px] text-emerald-400 font-semibold block mt-0.5">
+                            <span className="text-2xs text-emerald-400 font-semibold block mt-0.5">
                                 {pkrEstimate}
                             </span>
                         )}
@@ -272,7 +273,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                     onClick={() => onSelectPlan(planKey)}
                     className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 ${
                         thisIdx > currentIdx
-                        ? 'bg-white text-[#020010] hover:bg-slate-100'
+                        ? 'bg-white text-void-950 hover:bg-slate-100'
                         : 'border border-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-800'
                     }`}
                 >
@@ -1047,13 +1048,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 )}
 
                 {/* Header Profile Summary */}
-                <div className={`mb-8 p-6 md:p-8 rounded-[2.5rem] border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-[#040113] border-white/[0.06]`}>
+                <div className={`mb-8 p-6 md:p-8 rounded-[2.5rem] border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-void-950 border-white/[0.06]`}>
                     <div className="flex items-center gap-5 relative z-10">
                         <div className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg" style={{ background: currentMeta.color + '15' }}>
                             <currentMeta.Icon size={32} color={currentMeta.color} />
                         </div>
                         <div>
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
+                            <div className="text-2xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
                             <div className="text-2xl font-black text-white">{currentMeta.label}</div>
                             <div className="text-xs font-bold text-slate-400 mt-1">
                                 {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)`
@@ -1072,7 +1073,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 had the subscription on trial. */}
                             {isTrial && !isViewOnly && trialDaysLeft !== null && (
                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    <span className={`text-1xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                         trialDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
                                         : trialDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
                                         : 'bg-purple-500/10 text-purple-300'
@@ -1081,7 +1082,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </span>
                                     <button
                                         onClick={() => setActiveTab('payments')}
-                                        className="text-[11px] font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                        className="text-1xs font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
                                     >
                                         View payment history
                                     </button>
@@ -1094,7 +1095,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 here to proof of payment. */}
                             {!isTrial && !isLtd && !isViewOnly && subDaysLeft !== null && (
                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                    <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                    <span className={`text-1xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                         subDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
                                         : subDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
                                         : 'bg-emerald-500/10 text-emerald-400'
@@ -1103,7 +1104,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </span>
                                     <button
                                         onClick={() => setActiveTab('payments')}
-                                        className="text-[11px] font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                        className="text-1xs font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
                                     >
                                         View payment history
                                     </button>
@@ -1113,7 +1114,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             {/* Reassurance that paying early costs them nothing —
                                 shown before they click, not buried in the modal. */}
                             {isTrial && !isViewOnly && trialCreditFor(billingCycle) && (
-                                <div className="text-[11px] font-bold text-emerald-400 mt-1.5 flex items-center gap-1.5">
+                                <div className="text-1xs font-bold text-emerald-400 mt-1.5 flex items-center gap-1.5">
                                     <Zap size={11} className="fill-emerald-400" />
                                     Pay early and your unused days become a {trialCreditFor(billingCycle).percent}% credit — you lose nothing.
                                 </div>
@@ -1297,17 +1298,17 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <UsageMeter
-                                    icon={Users} label="Staff Members" color="#6366f1"
+                                    icon={Users} label="Staff Members" color={vq.indigo[500]}
                                     used={usageData.staff_count ?? 0}
                                     limit={usageData.staff_limit}
                                 />
                                 <UsageMeter
-                                    icon={Package} label="Products (SKUs)" color="#10b981"
+                                    icon={Package} label="Products (SKUs)" color={vq.emerald[500]}
                                     used={usageData.product_count ?? 0}
                                     limit={usageData.sku_limit}
                                 />
                                 <UsageMeter
-                                    icon={GitBranch} label="Locations" color="#f59e0b"
+                                    icon={GitBranch} label="Locations" color={vq.amber[500]}
                                     used={usageData.location_count ?? 1}
                                     limit={usageData.locations}
                                 />
@@ -1332,7 +1333,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                    <span className="px-2.5 py-0.5 rounded-full text-2xs font-black uppercase tracking-widest bg-emerald-500 text-black">
                                                         SPECIAL GIFT UNLOCKED 🎁
                                                     </span>
                                                     <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
@@ -1380,7 +1381,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onClick={() => setBillingCycle('monthly')}
                                             className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
                                                 billingCycle === 'monthly'
-                                                    ? 'bg-white text-[#020010] shadow-md'
+                                                    ? 'bg-white text-void-950 shadow-md'
                                                     : 'text-slate-400 hover:text-white'
                                             }`}
                                         >
@@ -1395,7 +1396,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             }`}
                                         >
                                             Annual
-                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                                            <span className={`text-3xs px-1.5 py-0.5 rounded-full font-black ${
                                                 billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'
                                             }`}>SAVE ~17%</span>
                                         </button>
@@ -1452,7 +1453,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {activeTab === 'payments' && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="flex items-center justify-between flex-wrap gap-3">
-                            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <h3 className="text-1xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                 <History size={14} /> Billing Period & Payments
                             </h3>
                             <button
@@ -1485,31 +1486,31 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 {history.subscription && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <BadgeCheck size={12} /> Status
                                             </div>
                                             <div className="text-lg font-black text-white capitalize">
                                                 {history.subscription.status_formatted || history.subscription.status || '—'}
                                             </div>
                                             {history.subscription.is_cancelled && (
-                                                <div className="text-[11px] font-bold text-amber-400 mt-1">
+                                                <div className="text-1xs font-bold text-amber-400 mt-1">
                                                     Cancelled — access runs to the date below
                                                 </div>
                                             )}
                                             {history.subscription.test_mode && (
-                                                <div className="text-[11px] font-bold text-amber-400 mt-1">Test mode</div>
+                                                <div className="text-1xs font-bold text-amber-400 mt-1">Test mode</div>
                                             )}
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Clock size={12} /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Charge'}
                                             </div>
                                             <div className="text-lg font-black text-white">
                                                 {fmtDay(history.subscription.expires_at)}
                                             </div>
                                             {history.subscription.days_until_expiry !== null && (
-                                                <div className={`text-[11px] font-bold mt-1 ${
+                                                <div className={`text-1xs font-bold mt-1 ${
                                                     history.subscription.days_until_expiry <= 3 ? 'text-red-400'
                                                     : history.subscription.days_until_expiry <= 7 ? 'text-amber-400'
                                                     : 'text-emerald-400'
@@ -1520,7 +1521,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <CreditCard size={12} /> Payment Method
                                             </div>
                                             <div className="text-lg font-black text-white">
@@ -1529,13 +1530,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </div>
 
                                         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <div className="text-2xs font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Receipt size={12} /> Total Paid
                                             </div>
                                             <div className="text-lg font-black text-white">
                                                 {history.lifetime_usd || '$0.00'}
                                             </div>
-                                            <div className="text-[11px] font-bold text-slate-500 mt-1">
+                                            <div className="text-1xs font-bold text-slate-500 mt-1">
                                                 {history.invoice_count} {history.invoice_count === 1 ? 'invoice' : 'invoices'}
                                             </div>
                                         </div>
@@ -1616,7 +1617,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 <thead>
                                                     <tr className="border-b border-white/[0.06]">
                                                         {['Paid On', 'Period Covered', 'Days', 'Amount', 'Credit Applied', 'Status', ''].map(h => (
-                                                            <th key={h} className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                                            <th key={h} className="px-5 py-3.5 text-2xs font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">
                                                                 {h}
                                                             </th>
                                                         ))}
@@ -1627,7 +1628,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                         <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 <div className="text-xs font-black text-white">{fmtDay(inv.paid_at)}</div>
-                                                                <div className="text-[10px] font-bold text-slate-500 capitalize mt-0.5">
+                                                                <div className="text-2xs font-bold text-slate-500 capitalize mt-0.5">
                                                                     {inv.billing_reason === 'initial' ? 'First payment'
                                                                         : inv.billing_reason === 'renewal' ? 'Renewal'
                                                                         : inv.billing_reason === 'updated' ? 'Plan change'
@@ -1641,32 +1642,32 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 {inv.period_days !== null ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-black">
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-1xs font-black">
                                                                         {inv.period_days} days
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-[11px] font-bold text-slate-600">—</span>
+                                                                    <span className="text-1xs font-bold text-slate-600">—</span>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 <div className="text-xs font-black text-white">{inv.total}</div>
                                                                 {inv.has_discount && (
-                                                                    <div className="text-[10px] font-bold text-slate-500 mt-0.5 line-through">
+                                                                    <div className="text-2xs font-bold text-slate-500 mt-0.5 line-through">
                                                                         {inv.subtotal}
                                                                     </div>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
                                                                 {inv.has_discount ? (
-                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-black flex items-center gap-1 w-fit">
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-1xs font-black flex items-center gap-1 w-fit">
                                                                         <Zap size={10} className="fill-emerald-400" /> −{inv.discount_total}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-[11px] font-bold text-slate-600">—</span>
+                                                                    <span className="text-1xs font-bold text-slate-600">—</span>
                                                                 )}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <span className={`px-2.5 py-1 rounded-lg text-[11px] font-black border ${
+                                                                <span className={`px-2.5 py-1 rounded-lg text-1xs font-black border ${
                                                                     inv.refunded || inv.status === 'refunded'
                                                                         ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
                                                                         : inv.status === 'paid'
@@ -1684,7 +1685,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                                         href={inv.invoice_url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-400 hover:text-white text-[11px] font-bold transition-all"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-400 hover:text-white text-1xs font-bold transition-all"
                                                                     >
                                                                         <FileText size={11} /> Invoice
                                                                     </a>
@@ -1698,7 +1699,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     </div>
                                 )}
 
-                                <p className="text-[10px] font-bold text-slate-600 text-center">
+                                <p className="text-2xs font-bold text-slate-600 text-center">
                                     Read live from Lemon Squeezy · updated {history.fetched_at ? new Date(history.fetched_at).toLocaleTimeString() : '—'}
                                 </p>
                             </>
@@ -1736,22 +1737,22 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                     <span className="text-sm font-black text-white">{feat.name}</span>
                                                     
                                                     {feat.is_active && feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1">
                                                             <AlertTriangle size={10} /> Active & Locked (Limits Exceeded)
                                                         </span>
                                                     )}
                                                     {feat.is_active && !feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                                                             <CheckCircle2 size={10} /> Active & Subscribed
                                                         </span>
                                                     )}
                                                     {!feat.is_active && feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
                                                             Locked (Upgrade to unlock)
                                                         </span>
                                                     )}
                                                     {!feat.is_active && !feat.is_locked && (
-                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-emerald-400 border border-slate-700">
+                                                        <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider bg-slate-800 text-emerald-400 border border-slate-700">
                                                             Available
                                                         </span>
                                                     )}
@@ -1771,7 +1772,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 {feat.is_locked && (
                                                     <button
                                                         onClick={() => handleSelectPlan(targetPlan)}
-                                                        className="px-4 py-2 bg-white text-[#020010] hover:bg-slate-100 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
+                                                        className="px-4 py-2 bg-white text-void-950 hover:bg-slate-100 rounded-xl font-black text-xs uppercase tracking-wider transition-colors flex items-center gap-1 shadow-md"
                                                     >
                                                         <Sparkles size={12} /> Keep & Upgrade
                                                     </button>
@@ -1804,10 +1805,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             </p>
 
                             {/* Status Card & Progress */}
-                            <div className="p-5 rounded-2xl bg-[#0b081e]/40 border border-white/[0.05] mb-8">
+                            <div className="p-5 rounded-2xl bg-slate-950/40 border border-white/[0.05] mb-8">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Level</span>
+                                        <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Active Level</span>
                                         <div className="text-2xl font-black text-white mt-1 capitalize">
                                             {tenant?.ai_status === 'none' ? 'Free Starter Tier (10 Credits)' : tenant?.ai_status}
                                         </div>
@@ -1831,13 +1832,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     {tenant?.ai_status === 'managed' && (
                                         <div className="flex gap-4">
                                             <div className="text-right">
-                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Scans</div>
+                                                <div className="text-2xs text-slate-500 font-bold uppercase">Scans</div>
                                                 <div className="text-sm font-black text-white">
                                                     {(tenant?.plan_limits?.ai_scans_used ?? 0)} / {(tenant?.plan_limits?.ai_scans_limit ?? 90)}
                                                 </div>
                                             </div>
                                             <div className="text-right border-l border-white/10 pl-4">
-                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Queries</div>
+                                                <div className="text-2xs text-slate-500 font-bold uppercase">Queries</div>
                                                 <div className="text-sm font-black text-white">
                                                     {(tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.plan_limits?.ai_queries_limit ?? 110)}
                                                 </div>
@@ -1863,13 +1864,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <div className="lg:col-span-1 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                                 Bring Your Own Key
                                             </span>
                                             <div className="text-xl font-black text-white">$5 <span className="text-xs font-normal text-slate-400">once</span></div>
                                         </div>
                                         <h5 className="text-sm font-black text-white mb-2">Lifetime BYOK License</h5>
-                                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                                        <p className="text-1xs text-slate-400 leading-relaxed">
                                             Bypass platform scanning fees forever. Provide your own API keys for Gemini, Claude, OpenAI, or DeepSeek and pay nothing else.
                                         </p>
                                     </div>
@@ -1882,7 +1883,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             <button
                                                 onClick={() => handlePurchaseAddon('ai_byok')}
                                                 disabled={isPurchasingAddon !== null}
-                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-[#020010] rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
                                             >
                                                 {isPurchasingAddon === 'ai_byok' ? <Loader2 size={14} className="animate-spin" /> : 'Buy BYOK Unlock'}
                                             </button>
@@ -1894,13 +1895,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <div className="lg:col-span-2 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
                                                 Managed API
                                             </span>
                                             <span className="text-xs text-slate-400">Monthly Subscriptions</span>
                                         </div>
                                         <h5 className="text-sm font-black text-white mb-2">Managed AI Subscriptions</h5>
-                                        <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+                                        <p className="text-1xs text-slate-400 leading-relaxed mb-4">
                                             No developer keys or setup required. Use our fast platform credentials directly. Pick the tier that matches your monthly volume:
                                         </p>
 
@@ -1920,7 +1921,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                         <span className="text-xs font-black text-white group-hover:text-purple-300 transition-colors">{plan.label}</span>
                                                         <span className="text-xs font-black text-purple-400">{plan.price}</span>
                                                     </div>
-                                                    <div className="text-[9px] text-slate-500">
+                                                    <div className="text-3xs text-slate-500">
                                                         {plan.scans} scans / {plan.queries} queries
                                                     </div>
                                                 </div>
@@ -1942,8 +1943,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-5 rounded-2xl bg-[#0b081e]/40 border border-white/[0.05]">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Subscribed Channels</span>
+                                <div className="p-5 rounded-2xl bg-slate-950/40 border border-white/[0.05]">
+                                    <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Subscribed Channels</span>
                                     <div className="space-y-2 mt-3">
                                         {tenant?.sync_channels && tenant.sync_channels.length > 0 ? (
                                             tenant.sync_channels.map(ch => (
@@ -1960,9 +1961,9 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                 <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
-                                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Platform Sync Trial</span>
+                                        <span className="text-2xs font-bold text-indigo-400 uppercase tracking-widest">Platform Sync Trial</span>
                                         <h4 className="text-sm font-black text-white mt-1">Evaluate WooCommerce Sync</h4>
-                                        <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+                                        <p className="text-1xs text-slate-500 mt-2 leading-relaxed">
                                             Test automatic inventory syncing with WooCommerce for the remainder of your trial period.
                                         </p>
                                     </div>
@@ -1986,7 +1987,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         ) : (
                                             <button
                                                 onClick={() => handleSelectPlan('growth')}
-                                                className="px-5 py-2.5 bg-white text-[#020010] rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                                className="px-5 py-2.5 bg-white text-void-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
                                             >
                                                 Subscribe to Sync Add-on
                                             </button>
@@ -2001,7 +2002,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 4: ONBOARDING SERVICES */}
                 {activeTab === 'services' && (
                     <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-[#0b081e] to-black border border-white/[0.06]">
+                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-slate-950 to-black border border-white/[0.06]">
                             <div className="flex items-center gap-3 mb-2">
                                 <Calendar className="text-purple-400" size={24} />
                                 <h3 className="text-lg font-black text-white">Professional Product Upload Service</h3>
@@ -2024,11 +2025,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     >
                                         <div>
                                             <div className="text-white font-black text-sm">{tier.name}</div>
-                                            <div className="text-[10px] text-slate-500 mt-1 leading-relaxed">{tier.desc}</div>
+                                            <div className="text-2xs text-slate-500 mt-1 leading-relaxed">{tier.desc}</div>
                                         </div>
                                         <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
-                                            <span className="text-[10px] text-purple-400 font-semibold">{tier.sla}</span>
-                                            <span className="text-white font-black text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-[10px] text-slate-500 font-medium">/ea</span></span>
+                                            <span className="text-2xs text-purple-400 font-semibold">{tier.sla}</span>
+                                            <span className="text-white font-black text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-2xs text-slate-500 font-medium">/ea</span></span>
                                         </div>
                                     </button>
                                 ))}
@@ -2056,13 +2057,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onChange={(e) => setCalcVariants(e.target.value)}
                                             className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-purple-500 transition-colors"
                                         />
-                                        <span className="text-[9px] text-slate-500 mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
+                                        <span className="text-3xs text-slate-500 mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
                                     </div>
                                 </div>
 
                                 <div className="p-5 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cost Estimate Details</span>
+                                        <span className="text-2xs font-bold text-slate-500 uppercase tracking-widest">Cost Estimate Details</span>
                                         <div className="space-y-2 mt-4">
                                             <div className="flex justify-between text-xs text-slate-400">
                                                 <span>Tier Base Rate:</span>
@@ -2091,11 +2092,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <button
                                     onClick={handleOrderSetupService}
                                     disabled={calcProductsNum === 0 || isOrderingService}
-                                    className="px-8 py-3.5 bg-white text-[#020010] hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                    className="px-8 py-3.5 bg-white text-void-950 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] disabled:opacity-50 disabled:shadow-none rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
                                 >
                                     {isOrderingService ? (
                                         <>
-                                            <span className="w-3.5 h-3.5 border-2 border-[#020010] border-t-transparent rounded-full animate-spin"></span>
+                                            <span className="w-3.5 h-3.5 border-2 border-void-950 border-t-transparent rounded-full animate-spin"></span>
                                             Redirecting...
                                         </>
                                     ) : (
@@ -2110,7 +2111,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 5: DESKTOP APPLICATION */}
                 {activeTab === 'desktop_app' && (
                     <div className="space-y-6 animate-fadeIn">
-                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-[#0b081e] to-black border border-white/[0.06] relative overflow-hidden">
+                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-b from-slate-950 to-black border border-white/[0.06] relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
                             
                             <div className="flex items-start gap-4 mb-8">
@@ -2132,7 +2133,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     <div>
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="text-sm font-black text-white">Windows Setup Installer</span>
-                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">Official Build</span>
+                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-500/20">Official Build</span>
                                         </div>
                                         <p className="text-xs text-slate-400 leading-relaxed mb-6">
                                             Official setup installer. Establishes secure system directories, registers start menu entries, registers shell protocol endpoints, and supports silent auto-updates. Requires standard system installation to prevent unapproved cashier portable copies.
@@ -2164,7 +2165,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                                 {guide.step}
                                             </div>
                                             <h5 className="text-xs font-bold text-white mb-1">{guide.title}</h5>
-                                            <p className="text-[10px] text-slate-400 leading-relaxed">{guide.desc}</p>
+                                            <p className="text-2xs text-slate-400 leading-relaxed">{guide.desc}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -2200,13 +2201,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                     <div className="space-y-4 mb-6">
                         <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                             <div className="text-center flex-1">
-                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Plan</div>
+                                <div className="text-2xs text-slate-500 font-bold uppercase tracking-wider">Current Plan</div>
                                 <div className="text-sm font-black mt-1 capitalize text-slate-300">{currentPlanKey}</div>
                                 <div className="text-xs text-slate-500 mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
                             </div>
                             <ArrowRight className="text-slate-600 shrink-0" size={16} />
                             <div className="text-center flex-1">
-                                <div className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">New Plan</div>
+                                <div className="text-2xs text-purple-400 font-bold uppercase tracking-wider">New Plan</div>
                                 <div className="text-sm font-black mt-1 capitalize text-purple-300">{selectedPlan}</div>
                                 <div className="text-xs text-purple-400 mt-0.5">{fmt(targetPriceUSD, targetPricePKR)}/mo</div>
                             </div>
@@ -2214,7 +2215,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                         {/* gained or lost features list */}
                         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+                            <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-2">
                                 {isUpgrade ? '🎁 Features You Will Unlock:' : '⚠️ Features You Will Lose after billing cycle:'}
                             </div>
                             <div className="space-y-2">
@@ -2347,14 +2348,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 and prevents the support ticket asking for a refund of time
                 they never actually lost. */}
             <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
-                <div className="p-8 bg-[#0b081e] text-white">
+                <div className="p-8 bg-slate-950 text-white">
                     <div className="flex items-center gap-3 mb-5">
                         <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                             <AlertTriangle size={20} className="text-red-400" />
                         </div>
                         <div>
                             <h3 className="text-lg font-black">Cancel your subscription?</h3>
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <p className="text-1xs font-bold text-slate-500 uppercase tracking-wider">
                                 {currentMeta.label}
                             </p>
                         </div>
@@ -2452,24 +2453,24 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                     {/* Limits Grid */}
                                     <div className="mb-6">
-                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">
+                                        <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-3">
                                             What's Included in Your Plan:
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Staff Limit</span>
+                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Staff Limit</span>
                                                 <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Product (SKU) Limit</span>
+                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Product (SKU) Limit</span>
                                                 <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Locations Limit</span>
+                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Locations Limit</span>
                                                 <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
                                             </div>
                                             <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
-                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Transactions/mo</span>
+                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">Transactions/mo</span>
                                                 <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
                                             </div>
                                         </div>
@@ -2477,7 +2478,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                     {/* Gated features unlocked list */}
                                     <div className="mb-6">
-                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+                                        <div className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-2">
                                             Premium Upgrades Activated:
                                         </div>
                                         <div className="space-y-2">
@@ -2641,7 +2642,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
+                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
                     <input
                         type="text"
                         pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
@@ -2653,7 +2654,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                     />
                 </div>
                 <div>
-                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
+                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
                     <input
                         type="text"
                         value={phone}
@@ -2664,23 +2665,23 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                     />
                 </div>
                 <div>
-                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Front Side Image</label>
+                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Front Side Image</label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={e => setImageFront(e.target.files[0])}
                         required
-                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[11px] file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
                     />
                 </div>
                 <div>
-                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Back Side Image</label>
+                    <label className="block text-1xs font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Back Side Image</label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={e => setImageBack(e.target.files[0])}
                         required
-                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[11px] file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
                     />
                 </div>
                 <div className="md:col-span-2 mt-2">

@@ -239,7 +239,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     </div>
                                     <div className="mr-2">
                                         <p className="text-xs font-bold text-slate-800 dark:text-white">{gap.user?.name}</p>
-                                        <p className="text-[10px] text-slate-500">{formatTime(gap.start_time)} - {formatTime(gap.end_time)}</p>
+                                        <p className="text-2xs text-slate-500">{formatTime(gap.start_time)} - {formatTime(gap.end_time)}</p>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button onClick={() => handleApproveGap(gap.id)} className="p-1 bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors" title="Approve">
@@ -261,14 +261,14 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Member</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Status</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check In</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check Out</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Hours</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Breaks</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Gaps</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">History</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Member</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Status</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check In</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Check Out</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Hours</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Breaks</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Gaps</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">History</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -288,12 +288,12 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-sm text-slate-800 dark:text-white">{member.name}</p>
-                                                            <p className="text-[10px] text-slate-500">{member.role || 'Staff'}</p>
+                                                            <p className="text-2xs text-slate-500">{member.role || 'Staff'}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-3 text-center">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
                                                         <StatusIcon size={10} />
                                                         {statusStyle.label}
                                                     </span>
@@ -310,14 +310,14 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                     </span>
                                                 </td>
                                                 <td className="p-3 text-center">
-                                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold">
+                                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-2xs font-bold">
                                                         <Coffee size={10} />
                                                         {attendanceRecord?.breaks || 0}
                                                     </span>
                                                 </td>
                                                 <td className="p-3 text-center">
                                                     {memberGaps.length > 0 ? (
-                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded text-[10px] font-bold">
+                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded text-2xs font-bold">
                                                             <AlertTriangle size={10} />
                                                             {memberGaps.length}
                                                         </span>
@@ -356,12 +356,12 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Terminal ID / Name</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Device Fingerprint</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Away (Focus Lost)</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Resume (Focus Back)</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Duration</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Screen Capture</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Terminal ID / Name</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Device Fingerprint</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Away (Focus Lost)</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Resume (Focus Back)</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Duration</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Screen Capture</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -377,7 +377,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                         <p className="font-bold text-sm text-slate-800 dark:text-white">
                                                             {activity.terminal?.name || 'Unknown Terminal'}
                                                         </p>
-                                                        <p className="text-[10px] text-slate-500">POS Terminal</p>
+                                                        <p className="text-2xs text-slate-500">POS Terminal</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -391,7 +391,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                 {formatDateTime(activity.back_at)}
                                             </td>
                                             <td className="p-3 text-center">
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                                                     <Timer size={10} />
                                                     {formatDuration(activity.duration_seconds)}
                                                 </span>
@@ -439,7 +439,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                 <Shield className="text-indigo-500" size={20} />
                                 <div>
                                     <h3 className="text-base font-black text-white uppercase">Decrypted Terminal Capture</h3>
-                                    <p className="text-[10px] text-slate-500 font-bold">
+                                    <p className="text-2xs text-slate-500 font-bold">
                                         Terminal: {terminalActivities.find(a => a.id === selectedScreenshotId)?.terminal?.name || 'Unknown'} | 
                                         Duration Away: {formatDuration(terminalActivities.find(a => a.id === selectedScreenshotId)?.duration_seconds || 0)}
                                     </p>

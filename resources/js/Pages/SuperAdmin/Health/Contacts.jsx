@@ -96,7 +96,7 @@ export default function Contacts({ submissions, filters }) {
 
                     {/* Details Panel */}
                     {selected && (
-                        <div className="w-[400px] flex-shrink-0 bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
+                        <div className="w-[400px] flex-shrink-0 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
                                 <Mail className="text-sky-500" />
                                 Message Details

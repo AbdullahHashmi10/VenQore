@@ -318,7 +318,7 @@ export default function GlobalOnboardingWidget({ store }) {
                 <div className="relative z-10 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-white transition-colors duration-200">
                     <Sparkles size={18} className="animate-pulse" />
                 </div>
-                <span className="absolute -top-1 -right-2 bg-rose-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full shadow whitespace-nowrap">
+                <span className="absolute -top-1 -right-2 bg-rose-600 text-4xs font-black text-white px-2 py-0.5 rounded-full shadow whitespace-nowrap">
                     {remainingCount} left
                 </span>
             </div>
@@ -342,7 +342,7 @@ export default function GlobalOnboardingWidget({ store }) {
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Setup Checklist</h4>
-                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wide">
+                    <p className="text-2xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wide">
                         {remainingCount === 0 ? 'All Completed!' : `${remainingCount} steps remaining`}
                     </p>
                 </div>
@@ -370,7 +370,7 @@ export default function GlobalOnboardingWidget({ store }) {
                                 {item.label}
                             </span>
                         </div>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                        <span className={`text-3xs font-bold px-1.5 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
                             {item.isDone ? 'Done' : 'Start'}
                         </span>
                     </button>

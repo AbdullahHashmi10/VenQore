@@ -89,7 +89,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-[0.2em] rounded-full">
                                             {isPlatform ? 'VenQore Support Bot' : 'Store Assistant Config'}
                                         </span>
                                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -267,13 +267,13 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                         {/* Cost Highlight */}
                         <div className="mb-8 p-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100/50 dark:border-indigo-900/30 rounded-3xl shadow-sm relative overflow-hidden group hover:shadow-indigo-500/10 transition-all duration-300">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                            <span className="text-2xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                                 Estimated Cost
                             </span>
                             <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1 select-all">
                                 {formatCost(usageStats?.estimated_cost)}
                             </div>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-2">
+                            <span className="text-2xs text-slate-400 dark:text-slate-500 font-medium block mt-2">
                                 Gemini Flash pay-as-you-go rate
                             </span>
                         </div>
@@ -294,7 +294,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                         <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                                             Input Tokens
                                         </span>
-                                        <span className="text-[10px] text-slate-400">Prompts & Context</span>
+                                        <span className="text-2xs text-slate-400">Prompts & Context</span>
                                     </div>
                                 </div>
                                 <span className="text-sm font-black text-slate-900 dark:text-white">
@@ -312,7 +312,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                         <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                                             Output Tokens
                                         </span>
-                                        <span className="text-[10px] text-slate-400">AI Responses</span>
+                                        <span className="text-2xs text-slate-400">AI Responses</span>
                                     </div>
                                 </div>
                                 <span className="text-sm font-black text-slate-900 dark:text-white">
@@ -330,7 +330,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                         <span className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                                             Total Tokens
                                         </span>
-                                        <span className="text-[10px] text-slate-400">Total Volume</span>
+                                        <span className="text-2xs text-slate-400">Total Volume</span>
                                     </div>
                                 </div>
                                 <span className="text-sm font-black text-slate-900 dark:text-white">
@@ -349,8 +349,8 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
                                     {Object.entries(usageStats.models).map(([model, count]) => (
                                         <div key={model} className="space-y-1.5">
                                             <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">
-                                                <span className="text-[10px] truncate max-w-[180px]">{model}</span>
-                                                <span className="text-[10px] text-slate-400">{count.toLocaleString()} tkn</span>
+                                                <span className="text-2xs truncate max-w-[180px]">{model}</span>
+                                                <span className="text-2xs text-slate-400">{count.toLocaleString()} tkn</span>
                                             </div>
                                             <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                                                 <div 

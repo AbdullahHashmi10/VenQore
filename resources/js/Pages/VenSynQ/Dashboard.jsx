@@ -1,6 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import SyncHealthPanel from './Components/SyncHealthPanel';
+import MoneyPipeline from './Components/MoneyPipeline';
+import { vq } from '@/theme/runtime';
 import {
     Zap, Link2, Truck, Check, Clock, AlertTriangle,
     PackageCheck, BarChart2, RefreshCw, ChevronRight,
@@ -38,10 +41,19 @@ const EbayLogo = ({ size = 16 }) => {
     );
 };
 
+const WooLogo = ({ size = 16 }) => (
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size, display: 'block' }}>
+        <path fill="#7F54B3" d="M2.2 4.6h19.6c1.2 0 2.2 1 2.2 2.2v7.3c0 1.2-1 2.2-2.2 2.2H14.8l1 2.4-4.3-2.4H2.2c-1.2 0-2.2-1-2.2-2.2V6.8c0-1.2 1-2.2 2.2-2.2z"/>
+        <path fill="#fff" d="M3.1 7.3c.2-.3.5-.4.8-.4.6 0 .9.3 1 .8l.6 4.1 1.5-2.9c.2-.3.4-.5.7-.5.4 0 .7.3.8.8.2 1.2.4 2.2.7 3.1l1.2-3.5c.1-.3.3-.5.6-.5.2 0 .4.1.5.2.2.1.2.3.2.5l-.1.4-1.8 5c-.1.3-.4.5-.7.5-.4 0-.7-.3-.9-.8-.3-.9-.6-2-.9-3.3l-1.4 2.7c-.3.5-.6.8-.9.8-.4 0-.7-.3-.8-.9L2.9 8.1c-.1-.3 0-.6.2-.8z"/>
+    </svg>
+);
+
 const PLATFORMS = {
-    amazon: { label: 'Amazon',     color: '#FF9900', bg: '#1a1200', border: '#4a2d00' },
-    tiktok: { label: 'TikTok Shop', color: '#69C9D0', bg: '#001a1c', border: '#004a50' },
-    ebay:   { label: 'eBay',       color: '#86B817', bg: '#0d1a00', border: '#2a4d00' },
+    amazon:      { label: 'Amazon',      color: '#FF9900', bg: '#1a1200', border: '#4a2d00' },
+    // T16 — WooCommerce promoted to a first-class VenSynQ channel.
+    woocommerce: { label: 'WooCommerce', color: '#9B6FD4', bg: '#150d20', border: '#3d2a5c' },
+    tiktok:      { label: 'TikTok Shop', color: '#69C9D0', bg: '#001a1c', border: '#004a50' },
+    ebay:        { label: 'eBay',        color: '#86B817', bg: '#0d1a00', border: '#2a4d00' },
 };
 
 const CARRIER_OPTIONS = [
@@ -55,7 +67,14 @@ const FULFILLMENT_LABELS = {
 };
 
 // ─── VenSynQ Dashboard ────────────────────────────────────────────────────────
-export default function VenSynQDashboard({ channels = [], pendingSales = { data: [] }, jitDraftsCount = 0 }) {
+export default function VenSynQDashboard({
+    channels = [],
+    pendingSales = { data: [] },
+    jitDraftsCount = 0,
+    health = null,              // T16 — computed by IntegrationHealthService
+    pipeline = null,            // T17 — Money Pipeline stages
+    clearingEnabled = false,    // T17 — has this tenant switched clearing on?
+}) {
     const { props } = usePage();
     const flash = props.flash ?? {};
     const store = props.store;
@@ -67,6 +86,9 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
     const handleFetchLiveOrders = useCallback(() => {
         setFetching(true);
         router.post(route('store.vensynq.sync-orders', { store_slug: store?.slug }), {}, {
+            // preserveScroll stops the page jumping to the top mid-sync, which
+            // made the progress indicator scroll out of view on mobile.
+            preserveScroll: true,
             onFinish: () => { setFetching(false); }
         });
     }, [store]);
@@ -101,7 +123,7 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
         <OneGlanceLayout>
             <Head title="VenSynQ — Multi-Channel Fulfillment" />
 
-            <div className="vensynq-root" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1421 100%)', color: '#e2e8f0', fontFamily: "'Inter', sans-serif", padding: '0 0 80px' }}>
+            <div className="vensynq-root" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1421 100%)', color: vq.slate[200], fontFamily: "'Inter', sans-serif", padding: '0 0 80px' }}>
 
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div style={{ background: 'linear-gradient(90deg, #0a0f1a, #111827)', borderBottom: '1px solid #1e3a5f', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -113,7 +135,7 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                             <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 VenSynQ Dashboard
                             </h1>
-                            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Multi-Channel Fulfillment Command Center</p>
+                            <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>Multi-Channel Fulfillment Command Center</p>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -126,9 +148,9 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                                 gap: 6,
                                 padding: '8px 18px',
                                 borderRadius: 8,
-                                background: fetching ? '#1e293b' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                background: fetching ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
                                 border: 'none',
-                                color: fetching ? '#475569' : '#fff',
+                                color: fetching ? vq.slate[600] : '#fff',
                                 fontSize: 13,
                                 fontWeight: 600,
                                 cursor: fetching ? 'not-allowed' : 'pointer',
@@ -140,12 +162,12 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                             {fetching ? 'Syncing Orders…' : 'Fetch Live Orders'}
                         </button>
                         {jitDraftsCount > 0 && (
-                            <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#2d1a00', border: '1px solid #7c3d00', color: '#fb923c', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
+                            <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#2d1a00', border: '1px solid #7c3d00', color: vq.orange[400], fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
                                 <AlertTriangle size={14} />
                                 {jitDraftsCount} JIT Draft{jitDraftsCount !== 1 ? 's' : ''} Need Approval
                             </a>
                         )}
-                        <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #1e3a5f', color: '#60a5fa', fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
+                        <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #1e3a5f', color: vq.blue[400], fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
                             <Settings size={15} /> VenSynQ Settings
                         </a>
                     </div>
@@ -153,17 +175,38 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
 
                 {/* ── Flash Messages ──────────────────────────────────────── */}
                 {flash.success && (
-                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#052e16', border: '1px solid #166534', color: '#4ade80', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: vq.green[950], border: '1px solid #166534', color: vq.green[400], fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <CheckCircle2 size={15} /> {flash.success}
                     </div>
                 )}
                 {flash.error && (
-                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#2d0000', border: '1px solid #7f1d1d', color: '#f87171', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#2d0000', border: '1px solid #7f1d1d', color: vq.red[400], fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <AlertCircle size={15} /> {flash.error}
                     </div>
                 )}
 
                 <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+                    {/* ── T16: Sync Status Dashboard ─────────────────────────── */}
+                    {/* Health badges, Sync Now with live progress, freshness
+                        timestamps and the 1-click Error Inspector. Placed first
+                        so a broken integration is the first thing seen. */}
+                    <SyncHealthPanel
+                        health={health}
+                        storeSlug={store?.slug}
+                        syncing={fetching}
+                        onSyncNow={handleFetchLiveOrders}
+                    />
+
+                    {/* ── T17: Money Pipeline ────────────────────────────────── */}
+                    {/* Answers "where is my money right now?" — online sales,
+                        money the platforms are still holding, and what has
+                        genuinely cleared to the bank. */}
+                    <MoneyPipeline
+                        pipeline={pipeline}
+                        clearingEnabled={clearingEnabled}
+                        storeSlug={store?.slug}
+                    />
 
                     {/* ── Overview Cards ─────────────────────────────────────── */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
@@ -171,12 +214,12 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                         {/* Connected Channels Summary */}
                         <div style={{ background: 'linear-gradient(135deg, #0d1e36 0%, #091220 100%)', border: '1px solid #1e3a5f', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
                             <div>
-                                <span style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Channel Connections</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: '#f8fafc' }}>
+                                <span style={{ fontSize: 11, color: vq.blue[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Channel Connections</span>
+                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
                                     {channels.length} Connected
                                 </div>
                             </div>
-                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ color: '#38bdf8', fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
+                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ color: vq.sky[400], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
                                 Configure channels & defaults <ChevronRight size={13} />
                             </a>
                         </div>
@@ -184,12 +227,12 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                         {/* Pending Fulfillment Summary */}
                         <div style={{ background: 'linear-gradient(135deg, #0f241b 0%, #061510 100%)', border: '1px solid #065f46', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
                             <div>
-                                <span style={{ fontSize: 11, color: '#34d399', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending Dispatch</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: '#f8fafc' }}>
+                                <span style={{ fontSize: 11, color: vq.emerald[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending Dispatch</span>
+                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
                                     {pendingSales.total ?? pendingSales.data.length} Orders
                                 </div>
                             </div>
-                            <span style={{ color: '#a7f3d0', fontSize: 12 }}>
+                            <span style={{ color: vq.emerald[200], fontSize: 12 }}>
                                 Awaiting tracking details to sync back
                             </span>
                         </div>
@@ -197,17 +240,17 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                         {/* JIT Draft Purchases Summary */}
                         <div style={{ background: 'linear-gradient(135deg, #2b1d0a 0%, #150f05 100%)', border: '1px solid #7c3d00', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
                             <div>
-                                <span style={{ fontSize: 11, color: '#fb923c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>JIT Draft Purchases</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: '#f8fafc' }}>
+                                <span style={{ fontSize: 11, color: vq.orange[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>JIT Draft Purchases</span>
+                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
                                     {jitDraftsCount} Pending
                                 </div>
                             </div>
                             {jitDraftsCount > 0 ? (
-                                <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ color: '#fdba74', fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
+                                <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ color: vq.orange[300], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
                                     Confirm supplier costs now <ChevronRight size={13} />
                                 </a>
                             ) : (
-                                <span style={{ color: '#fed7aa', fontSize: 12 }}>
+                                <span style={{ color: vq.orange[200], fontSize: 12 }}>
                                     All Day-Of JIT purchases fully processed
                                 </span>
                             )}
@@ -218,12 +261,12 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                     {/* ── Pending Fulfillment Table ──────────────── */}
                     <section>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                            <h2 style={{ fontSize: 14, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+                            <h2 style={{ fontSize: 14, fontWeight: 600, color: vq.slate[400], textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
                                 Pending Dispatch ({pendingSales.total ?? pendingSales.data.length})
                             </h2>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 {dirtyCount > 0 && (
-                                    <span style={{ fontSize: 12, color: '#94a3b8' }}>{dirtyCount} tracking number{dirtyCount !== 1 ? 's' : ''} ready to sync</span>
+                                    <span style={{ fontSize: 12, color: vq.slate[400] }}>{dirtyCount} tracking number{dirtyCount !== 1 ? 's' : ''} ready to sync</span>
                                 )}
                                 <button
                                     onClick={handleSyncTracking}
@@ -231,8 +274,8 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: 6,
                                         padding: '8px 18px', borderRadius: 8,
-                                        background: dirtyCount ? 'linear-gradient(135deg, #059669, #047857)' : '#1e293b',
-                                        border: 'none', color: dirtyCount ? '#fff' : '#475569',
+                                        background: dirtyCount ? 'linear-gradient(135deg, #059669, #047857)' : vq.slate[800],
+                                        border: 'none', color: dirtyCount ? '#fff' : vq.slate[600],
                                         fontSize: 13, fontWeight: 600, cursor: dirtyCount ? 'pointer' : 'not-allowed',
                                         transition: 'all 0.2s',
                                     }}
@@ -244,18 +287,18 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                         </div>
 
                         {pendingSales.data.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#0d1421', border: '1px solid #1e3a5f', borderRadius: 12 }}>
+                            <div style={{ textAlign: 'center', padding: '60px 20px', background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12 }}>
                                 <PackageCheck size={40} color="#1e3a5f" style={{ marginBottom: 14 }} />
-                                <h3 style={{ color: '#475569', fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>All clear!</h3>
-                                <p style={{ color: '#334155', fontSize: 13 }}>No pending dispatches right now. Use the POS Dropship Checkout to log new channel sales.</p>
+                                <h3 style={{ color: vq.slate[600], fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>All clear!</h3>
+                                <p style={{ color: vq.slate[700], fontSize: 13 }}>No pending dispatches right now. Use the POS Dropship Checkout to log new channel sales.</p>
                             </div>
                         ) : (
-                            <div style={{ background: '#0d1421', border: '1px solid #1e3a5f', borderRadius: 12, overflow: 'hidden' }}>
+                            <div style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12, overflow: 'hidden' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                                     <thead>
                                         <tr style={{ background: '#0f1f35', borderBottom: '1px solid #1e3a5f' }}>
                                             {['Order ID', 'Channel', 'Date', 'Items', 'Revenue', 'Est. Fee', 'Type', 'Tracking Number', 'Carrier', 'Status'].map(h => (
-                                                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748b', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
+                                                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: vq.slate[500], fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                                             ))}
                                         </tr>
                                     </thead>
@@ -266,10 +309,10 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                                             const edit     = trackingEdits[sale.id] ?? {};
                                             return (
                                                 <tr key={sale.id} style={{ borderBottom: '1px solid #162032', transition: 'background 0.15s' }}
-                                                    onMouseEnter={e => e.currentTarget.style.background = '#111827'}
+                                                    onMouseEnter={e => e.currentTarget.style.background = vq.gray[900]}
                                                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                                 >
-                                                    <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#60a5fa', fontSize: 12 }}>
+                                                    <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: vq.blue[400], fontSize: 12 }}>
                                                         {sale.channel_order_id ?? `#${sale.id.substring(0, 8)}`}
                                                     </td>
                                                     <td style={{ padding: '10px 14px' }}>
@@ -286,23 +329,24 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                                                             fontWeight: 600 
                                                         }}>
                                                             {sale.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={14} />}
+                                                            {sale.ecommerce_channel?.platform === 'woocommerce' && <WooLogo size={14} />}
                                                             {sale.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={14} />}
                                                             {sale.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={14} />}
                                                             {platform.label}
                                                         </span>
                                                     </td>
-                                                    <td style={{ padding: '10px 14px', color: '#94a3b8', fontSize: 12 }}>
+                                                    <td style={{ padding: '10px 14px', color: vq.slate[400], fontSize: 12 }}>
                                                         {new Date(sale.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                                                     </td>
-                                                    <td style={{ padding: '10px 14px', color: '#e2e8f0' }}>
+                                                    <td style={{ padding: '10px 14px', color: vq.slate[200] }}>
                                                         {sale.items?.length ?? 0} item{(sale.items?.length ?? 0) !== 1 ? 's' : ''}
                                                     </td>
-                                                    <td style={{ padding: '10px 14px', color: '#34d399', fontWeight: 600 }}>
+                                                    <td style={{ padding: '10px 14px', color: vq.emerald[400], fontWeight: 600 }}>
                                                         £{parseFloat(sale.total ?? 0).toFixed(2)}
                                                     </td>
-                                                    <td style={{ padding: '10px 14px', color: '#f87171', fontSize: 12 }}>
+                                                    <td style={{ padding: '10px 14px', color: vq.red[400], fontSize: 12 }}>
                                                         {sale.gross_platform_fee ? `£${parseFloat(sale.gross_platform_fee).toFixed(2)}` : '—'}
-                                                        {!sale.financial_reconciled && <span style={{ marginLeft: 4, fontSize: 10, color: '#f59e0b' }} title="Estimated">~Est.</span>}
+                                                        {!sale.financial_reconciled && <span style={{ marginLeft: 4, fontSize: 10, color: vq.amber[500] }} title="Estimated">~Est.</span>}
                                                     </td>
                                                     <td style={{ padding: '10px 14px' }}>
                                                         <span style={{ padding: '2px 7px', borderRadius: 5, fontSize: 11, border: '1px solid', ...Object.fromEntries(Object.entries(ft.badge.split(' ').reduce((a, c) => { a[c] = true; return a; }, {})).map(([k]) => [k, true])) }} className={ft.badge}>
@@ -315,14 +359,14 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
                                                             value={edit.tracking_number ?? sale.tracking_number ?? ''}
                                                             onChange={e => setTracking(sale.id, 'tracking_number', e.target.value)}
                                                             placeholder="Paste tracking…"
-                                                            style={{ background: '#0a0f1a', border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 10px', color: '#e2e8f0', fontSize: 12, width: 170 }}
+                                                            style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 10px', color: vq.slate[200], fontSize: 12, width: 170 }}
                                                         />
                                                     </td>
                                                     <td style={{ padding: '8px 14px' }}>
                                                         <select
                                                             value={edit.shipping_carrier ?? sale.shipping_carrier ?? ''}
                                                             onChange={e => setTracking(sale.id, 'shipping_carrier', e.target.value)}
-                                                            style={{ background: '#0a0f1a', border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 8px', color: '#e2e8f0', fontSize: 12 }}
+                                                            style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 8px', color: vq.slate[200], fontSize: 12 }}
                                                         >
                                                             <option value="">Carrier…</option>
                                                             {CARRIER_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
@@ -353,9 +397,9 @@ export default function VenSynQDashboard({ channels = [], pendingSales = { data:
 
 function DispatchBadge({ status }) {
     const map = {
-        pending:    { bg: '#1c1400', border: '#78350f', color: '#fbbf24', label: 'Pending' },
-        dispatched: { bg: '#052e16', border: '#166534', color: '#4ade80', label: 'Dispatched' },
-        cancelled:  { bg: '#2d0000', border: '#7f1d1d', color: '#f87171', label: 'Cancelled' },
+        pending:    { bg: '#1c1400', border: vq.amber[900], color: vq.amber[400], label: 'Pending' },
+        dispatched: { bg: vq.green[950], border: vq.green[800], color: vq.green[400], label: 'Dispatched' },
+        cancelled:  { bg: '#2d0000', border: vq.red[900], color: vq.red[400], label: 'Cancelled' },
     };
     const s = map[status] ?? map.pending;
     return <span style={{ padding: '3px 9px', borderRadius: 6, background: s.bg, border: `1px solid ${s.border}`, color: s.color, fontSize: 11, fontWeight: 600 }}>{s.label}</span>;

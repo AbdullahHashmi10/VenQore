@@ -67,7 +67,7 @@ export default function CreateStore({ available_license = null, selected_plan = 
     const backHref = available_license ? route('store.create-or-join') : route('store.create');
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans">
+        <div className="min-h-screen bg-void-950 text-white font-sans">
             <Head title="Create Store — VenQore" />
 
             {/* Ambient */}

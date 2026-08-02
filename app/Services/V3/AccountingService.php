@@ -119,6 +119,8 @@ class AccountingService
             'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
             'is_reversed'      => $data['is_reversed']      ?? 0,
             'reversed_by'      => $data['reversed_by']      ?? null,
+            'is_reversal'      => $data['is_reversal']      ?? false,
+            'reverses_entry_id'=> $data['reverses_entry_id'] ?? null,
             'source_type'      => $data['source_type']      ?? null,
             'source_id'        => $data['source_id']        ?? null,
         ]);
@@ -219,14 +221,25 @@ class AccountingService
             })->toArray();
 
             // createEntry() handles accounts.balance updates for the reversal lines
+            //
+            // NOTE: the NEW reversal entry itself must NOT be flagged is_reversed=1 —
+            // that field means "this entry's effect has been undone", which is false
+            // for the entry doing the undoing. Flagging it that way (the previous
+            // behavior) made getBalance()'s `WHERE is_reversed = 0` filter silently
+            // exclude the reversal's own debit/credit lines from every balance query,
+            // and left reverses_entry_id/is_reversal (added in the audit-columns
+            // migration specifically for this link) permanently null — which is why
+            // F-17's join on reverses_entry_id never found anything.
             $reversalEntry = $this->createEntry([
-                'date'           => now()->toDateString(),
-                'reference_type' => 'reversal',
-                'reference'      => $journalEntryId,
-                'description'    => "Reversal of entry {$journalEntryId}: {$reason}",
-                'party_id'       => $original->party_id ?? null,
-                'is_reversed'    => 1,
-                'reversed_by'    => $journalEntryId,
+                'date'              => now()->toDateString(),
+                'reference_type'    => 'reversal',
+                'reference'         => $journalEntryId,
+                'description'       => "Reversal of entry {$journalEntryId}: {$reason}",
+                'party_id'          => $original->party_id ?? null,
+                'is_reversal'       => true,
+                'reverses_entry_id' => $journalEntryId,
+                'source_type'       => $original->source_type ?? null,
+                'source_id'         => $original->source_id ?? null,
             ], $reversalLines);
 
             DB::table('journal_entries')

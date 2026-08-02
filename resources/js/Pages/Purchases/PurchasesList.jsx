@@ -351,19 +351,19 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => applyFilterType('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilterType('today')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Today</button>
                         <button
                             onClick={() => applyFilterType('month')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >This Month</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Custom</button>
                         {activeFilter === 'custom' && (
                             <div className="flex items-center gap-1.5 ml-1">
@@ -450,15 +450,15 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Today</button>
                                 <button
                                     onClick={() => applyFilterType('month')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Month</button>
                             </div>
                         </div>
@@ -535,7 +535,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.invoice_number || row.reference_number || '-'}</span>
                                                                     {vensynq_enabled && row.is_jit && row.approval_status === 'draft' && (
-                                                                        <span className="text-[10px] font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                                                        <span className="text-2xs font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
                                                                             JIT Draft
                                                                         </span>
                                                                     )}
@@ -584,11 +584,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             };
                                                             return (
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase w-fit ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                                                                    <span className={`px-2 py-1 rounded-md text-2xs font-bold uppercase w-fit ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
                                                                         {paymentStatus}
                                                                     </span>
                                                                     {isJitDraft && (
-                                                                        <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase w-fit bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                                                                        <span className="px-2 py-1 rounded-md text-2xs font-bold uppercase w-fit bg-amber-500/20 text-amber-500 border border-amber-500/30">
                                                                             JIT Draft (Unapproved)
                                                                         </span>
                                                                     )}
@@ -683,14 +683,14 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
-                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                    <p className="text-2xs text-slate-400 font-semibold">{row.supplier.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
                                                     {row.invoice_number || row.reference_number || '-'}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                                     {formatDate(row.date || row.created_at)}
                                                 </span>
                                             </div>
@@ -698,15 +698,15 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
 
                                         {/* Row 2: Badges (Transaction type & payment status) */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
+                                            <span className="text-3xs font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
                                                 Purchase
                                             </span>
                                             {isJitDraft && (
-                                                <span className="text-[9px] font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wide">
+                                                <span className="text-3xs font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wide">
                                                     JIT Draft
                                                 </span>
                                             )}
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
                                                 {paymentStatus}
                                             </span>
                                         </div>
@@ -715,19 +715,19 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Total</span>
                                                     <span className="text-xs font-black text-slate-900 dark:text-white">
                                                         {renderCurrency(total, store)}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
                                                     {balance > 1 ? (
                                                         <span className="text-xs font-black text-red-500">
                                                             {renderCurrency(balance, store)}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
+                                                        <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
                                                             Settled
                                                         </span>
                                                     )}
@@ -744,7 +744,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                                 router.patch(route('store.vensynq.jit.approve', { store_slug: store?.slug, purchase: row.id }), {}, { preserveScroll: true });
                                                             }
                                                         }}
-                                                        className="px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded flex items-center gap-1 shadow-sm"
+                                                        className="px-2 py-1 bg-amber-500 text-white text-2xs font-bold rounded flex items-center gap-1 shadow-sm"
                                                         title="Approve JIT Auto-Draft"
                                                     >
                                                         Approve
@@ -830,7 +830,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                     };
                                     const ps = quickViewItem.payment_status || 'unpaid';
                                     return (
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyles[ps] || 'bg-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[ps] || 'bg-slate-100 text-slate-700'}`}>
                                             {ps}
                                         </span>
                                     );
@@ -864,22 +864,22 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             {/* Top Info Row */}
                             <div className="grid grid-cols-4 gap-3 mb-4">
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Supplier</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Supplier</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
                                     {quickViewItem.supplier?.phone && (
                                         <p className="text-xs text-slate-500">{quickViewItem.supplier.phone}</p>
                                     )}
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.date || quickViewItem.created_at)}</p>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Payment</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{quickViewItem.payment_method || 'Cash'}</p>
                                 </div>
                                 <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
+                                    <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
                                     <p className="font-black text-indigo-600 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
                                 </div>
                             </div>
@@ -895,11 +895,11 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                     <table className="w-full text-sm">
                                         <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                             <tr>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -910,7 +910,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         <td className="p-3">
                                                             <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             {item.product?.sku && (
-                                                                <p className="text-[10px] text-slate-400 font-mono">{item.product.sku}</p>
+                                                                <p className="text-2xs text-slate-400 font-mono">{item.product.sku}</p>
                                                             )}
                                                         </td>
                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
@@ -934,25 +934,25 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
                                     <div className="flex justify-end gap-6">
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Subtotal</p>
                                             <p className="font-bold text-slate-700 dark:text-slate-300">{renderCurrency(quickViewItem.subtotal || quickViewItem.total, store)}</p>
                                         </div>
                                         {quickViewItem.extras > 0 && (
                                             <div className="text-right">
-                                                <p className="text-[10px] text-amber-600 uppercase">Extras</p>
+                                                <p className="text-2xs text-amber-600 uppercase">Extras</p>
                                                 <p className="font-bold text-amber-600">+{renderCurrency(quickViewItem.extras, store)}</p>
                                             </div>
                                         )}
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
-                                            <p className="text-[10px] text-slate-400 uppercase">Paid</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Paid</p>
                                             <p className="font-bold text-emerald-600">{renderCurrency(quickViewItem.paid || 0, store)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase">Balance</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Balance</p>
                                             <p className="font-bold text-red-600">{renderCurrency(quickViewItem.balance ?? ((quickViewItem.total || 0) - (quickViewItem.paid || 0)), store)}</p>
                                         </div>
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
-                                            <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
+                                            <p className="text-2xs text-indigo-600 uppercase font-bold">Grand Total</p>
                                             <p className="font-black text-lg text-indigo-600">{renderCurrency(quickViewItem.total, store)}</p>
                                         </div>
                                     </div>
@@ -962,7 +962,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
 
                         {/* Footer */}
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                            <p className="text-[10px] text-slate-400">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                            <p className="text-2xs text-slate-400">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
                         </div>
                     </div>
                 </div>

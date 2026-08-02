@@ -611,9 +611,12 @@ class BillingController extends Controller
 
         // Owner-only: cancelling ends the whole store's plan, so staff and
         // managers must not be able to do it.
-        $membership = $tenant->ownerMembership()->first();
+        $isOwner = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $request->user()->id)
+            ->where('role', 'owner')
+            ->exists();
 
-        if (!$membership || (int) $membership->user_id !== (int) $request->user()->id) {
+        if (!$isOwner && !$request->user()->isPlatformAdmin()) {
             return back()->with('error', 'Only the store owner can cancel the subscription.');
         }
 
@@ -707,9 +710,12 @@ class BillingController extends Controller
 
         $tenant = app('current.tenant');
 
-        $membership = $tenant->ownerMembership()->first();
+        $isOwner = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $request->user()->id)
+            ->where('role', 'owner')
+            ->exists();
 
-        if (!$membership || (int) $membership->user_id !== (int) $request->user()->id) {
+        if (!$isOwner && !$request->user()->isPlatformAdmin()) {
             return back()->with('error', 'Only the store owner can change the subscription.');
         }
 

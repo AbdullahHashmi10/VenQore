@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     AreaChart,
     Area,
@@ -68,26 +69,26 @@ const ChartSection = ({ isDarkMode, salesData }) => {
                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                                    <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.4} />
+                                    <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0.05} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#f1f5f9'} strokeOpacity={0.5} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? vq.slate[700] : vq.slate[100]} strokeOpacity={0.5} />
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: isDarkMode ? '#94a3b8' : '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                                tick={{ fill: isDarkMode ? vq.slate[400] : vq.slate[400], fontSize: 11, fontWeight: 500 }}
                                 dy={10}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: isDarkMode ? '#94a3b8' : '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                                tick={{ fill: isDarkMode ? vq.slate[400] : vq.slate[400], fontSize: 11, fontWeight: 500 }}
                                 tickFormatter={(value) => `${value}`}
                             />
                             <Tooltip
@@ -102,26 +103,26 @@ const ChartSection = ({ isDarkMode, salesData }) => {
                                                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
                                                 padding: '12px 16px'
                                             }}>
-                                                <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '4px' }}>
+                                                <p style={{ fontSize: '11px', fontWeight: 'bold', color: vq.slate[400], marginBottom: '4px' }}>
                                                     {label}
                                                 </p>
                                                 {/* Sales first */}
-                                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#e2e8f0', margin: 0 }}>
-                                                    💰 Sales: <span style={{ color: '#6366f1' }}>{formatCurrency(payload.find(p => p.dataKey === 'sales')?.value || 0, store || settings)}</span>
+                                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: vq.slate[200], margin: 0 }}>
+                                                    💰 Sales: <span style={{ color: vq.indigo[500] }}>{formatCurrency(payload.find(p => p.dataKey === 'sales')?.value || 0, store || settings)}</span>
                                                 </p>
                                                 {/* Gross Profit second */}
-                                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#e2e8f0', margin: 0 }}>
-                                                    ✨ Gross Profit: <span style={{ color: '#10b981' }}>{formatCurrency(payload.find(p => p.dataKey === 'profit')?.value || 0, store || settings)}</span>
+                                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: vq.slate[200], margin: 0 }}>
+                                                    ✨ Gross Profit: <span style={{ color: vq.emerald[500] }}>{formatCurrency(payload.find(p => p.dataKey === 'profit')?.value || 0, store || settings)}</span>
                                                 </p>
                                             </div>
                                         );
                                     }
                                     return null;
                                 }}
-                                cursor={{ stroke: '#6366f1', strokeWidth: 2, strokeDasharray: '5 5' }}
+                                cursor={{ stroke: vq.indigo[500], strokeWidth: 2, strokeDasharray: '5 5' }}
                             />
-                            <Area type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
-                            <Area type="monotone" dataKey="sales" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                            <Area type="monotone" dataKey="profit" stroke={vq.emerald[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
+                            <Area type="monotone" dataKey="sales" stroke={vq.indigo[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>

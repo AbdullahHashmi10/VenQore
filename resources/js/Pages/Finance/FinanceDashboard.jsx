@@ -106,12 +106,12 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                                 <p className="font-bold text-slate-900 dark:text-white">
                                                     {formatCurrency(entry.items.reduce((sum, item) => sum + parseFloat(item.debit), 0), store)}
                                                 </p>
-                                                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Total Amount</p>
+                                                <p className="text-2xs uppercase tracking-wider text-slate-400 font-bold">Total Amount</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {entry.items.map((item, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-2xs font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                                     {item.account.name}: {parseFloat(item.debit) > 0 ? `Dr ${formatCurrency(parseFloat(item.debit), store)}` : `Cr ${formatCurrency(parseFloat(item.credit), store)}`}
                                                 </span>
                                             ))}

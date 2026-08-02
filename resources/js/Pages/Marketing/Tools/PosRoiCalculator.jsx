@@ -173,16 +173,16 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                 {/* Header Controls */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                        <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
                             <Calculator className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white">POS ROI & Payback Calculator</h2>
-                            <p className="text-sm text-slate-400">Interactive financial modeling for retail & food businesses</p>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">POS ROI & Payback Calculator</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Interactive financial modeling for retail & food businesses</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Currency</label>
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</label>
                         <Select
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
@@ -196,13 +196,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Input Controls Panel (5 cols) */}
                     <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h3 className="text-lg font-semibold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-                            <DollarSign className="w-5 h-5 text-emerald-400" /> Business Inputs
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                            <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Business Inputs
                         </h3>
 
                         {/* Monthly Revenue */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Average Monthly Revenue ({sym})
                             </label>
                             <input
@@ -216,7 +216,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Hours spent on checkout */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Manual Checkout & Register Hours / Week
                             </label>
                             <input
@@ -230,7 +230,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Hours spent on stock counting & admin */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Stock Count & Admin Hours / Month
                             </label>
                             <input
@@ -244,7 +244,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Hourly Staff / Owner Rate */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Hourly Labor Cost / Owner Rate ({sym})
                             </label>
                             <input
@@ -258,7 +258,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Hardware & Setup Cost */}
                         <div className="pt-2 border-t border-slate-800">
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 One-Time Hardware & Setup Cost ({sym})
                             </label>
                             <input
@@ -272,7 +272,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Software Sub Fee */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                                 Monthly POS Software Subscription ({sym})
                             </label>
                             <input
@@ -287,10 +287,10 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                         {/* Stock Shrinkage % */}
                         <div className="pt-2 border-t border-slate-800">
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-300">
+                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                     Current Estimated Shrinkage / Loss %
                                 </label>
-                                <span className="text-xs font-semibold text-amber-400">{numShrinkPct}%</span>
+                                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{numShrinkPct}%</span>
                             </div>
                             <input
                                 type="range"
@@ -307,10 +307,10 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                         {/* Shrinkage Reduction % */}
                         <div>
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-300">
+                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                     Expected Shrinkage Reduction %
                                 </label>
-                                <span className="text-xs font-semibold text-emerald-400">{numShrinkRedPct}%</span>
+                                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{numShrinkRedPct}%</span>
                             </div>
                             <input
                                 type="range"
@@ -326,10 +326,10 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                         {/* Time Savings % */}
                         <div>
                             <div className="flex justify-between items-center mb-1">
-                                <label className="text-sm font-medium text-slate-300">
+                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                     Expected Staff Time Saved %
                                 </label>
-                                <span className="text-xs font-semibold text-emerald-400">{numTimeSavePct}%</span>
+                                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{numTimeSavePct}%</span>
                             </div>
                             <input
                                 type="range"
@@ -350,19 +350,19 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             {/* Payback Period Card */}
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Hardware Payback</span>
-                                    <Clock className="w-5 h-5 text-emerald-400" />
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Hardware Payback</span>
+                                    <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
-                                <div className="text-3xl font-extrabold text-white">
+                                <div className="text-3xl font-extrabold text-slate-900 dark:text-white">
                                     {metrics.paybackMonths === null ? (
-                                        <span className="text-rose-400">No Breakeven</span>
+                                        <span className="text-rose-600 dark:text-rose-400">No Breakeven</span>
                                     ) : (
-                                        <span>{metrics.paybackMonths.toFixed(1)} <span className="text-lg font-normal text-slate-400">Months</span></span>
+                                        <span>{metrics.paybackMonths.toFixed(1)} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">Months</span></span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-400 mt-2">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                                     {metrics.paybackMonths !== null && metrics.paybackMonths <= 6 ? (
-                                        <span className="text-emerald-400 font-medium">★ Exceptional payback period</span>
+                                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">★ Exceptional payback period</span>
                                     ) : (
                                         'Time required to recover upfront hardware'
                                     )}
@@ -372,13 +372,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             {/* Monthly Time Saved Card */}
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Time Saved</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Monthly Time Saved</span>
                                     <ShieldCheck className="w-5 h-5 text-sky-400" />
                                 </div>
-                                <div className="text-3xl font-extrabold text-white">
-                                    {metrics.monthlyHrsSaved.toFixed(1)} <span className="text-lg font-normal text-slate-400">hrs/mo</span>
+                                <div className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                                    {metrics.monthlyHrsSaved.toFixed(1)} <span className="text-lg font-normal text-slate-500 dark:text-slate-400">hrs/mo</span>
                                 </div>
-                                <p className="text-xs text-emerald-400 font-medium mt-2">
+                                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-2">
                                     Valued at {fmtMoney(metrics.monthlyLaborSavings, sym)} / month
                                 </p>
                             </div>
@@ -386,13 +386,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             {/* 1-Year Net ROI */}
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">1-Year Net ROI</span>
-                                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">1-Year Net ROI</span>
+                                    <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
                                 <div className={`text-3xl font-extrabold ${metrics.netSavingsY1 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     {fmtMoney(metrics.netSavingsY1, sym)}
                                 </div>
-                                <div className="text-xs font-semibold mt-2 text-slate-300">
+                                <div className="text-xs font-semibold mt-2 text-slate-600 dark:text-slate-300">
                                     {metrics.roiPercentY1 >= 0 ? '+' : ''}{metrics.roiPercentY1.toFixed(1)}% return on investment
                                 </div>
                             </div>
@@ -400,13 +400,13 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                             {/* 3-Year Total Savings */}
                             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">3-Year Net Profit</span>
-                                    <DollarSign className="w-5 h-5 text-amber-400" />
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">3-Year Net Profit</span>
+                                    <DollarSign className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <div className={`text-3xl font-extrabold ${metrics.netSavingsY3 >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     {fmtMoney(metrics.netSavingsY3, sym)}
                                 </div>
-                                <div className="text-xs font-semibold mt-2 text-slate-300">
+                                <div className="text-xs font-semibold mt-2 text-slate-600 dark:text-slate-300">
                                     {metrics.roiPercentY3 >= 0 ? '+' : ''}{metrics.roiPercentY3.toFixed(1)}% total 36-month return
                                 </div>
                             </div>
@@ -414,30 +414,30 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                         {/* Detailed Financial Breakdown Card */}
                         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h3 className="text-lg font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-800 pb-3 flex items-center justify-between">
                                 <span>Monthly Savings Breakdown</span>
-                                <span className="text-xs font-normal text-slate-400">Calculated per month</span>
+                                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">Calculated per month</span>
                             </h3>
 
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-300">Labor Time Savings ({metrics.monthlyHrsSaved.toFixed(1)} hrs @ {sym}{numHourlyRate}/hr)</span>
-                                    <span className="font-semibold text-emerald-400">+{fmtMoney(metrics.monthlyLaborSavings, sym)}</span>
+                                    <span className="text-slate-600 dark:text-slate-300">Labor Time Savings ({metrics.monthlyHrsSaved.toFixed(1)} hrs @ {sym}{numHourlyRate}/hr)</span>
+                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{fmtMoney(metrics.monthlyLaborSavings, sym)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-300">Stock Shrinkage Reduction ({numShrinkRedPct}% of {fmtMoney(metrics.currentMonthlyShrinkage, sym)})</span>
-                                    <span className="font-semibold text-emerald-400">+{fmtMoney(metrics.monthlyShrinkageSavings, sym)}</span>
+                                    <span className="text-slate-600 dark:text-slate-300">Stock Shrinkage Reduction ({numShrinkRedPct}% of {fmtMoney(metrics.currentMonthlyShrinkage, sym)})</span>
+                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">+{fmtMoney(metrics.monthlyShrinkageSavings, sym)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
                                     <span className="text-slate-200 font-medium">Gross Monthly Financial Gain</span>
-                                    <span className="font-bold text-white">{fmtMoney(metrics.grossMonthlySavings, sym)}</span>
+                                    <span className="font-bold text-slate-900 dark:text-white">{fmtMoney(metrics.grossMonthlySavings, sym)}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-slate-800/60">
-                                    <span className="text-slate-300">Less POS Software Monthly Subscription</span>
-                                    <span className="font-semibold text-rose-400">-{fmtMoney(numSwSub, sym)}</span>
+                                    <span className="text-slate-600 dark:text-slate-300">Less POS Software Monthly Subscription</span>
+                                    <span className="font-semibold text-rose-600 dark:text-rose-400">-{fmtMoney(numSwSub, sym)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-2 text-base">
-                                    <span className="font-bold text-white">Net Monthly Benefit</span>
+                                    <span className="font-bold text-slate-900 dark:text-white">Net Monthly Benefit</span>
                                     <span className={`font-extrabold ${metrics.netMonthlySavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                         {fmtMoney(metrics.netMonthlySavings, sym)} / mo
                                     </span>
@@ -451,7 +451,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
                                 onClick={handleDownloadCsv}
                                 className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-3 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-sm"
                             >
-                                <Download className="w-4 h-4 text-emerald-400" /> Export CSV Summary
+                                <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Export CSV Summary
                             </button>
                             <button
                                 onClick={handleDownloadPdf}
@@ -465,36 +465,36 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
                 {/* Educational ROI Deep Dive Section */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl space-y-6">
-                    <h3 className="text-2xl font-bold text-white">Understanding Your POS Return on Investment</h3>
-                    <p className="text-slate-300 leading-relaxed">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Understanding Your POS Return on Investment</h3>
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                         A modern Point-of-Sale system is not just an expense — it is an automated operational asset. 
                         While traditional legacy cash registers only record financial totals, an integrated POS like <strong>VenQore</strong> eliminates repetitive labor and protects inventory margins.
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
-                            <div className="text-emerald-400 font-bold flex items-center gap-2">
+                            <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 1. Stock Leakage Prevention
                             </div>
-                            <p className="text-xs text-slate-300 leading-relaxed">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                                 Real-time FIFO batch tracking and barcode verification prevent theft, unrecorded cashier discounts, and undetected supplier shortages.
                             </p>
                         </div>
 
                         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
-                            <div className="text-emerald-400 font-bold flex items-center gap-2">
+                            <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 2. Automated Double-Entry
                             </div>
-                            <p className="text-xs text-slate-300 leading-relaxed">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                                 Every checkout auto-posts balanced journal entries and inventory updates. No more late nights re-keying end-of-day register tallies.
                             </p>
                         </div>
 
                         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 space-y-2">
-                            <div className="text-emerald-400 font-bold flex items-center gap-2">
+                            <div className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5" /> 3. Offline Resilience
                             </div>
-                            <p className="text-xs text-slate-300 leading-relaxed">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                                 Offline-first architecture ensures internet outages never stop checkouts or lost sales during peak business hours.
                             </p>
                         </div>

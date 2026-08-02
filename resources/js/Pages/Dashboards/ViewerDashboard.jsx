@@ -4,6 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
 import { BarChart2, Layers, TrendingUp, Eye, FileText, Lock } from 'lucide-react';
 
+import { vq } from '@/theme/runtime';
 function ReportLink({ icon: Icon, label, sub, route: routeName, storeSlug }) {
     return (
         <button
@@ -15,15 +16,15 @@ function ReportLink({ icon: Icon, label, sub, route: routeName, storeSlug }) {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.03)', cursor: 'pointer',
                 transition: 'border-color 0.15s, transform 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#a5b4fc'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = vq.indigo[300]; e.currentTarget.style.transform = 'translateY(-1px)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border, #f1f5f9)'; e.currentTarget.style.transform = 'none'; }}
         >
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={17} color="#6366f1" />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: vq.violet[100], display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={17} color={vq.indigo[500]} />
             </div>
             <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main,#0f172a)' }}>{label}</div>
-                {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
+                {sub && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 2 }}>{sub}</div>}
             </div>
         </button>
     );
@@ -46,16 +47,16 @@ export default function ViewerDashboard({ plSummary, inventoryValue }) {
                 {/* Header */}
                 <div style={{ marginBottom: 28 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                        <Eye size={20} color="#6366f1" />
+                        <Eye size={20} color={vq.indigo[500]} />
                         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,#0f172a)', margin: 0 }}>Read-Only Reports</h1>
                     </div>
-                    <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+                    <p style={{ fontSize: 13, color: vq.slate[500], margin: 0 }}>
                         {store?.name} · You have view-only access. No transactions can be created.
                     </p>
                 </div>
 
                 {/* Read-only notice */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 12, background: '#f0f9ff', border: '1px solid #bae6fd', marginBottom: 28, fontSize: 13, color: '#0369a1' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 12, background: vq.sky[50], border: '1px solid #bae6fd', marginBottom: 28, fontSize: 13, color: vq.sky[700] }}>
                     <Lock size={14} />
                     Viewer access — you can see financial summaries but cannot create, edit, or delete records.
                 </div>
@@ -63,13 +64,13 @@ export default function ViewerDashboard({ plSummary, inventoryValue }) {
                 {/* Summary Tiles */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
                     {[
-                        { label: 'Income (Month)',   value: fmt(pl.income),         color: '#10b981' },
-                        { label: 'Expenses (Month)', value: fmt(pl.expense),        color: '#f59e0b' },
-                        { label: 'Net Profit',       value: fmt(pl.profit),         color: pl.profit >= 0 ? '#6366f1' : '#ef4444' },
+                        { label: 'Income (Month)',   value: fmt(pl.income),         color: vq.emerald[500] },
+                        { label: 'Expenses (Month)', value: fmt(pl.expense),        color: vq.amber[500] },
+                        { label: 'Net Profit',       value: fmt(pl.profit),         color: pl.profit >= 0 ? vq.indigo[500] : vq.red[500] },
                     ].map(t => (
                         <div key={t.label} style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 16, padding: '18px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', textAlign: 'center' }}>
                             <div style={{ fontSize: 20, fontWeight: 800, color: t.color }}>{t.value}</div>
-                            <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, fontWeight: 600 }}>{t.label}</div>
+                            <div style={{ fontSize: 11, color: vq.slate[500], marginTop: 6, fontWeight: 600 }}>{t.label}</div>
                         </div>
                     ))}
                 </div>
@@ -78,9 +79,9 @@ export default function ViewerDashboard({ plSummary, inventoryValue }) {
                 <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#f1f5f9)', borderRadius: 20, padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', marginBottom: 28 }}>
                     <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main,#0f172a)' }}>Total Inventory Value (FIFO)</div>
-                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>Current cost-based valuation</div>
+                        <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 3 }}>Current cost-based valuation</div>
                     </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: '#6366f1' }}>{fmt(inventoryValue ?? 0)}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: vq.indigo[500] }}>{fmt(inventoryValue ?? 0)}</div>
                 </div>
 
                 {/* Allowed Reports */}

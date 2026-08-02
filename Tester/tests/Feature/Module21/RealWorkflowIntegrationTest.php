@@ -1094,22 +1094,33 @@ test('no_tenant_routes_exposed_globally', function () {
     $routes = Route::getRoutes();
     $tenantKeywords = ['funds', 'expenses', 'day-book', 'profit-loss', 'trial-balance', 'pos/products'];
 
+    $leaks = [];
+    $checkedCount = 0;
+
     foreach ($routes as $route) {
         $uri = $route->uri();
         $name = $route->getName();
 
         foreach ($tenantKeywords as $keyword) {
+            if (!str_contains($uri, $keyword)) {
+                continue;
+            }
+            $checkedCount++;
+
             // If the route has a tenant keyword but sits at the root / outside store context
-            if (str_contains($uri, $keyword) && !str_contains($uri, '{store_slug}') && !str_contains($uri, '{store}')) {
+            if (!str_contains($uri, '{store_slug}') && !str_contains($uri, '{store}')) {
                 // Ignore general auth / global landing routes if any
                 if ($name === 'home' || $name === 'welcome' || str_contains($uri, 'superadmin')) {
                     continue;
                 }
-                
-                $this->fail("Potential root-level leakage found: Route '{$name}' (URI: {$uri}) matches tenant keyword '{$keyword}' but has no store context.");
+
+                $leaks[] = "Route '{$name}' (URI: {$uri}) matches tenant keyword '{$keyword}' but has no store context.";
             }
         }
     }
-    
-    $this->assertTrue(true);
+
+    // Guard against a silently-empty sweep: if none of the tenant keywords ever
+    // matched a route, $leaks being empty proves nothing was actually checked.
+    expect($checkedCount)->toBeGreaterThan(0, 'No routes matched any tenant keyword — the sweep checked nothing.');
+    expect($leaks)->toBe([], "Potential root-level tenant data leakage found:\n" . implode("\n", $leaks));
 });

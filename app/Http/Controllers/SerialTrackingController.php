@@ -37,9 +37,16 @@ class SerialTrackingController extends Controller
         ]);
     }
     
-    public function show($id) 
-    { 
-        $serial = \App\Models\ProductSerial::with(['product', 'warehouse', 'sale', 'purchase'])->findOrFail($id);
+    public function show($id)
+    {
+        // NOTE: ProductSerial::purchase() belongsTo App\Models\Purchase (table
+        // "purchases"), but product_serials.purchase_id is actually a FK into
+        // purchase_orders (per the create_product_serials_table migration). That
+        // relation therefore cannot resolve correctly, so we do not rely on it here
+        // — the raw purchase_id is still shown for traceability.
+        $serial = \App\Models\ProductSerial::with(['product', 'warehouse', 'sale.customer'])
+            ->findOrFail($id);
+
         return Inertia::render('SerialTracking/Show', ['serial' => $serial]);
     }
 }

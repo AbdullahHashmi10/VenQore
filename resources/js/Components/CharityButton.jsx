@@ -112,7 +112,7 @@ export default function CharityButton({ showLabel = false }) {
             )}
 
             <div className="flex flex-col items-start">
-                <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">Charity</span>
+                <span className="text-2xs font-bold uppercase tracking-wide opacity-70">Charity</span>
                 <span className="text-xs font-black">
                     {showSuccess ? 'Added!' : `${store?.currency_symbol || 'Rs'} ${stats.today?.toLocaleString() || 0}`}
                 </span>
@@ -157,7 +157,7 @@ export default function CharityButton({ showLabel = false }) {
                                     <X size={14} />
                                 </button>
                             </div>
-                            <p className="text-[10px] text-slate-400 mt-2">
+                            <p className="text-2xs text-slate-400 mt-2">
                                 Hold button to edit default
                             </p>
                         </div>
@@ -201,7 +201,7 @@ export default function CharityButton({ showLabel = false }) {
                             <X size={14} />
                         </button>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-2">
+                    <p className="text-2xs text-slate-400 mt-2">
                         Hold button to edit default
                     </p>
                 </div>

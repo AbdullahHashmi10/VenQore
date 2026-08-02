@@ -15,6 +15,7 @@ import {
 import axios from 'axios';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, store_slug, store_name, snapshots = [] }) {
     // LOCKSCREEN STATES
     const [passcode, setPasscode] = useState('');
@@ -514,7 +515,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div>
                             <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
                                 Owner's Daily Pulse 
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                                     Executive Session
                                 </span>
@@ -558,7 +559,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Today Sales</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Today Sales</span>
                                     <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
                                         <TrendingUp size={14} />
                                     </div>
@@ -567,7 +568,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.sales)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.sales >= yesterdaySnap.sales ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -583,7 +584,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-blue-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                         Today Purchases
                                     </span>
                                     <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -594,7 +595,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.purchases)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.purchases <= yesterdaySnap.purchases ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -610,7 +611,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-violet-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Cash in Hand</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Cash in Hand</span>
                                     <div className="p-2 bg-violet-500/10 rounded-lg text-violet-400">
                                         <DollarSign size={14} />
                                     </div>
@@ -619,7 +620,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.cash)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.cash >= yesterdaySnap.cash ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -635,7 +636,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-cyan-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Stock Asset</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Stock Asset</span>
                                     <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400">
                                         <Package size={14} />
                                     </div>
@@ -644,7 +645,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.stock)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.stock >= yesterdaySnap.stock ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -660,7 +661,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-orange-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Today Expense</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Today Expense</span>
                                     <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400">
                                         <CreditCard size={14} />
                                     </div>
@@ -669,7 +670,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.expense)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.expense <= yesterdaySnap.expense ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -685,7 +686,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-amber-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Receivables</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Receivables</span>
                                     <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
                                         <ArrowRight size={14} />
                                     </div>
@@ -694,7 +695,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.receivables)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.receivables >= yesterdaySnap.receivables ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -710,7 +711,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-rose-500/30 transition-all group hover:-translate-y-0.5">
                             <div>
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Payables</span>
+                                    <span className="text-2xs font-extrabold text-slate-400 uppercase tracking-widest">Payables</span>
                                     <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400">
                                         <Clock size={14} />
                                     </div>
@@ -719,7 +720,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {formatCurrency(todaySnap.payables)}
                                 </h3>
                             </div>
-                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
+                            <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-2xs">
                                 <span className="text-slate-500 font-bold">VS YESTERDAY</span>
                                 {yesterdaySnap ? (
                                     <span className={`font-black ${todaySnap.payables <= yesterdaySnap.payables ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -776,7 +777,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
+                                        className={`px-3 py-2 text-2xs font-black uppercase tracking-wider rounded-xl transition-all ${
                                             isActive 
                                                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
                                                 : 'text-slate-400 hover:bg-slate-900 hover:text-white'
@@ -796,38 +797,38 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="salesGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="purchasesGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.blue[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.blue[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="cashGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.violet[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.violet[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="stockGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.cyan[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.cyan[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="expenseGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.orange[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.orange[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="receivablesGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.amber[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.amber[500]} stopOpacity={0}/>
                                         </linearGradient>
                                         <linearGradient id="payablesGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor={vq.rose[500]} stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor={vq.rose[500]} stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.5} vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={vq.slate[800]} opacity={0.5} vertical={false} />
                                     <XAxis 
                                         dataKey="displayDate" 
-                                        stroke="#475569" 
+                                        stroke={vq.slate[600]} 
                                         fontSize={10} 
                                         fontWeight="bold"
                                         tickLine={false} 
@@ -835,7 +836,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                         dy={10}
                                     />
                                     <YAxis 
-                                        stroke="#475569" 
+                                        stroke={vq.slate[600]} 
                                         fontSize={10} 
                                         fontWeight="bold"
                                         tickLine={false} 
@@ -848,7 +849,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                             if (active && payload && payload.length) {
                                                 return (
                                                     <div className="bg-slate-950/95 border border-slate-800 p-4 rounded-xl shadow-2xl backdrop-blur-md">
-                                                        <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                        <p className="text-2xs font-extrabold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                                             <Calendar size={10} />
                                                             {label}
                                                         </p>
@@ -875,40 +876,40 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     {/* 8 TABS ROUTED CONDITIONALLY */}
                                     {activeTab === 'overview' && (
                                         <>
-                                            <Area type="monotone" name="Sales" dataKey="sales" stroke="#10b981" strokeWidth={2.5} fillOpacity={0} />
-                                            <Area type="monotone" name="Purchases" dataKey="purchases" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={0} />
-                                            <Area type="monotone" name="Cash hand" dataKey="cash" stroke="#8b5cf6" strokeWidth={2.5} fillOpacity={0} />
-                                            <Area type="monotone" name="Stock Value" dataKey="stock" stroke="#06b6d4" strokeWidth={2.5} fillOpacity={0} />
-                                            <Area type="monotone" name="Expenses" dataKey="expense" stroke="#f97316" strokeWidth={2.5} fillOpacity={0} />
+                                            <Area type="monotone" name="Sales" dataKey="sales" stroke={vq.emerald[500]} strokeWidth={2.5} fillOpacity={0} />
+                                            <Area type="monotone" name="Purchases" dataKey="purchases" stroke={vq.blue[500]} strokeWidth={2.5} fillOpacity={0} />
+                                            <Area type="monotone" name="Cash hand" dataKey="cash" stroke={vq.violet[500]} strokeWidth={2.5} fillOpacity={0} />
+                                            <Area type="monotone" name="Stock Value" dataKey="stock" stroke={vq.cyan[500]} strokeWidth={2.5} fillOpacity={0} />
+                                            <Area type="monotone" name="Expenses" dataKey="expense" stroke={vq.orange[500]} strokeWidth={2.5} fillOpacity={0} />
                                         </>
                                     )}
 
                                     {activeTab === 'sales' && (
-                                        <Area type="monotone" name="Sales" dataKey="sales" stroke="#10b981" strokeWidth={3} fill="url(#salesGlow)" />
+                                        <Area type="monotone" name="Sales" dataKey="sales" stroke={vq.emerald[500]} strokeWidth={3} fill="url(#salesGlow)" />
                                     )}
 
                                     {activeTab === 'purchases' && (
-                                        <Area type="monotone" name="Purchases" dataKey="purchases" stroke="#3b82f6" strokeWidth={3} fill="url(#purchasesGlow)" />
+                                        <Area type="monotone" name="Purchases" dataKey="purchases" stroke={vq.blue[500]} strokeWidth={3} fill="url(#purchasesGlow)" />
                                     )}
 
                                     {activeTab === 'cash' && (
-                                        <Area type="monotone" name="Cash Hand" dataKey="cash" stroke="#8b5cf6" strokeWidth={3} fill="url(#cashGlow)" />
+                                        <Area type="monotone" name="Cash Hand" dataKey="cash" stroke={vq.violet[500]} strokeWidth={3} fill="url(#cashGlow)" />
                                     )}
 
                                     {activeTab === 'stock' && (
-                                        <Area type="monotone" name="Stock Value" dataKey="stock" stroke="#06b6d4" strokeWidth={3} fill="url(#stockGlow)" />
+                                        <Area type="monotone" name="Stock Value" dataKey="stock" stroke={vq.cyan[500]} strokeWidth={3} fill="url(#stockGlow)" />
                                     )}
 
                                     {activeTab === 'expense' && (
-                                        <Area type="monotone" name="Expenses" dataKey="expense" stroke="#f97316" strokeWidth={3} fill="url(#expenseGlow)" />
+                                        <Area type="monotone" name="Expenses" dataKey="expense" stroke={vq.orange[500]} strokeWidth={3} fill="url(#expenseGlow)" />
                                     )}
 
                                     {activeTab === 'receivables' && (
-                                        <Area type="monotone" name="Receivables" dataKey="receivables" stroke="#f59e0b" strokeWidth={3} fill="url(#receivablesGlow)" />
+                                        <Area type="monotone" name="Receivables" dataKey="receivables" stroke={vq.amber[500]} strokeWidth={3} fill="url(#receivablesGlow)" />
                                     )}
 
                                     {activeTab === 'payables' && (
-                                        <Area type="monotone" name="Payables" dataKey="payables" stroke="#f43f5e" strokeWidth={3} fill="url(#payablesGlow)" />
+                                        <Area type="monotone" name="Payables" dataKey="payables" stroke={vq.rose[500]} strokeWidth={3} fill="url(#payablesGlow)" />
                                     )}
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -1020,7 +1021,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                         
                                                         {/* Autosave Indicator Overlay */}
                                                         {saveStatus && (
-                                                            <div className="absolute right-2 bottom-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-950 border border-slate-800 shadow-xl z-20">
+                                                            <div className="absolute right-2 bottom-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-3xs font-black uppercase tracking-wider bg-slate-950 border border-slate-800 shadow-xl z-20">
                                                                 {saveStatus === 'saving' && (
                                                                     <>
                                                                         <RefreshCw size={10} className="text-amber-400 animate-spin" />

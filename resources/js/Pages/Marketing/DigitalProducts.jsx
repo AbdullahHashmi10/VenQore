@@ -36,7 +36,10 @@ export default function DigitalProducts({ products, stats }) {
         >
             <Head title="Digital Products & Registry Catalog" />
 
-            <div className="relative min-h-screen bg-[#020010] text-white overflow-hidden pb-40">
+            {/* This catalog is art-directed dark end to end — ambient blobs,
+                glass cards, glow. Rather than retint 400 lines, it opts out of
+                the light theme and stays dark under the shared header. */}
+            <div className="relative min-h-screen bg-[#020010] text-white overflow-hidden pb-40 [color-scheme:dark]">
                 {/* 
                     DYNAMIC AMBIENT BACKGROUND 
                     Reacts slightly to mouse position for a parallax/floating feel

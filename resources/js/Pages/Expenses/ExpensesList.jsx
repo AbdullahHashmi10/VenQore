@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+import { vq } from '@/theme/runtime';
 // -- Party Search Field (same component as Payments In/Out) ------------------
 const AC_OFF = 'payee-search-' + Math.random().toString(36).slice(2);
 
@@ -116,12 +117,12 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
                 <div className="mt-1.5 flex items-center gap-2 px-1">
                     <div className="w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center"><User size={9} className="text-emerald-400" /></div>
                     <span className="text-xs font-semibold text-emerald-400">{selectedParty.name}</span>
-                    {selectedParty.type && <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-slate-400">{selectedParty.type}</span>}
+                    {selectedParty.type && <span className="text-3xs font-bold uppercase px-1.5 py-0.5 rounded-full bg-white/10 text-slate-400">{selectedParty.type}</span>}
                 </div>
             )}
 
             {open && results.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-2xl z-[60] max-h-52 overflow-auto" style={{ background: '#1e293b' }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-2xl z-[60] max-h-52 overflow-auto" style={{ background: vq.slate[800] }}>
                     {results.map(party => {
                         const bal = parseFloat(party.current_balance || 0);
                         const settled = Math.abs(bal) < 0.01;
@@ -136,14 +137,14 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-white truncate">{party.name}</p>
-                                    <p className="text-[10px] text-slate-400 truncate">{party.phone || party.email || party.type}</p>
+                                    <p className="text-2xs text-slate-400 truncate">{party.phone || party.email || party.type}</p>
                                 </div>
                                 {!settled && (
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isReceive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`}>
+                                    <span className={`text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isReceive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`}>
                                         {isReceive ? 'To Receive' : 'To Pay'}: {getCurrencySymbol()} {Math.abs(bal).toLocaleString()}
                                     </span>
                                 )}
-                                {settled && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-white/10 text-slate-400">Settled</span>}
+                                {settled && <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-white/10 text-slate-400">Settled</span>}
                             </button>
                         );
                     })}
@@ -151,7 +152,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
             )}
 
             {open && results.length === 0 && !searching && query && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-xl z-[60] px-4 py-4 text-center text-sm text-slate-500" style={{ background: '#1e293b' }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-white/10 shadow-xl z-[60] px-4 py-4 text-center text-sm text-slate-500" style={{ background: vq.slate[800] }}>
                     No results for "{query}"
                 </div>
             )}
@@ -187,7 +188,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
             </button>
 
             {open && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-[120] py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: '#1e293b' }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-[120] py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: vq.slate[800] }}>
                     <button
                         type="button"
                         onClick={() => { onChange(''); setOpen(false); }}
@@ -610,9 +611,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     {!isStatsExpanded && (
                         <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
                             <div className="flex items-center gap-2">
-                                <span className="text-rose-605 dark:text-rose-400">Today: {formatCurrency(stats.today)}</span>
+                                <span className="text-rose-600 dark:text-rose-400">Today: {formatCurrency(stats.today)}</span>
                                 <span className="text-slate-300 dark:text-slate-700">|</span>
-                                <span className="text-purple-605 dark:text-purple-400">Month: {formatCurrency(stats.month)}</span>
+                                <span className="text-purple-600 dark:text-purple-400">Month: {formatCurrency(stats.month)}</span>
                             </div>
                         </div>
                     )}
@@ -801,12 +802,12 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     {showMobileFilters && (
                         <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200 flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Period:</span>
+                                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Period:</span>
                                 <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1 flex-1">
-                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>All</button>
-                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
-                                    <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Month</button>
-                                    <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Year</button>
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>All</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                    <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Month</button>
+                                    <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Year</button>
                                 </div>
                             </div>
                         </div>
@@ -833,8 +834,8 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                 </div>
 
                                 <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
-                                    <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
-                                    <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                    <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
+                                    <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
                                 </div>
                             </div>
 
@@ -898,10 +899,10 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     {showMobileFilters && (
                         <div className="md:hidden px-3 py-2.5 border-b border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 animate-in slide-in-from-top duration-200 flex flex-col gap-2 w-full">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time:</span>
+                                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">Time:</span>
                                 <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1 flex-1">
-                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
-                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
                                 </div>
                             </div>
                         </div>
@@ -941,14 +942,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                         <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 group transition-colors">
                                             <td className="p-4 text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums">{formatDate(item.date)}</td>
                                             <td className="p-4">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${item.category_color ? `bg-${item.category_color}-50 text-${item.category_color}-600 border-${item.category_color}-200` : 'bg-slate-100 text-slate-600 border-slate-200'} `}>
+                                                <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wide border ${item.category_color ? `bg-${item.category_color}-50 text-${item.category_color}-600 border-${item.category_color}-200` : 'bg-slate-100 text-slate-600 border-slate-200'} `}>
                                                     {item.category || 'Uncategorized'}
                                                 </span>
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1">{item.description || 'No description'}</span>
-                                                    {item.payee && <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1"><Search size={10} /> {item.payee}</span>}
+                                                    {item.payee && <span className="text-1xs font-semibold text-slate-500 flex items-center gap-1"><Search size={10} /> {item.payee}</span>}
                                                 </div>
                                             </td>
                                             <td className="p-4">
@@ -960,7 +961,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             <td className="p-4 text-xs font-mono text-slate-500">{item.reference || '-'}</td>
                                             <td className="p-4 text-right">
                                                 <span className="font-black text-rose-600 text-sm tabular-nums">{formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}</span>
-                                                {item.tax_amount > 0 && <p className="text-[9px] text-slate-400">(Inc. Tax: {getCurrencySymbol()} {item.tax_amount})</p>}
+                                                {item.tax_amount > 0 && <p className="text-3xs text-slate-400">(Inc. Tax: {getCurrencySymbol()} {item.tax_amount})</p>}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -999,7 +1000,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                     {item.description || 'No description'}
                                                 </h3>
                                                 {item.payee && (
-                                                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                                    <p className="text-2xs text-slate-400 font-semibold mt-0.5">{item.payee}</p>
                                                 )}
                                             </div>
                                             <div className="text-right shrink-0 ml-2">
@@ -1008,7 +1009,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                         {item.reference}
                                                     </span>
                                                 )}
-                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                                     {formatDate(item.date)}
                                                 </span>
                                             </div>
@@ -1016,11 +1017,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                         {/* Row 2: Category badge + payment method badge */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                            <span className="text-3xs font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
                                                 {item.category || 'Uncategorized'}
                                             </span>
                                             {item.payment_method && (
-                                                <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                                <span className="text-3xs font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
                                                     {item.payment_method}
                                                 </span>
                                             )}
@@ -1030,14 +1031,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
                                                     <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
                                                         {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
                                                     </span>
                                                 </div>
                                                 {parseFloat(item.tax_amount) > 0 && (
                                                     <div>
-                                                        <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
+                                                        <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
                                                         <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
                                                             {formatCurrency(item.tax_amount)}
                                                         </span>
@@ -1097,7 +1098,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             {item.description || 'No description'}
                                         </h3>
                                         {item.payee && (
-                                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                            <p className="text-2xs text-slate-400 font-semibold mt-0.5">{item.payee}</p>
                                         )}
                                     </div>
                                     <div className="text-right shrink-0 ml-2">
@@ -1106,7 +1107,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                 {item.reference}
                                             </span>
                                         )}
-                                        <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                        <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                             {formatDate(item.date)}
                                         </span>
                                     </div>
@@ -1114,11 +1115,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                 {/* Row 2: Category badge + payment method badge */}
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                    <span className="text-3xs font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
                                         {item.category || 'Uncategorized'}
                                     </span>
                                     {item.payment_method && (
-                                        <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                        <span className="text-3xs font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
                                             {item.payment_method}
                                         </span>
                                     )}
@@ -1128,14 +1129,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                 <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                     <div className="flex items-center gap-6">
                                         <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
                                             <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
                                                 {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
                                             </span>
                                         </div>
                                         {parseFloat(item.tax_amount) > 0 && (
                                             <div>
-                                                <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
+                                                <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
                                                 <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
                                                     {formatCurrency(item.tax_amount)}
                                                 </span>
@@ -1192,9 +1193,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     <div className="flex items-center gap-3 mt-1.5">
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active V3 Sync</span>
+                                            <span className="text-3xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active V3 Sync</span>
                                         </div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-80">Verified Ledger Entry</p>
+                                        <p className="text-3xs font-black text-slate-400 uppercase tracking-widest opacity-80">Verified Ledger Entry</p>
                                     </div>
                                 </div>
                             </div>
@@ -1202,7 +1203,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             <div className="flex items-center gap-6">
                                 {grandTotalValue > 0 && (
                                     <div className="hidden lg:block text-right px-6 py-2.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 shadow-inner">
-                                        <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Grand Total Impact</p>
+                                        <p className="text-3xs font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Grand Total Impact</p>
                                         <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
                                             {formatCurrency(grandTotalValue)}
                                         </p>
@@ -1252,7 +1253,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                         <div className="space-y-6">
                                             <div id="tour-expense-category" className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Expense Category <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Expense Category <span className="text-rose-500">*</span></label>
                                                 {isCreatingCategory && isModalOpen ? (
                                                     <div className="flex items-center gap-2 animate-in zoom-in-95 duration-200">
                                                         <div className="relative flex-1">
@@ -1284,11 +1285,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                         onAddNew={() => setIsCreatingCategory(true)}
                                                     />
                                                 )}
-                                                {errors.expense_category_id?.[0] && !isCreatingCategory && <p className="text-rose-500 text-[10px] font-bold mt-2 ml-1 flex items-center gap-1"><X size={10} /> {errors.expense_category_id[0]}</p>}
+                                                {errors.expense_category_id?.[0] && !isCreatingCategory && <p className="text-rose-500 text-2xs font-bold mt-2 ml-1 flex items-center gap-1"><X size={10} /> {errors.expense_category_id[0]}</p>}
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Date of Expense <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Date of Expense <span className="text-rose-500">*</span></label>
                                                 <input
                                                     type="date"
                                                     value={formData.date}
@@ -1299,7 +1300,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                             <div id="tour-expense-amount" className="group p-6 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                                                <label className="block text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
+                                                <label className="block text-3xs font-black text-indigo-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
                                                 <div className="relative flex items-center">
                                                     <span className="text-3xl font-black text-indigo-300/40 mr-3 select-none">{getCurrencySymbol()}</span>
                                                     <input
@@ -1311,7 +1312,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                         className="w-full bg-transparent text-4xl font-black text-white border-none focus:ring-0 placeholder-indigo-400/50 p-0"
                                                     />
                                                 </div>
-                                                {errors.amount?.[0] && <div className="mt-3 bg-rose-500/30 backdrop-blur-sm border border-rose-500/30 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5"><X size={10} /> <span className="text-[9px] font-bold">{errors.amount[0]}</span></div>}
+                                                {errors.amount?.[0] && <div className="mt-3 bg-rose-500/30 backdrop-blur-sm border border-rose-500/30 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5"><X size={10} /> <span className="text-3xs font-bold">{errors.amount[0]}</span></div>}
                                             </div>
                                         </div>
                                     </div>
@@ -1327,7 +1328,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                         <div className="space-y-6">
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payee / Vendor</label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payee / Vendor</label>
                                                 <PartySearchField
                                                     store={store}
                                                     value={formData.payee}
@@ -1344,7 +1345,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payment Method</label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payment Method</label>
                                                 <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner">
                                                     <button
                                                         type="button"
@@ -1365,7 +1366,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                             {formData.payment_method === 'bank' && (
                                                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <label className="block text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-2 ml-1">Bank Account <span className="text-rose-500">*</span></label>
+                                                    <label className="block text-2xs font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-2 ml-1">Bank Account <span className="text-rose-500">*</span></label>
                                                     <CustomSelect
                                                         value={formData.bank_account_id}
                                                         onChange={(val) => setFormData({ ...formData, bank_account_id: val })}
@@ -1376,20 +1377,20 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                             label: (
                                                                 <div className="flex items-center justify-between gap-2 w-full">
                                                                     <span className="truncate">
-                                                                        {b.name || b.bank_name} {b.account_number && <span className="text-slate-500 text-[10px] ml-1">({b.account_number})</span>}
+                                                                        {b.name || b.bank_name} {b.account_number && <span className="text-slate-500 text-2xs ml-1">({b.account_number})</span>}
                                                                     </span>
-                                                                    <span className="text-[10px] font-bold text-slate-400 shrink-0">{getCurrencySymbol()} {b.current_balance?.toLocaleString() || 0}</span>
+                                                                    <span className="text-2xs font-bold text-slate-400 shrink-0">{getCurrencySymbol()} {b.current_balance?.toLocaleString() || 0}</span>
                                                                 </div>
                                                             )
                                                         }))}
                                                     />
-                                                    {errors.bank_account_id?.[0] && <p className="text-rose-500 text-[10px] font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.bank_account_id[0]}</p>}
+                                                    {errors.bank_account_id?.[0] && <p className="text-rose-500 text-2xs font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.bank_account_id[0]}</p>}
                                                 </div>
                                             )}
 
                                             {formData.payment_method === 'cash' && (
                                                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <label className="block text-[10px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
+                                                    <label className="block text-2xs font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
                                                     <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
                                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cash in Hand</span>
                                                         <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{getCurrencySymbol()} {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
@@ -1398,7 +1399,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             )}
 
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Tax Amount</label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Tax Amount</label>
                                                 <div className="relative flex items-center">
                                                     <span className="absolute left-4 text-slate-400 dark:text-slate-500 font-bold text-xs">{getCurrencySymbol()}</span>
                                                     <input
@@ -1425,7 +1426,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                                         <div className="space-y-6">
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Reference No.</label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Reference No.</label>
                                                 <input
                                                     type="text"
                                                     value={formData.reference}
@@ -1436,7 +1437,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             </div>
 
                                             <div id="tour-expense-description" className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
                                                 <textarea
                                                     value={formData.description}
                                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1444,11 +1445,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                     rows={3}
                                                     className={`w-full px-4 py-3 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 border ${errors.description ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'} text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none resize-none placeholder-slate-400 dark:placeholder-slate-500 shadow-sm`}
                                                 />
-                                                {errors.description?.[0] && <p className="text-rose-500 text-[10px] font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.description[0]}</p>}
+                                                {errors.description?.[0] && <p className="text-rose-500 text-2xs font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.description[0]}</p>}
                                             </div>
 
                                             <div className="group">
-                                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Physical Evidence</label>
+                                                <label className="block text-2xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Physical Evidence</label>
                                                 <label
                                                     className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all p-6 text-center cursor-pointer ${formData.attachment ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-400 shadow-sm' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500'}`}
                                                 >
@@ -1460,7 +1461,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                             </div>
                                                             <div className="space-y-1">
                                                                 <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 truncate max-w-[200px] px-2">{formData.attachment.name}</p>
-                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Captured Successfully</p>
+                                                                <p className="text-3xs text-slate-500 font-bold uppercase tracking-widest">Captured Successfully</p>
                                                             </div>
                                                         </>
                                                     ) : (
@@ -1470,7 +1471,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                             </div>
                                                             <div className="space-y-1">
                                                                 <p className="text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-indigo-500 transition-colors uppercase tracking-widest">SECURE RECEIPT</p>
-                                                                <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">PDF or Image Transfer</p>
+                                                                <p className="text-3xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">PDF or Image Transfer</p>
                                                             </div>
                                                         </>
                                                     )}
@@ -1487,25 +1488,25 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         <div className="relative z-20 px-4 sm:px-8 py-4 sm:py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-8">
                                 <div className="flex flex-col">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Total Payable</p>
+                                    <p className="text-3xs font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Total Payable</p>
                                     <div className="flex items-baseline gap-2">
                                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                             {formatCurrency(grandTotalValue)}
                                         </p>
-                                        <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest px-1.5 py-0.5 bg-rose-500/10 rounded-md border border-rose-500/20">OUT</span>
+                                        <span className="text-2xs font-bold text-rose-500 uppercase tracking-widest px-1.5 py-0.5 bg-rose-500/10 rounded-md border border-rose-500/20">OUT</span>
                                     </div>
                                 </div>
                                 <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
                                 <div className="hidden md:flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-2 h-2 rounded-full ${formData.payment_method === 'cash' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'}`} />
-                                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                        <p className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                             {formData.payment_method === 'cash' ? 'Direct Liquidity Reduction' : 'Bank Reconciliation Pending'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                         <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Automatic V3 Ledger Sync</p>
+                                        <p className="text-3xs text-slate-500 font-bold uppercase tracking-widest">Automatic V3 Ledger Sync</p>
                                     </div>
                                 </div>
                             </div>

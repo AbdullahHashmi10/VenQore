@@ -124,28 +124,28 @@ export default function SerialTracking({ serials, stats, filters }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => handleStatusFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
                                     ? 'bg-indigo-600 text-white'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >All</button>
                         <button
                             onClick={() => handleStatusFilter('available')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'available'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'available'
                                     ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Available</button>
                         <button
                             onClick={() => handleStatusFilter('sold')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'sold'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sold'
                                     ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Sold</button>
                         <button
                             onClick={() => handleStatusFilter('returned')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'returned'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'returned'
                                     ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
@@ -182,24 +182,24 @@ export default function SerialTracking({ serials, stats, filters }) {
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th
                                     onClick={() => handleSort('serial')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Serial # <SortIcon columnKey="serial" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Product
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                     Status
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Location
                                 </th>
                                 <th
                                     onClick={() => handleSort('date')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Created <SortIcon columnKey="date" />
@@ -233,7 +233,7 @@ export default function SerialTracking({ serials, stats, filters }) {
                                                 <p className="font-medium text-sm text-slate-800 dark:text-white">{serial.product?.name}</p>
                                             </td>
                                             <td className="p-3 text-center">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
                                                     <StatusIcon size={10} />
                                                     {statusStyle.label}
                                                 </span>

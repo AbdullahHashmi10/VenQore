@@ -8,27 +8,28 @@ import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified
 import { useTheme } from '@/Contexts/ThemeContext';
 import Dropdown from '@/Components/Dropdown';
 
+import { vq } from '@/theme/runtime';
 export default function Users({ users, filters }) {
     const { isDarkMode: isDark } = useTheme();
     const T = isDark ? {
-        text: '#f1f5f9',
+        text: vq.slate[100],
         textHero: '#ffffff',
-        textSub: '#94a3b8',
-        textMuted: '#64748b',
+        textSub: vq.slate[400],
+        textMuted: vq.slate[500],
         border: 'rgba(255,255,255,0.1)',
         bgInput: 'rgba(255,255,255,0.03)',
         bgTable: 'rgba(255,255,255,0.02)',
         bgHead: 'rgba(255,255,255,0.02)',
         rowBorder: 'rgba(255,255,255,0.03)',
     } : {
-        text: '#0f172a',
-        textHero: '#0f172a',
-        textSub: '#475569',
-        textMuted: '#64748b',
+        text: vq.slate[900],
+        textHero: vq.slate[900],
+        textSub: vq.slate[600],
+        textMuted: vq.slate[500],
         border: 'rgba(0,0,0,0.1)',
         bgInput: '#ffffff',
         bgTable: '#ffffff',
-        bgHead: '#f8fafc',
+        bgHead: vq.slate[50],
         rowBorder: 'rgba(0,0,0,0.05)',
     };
 
@@ -99,8 +100,8 @@ export default function Users({ users, filters }) {
                             padding: '10px 16px', 
                             borderRadius: 12, 
                             background: trashed ? 'rgba(239,68,68,0.1)' : T.bgInput,
-                            border: `1px solid ${trashed ? '#ef4444' : T.border}`,
-                            color: trashed ? '#ef4444' : T.textSub,
+                            border: `1px solid ${trashed ? vq.red[500] : T.border}`,
+                            color: trashed ? vq.red[500] : T.textSub,
                             fontSize: 13,
                             fontWeight: 600,
                             cursor: 'pointer',
@@ -125,10 +126,10 @@ export default function Users({ users, filters }) {
                                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: T.text, padding: '14px 0', fontSize: 14 }} 
                             />
                         </div>
-                        <button type="submit" style={{ padding: '0 24px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Search</button>
+                        <button type="submit" style={{ padding: '0 24px', background: vq.indigo[500], color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Search</button>
                     </form>
                     {selected.length > 0 && !trashed && (
-                         <button onClick={handleBulkDelete} style={{ padding: '0 24px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Delete {selected.length} Selected</button>
+                         <button onClick={handleBulkDelete} style={{ padding: '0 24px', background: vq.red[500], color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}>Delete {selected.length} Selected</button>
                     )}
                 </div>
 
@@ -174,7 +175,7 @@ export default function Users({ users, filters }) {
                                     </td>
                                     <td style={{ padding: '16px 20px' }}>
                                         {u.is_platform_admin ? (
-                                            <span style={{ fontSize: 10, fontWeight: 800, color: '#10b981', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 800, color: vq.emerald[500], background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                                 <ShieldCheck size={10} /> PLATFORM {u.platform_role?.toUpperCase() || 'OWNER'}
                                             </span>
                                         ) : (
@@ -182,14 +183,14 @@ export default function Users({ users, filters }) {
                                         )}
                                     </td>
                                     <td style={{ padding: '16px 20px', color: T.textMuted, fontSize: 13 }}>{u.created_at}</td>
-                                    {trashed && <td style={{ padding: '16px 20px', color: '#ef4444', fontSize: 12 }}>{u.deleted_at}</td>}
+                                    {trashed && <td style={{ padding: '16px 20px', color: vq.red[500], fontSize: 12 }}>{u.deleted_at}</td>}
                                     <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                                         {u.is_trashed ? (
                                             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                                <button onClick={() => onRestore(u.id)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <button onClick={() => onRestore(u.id)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(16,185,129,0.1)', color: vq.emerald[500], border: '1px solid rgba(16,185,129,0.2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                                                     <RotateCcw size={14} /> Restore
                                                 </button>
-                                                <button onClick={() => onPurge(u.id)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <button onClick={() => onPurge(u.id)} style={{ padding: '6px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: vq.red[500], border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                                                     <Trash2 size={14} /> Purge
                                                 </button>
                                             </div>
@@ -201,7 +202,7 @@ export default function Users({ users, filters }) {
                                                     </button>
                                                 </Dropdown.Trigger>
                                                 <Dropdown.Content align="right" width="48">
-                                                    <Dropdown.Link href={route('platform.user.destroy', u.id)} method="delete" as="button" style={{ fontSize: 13, fontWeight: 500, color: '#ef4444' }}>
+                                                    <Dropdown.Link href={route('platform.user.destroy', u.id)} method="delete" as="button" style={{ fontSize: 13, fontWeight: 500, color: vq.red[500] }}>
                                                         Trash User
                                                     </Dropdown.Link>
                                                 </Dropdown.Content>

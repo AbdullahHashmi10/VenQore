@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function GraphAnalytics({ trendData, paymentStatus, stats, filters, module = 'sales' }) {
     const {
         store
@@ -131,7 +132,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all ${range === opt.id
+                                    className={`px-3 py-1 rounded-lg text-2xs font-bold uppercase transition-all ${range === opt.id
                                         ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400'
                                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
@@ -147,18 +148,18 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-2xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
                                 />
-                                <span className="text-slate-400 text-[10px] font-bold">TO</span>
+                                <span className="text-slate-400 text-2xs font-bold">TO</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-2xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
                                 />
                                 <button
                                     onClick={applyCustomRange}
-                                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-bold uppercase transition-colors shadow-sm"
+                                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-2xs font-bold uppercase transition-colors shadow-sm"
                                 >
                                     Apply
                                 </button>
@@ -205,7 +206,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                             <div>
                                 <h3 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-tight">Sales Trend Analysis</h3>
                             </div>
-                            <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${insights.trend === 'up' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' :
+                            <div className={`px-2 py-0.5 rounded-full text-2xs font-bold flex items-center gap-1 ${insights.trend === 'up' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' :
                                     insights.trend === 'down' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/30' :
                                         'bg-slate-50 text-slate-600 dark:bg-slate-800'
                                 }`}>
@@ -219,34 +220,34 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                 <AreaChart data={trendData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.6} />
+                                            <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.3} />
                                     <XAxis
                                         dataKey="name"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                        tick={{ fontSize: 10, fill: vq.slate[400] }}
                                         dy={5}
                                     />
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                        tick={{ fontSize: 10, fill: vq.slate[400] }}
                                         tickFormatter={(val) => `${val / 1000}k`}
                                     />
                                     <Tooltip
                                         formatter={(val) => formatCurrency(val)}
-                                        contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#f8fafc' }}
-                                        itemStyle={{ color: '#f8fafc' }}
-                                        labelStyle={{ color: '#94a3b8', fontSize: '10px', marginBottom: '4px' }}
+                                        contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: vq.slate[50] }}
+                                        itemStyle={{ color: vq.slate[50] }}
+                                        labelStyle={{ color: vq.slate[400], fontSize: '10px', marginBottom: '4px' }}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="sales"
-                                        stroke="#6366f1"
+                                        stroke={vq.indigo[500]}
                                         strokeWidth={2}
                                         fillOpacity={1}
                                         fill="url(#colorSales)"
@@ -287,15 +288,15 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                         </Pie>
                                         <Tooltip
                                             formatter={(val) => formatCurrency(val)}
-                                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', color: '#f8fafc' }}
-                                            itemStyle={{ color: '#f8fafc' }}
+                                            contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid #334155', color: vq.slate[50] }}
+                                            itemStyle={{ color: vq.slate[50] }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
                                 {/* Center Text */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-2">
                                     <div className="text-center">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Recovery</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Recovery</p>
                                         <p className="text-2xl font-black text-slate-800 dark:text-white">
                                             {stats.total_revenue > 0 ? Math.round((paymentStatus[0].value / stats.total_revenue) * 100) : 0}%
                                         </p>
@@ -353,7 +354,7 @@ function StatCard({ title, value, icon, color }) {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors[color]}`}>
                     {React.cloneElement(icon, { size: 16 })}
                 </div>
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{title}</p>
+                <p className="text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{title}</p>
             </div>
 
             {/* Right: Value */}

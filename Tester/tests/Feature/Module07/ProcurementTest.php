@@ -10,7 +10,7 @@ use App\Models\InventoryBatch;
 use Tests\Feature\VenQoreTestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
+uses(VenQoreTestCase::class, RefreshDatabase::class);
 
 test('fifo_batch_creation_on_purchase', function () {
     $tenant = $this->createTenant();

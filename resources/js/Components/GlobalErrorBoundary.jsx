@@ -99,7 +99,7 @@ class GlobalErrorBoundary extends React.Component {
                                         <span className="group-open:rotate-180 transition-transform">▼</span>
                                     </summary>
                                     <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 overflow-x-auto">
-                                        <pre className="text-[10px] text-red-500 font-mono whitespace-pre-wrap">
+                                        <pre className="text-2xs text-red-500 font-mono whitespace-pre-wrap">
                                             {this.state.error && this.state.error.toString()}
                                             <br />
                                             {this.state.errorInfo && this.state.errorInfo.componentStack}

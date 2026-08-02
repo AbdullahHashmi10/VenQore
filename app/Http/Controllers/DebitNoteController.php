@@ -131,9 +131,24 @@ class DebitNoteController extends Controller
         ]);
     }
 
-    public function show($id) 
-    { 
-        $note = \App\Models\DebitNote::with(['supplier', 'items.product'])->findOrFail($id);
-        return Inertia::render('DebitNotes/Show', ['note' => $note]); 
+    public function show($id)
+    {
+        $note = \App\Models\DebitNote::with(['supplier', 'items.product', 'purchase'])->findOrFail($id);
+
+        // GL posting: DebitNoteController::store() does NOT create a JournalEntry for
+        // debit notes yet (see comment in store(): "Financial Update now handled by
+        // Journal Entry via V3 (if implemented here in future)"). There is no
+        // journal_entry_id column on debit_notes and no reference_type='debit_note'
+        // entries are posted anywhere in the codebase today, so we cannot show a real
+        // GL posting reference — only the stock-return movement this note triggered.
+        $stockMovements = \App\Models\StockMovement::with('product')
+            ->where('type', 'purchase_return')
+            ->where('reference_id', $note->reference_number)
+            ->get();
+
+        return Inertia::render('DebitNotes/Show', [
+            'note' => $note,
+            'stockMovements' => $stockMovements,
+        ]);
     }
 }

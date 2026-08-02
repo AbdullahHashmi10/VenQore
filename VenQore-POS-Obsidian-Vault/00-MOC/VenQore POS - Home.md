@@ -43,6 +43,8 @@ This vault documents **VenQore POS**, a multi-tenant SaaS Point-of-Sale and ERP 
 - [[Purchase Lifecycle - V3 PurchaseService]]
 - [[Legacy vs V3 Services]]
 - [[WooCommerce Sync Engine]]
+- [[VenSynQ Integration Engine]]
+- [[Marketplace Clearing Pipeline]]
 - [[Billing & Subscription Services]]
 - [[Manufacturing & Composite Products]]
 - [[Platform Infrastructure Services]]
@@ -50,10 +52,12 @@ This vault documents **VenQore POS**, a multi-tenant SaaS Point-of-Sale and ERP 
 
 ### 🌐 Routes & Controllers
 - [[Route Map Overview]]
+- [[Marketing & Solutions Engine]]
 - [[Store Context Routes]]
 - [[Platform & SuperAdmin Routes]]
 - [[V3 ERP Routes]]
 - [[API Routes]]
+- [[Free Tools - Complete Registry]]
 - [[Controllers Directory]]
 
 ### 🔧 Free Tools (SEO / Lead-Gen)

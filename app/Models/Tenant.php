@@ -140,6 +140,10 @@ class Tenant extends Model
         'google_access_token'   => 'encrypted',
         'google_refresh_token'  => 'encrypted',
         'view_only_since'       => 'datetime',
+        // T17 — Marketplace Clearing cutover. Null = pipeline off (legacy
+        // Dr Cash posting). Sales created before this timestamp are never
+        // reclassified, so closed periods stay untouched.
+        'clearing_go_live_at'   => 'datetime',
         'limit_grace_ends_at'   => 'datetime',
         'sync_channels'         => 'array',
         'grace_ends_at'         => 'datetime',

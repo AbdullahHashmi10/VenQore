@@ -259,7 +259,7 @@ export default function AdminDatabase({ stats, backups }) {
                                     <div className="flex gap-2 items-center text-sm font-bold text-slate-700 dark:text-slate-300">
                                         <Mail size={16} className="text-slate-400" /> Auto-Email
                                     </div>
-                                    <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase rounded">Enabled</div>
+                                    <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-2xs font-bold uppercase rounded">Enabled</div>
                                 </div>
                                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                     <div className="flex gap-2 items-center text-sm font-bold text-slate-700 dark:text-slate-300">

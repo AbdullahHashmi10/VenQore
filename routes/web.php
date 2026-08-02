@@ -20,6 +20,13 @@ use Inertia\Inertia;
 
 // ── Public Marketing Pages ──────────────────────────────────────────────
 Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
+Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
+
+Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('marketing.roadmap');
+Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::class, 'index'])->name('marketing.solutions.index');
+Route::get('/solutions/{slug}', [\App\Http\Controllers\Marketing\SolutionsController::class, 'show'])->name('marketing.solutions.show');
+Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('marketing.compare.index');
+Route::get('/compare/{slug}', [\App\Http\Controllers\Marketing\CompareController::class, 'show'])->name('marketing.compare.show');
 Route::get('/pricing', function () {
     try {
         $plans = \App\Models\Plan::with(['limits', 'features'])
@@ -67,6 +74,10 @@ Route::get('/partner-support', [\App\Http\Controllers\Marketing\PartnerSupportCo
 Route::post('/api/partner-support/chat', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'startChat'])->name('partner-support.start');
 Route::get('/api/partner-support/chat/{ticket_id}', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'getMessages'])->name('partner-support.messages');
 Route::post('/api/partner-support/chat/{ticket_id}/reply', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'reply'])->name('partner-support.reply');
+
+// Documentation
+Route::get('/docs', [\App\Http\Controllers\Marketing\DocsController::class, 'index'])->name('marketing.docs.index');
+Route::get('/docs/{slug}', [\App\Http\Controllers\Marketing\DocsController::class, 'show'])->name('marketing.docs.show');
 
 
 // Barcode Generator (Module 03) — internal Code128B SVG endpoint, used inside the
@@ -232,7 +243,12 @@ Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController
 // unreachable because a route registered earlier always wins).
 Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+Route::get('/partners', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'index'])->name('marketing.partners');
+Route::post('/partners-submit', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'store'])->name('marketing.partners.store');
 Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-{type}.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'showSubSitemap'])
+    ->where('type', 'pages|blog|compare|solutions|tools')
+    ->name('sitemap.sub');
 Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhookController::class, 'handle'])
     ->name('webhooks.lemon-squeezy');
 
@@ -266,6 +282,12 @@ Route::get('/tiktok/callback', [\App\Http\Controllers\VenSynQController::class, 
 Route::get('/ebay/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
     ->name('vensynq.universal.callback.ebay')
     ->defaults('platform', 'ebay');
+
+// T16 — WooCommerce is now a first-class VenSynQ platform. The VenQore Sync
+// plugin redirects here after the key-pair handshake completes.
+Route::get('/woocommerce/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
+    ->name('vensynq.universal.callback.woocommerce')
+    ->defaults('platform', 'woocommerce');
 
 Route::get('/google/callback', [\App\Http\Controllers\GoogleDriveAuthController::class, 'handleGoogleCallback'])
     ->name('google.callback');
@@ -334,8 +356,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/pos/products/featured',   [\App\Http\Controllers\Api\PosSearchController::class, 'featured'])->name('pos.featured');
         Route::get('/pos/categories',          [\App\Http\Controllers\Api\PosSearchController::class, 'categories'])->name('pos.categories');
         Route::get('/pos/barcode/{code}',      [\App\Http\Controllers\Api\PosSearchController::class, 'findByBarcode'])->name('pos.barcode');
-        Route::post('/pos/open-session',       [\App\Http\Controllers\PosController::class, 'openSession'])->name('pos.open');
-        Route::post('/pos/close-session',      [\App\Http\Controllers\PosController::class, 'closeSession'])->name('pos.close');
+        // pos.open / pos.close removed 2026-08-02 — see PosController note above.
 
         // Staff management (within this store)
         Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->middleware('permission:users.manage')->name('staff');
@@ -354,15 +375,15 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // In-app subscription cancel / resume. Without these the only route to
         // cancelling was the Lemon Squeezy portal, which requires a separate
         // login and is a dead end for guest checkouts.
-        Route::post('/billing/cancel-subscription', [\App\Http\Controllers\BillingController::class, 'cancelSubscription'])->name('billing.cancel-subscription');
-        Route::post('/billing/resume-subscription', [\App\Http\Controllers\BillingController::class, 'resumeSubscription'])->name('billing.resume-subscription');
+        Route::post('/billing/cancel-subscription', [\App\Http\Controllers\BillingController::class, 'cancelSubscription'])->middleware('permission:admin.billing_store')->name('billing.cancel-subscription');
+        Route::post('/billing/resume-subscription', [\App\Http\Controllers\BillingController::class, 'resumeSubscription'])->middleware('permission:admin.billing_store')->name('billing.resume-subscription');
         Route::post('/billing/checkout-addon', [\App\Http\Controllers\BillingController::class, 'checkoutAddon'])->name('billing.checkout-addon');
         Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->name('billing.change-plan');
         Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->name('billing.deactivate-feature');
         Route::post('/billing/checkout-upload-service', [\App\Http\Controllers\BillingController::class, 'checkoutUploadService'])->name('billing.checkout-upload-service');
         // Webhook safety net — pulls subscription state from the Lemon Squeezy API
         // when the webhook never arrived (local dev, delay, or dropped delivery).
-        Route::post('/billing/sync-subscription', [\App\Http\Controllers\BillingController::class, 'syncSubscription'])->name('billing.sync-subscription');
+        Route::post('/billing/sync-subscription', [\App\Http\Controllers\BillingController::class, 'syncSubscription'])->middleware('permission:admin.billing_store')->name('billing.sync-subscription');
 
         // Google Drive Backups
         Route::get('/google/redirect',      [\App\Http\Controllers\GoogleDriveAuthController::class, 'redirectToGoogle'])->name('google.redirect');
@@ -388,10 +409,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
             Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->name('smart-capture.settings.save');
             Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('throttle:10,1')->name('smart-capture.settings.test');
-            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('throttle:10,1')->name('smart-capture.settings.models');
+            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('permission:admin.settings_manage')->middleware('throttle:10,1')->name('smart-capture.settings.models');
             // Learning memory (per-store, shared by all staff)
             Route::get('/aliases',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'aliases'])->name('smart-capture.aliases');
-            Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
+            Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('permission:admin.settings_manage')->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
         });
 
         // Trial expired landing (within store context)
@@ -644,6 +665,13 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
             Route::get('/',           [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'index'])->name('index');
             Route::post('/',          [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'store'])->name('store');
             Route::put('/{platform}', [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'update'])->name('update');
+        });
+
+        Route::prefix('blog-posts')->name('blog-posts.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'index'])->name('index');
+            Route::post('/',             [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'store'])->name('store');
+            Route::put('/{blogPost}',    [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'update'])->name('update');
+            Route::delete('/{blogPost}', [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('coupons')->name('coupons.')->group(function () {
@@ -995,12 +1023,28 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Suppliers
 
     // Suppliers
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:purchases.view');
+    // Reads are gated on purchases.view (held by viewer/accountant/purchasing_officer too).
+    // Writes (create/update/delete a supplier record) require purchases.suppliers —
+    // a read-only viewer must not be able to mutate or delete supplier records.
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index'])->middleware('permission:purchases.view');
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['store', 'update', 'destroy'])->middleware('permission:purchases.suppliers');
 
     // Purchase Orders
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:purchases.view');
-    Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
-    Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->name('purchase-orders.print');
+    // Reads (index/show) → purchases.view (viewer/accountant/purchasing_officer included).
+    // Create/edit → purchases.create / purchases.edit (manager included; matches
+    // manager's existing access to create/edit POs).
+    // Destroy → purchases.void specifically. 'manager' deliberately does NOT hold
+    // purchases.void (see config/permissions.php) — a hard delete of a purchase
+    // order is a void-class operation, not an edit, and viewer must never reach it.
+    // NOTE: 'create'/'store' MUST be registered before 'index'/'show' — a literal
+    // segment ('create') must beat the {purchase_order} wildcard in 'show', or
+    // GET /purchase-orders/create binds to show() with purchase_order="create" and 404s.
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['create', 'store'])->middleware('permission:purchases.create');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['index', 'show'])->middleware('permission:purchases.view');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['edit', 'update'])->middleware('permission:purchases.edit');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['destroy'])->middleware('permission:purchases.void');
+    Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->middleware('permission:purchases.edit')->name('purchase-orders.receive');
+    Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->middleware('permission:purchases.view')->name('purchase-orders.print');
 
     // Proposals
     Route::resource('proposals', \App\Http\Controllers\ProposalController::class);
@@ -1106,6 +1150,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/growth-engine/whatsapp/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'generateWhatsApp'])->name('growth-engine.whatsapp');
         Route::post('/growth-engine/dismiss/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'dismiss'])->name('growth-engine.dismiss');
         Route::post('/growth-engine/mark-read/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'markRead'])->name('growth-engine.mark-read');
+
+        // ── Growth Engine V2 ────────────────────────────────────────────
+        // `act` is the important addition: recording that the owner DID
+        // something is what lets OutcomeEvaluator tell "the prediction was
+        // wrong" apart from "the prediction was right and you prevented it".
+        // Without it the engine can never learn from a save.
+        Route::get('/growth-engine/signal/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'show'])->name('growth-engine.show');
+        Route::post('/growth-engine/act/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'act'])->name('growth-engine.act');
+        Route::post('/growth-engine/snooze/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'snooze'])->name('growth-engine.snooze');
+        Route::get('/growth-engine/scorecard', [\App\Http\Controllers\GrowthEngineController::class, 'scorecard'])->name('growth-engine.scorecard');
+        Route::post('/growth-engine/unmute', [\App\Http\Controllers\GrowthEngineController::class, 'unmute'])->name('growth-engine.unmute');
         Route::get('/growth-engine/settings', [\App\Http\Controllers\GrowthEngineController::class, 'settings'])->name('growth-engine.settings');
         Route::post('/growth-engine/settings', [\App\Http\Controllers\GrowthEngineController::class, 'updateSettings'])->name('growth-engine.update-settings');
     });
@@ -1201,6 +1256,27 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
         // Live Order Fetch Sync
         Route::post('/sync-orders', [\App\Http\Controllers\VenSynQController::class, 'fetchLiveOrders'])->name('sync-orders');
+
+        // ── T16: Amazon SP-API 3-Step Credential Wizard ───────────────────────
+        // Kept alongside the OAuth redirect above, not replacing it — sellers with
+        // self-authorized apps hold LWA credentials directly and never see a
+        // consent screen.
+        Route::post('/amazon/test-credentials', [\App\Http\Controllers\VenSynQController::class, 'testAmazonCredentials'])->middleware('permission:vensynq.manage')->name('amazon.test');
+        Route::post('/amazon/credentials', [\App\Http\Controllers\VenSynQController::class, 'storeAmazonCredentials'])->middleware('permission:vensynq.manage')->name('amazon.store');
+
+        // ── T16: Health, Error Inspector & Retry ──────────────────────────────
+        Route::get('/health', [\App\Http\Controllers\VenSynQController::class, 'healthStatus'])->name('health');
+        Route::post('/channels/{channel}/test', [\App\Http\Controllers\VenSynQController::class, 'testChannelConnection'])->middleware('permission:vensynq.manage')->name('channels.test');
+        Route::post('/channels/{channel}/retry', [\App\Http\Controllers\VenSynQController::class, 'retryChannelSync'])->middleware('permission:vensynq.manage')->name('channels.retry');
+
+        // ── T17: Marketplace Clearing / Money Pipeline ────────────────────────
+        // Online sales are held in 1205 Marketplace Clearing until the owner
+        // confirms the platform actually paid out. See MarketplaceSettlementService.
+        Route::get('/money-pipeline', [\App\Http\Controllers\VenSynQController::class, 'moneyPipeline'])->name('money-pipeline');
+        Route::get('/payouts', [\App\Http\Controllers\VenSynQController::class, 'payouts'])->name('payouts');
+        Route::post('/payouts/{payout}/confirm', [\App\Http\Controllers\VenSynQController::class, 'confirmPayout'])->middleware('permission:vensynq.manage')->name('payouts.confirm');
+        Route::post('/clearing/toggle', [\App\Http\Controllers\VenSynQController::class, 'enableClearing'])->middleware('permission:vensynq.manage')->name('clearing.toggle');
+        Route::patch('/channels/{channel}/settlement', [\App\Http\Controllers\VenSynQController::class, 'updateSettlement'])->middleware('permission:vensynq.manage')->name('channels.settlement');
     });
 
     // Payments
@@ -1289,7 +1365,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/parked', [\App\Http\Controllers\SaleController::class, 'getParkedSales'])->name('sales.parked');
     Route::get('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'recall'])->name('sales.recall');
     Route::delete('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'deleteParked'])->name('sales.parked.delete');
-    Route::post('/sales/get-items', [\App\Http\Controllers\SaleController::class, 'getItemsByIds'])->name('sales.get-items');
+    // sales.get-items removed 2026-08-02 — no frontend caller, returned full
+    // Product rows (including cost_price/purchase_price) to any authenticated
+    // user with no validation on the ids array. See audit item A4.
 
     Route::get('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('sales.edit');

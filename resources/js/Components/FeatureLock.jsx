@@ -2,6 +2,7 @@
 import { usePage } from '@inertiajs/react';
 import { Lock, Zap, ArrowRight } from 'lucide-react';
 
+import { vq } from '@/theme/runtime';
 /**
  * FeatureLock — Proactive plan-gate wrapper component.
  *
@@ -26,9 +27,9 @@ const PLAN_LABELS = {
 };
 
 const PLAN_COLORS = {
-    growth:   { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', accent: '#818cf8' },
-    business: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', accent: '#c084fc' },
-    default:  { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', accent: '#818cf8' },
+    growth:   { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', accent: vq.indigo[400] },
+    business: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', accent: vq.purple[400] },
+    default:  { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', accent: vq.indigo[400] },
 };
 
 /** Hook: returns true/false/null for a feature key */
@@ -73,8 +74,8 @@ export default function FeatureLock({
                     <Lock size={22} />
                 </div>
                 <div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#e2e8f0', marginBottom: 5 }}>{label} requires {planLabel}</div>
-                    <div style={{ fontSize: 12.5, color: '#64748b', maxWidth: 280, margin: '0 auto', lineHeight: 1.55 }}>Upgrade your plan to unlock {label.toLowerCase()} and other advanced capabilities.</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: vq.slate[200], marginBottom: 5 }}>{label} requires {planLabel}</div>
+                    <div style={{ fontSize: 12.5, color: vq.slate[500], maxWidth: 280, margin: '0 auto', lineHeight: 1.55 }}>Upgrade your plan to unlock {label.toLowerCase()} and other advanced capabilities.</div>
                 </div>
                 <button onClick={triggerUpgradeModal} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 20px', borderRadius: 999, background: `linear-gradient(135deg, ${colors.accent}, ${colors.accent}bb)`, border: 'none', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: `0 4px 16px ${colors.accent}33`, transition: 'all .15s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
                     <Zap size={14} />

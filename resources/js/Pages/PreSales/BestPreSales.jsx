@@ -149,15 +149,15 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => applyFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilter('pending')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Pending</button>
                         <button
                             onClick={() => applyFilter('converted')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'converted' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'converted' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Converted</button>
                     </div>
 
@@ -254,7 +254,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                                         case 'customer':
                                                             return (
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                    <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xs font-bold text-slate-500">
                                                                         {(row.customer?.name || 'W').charAt(0)}
                                                                     </div>
                                                                     <span>{row.customer?.name || 'Walk-in'}</span>

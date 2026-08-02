@@ -200,7 +200,7 @@ export default function Errors({ errors, filters }) {
 
                     {/* Details Panel */}
                     {selected && (
-                        <div className="w-96 flex-shrink-0 bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
+                        <div className="w-96 flex-shrink-0 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center justify-between">
                                 <span className="flex items-center gap-2">
                                     <Bug className="text-red-500" />
@@ -239,7 +239,7 @@ export default function Errors({ errors, filters }) {
                                 {selected.stack_trace && (
                                     <div>
                                         <div className="text-xs font-bold text-slate-400 uppercase mb-1">Stack Trace Snippet</div>
-                                        <pre className="text-[10px] font-mono whitespace-pre-wrap bg-slate-900 text-red-300 p-3 rounded-xl overflow-x-auto border border-slate-800 max-h-48">
+                                        <pre className="text-2xs font-mono whitespace-pre-wrap bg-slate-900 text-red-300 p-3 rounded-xl overflow-x-auto border border-slate-800 max-h-48">
                                             {selected.stack_trace}
                                         </pre>
                                     </div>

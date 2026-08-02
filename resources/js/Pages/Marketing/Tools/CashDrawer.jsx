@@ -260,7 +260,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                     <button
                         type="button"
                         onClick={resetCounts}
-                        className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
+                        className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
                     >
                         <RefreshCw size={12} /> Reset Counts
                     </button>
@@ -305,7 +305,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                                 <button
                                     type="button"
                                     onClick={() => removeDenomination(idx)}
-                                    className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 rounded-lg transition-colors"
                                 >
                                     <Trash2 size={14} />
                                 </button>
@@ -340,15 +340,15 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
 
                 <div className="grid sm:grid-cols-4 gap-4 text-center">
                     <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-400">Bills Total</span>
+                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Bills Total</span>
                         <span className="text-lg font-black text-slate-900 dark:text-white">{symbol}{totals.totalBills.toFixed(2)}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-400">Coins Total</span>
+                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Coins Total</span>
                         <span className="text-lg font-black text-slate-900 dark:text-white">{symbol}{totals.totalCoins.toFixed(2)}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/5 dark:border-white/5">
-                        <span className="block text-[10px] font-bold uppercase text-slate-400">Total Counted Cash</span>
+                        <span className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Counted Cash</span>
                         <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">{symbol}{totals.totalCounted.toFixed(2)}</span>
                     </div>
                     <div className={`p-3 rounded-xl border ${totals.status === 'exact' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : totals.status === 'over' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'}`}>

@@ -365,7 +365,7 @@ class AdminDashboardController extends Controller
             'lemon_customer_id' => $t->lemon_squeezy_customer_id,
         ]);
 
-        return Inertia::render('SuperAdmin/Tenants', [
+        return Inertia::render('SuperAdmin/Stores', [
             'tenants' => $tenants,
             'filters' => $request->only(['search', 'status', 'plan']),
         ]);

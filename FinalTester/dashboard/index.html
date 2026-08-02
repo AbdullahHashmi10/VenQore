@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore — Test Command Center</title>
+<style>
+  :root{
+    --bg:#0a0a0b; --panel:#111113; --panel2:#161619; --line:#232328;
+    --txt:#e7e7ea; --dim:#8b8b95; --faint:#5a5a63;
+    --pass:#22c55e; --fail:#ef4444; --skip:#f59e0b; --risky:#a855f7;
+    --idle:#3f3f46; --accent:#38bdf8;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px 20px 64px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;
+         gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  h1{font-size:17px;font-weight:650;margin:0;letter-spacing:-.01em}
+  h1 span{color:var(--faint);font-weight:400}
+  .meta{font:11px var(--mono);color:var(--faint)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+  .card + .card{margin-top:14px}
+
+  /* ---------- progress ---------- */
+  .prog-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .prog-count{font:600 30px/1 var(--mono);letter-spacing:-.02em}
+  .prog-count small{font-size:15px;font-weight:400;color:var(--faint)}
+  .prog-pct{font:600 30px/1 var(--mono);color:var(--accent)}
+  .prog-label{font-size:12px;color:var(--dim);margin-top:6px}
+
+  .bar{height:12px;background:#08080a;border:1px solid var(--line);
+       border-radius:99px;overflow:hidden;margin-top:14px;display:flex}
+  .bar i{display:block;height:100%;width:0;transition:width .25s ease}
+  .bar .b-pass{background:var(--pass)}
+  .bar .b-fail{background:var(--fail)}
+  .bar .b-skip{background:var(--skip)}
+  .bar .b-risky{background:var(--risky)}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--dim)}
+  .legend b{color:var(--txt);font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;
+         background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:14px}
+  .stat{background:var(--panel);padding:12px 14px}
+  .stat .k{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint)}
+  .stat .v{font:600 19px/1.3 var(--mono);font-variant-numeric:tabular-nums;margin-top:3px}
+
+  /* ---------- controls ---------- */
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+         border-radius:7px;padding:8px 13px;font:500 12px/1 inherit;cursor:pointer}
+  button:hover:not(:disabled){border-color:#3a3a42;background:#1c1c20}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#04141c;font-weight:650}
+  button.danger{border-color:#4a2020;color:#fca5a5}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+
+  /* ---------- areas ---------- */
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+     color:var(--faint);margin:26px 0 10px;font-weight:600}
+  .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+  .area{background:var(--panel);border:1px solid var(--line);border-left-width:3px;
+        border-radius:8px;padding:11px 13px}
+  .area.passing{border-left-color:var(--pass)}
+  .area.failing{border-left-color:var(--fail)}
+  .area.running{border-left-color:var(--accent)}
+  .area.skipped{border-left-color:var(--skip)}
+  .area.not-executed{border-left-color:var(--idle)}
+  .area .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .area .nm{font-weight:600;font-size:13px}
+  .area .ct{font:11px var(--mono);color:var(--faint);font-variant-numeric:tabular-nums}
+  .area .row{display:flex;gap:12px;margin-top:8px;font:11px var(--mono);color:var(--dim)}
+  .area .row span{font-variant-numeric:tabular-nums}
+
+  /* ---------- failures ---------- */
+  .fail-item{border:1px solid #2a1a1c;background:#140e0f;border-radius:8px;
+             padding:11px 13px;margin-bottom:8px}
+  .fail-item .t{font:600 12px var(--mono);color:#fca5a5}
+  .fail-item .c{font:10px var(--mono);color:var(--faint);margin-top:2px}
+  .fail-item .m{font:11px/1.5 var(--mono);color:var(--dim);margin-top:7px;
+                white-space:pre-wrap;word-break:break-word}
+
+  /* ---------- console ---------- */
+  pre.console{background:#08080a;border:1px solid var(--line);border-radius:8px;
+        padding:12px;font:11px/1.55 var(--mono);color:var(--dim);
+        max-height:280px;overflow:auto;margin:0;white-space:pre-wrap}
+
+  .banner{border-radius:8px;padding:11px 14px;font-size:12.5px;margin-top:12px;display:none}
+  .banner.warn{display:block;background:#1e1608;border:1px solid #4a3410;color:#fcd34d}
+  .banner.err{display:block;background:#170e0f;border:1px solid #4a1d1d;color:#fca5a5}
+  .banner.ok{display:block;background:#0b1710;border:1px solid #17361f;color:#86efac}
+  .banner.info{display:block;background:#0b1218;border:1px solid #16303f;color:#7dd3fc}
+  .banner code{font:11px var(--mono)}
+
+  /* ---------- copy bars ---------- */
+  .head-row{display:flex;align-items:center;justify-content:space-between;
+            gap:12px;flex-wrap:wrap;margin:26px 0 10px}
+  .head-row h2{margin:0}
+  .copybar{display:flex;gap:6px;flex-wrap:wrap}
+  button.mini{padding:5px 10px;font-size:11px;border-radius:6px}
+  .badge{display:inline-block;background:#2a1a1c;color:#fca5a5;border:1px solid #4a1d1d;
+         border-radius:99px;padding:1px 8px;font:600 10px var(--mono);margin-left:6px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+         background:var(--pass);color:#04140a;font-weight:650;font-size:12.5px;
+         padding:9px 18px;border-radius:8px;opacity:0;pointer-events:none;
+         transition:opacity .18s ease,transform .18s ease;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>VenQore <span>/ Test Command Center</span></h1>
+    <div class="meta" id="conn">connecting…</div>
+  </header>
+
+  <!-- ================= PROGRESS ================= -->
+  <div class="card">
+    <div class="prog-head">
+      <div>
+        <div class="prog-count">
+          <span id="p-exec">0</span><small> / </small><span id="p-exp">—</span><small> tests</small>
+        </div>
+        <div class="prog-label" id="p-label">Idle. Nothing has run yet.</div>
+      </div>
+      <div class="prog-pct" id="p-pct">0.0%</div>
+    </div>
+
+    <div class="bar" id="bar">
+      <i class="b-pass"  id="b-pass"></i>
+      <i class="b-fail"  id="b-fail"></i>
+      <i class="b-risky" id="b-risky"></i>
+      <i class="b-skip"  id="b-skip"></i>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot" style="background:var(--pass)"></i>Passed <b id="l-pass">0</b></span>
+      <span><i class="dot" style="background:var(--fail)"></i>Failed <b id="l-fail">0</b></span>
+      <span><i class="dot" style="background:var(--risky)"></i>Risky <b id="l-risky">0</b></span>
+      <span><i class="dot" style="background:var(--skip)"></i>Skipped <b id="l-skip">0</b></span>
+      <span><i class="dot" style="background:var(--idle)"></i>Not executed <b id="l-todo">0</b></span>
+    </div>
+
+    <div class="banner" id="banner"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Expected</div><div class="v" id="s-exp">—</div></div>
+      <div class="stat"><div class="k">Executed</div><div class="v" id="s-exec">0</div></div>
+      <div class="stat"><div class="k">Passed</div><div class="v" id="s-pass" style="color:var(--pass)">0</div></div>
+      <div class="stat"><div class="k">Failed</div><div class="v" id="s-fail" style="color:var(--fail)">0</div></div>
+      <div class="stat"><div class="k">Skipped</div><div class="v" id="s-skip" style="color:var(--skip)">0</div></div>
+      <div class="stat"><div class="k">Incomplete</div><div class="v" id="s-incomplete" style="color:var(--skip)">0</div></div>
+      <div class="stat"><div class="k">Risky</div><div class="v" id="s-risky" style="color:var(--risky)">0</div></div>
+      <div class="stat"><div class="k">Assertions</div><div class="v" id="s-assert">0</div></div>
+      <div class="stat"><div class="k">Duration</div><div class="v" id="s-time">0:00</div></div>
+      <div class="stat"><div class="k">Rate</div><div class="v" id="s-rate">—</div></div>
+      <div class="stat" style="min-width:190px">
+        <div class="k">Exit code</div>
+        <div class="v" id="s-exit">—</div>
+        <div class="k" id="s-exit-meaning" style="text-transform:none;letter-spacing:0;margin-top:3px">not started</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CONTROLS ================= -->
+  <div class="card">
+    <div class="controls">
+      <button class="primary" id="run-all">Run everything</button>
+      <button id="run-fast" data-suite="Fast">Fast</button>
+      <div class="sep"></div>
+      <button data-suite="Financial">Financial</button>
+      <button data-suite="Ledger">Ledger</button>
+      <button data-suite="POS">POS</button>
+      <button data-suite="Inventory">Inventory</button>
+      <button data-suite="Reports">Reports</button>
+      <button data-suite="Security">Security</button>
+      <button data-suite="Permissions">Permissions</button>
+      <button data-suite="TenantIsolation">Tenant Isolation</button>
+      <button data-suite="Routes">Routes</button>
+      <button data-suite="Guardrails">Guardrails</button>
+      <button data-suite="VenSynQ">VenSynQ</button>
+      <button data-suite="AI">AI</button>
+      <button data-suite="OfflineSync">Offline Sync</button>
+      <button data-suite="Database">Database</button>
+      <button data-suite="Regression">Regression</button>
+      <button data-suite="Performance">Performance</button>
+      <button data-suite="Smoke">Smoke</button>
+      <div class="sep"></div>
+      <button class="danger" id="stop" disabled>Stop</button>
+    </div>
+
+    <div class="controls" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+      <button id="sweep">Ledger-truth route sweep (~154 routes, live HTTP)</button>
+      <button id="sweep-fast">Sweep (skip seed, faster)</button>
+      <span style="font-size:11.5px;color:var(--faint)">
+        Loads every store page over HTTP and reconciles its numbers against the ledger.
+        Not a PHPUnit run, so it reports separately below.
+      </span>
+    </div>
+  </div>
+
+  <!-- ================= AREAS ================= -->
+  <h2>Coverage by area</h2>
+  <div class="areas" id="areas"></div>
+
+  <!-- ================= FAILURES ================= -->
+  <div class="head-row" id="fail-head" style="display:none">
+    <h2>Failures <span id="fail-count" class="badge">0</span></h2>
+    <div class="copybar">
+      <button class="mini" data-copy="failures">Copy all failures</button>
+      <button class="mini" data-copy="failures-grouped">Copy grouped by cause</button>
+      <button class="mini" data-copy="failures-names">Copy names only</button>
+      <button class="mini" data-download="failures">Download .txt</button>
+    </div>
+  </div>
+  <div id="failures"></div>
+
+  <!-- ================= CONSOLE ================= -->
+  <div class="head-row">
+    <h2>Runner output</h2>
+    <div class="copybar">
+      <button class="mini" data-copy="console">Copy console</button>
+      <button class="mini" data-copy="summary">Copy summary</button>
+      <button class="mini" data-copy="everything">Copy EVERYTHING</button>
+      <button class="mini" data-download="console">Download .log</button>
+    </div>
+  </div>
+  <pre class="console" id="console">Waiting for a run…</pre>
+
+  <div id="toast" class="toast"></div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return (n === null || n === undefined) ? '—' : String(n); };
+
+  var STATUS_ICON = {
+    passing: '✅',
+    failing: '❌',
+    skipped: '⚠',
+    running: '⏳',
+    'not-executed': '⏳'
+  };
+
+  var running = false;
+  var lastState = null;   // most recent state, used by the copy builders
+
+  // -----------------------------------------------------------------
+  // Stopwatch
+  //
+  // The duration tile used to update only when a test finished, so during a
+  // slow test it sat frozen and there was no way to tell a running suite from
+  // a hung one. This ticks 10x a second off the wall clock, independently of
+  // any test event, so movement means "the runner is alive".
+  // -----------------------------------------------------------------
+  var runStartedAt = null;
+  var tickHandle = null;
+
+  function clock(ms) {
+    var total = Math.floor(ms / 1000);
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    var tenths = Math.floor((ms % 1000) / 100);
+    return m + ':' + (s < 10 ? '0' : '') + s + '.' + tenths;
+  }
+
+  function startStopwatch() {
+    runStartedAt = Date.now();
+    if (tickHandle) clearInterval(tickHandle);
+
+    tickHandle = setInterval(function () {
+      var elapsed = Date.now() - runStartedAt;
+      $('s-time').textContent = clock(elapsed);
+
+      // Throughput, which also reads as a liveness signal.
+      var done = (lastState && lastState.executed) || 0;
+      var secs = elapsed / 1000;
+      $('s-rate').textContent = (done > 0 && secs > 0)
+        ? (done / secs).toFixed(1) + '/s'
+        : '—';
+    }, 100);
+  }
+
+  function stopStopwatch(finalMs) {
+    if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
+    if (finalMs) $('s-time').textContent = clock(finalMs);
+  }
+
+  // -----------------------------------------------------------------
+  // Exit code, in words.
+  //
+  // PHPUnit\TextUI\ShellExitCodeCalculator:
+  //   0 SUCCESS_EXIT   1 FAILURE_EXIT   2 EXCEPTION_EXIT
+  // Anything else came from PHP or the shell, not from PHPUnit.
+  // -----------------------------------------------------------------
+  var EXIT_MEANING = {
+    0:   'all tests passed',
+    1:   'tests failed',
+    2:   'errors or exceptions',
+    255: 'fatal PHP error - suite aborted'
+  };
+
+  function setExitCode(s) {
+    var el = $('s-exit');
+    var meaning = $('s-exit-meaning');
+
+    if (running) {
+      el.textContent = '—';
+      el.style.color = 'var(--dim)';
+      meaning.textContent = 'running...';
+      return;
+    }
+
+    if (s.exitCode === null || s.exitCode === undefined) {
+      el.textContent = '—';
+      el.style.color = 'var(--dim)';
+      meaning.textContent = 'not started';
+      return;
+    }
+
+    el.textContent = s.exitCode;
+    el.style.color = s.exitCode === 0 ? 'var(--pass)' : 'var(--fail)';
+    meaning.textContent = EXIT_MEANING[s.exitCode] || 'unrecognised - see console';
+  }
+
+  // -----------------------------------------------------------------
+  // Rendering
+  // -----------------------------------------------------------------
+  function render(s) {
+    lastState = s;
+
+    var expected = s.expected;
+    var executed = s.executed || 0;
+
+    $('p-exec').textContent = executed;
+    $('p-exp').textContent = fmt(expected);
+    $('s-exp').textContent = fmt(expected);
+    $('s-exec').textContent = executed;
+    $('s-pass').textContent = s.passed || 0;
+    $('s-fail').textContent = s.failed || 0;
+    $('s-skip').textContent = s.skipped || 0;
+    $('s-incomplete').textContent = s.incomplete || 0;
+    $('s-risky').textContent = s.risky || 0;
+    $('s-assert').textContent = (s.assertions === null || s.assertions === undefined)
+      ? '0' : s.assertions.toLocaleString();
+
+    // While running, the stopwatch owns this tile so it ticks continuously
+    // rather than freezing between tests. On completion the server's
+    // authoritative duration takes over.
+    if (!running) $('s-time').textContent = clock(s.durationMs || 0);
+
+    setExitCode(s);
+
+    $('l-pass').textContent = s.passed || 0;
+    $('l-fail').textContent = s.failed || 0;
+    $('l-skip').textContent = s.skipped || 0;
+    $('l-risky').textContent = s.risky || 0;
+    $('l-todo').textContent = expected ? Math.max(0, expected - executed) : '—';
+
+    // ---- the progress bar -----------------------------------------
+    // Every segment is a share of EXPECTED, never of executed. The four
+    // segments therefore sum to exactly the completion percentage and can
+    // never overflow the track.
+    if (expected && expected > 0) {
+      var pct = Math.max(0, Math.min(100, executed / expected * 100));
+      $('p-pct').textContent = pct.toFixed(1) + '%';
+
+      var share = function (n) {
+        return Math.max(0, Math.min(100, (n || 0) / expected * 100));
+      };
+
+      $('b-pass').style.width  = share(s.passed) + '%';
+      $('b-fail').style.width  = share(s.failed) + '%';
+      $('b-risky').style.width = share(s.risky) + '%';
+      $('b-skip').style.width  = share(s.skipped) + '%';
+    } else {
+      // Denominator unknown. Say so rather than inventing one.
+      $('p-pct').textContent = '—';
+      ['b-pass', 'b-fail', 'b-risky', 'b-skip'].forEach(function (id) {
+        $(id).style.width = '0%';
+      });
+    }
+
+    // ---- honest status line ---------------------------------------
+    var label;
+    if (!expected) {
+      label = 'Test count unknown — discovery did not complete, so no percentage can be shown.';
+    } else if (!s.finished && running) {
+      label = 'Running' + (s.currentTest ? ': ' + s.currentTest : '…');
+    } else if (s.aborted) {
+      label = 'Run ended early. ' + (expected - executed) + ' of ' + expected + ' tests never executed.';
+    } else if (s.finished) {
+      label = 'Complete. Every discovered test executed.';
+    } else {
+      label = 'Idle. Nothing has run yet.';
+    }
+    $('p-label').textContent = label;
+
+    // ---- banner ----------------------------------------------------
+    var b = $('banner');
+    b.className = 'banner';
+    if (s.finished && s.aborted) {
+      b.className = 'banner warn';
+      b.innerHTML = '<b>Incomplete run.</b> ' + (expected - executed) + ' test(s) did not execute. '
+        + 'A fatal error, an autoload failure or an interrupted process will do this. '
+        + 'Check <code>FinalTester/logs/last-run.log</code>.';
+    } else if (s.finished && (s.failed || 0) > 0) {
+      b.className = 'banner err';
+      b.innerHTML = '<b>' + s.failed + ' failing test(s).</b> '
+        + 'Project rule: fix the application code, not the test, unless the test is provably wrong.';
+    } else if (s.finished && executed > 0) {
+      b.className = 'banner ok';
+      b.innerHTML = '<b>All ' + executed + ' tests passed.</b> Exit code ' + s.exitCode + '.';
+    }
+
+    renderAreas(s.areas || {});
+    renderFailures(s.failures || []);
+  }
+
+  function renderAreas(areas) {
+    var names = Object.keys(areas).sort();
+    var host = $('areas');
+    host.innerHTML = '';
+
+    names.forEach(function (name) {
+      var a = areas[name];
+      if (!a.expected && !a.executed) return; // nothing discovered here
+
+      var status = a.status || 'not-executed';
+      if (status === 'running' && a.executed >= a.expected && a.expected > 0) {
+        status = a.failed > 0 ? 'failing' : 'passing';
+      }
+
+      var el = document.createElement('div');
+      el.className = 'area ' + status;
+      el.innerHTML =
+        '<div class="top">'
+        + '<span class="nm">' + STATUS_ICON[status] + ' ' + name + '</span>'
+        + '<span class="ct">' + a.executed + '/' + (a.expected || '?') + '</span>'
+        + '</div>'
+        + '<div class="row">'
+        + '<span style="color:var(--pass)">✅ ' + a.passed + '</span>'
+        + '<span style="color:var(--fail)">❌ ' + a.failed + '</span>'
+        + '<span style="color:var(--skip)">⚠ ' + a.skipped + '</span>'
+        + '<span style="color:var(--faint)">⏳ ' + Math.max(0, (a.expected || 0) - a.executed) + '</span>'
+        + '</div>';
+      host.appendChild(el);
+    });
+
+    if (!host.children.length) {
+      host.innerHTML = '<div class="area not-executed"><div class="nm">No run yet</div>'
+        + '<div class="row">Press <b>Run everything</b> to populate this.</div></div>';
+    }
+  }
+
+  function renderFailures(list) {
+    var host = $('failures');
+    var head = $('fail-head');
+    host.innerHTML = '';
+
+    $('fail-count').textContent = list.length;
+
+    if (!list.length) { head.style.display = 'none'; return; }
+    head.style.display = 'flex';
+
+    list.forEach(function (f) {
+      var el = document.createElement('div');
+      el.className = 'fail-item';
+      el.innerHTML =
+        '<div class="t">' + esc(f.test) + '</div>'
+        + '<div class="c">' + esc(f.class || '') + (f.area ? '  •  ' + esc(f.area) : '') + '</div>'
+        + '<div class="m">' + esc((f.message || '') + (f.details ? '\n' + f.details : '')) + '</div>';
+      host.appendChild(el);
+    });
+  }
+
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // -----------------------------------------------------------------
+  // Console
+  // -----------------------------------------------------------------
+  var lines = [];
+  function log(line) {
+    lines.push(line);
+    if (lines.length > 400) lines = lines.slice(-400);
+    var c = $('console');
+    c.textContent = lines.join('\n');
+    c.scrollTop = c.scrollHeight;
+  }
+
+  // -----------------------------------------------------------------
+  // Socket
+  // -----------------------------------------------------------------
+  var ws;
+  function connect() {
+    ws = new WebSocket('ws://' + location.host);
+
+    ws.onopen = function () { $('conn').textContent = 'connected'; };
+
+    ws.onclose = function () {
+      $('conn').textContent = 'disconnected — retrying';
+      setRunning(false);
+      setTimeout(connect, 2000);
+    };
+
+    ws.onmessage = function (ev) {
+      var m = JSON.parse(ev.data);
+
+      if (m.type === 'hello') {
+        $('conn').textContent = m.phpBin;
+      }
+
+      if (m.type === 'last-run') {
+        lines = ['(showing the previous run — press a button to start a new one)'];
+        render(m.state);
+      }
+
+      if (m.type === 'phase') {
+        setRunning(true);
+        startStopwatch();
+        lines = [];
+        log('  ' + m.message);
+      }
+
+      if (m.type === 'start') {
+        setRunning(true);
+        log('  Expected tests: ' + (m.expected === null ? 'UNKNOWN — discovery failed' : m.expected));
+        log('  Running...');
+        log('');
+        render(m.state);
+      }
+
+      if (m.type === 'progress') render(m.state);
+
+      // ---- ledger-truth sweep (not a PHPUnit run) --------------------
+      if (m.type === 'sweep-start') {
+        setRunning(true);
+        startStopwatch();
+        lines = [];
+        log('  ' + m.message);
+        log('');
+        var b = $('banner');
+        b.className = 'banner info';
+        b.textContent = 'Ledger-truth route sweep running. Progress bar does not apply — '
+                      + 'this is an HTTP sweep, not a PHPUnit run. Watch the console below.';
+      }
+
+      if (m.type === 'sweep-tick') {
+        // Heartbeat only; the stopwatch already shows elapsed time.
+        $('p-label').textContent = 'Route sweep running... ' + clock(m.elapsedMs);
+      }
+
+      if (m.type === 'sweep-complete') {
+        setRunning(false);
+        stopStopwatch(m.durationMs);
+        var bc = $('banner');
+        if (m.exitCode === 0) {
+          bc.className = 'banner ok';
+          bc.textContent = 'Route sweep PASSED'
+            + (m.routesFound ? ' — ' + m.routesFound + ' routes reconciled to the ledger.' : '.');
+        } else {
+          bc.className = 'banner err';
+          bc.textContent = 'Route sweep FAILED (exit ' + m.exitCode + ')'
+            + (m.routesFound ? ' — ' + m.routesFound + ' routes scanned.' : '')
+            + ' Mismatch report: storage/discrepancy_report.md';
+        }
+        $('p-label').textContent = 'Route sweep finished. Press a Run button for a PHPUnit run.';
+        log('');
+        log('  Sweep finished. exit code ' + m.exitCode);
+        log('  Full output: FinalTester\\logs\\last-sweep.log');
+      }
+
+      if (m.type === 'output') log(m.line);
+      if (m.type === 'stderr') log(m.text.replace(/\s+$/, ''));
+
+      // Preflight refused to start the run. Nothing executed, so the counters
+      // stay at zero rather than showing a misleading partial result.
+      if (m.type === 'blocked') {
+        setRunning(false);
+        stopStopwatch(0);
+        lines = [];
+        log(m.report);
+
+        var bb = $('banner');
+        bb.className = 'banner warn';
+        bb.innerHTML = '<b>Run blocked before any test executed.</b> '
+          + 'The environment cannot produce a trustworthy result, so nothing was run. '
+          + 'The exact problems and their fixes are in the console below. '
+          + 'This is <i>not</i> a product failure.';
+
+        $('p-label').textContent = 'Blocked by preflight. Nothing executed.';
+        $('s-time').textContent = '0:00.0';
+        $('s-rate').textContent = '—';
+        return;
+      }
+
+      if (m.type === 'error') {
+        setRunning(false);
+        stopStopwatch(0);
+        log('  ERROR: ' + m.message);
+        var b = $('banner');
+        b.className = 'banner err';
+        b.textContent = m.message;
+      }
+
+      if (m.type === 'complete') {
+        setRunning(false);
+        stopStopwatch(m.state.durationMs);
+        render(m.state);
+        log('');
+        log('  Finished. exit code ' + m.state.exitCode);
+
+        var r = m.reconciled;
+        if (r) {
+          if (r.source === 'pest-summary') {
+            log('  Final numbers taken from Pest\'s own summary line (authoritative).');
+            if (r.changed) {
+              log('    live stream counted : ' + r.stream.executed
+                  + '  (misses tests that error before starting)');
+              log('    pest summary        : ' + r.pest.executed);
+            }
+            if (r.note) log('    note: ' + r.note);
+          } else {
+            log('  ' + r.reason);
+          }
+        }
+      }
+    };
+  }
+
+  function setRunning(v) {
+    running = v;
+    document.querySelectorAll('button[data-suite], #run-all, #run-fast, #sweep, #sweep-fast')
+      .forEach(function (b) { b.disabled = v; });
+    $('stop').disabled = !v;
+  }
+
+  // -----------------------------------------------------------------
+  // Copy / download
+  //
+  // The old dashboard let you copy results out; this one lost that. It
+  // matters more here than it did there, because a 438-failure list is
+  // useless if you cannot paste it somewhere to triage it.
+  // -----------------------------------------------------------------
+
+  /**
+   * Classify a failure by its message.
+   *
+   * The point is separating "the test harness is misconfigured" from "the
+   * product is broken". On the 2026-08-02 run, 81% of failures were the
+   * former, and reading the list without that split would have sent someone
+   * hunting 438 imaginary bugs.
+   */
+  function classify(f) {
+    var m = (f.message || '') + ' ' + (f.details || '');
+    if (/createTenant\(\)|pest\(\)->extend\(\)/.test(m))          return 'HARNESS - Pest base class not bound';
+    if (/Target class \[config\] does not exist/.test(m))         return 'HARNESS - Laravel app not booted';
+    if (/suites\.yaml/.test(m))                                   return 'HARNESS - registry path expects Tester/';
+    if (/SQLSTATE\[42S02\]|doesn.t exist/.test(m))                return 'ENVIRONMENT - missing table (migrate)';
+    if (/SQLSTATE\[42S22\]|Unknown column/.test(m))               return 'ENVIRONMENT - missing column (migrate)';
+    if (/SQLSTATE/.test(m))                                       return 'ENVIRONMENT - other SQL error';
+    if (/Inertia page component .* does not exist/.test(m))       return 'PRODUCT - missing page component';
+    if (/received 500/.test(m))                                   return 'PRODUCT - HTTP 500';
+    if (/received 40\d/.test(m))                                  return 'PRODUCT - HTTP 4xx';
+    if (/Expected response status code/.test(m))                  return 'PRODUCT - unexpected HTTP status';
+    if (/Failed asserting/.test(m))                               return 'PRODUCT - assertion failure';
+    return 'UNCLASSIFIED';
+  }
+
+  function currentFailures() { return (lastState && lastState.failures) || []; }
+
+  function buildFailuresText() {
+    var list = currentFailures();
+    var out = ['VenQore test failures  (' + list.length + ')',
+               new Date().toISOString(), ''.padEnd(70, '='), ''];
+    list.forEach(function (f, i) {
+      out.push((i + 1) + '. ' + f.test);
+      out.push('   class : ' + (f.class || '(unbound - see cause)'));
+      out.push('   area  : ' + (f.area || '?'));
+      out.push('   cause : ' + classify(f));
+      out.push('   msg   : ' + (f.message || '').replace(/\n/g, '\n           '));
+      if (f.details) out.push('   at    : ' + f.details.split('\n')[0]);
+      out.push('');
+    });
+    return out.join('\n');
+  }
+
+  function buildGroupedText() {
+    var list = currentFailures();
+    var groups = {};
+    list.forEach(function (f) {
+      var c = classify(f);
+      (groups[c] = groups[c] || []).push(f);
+    });
+
+    var keys = Object.keys(groups).sort(function (a, b) {
+      return groups[b].length - groups[a].length;
+    });
+
+    var out = ['VenQore test failures grouped by cause',
+               new Date().toISOString(),
+               'total: ' + list.length, ''.padEnd(70, '='), ''];
+
+    keys.forEach(function (k) {
+      var pct = (groups[k].length / list.length * 100).toFixed(1);
+      out.push(k + '   -   ' + groups[k].length + ' failure(s)  (' + pct + '%)');
+      out.push(''.padEnd(70, '-'));
+      groups[k].forEach(function (f) {
+        out.push('  * ' + (f.class ? f.class + ' :: ' : '') + f.test);
+      });
+      out.push('  example message:');
+      out.push('    ' + (groups[k][0].message || '').split('\n')[0]);
+      out.push('');
+    });
+
+    return out.join('\n');
+  }
+
+  function buildNamesText() {
+    return currentFailures().map(function (f) {
+      return (f.class ? f.class + '::' : '') + f.test;
+    }).join('\n');
+  }
+
+  function buildSummaryText() {
+    var s = lastState || {};
+    return [
+      'VenQore test run summary',
+      new Date().toISOString(),
+      ''.padEnd(50, '='),
+      'Expected   : ' + fmt(s.expected),
+      'Executed   : ' + (s.executed || 0),
+      'Passed     : ' + (s.passed || 0),
+      'Failed     : ' + (s.failed || 0),
+      'Skipped    : ' + (s.skipped || 0),
+      'Incomplete : ' + (s.incomplete || 0),
+      'Risky      : ' + (s.risky || 0),
+      'Assertions : ' + fmt(s.assertions),
+      'Duration   : ' + ((s.durationMs || 0) / 1000).toFixed(1) + 's',
+      'Exit code  : ' + fmt(s.exitCode),
+      'Complete   : ' + (s.aborted ? 'NO - ended early' : 'yes')
+    ].join('\n');
+  }
+
+  function buildEverythingText() {
+    return buildSummaryText() + '\n\n\n'
+         + buildGroupedText() + '\n\n\n'
+         + buildFailuresText() + '\n\n\n'
+         + 'RUNNER OUTPUT\n' + ''.padEnd(70, '=') + '\n'
+         + lines.join('\n');
+  }
+
+  var BUILDERS = {
+    'failures': buildFailuresText,
+    'failures-grouped': buildGroupedText,
+    'failures-names': buildNamesText,
+    'console': function () { return lines.join('\n'); },
+    'summary': buildSummaryText,
+    'everything': buildEverythingText
+  };
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(function () { t.classList.remove('show'); }, 1900);
+  }
+
+  function copyText(text, label) {
+    // navigator.clipboard needs a secure context; localhost qualifies, but
+    // fall back to execCommand so this cannot silently do nothing.
+    var done = function () { toast(label + ' copied (' + text.length.toLocaleString() + ' chars)'); };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text, done); });
+    } else {
+      legacyCopy(text, done);
+    }
+  }
+
+  function legacyCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch (e) { toast('Copy blocked - select the text manually'); }
+    document.body.removeChild(ta);
+  }
+
+  function download(text, filename) {
+    var blob = new Blob([text], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Downloaded ' + filename);
+  }
+
+  document.querySelectorAll('button[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var kind = b.getAttribute('data-copy');
+      copyText(BUILDERS[kind](), b.textContent);
+    });
+  });
+
+  document.querySelectorAll('button[data-download]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var kind = b.getAttribute('data-download');
+      var stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      if (kind === 'console') download(lines.join('\n'), 'venqore-run-' + stamp + '.log');
+      else download(buildEverythingText(), 'venqore-failures-' + stamp + '.txt');
+    });
+  });
+
+  function send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+
+  $('run-all').addEventListener('click', function () { send({ action: 'run' }); });
+  $('stop').addEventListener('click', function () { send({ action: 'stop' }); });
+  $('sweep').addEventListener('click', function () { send({ action: 'sweep' }); });
+  $('sweep-fast').addEventListener('click', function () { send({ action: 'sweep', skipSeed: true }); });
+
+  document.querySelectorAll('button[data-suite]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      send({ action: 'run', testsuite: b.getAttribute('data-suite') });
+    });
+  });
+
+  render({ expected: null, executed: 0, passed: 0, failed: 0, skipped: 0, risky: 0, areas: {}, failures: [] });
+  connect();
+})();
+</script>
+</body>
+</html>

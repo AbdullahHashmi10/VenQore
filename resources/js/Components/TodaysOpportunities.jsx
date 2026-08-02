@@ -212,11 +212,11 @@ const TodaysOpportunities = ({ className = '' }) => {
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                        <span className="text-2xs font-bold uppercase tracking-wider text-slate-400">
                                             {getTypeLabel(rec.type)}
                                         </span>
                                         {rec.priority === 'urgent' && (
-                                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded">
+                                            <span className="px-1.5 py-0.5 text-2xs font-bold bg-red-500 text-white rounded">
                                                 URGENT
                                             </span>
                                         )}
@@ -260,7 +260,7 @@ const TodaysOpportunities = ({ className = '' }) => {
                                         <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                                             {formatCurrency(rec.potential_revenue || 0, store)}
                                         </p>
-                                        <p className="text-[10px] text-slate-400">Potential</p>
+                                        <p className="text-2xs text-slate-400">Potential</p>
                                     </div>
                                 )}
                             </div>

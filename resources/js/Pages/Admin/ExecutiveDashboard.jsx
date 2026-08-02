@@ -2,6 +2,7 @@ import React from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     TrendingUp,
     TrendingDown,
@@ -79,15 +80,15 @@ export default function AdminDashboard({
         ...item,
         percentage: Math.round((item.value / totalExpenseValue) * 100)
     })) : [
-        { name: 'No Data', value: 1, color: '#334155', percentage: 0 } // Placeholder if empty
+        { name: 'No Data', value: 1, color: vq.slate[700], percentage: 0 } // Placeholder if empty
     ];
 
     // Inventory pie data - Fix 0 || value bug by using explicit null updates or relying on passed 0s
     // Also ensuring it uses the props passed from controller which are already percentages
     const pieData = [
-        { name: 'Healthy', value: inventoryHealth.healthy ?? 0, color: '#10b981' },
-        { name: 'Low', value: inventoryHealth.lowStock ?? 0, color: '#f59e0b' },
-        { name: 'Out', value: inventoryHealth.outOfStock ?? 0, color: '#ef4444' },
+        { name: 'Healthy', value: inventoryHealth.healthy ?? 0, color: vq.emerald[500] },
+        { name: 'Low', value: inventoryHealth.lowStock ?? 0, color: vq.amber[500] },
+        { name: 'Out', value: inventoryHealth.outOfStock ?? 0, color: vq.red[500] },
     ].filter(d => d.value > 0);
 
     const activeInventoryStatus =
@@ -118,7 +119,7 @@ export default function AdminDashboard({
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Pending Actions</span>
                                         {inventoryHealth.lowStockCount > 0 && (
-                                            <span className="text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded-full mt-1 w-max">Action Needed</span>
+                                            <span className="text-2xs font-bold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded-full mt-1 w-max">Action Needed</span>
                                         )}
                                     </div>
                                 </div>
@@ -140,7 +141,7 @@ export default function AdminDashboard({
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Profit Margin</span>
-                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
+                                    <span className="text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
                                         <ArrowUpRight size={10} /> Healthy
                                     </span>
                                 </div>
@@ -160,7 +161,7 @@ export default function AdminDashboard({
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Overdue Payments</span>
-                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
+                                    <span className="text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
                                         <TrendingUp size={10} /> On Track
                                     </span>
                                 </div>
@@ -179,7 +180,7 @@ export default function AdminDashboard({
                             <div className="flex justify-between items-start mb-3">
                                 <div>
                                     <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Purchases Trend</h3>
-                                    <p className="text-[11px] text-slate-400">Past 6 months spending</p>
+                                    <p className="text-1xs text-slate-400">Past 6 months spending</p>
                                 </div>
                                 <div className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 rounded-xl">
                                     <TrendingUp size={16} />
@@ -190,31 +191,31 @@ export default function AdminDashboard({
                                     <AreaChart data={profitData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.5} />
                                         <XAxis
                                             dataKey="month"
                                             axisLine={false}
                                             tickLine={false}
-                                            tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                            tick={{ fill: vq.slate[400], fontSize: 10 }}
                                             dy={5}
                                         />
                                         <YAxis
                                             axisLine={false}
                                             tickLine={false}
-                                            tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                            tick={{ fill: vq.slate[400], fontSize: 10 }}
                                             tickFormatter={(value) => `${currencySymbol}${value}`}
                                         />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '12px', color: '#f8fafc', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                                            contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '12px', color: vq.slate[50], boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
                                             itemStyle={{ color: '#fff' }}
-                                            cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '3 3' }}
+                                            cursor={{ stroke: vq.indigo[500], strokeWidth: 1, strokeDasharray: '3 3' }}
                                             formatter={(value) => `${currencySymbol} ${value.toLocaleString()}`}
                                         />
-                                        <Area name="Purchases" type="monotone" dataKey="purchases" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6 }} />
+                                        <Area name="Purchases" type="monotone" dataKey="purchases" stroke={vq.indigo[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -226,7 +227,7 @@ export default function AdminDashboard({
                                 <div>
                                     <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Inventory</h3>
                                     <div className={`flex items-center gap-1.5 mt-0.5 ${activeInventoryStatus.color}`}>
-                                        <span className="text-[9px] font-black uppercase tracking-wider">{activeInventoryStatus.label}</span>
+                                        <span className="text-3xs font-black uppercase tracking-wider">{activeInventoryStatus.label}</span>
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +244,7 @@ export default function AdminDashboard({
                                         <div key={idx} className="flex flex-col">
                                             <div className="flex items-center gap-1.5">
                                                 <div className={`w-1.5 h-1.5 rounded-full ${item.c}`}></div>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.k}</span>
+                                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-widest">{item.k}</span>
                                             </div>
                                             <span className={`text-base font-extrabold ml-3 ${item.text}`}>{item.val}%</span>
                                         </div>
@@ -255,7 +256,7 @@ export default function AdminDashboard({
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
-                                                data={pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: '#334155' }]}
+                                                data={pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: vq.slate[700] }]}
                                                 cx="55%"
                                                 cy="50%"
                                                 innerRadius="50%"
@@ -264,12 +265,12 @@ export default function AdminDashboard({
                                                 dataKey="value"
                                                 stroke="none"
                                             >
-                                                {(pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: '#334155' }]).map((entry, index) => (
+                                                {(pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: vq.slate[700] }]).map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                                 ))}
                                             </Pie>
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
                                                 itemStyle={{ color: '#fff' }}
                                             />
                                         </PieChart>
@@ -283,7 +284,7 @@ export default function AdminDashboard({
                             <div className="flex justify-between items-start mb-2 shrink-0">
                                 <div>
                                     <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Payments</h3>
-                                    <p className="text-[11px] text-slate-400">Transaction types</p>
+                                    <p className="text-1xs text-slate-400">Transaction types</p>
                                 </div>
                             </div>
 
@@ -295,7 +296,7 @@ export default function AdminDashboard({
                                         <div key={idx} className="flex flex-col">
                                             <div className="flex items-center gap-1.5">
                                                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: method.color }}></div>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{method.name}</span>
+                                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-widest">{method.name}</span>
                                             </div>
                                             <span className="text-base font-extrabold ml-3 text-slate-700 dark:text-slate-300">
                                                 {method.value}
@@ -303,7 +304,7 @@ export default function AdminDashboard({
                                         </div>
                                     )) : (
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase">No Data</span>
+                                            <span className="text-2xs font-bold text-slate-400 uppercase">No Data</span>
                                             <span className="text-xs text-slate-500 mt-1">No sales recorded</span>
                                         </div>
                                     )}
@@ -314,7 +315,7 @@ export default function AdminDashboard({
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
-                                                data={paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: '#334155' }]}
+                                                data={paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: vq.slate[700] }]}
                                                 cx="55%"
                                                 cy="50%"
                                                 innerRadius="50%"
@@ -323,12 +324,12 @@ export default function AdminDashboard({
                                                 dataKey="value"
                                                 stroke="none"
                                             >
-                                                {(paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: '#334155' }]).map((entry, index) => (
+                                                {(paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: vq.slate[700] }]).map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                                 ))}
                                             </Pie>
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
                                                 itemStyle={{ color: '#fff' }}
                                                 formatter={(value, name) => [value, name]}
                                             />
@@ -343,17 +344,17 @@ export default function AdminDashboard({
                             <div className="flex justify-between items-start mb-2 shrink-0">
                                 <div>
                                     <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Expenses</h3>
-                                    <p className="text-[11px] text-slate-400">Monthly breakdown</p>
+                                    <p className="text-1xs text-slate-400">Monthly breakdown</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total</p>
+                                    <p className="text-3xs text-slate-400 font-bold uppercase tracking-wider">Total</p>
                                     <p className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(totalExpenseValue)}</p>
                                 </div>
                             </div>
 
                             <div className="flex-1 min-h-0 w-full flex items-center gap-6">
                                 <div className="h-full w-[40%] relative">
-                                    <div className="absolute inset-0 z-10 text-[10px]">
+                                    <div className="absolute inset-0 z-10 text-2xs">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
                                                 <Pie
@@ -371,7 +372,7 @@ export default function AdminDashboard({
                                                     ))}
                                                 </Pie>
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
+                                                    contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
                                                     itemStyle={{ color: '#fff' }}
                                                     formatter={(value) => `${currencySymbol} ${value.toLocaleString()}`}
                                                 />
@@ -385,7 +386,7 @@ export default function AdminDashboard({
                                         <div key={idx} className="flex flex-col p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 transition-colors">
                                             <div className="flex items-center gap-1.5 mb-0.5">
                                                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                                <span className="text-[9px] font-bold text-slate-500 uppercase truncate max-w-[70px]">{item.name}</span>
+                                                <span className="text-3xs font-bold text-slate-500 uppercase truncate max-w-[70px]">{item.name}</span>
                                             </div>
                                             <span className="text-sm font-black text-slate-800 dark:text-slate-200">{item.percentage}%</span>
                                         </div>
@@ -469,7 +470,7 @@ export default function AdminDashboard({
                                     <div className="p-1.5 rounded-full bg-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                                         <Users size={18} />
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider">USERS</span>
+                                    <span className="text-2xs font-bold tracking-wider">USERS</span>
                                 </Link>
                                 <Link href={route("store.reports.index", {
                                     store_slug: store.slug
@@ -477,13 +478,13 @@ export default function AdminDashboard({
                                     <div className="p-1.5 rounded-full bg-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-colors">
                                         <FileText size={18} />
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider">REPORTS</span>
+                                    <span className="text-2xs font-bold tracking-wider">REPORTS</span>
                                 </Link>
                                 <Link href={route('store.activity-log.index', { store_slug: store.slug })} className="col-span-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
                                     <div className="p-1.5 rounded-full bg-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
                                         <Activity size={18} />
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider">LOGS</span>
+                                    <span className="text-2xs font-bold tracking-wider">LOGS</span>
                                 </Link>
                             </div>
                         </div>
@@ -493,18 +494,18 @@ export default function AdminDashboard({
                             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
                                 <div className="flex justify-between items-start mb-3">
                                     <TrendingUp size={18} className="text-emerald-400" />
-                                    <span className="text-[10px] text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold">IN</span>
+                                    <span className="text-2xs text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold">IN</span>
                                 </div>
                                 <h4 className="text-lg font-bold tracking-tight group-hover:scale-105 transition-transform origin-left">{formatCurrency(stats.today_in)}</h4>
-                                <p className="text-[10px] text-slate-400 mt-1">Today's In</p>
+                                <p className="text-2xs text-slate-400 mt-1">Today's In</p>
                             </div>
                             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
                                 <div className="flex justify-between items-start mb-3">
                                     <TrendingDown size={18} className="text-red-400" />
-                                    <span className="text-[10px] text-red-200 bg-red-500/20 px-2 py-0.5 rounded-full font-bold">OUT</span>
+                                    <span className="text-2xs text-red-200 bg-red-500/20 px-2 py-0.5 rounded-full font-bold">OUT</span>
                                 </div>
                                 <h4 className="text-lg font-bold tracking-tight group-hover:scale-105 transition-transform origin-left">{formatCurrency(stats.today_out)}</h4>
-                                <p className="text-[10px] text-slate-400 mt-1">Today's Out</p>
+                                <p className="text-2xs text-slate-400 mt-1">Today's Out</p>
                             </div>
                         </div>
 
@@ -545,30 +546,30 @@ export default function AdminDashboard({
                         <div className="relative z-10 flex-1 bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 flex flex-col min-h-0">
                             <div className="flex justify-between items-center mb-3 shrink-0">
                                 <h3 className="font-bold text-xs text-slate-300 uppercase tracking-wider">Business Activity</h3>
-                                <Link href={route('store.funds.index', { store_slug: store.slug, view: 'history' })} className="text-[10px] text-indigo-300 hover:text-white transition-colors font-semibold">View All</Link>
+                                <Link href={route('store.funds.index', { store_slug: store.slug, view: 'history' })} className="text-2xs text-indigo-300 hover:text-white transition-colors font-semibold">View All</Link>
                             </div>
                             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                                 {recentActivity.length > 0 ? recentActivity.map((act, idx) => (
                                     <div key={idx} className="flex items-center justify-between group cursor-pointer px-2 py-2 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 pb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${act.is_plus ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-2xs font-black ${act.is_plus ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
                                                 {act.is_plus ? <Plus size={14} /> : <Minus size={14} />}
                                             </div>
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-[11px] font-bold text-white/90 truncate">{act.title}</span>
-                                                <span className="text-[9px] text-slate-400 flex items-center gap-1">
+                                                <span className="text-1xs font-bold text-white/90 truncate">{act.title}</span>
+                                                <span className="text-3xs text-slate-400 flex items-center gap-1">
                                                     <Clock size={8} /> {act.time}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`text-[11px] font-black ${act.is_plus ? 'text-emerald-400' : 'text-rose-400'}`}>{act.amount}</span>
+                                            <span className={`text-1xs font-black ${act.is_plus ? 'text-emerald-400' : 'text-rose-400'}`}>{act.amount}</span>
                                         </div>
                                     </div>
                                 )) : (
                                     <div className="h-full flex flex-col items-center justify-center text-slate-500 opacity-50">
                                         <Activity size={24} className="mb-2" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest">No Recent Activity</p>
+                                        <p className="text-2xs font-bold uppercase tracking-widest">No Recent Activity</p>
                                     </div>
                                 )}
                             </div>
@@ -577,10 +578,10 @@ export default function AdminDashboard({
                         {/* Quick Actions Footer */}
                         <div className="relative z-10 pt-4 mt-4 border-t border-white/5 shrink-0">
                             <div className="grid grid-cols-2 gap-2">
-                                <Link href={route('store.admin.settings', { store_slug: store.slug })} className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
+                                <Link href={route('store.admin.settings', { store_slug: store.slug })} className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all">
                                     <Settings size={14} /> Settings
                                 </Link>
-                                <button className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
+                                <button className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all">
                                     <Shield size={14} /> Security
                                 </button>
                             </div>

@@ -266,7 +266,7 @@ export default function SettingsPanel({ settings }) {
                                                         key={opt.value}
                                                         type="button"
                                                         onClick={() => setData('round_off_total', opt.value)}
-                                                        className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
+                                                        className={`py-2 px-1 text-center font-bold text-1xs rounded-lg border transition-all ${isActive
                                                             ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
                                                             : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
                                                             }`}
@@ -363,14 +363,14 @@ export default function SettingsPanel({ settings }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => setData('pos_return_window_behavior', 'warn')}
-                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
                                                     >
                                                         Soft Warning
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setData('pos_return_window_behavior', 'block')}
-                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
                                                     >
                                                         Hard Block
                                                     </button>
@@ -468,7 +468,7 @@ export default function SettingsPanel({ settings }) {
                             {!sidebarCollapsed && (
                                 <div className="min-w-0">
                                     <h2 className="text-lg font-black text-white tracking-tight">Settings</h2>
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-indigo-400">Shop Config</p>
+                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-indigo-400">Shop Config</p>
                                 </div>
                             )}
                         </div>
@@ -488,7 +488,7 @@ export default function SettingsPanel({ settings }) {
                                         <button
                                             type="button"
                                             onClick={() => toggleCategory(category.id)}
-                                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-colors group"
+                                            className="w-full flex items-center justify-between px-3 py-2 text-2xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-colors group"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <CatIcon size={12} />
@@ -525,7 +525,7 @@ export default function SettingsPanel({ settings }) {
                                                         {!sidebarCollapsed && (
                                                             <div className="relative z-10 flex-1 min-w-0">
                                                                 <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-slate-200'}`}>{section.name}</p>
-                                                                <p className={`text-[9px] leading-tight ${isActive ? 'text-indigo-200' : 'text-slate-500'} line-clamp-1`}>
+                                                                <p className={`text-3xs leading-tight ${isActive ? 'text-indigo-200' : 'text-slate-500'} line-clamp-1`}>
                                                                     {section.description}
                                                                 </p>
                                                             </div>
@@ -552,7 +552,7 @@ export default function SettingsPanel({ settings }) {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Section</span>
+                                        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-[0.2em] rounded-full">Section</span>
                                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                             {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
                                         </h2>

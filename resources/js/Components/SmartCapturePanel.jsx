@@ -729,7 +729,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             {appendMode ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Document Type</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block ml-1">Document Type</label>
                         <CustomSelect
                             value={appendDocType}
                             onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
@@ -742,7 +742,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Target Document</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block ml-1">Target Document</label>
                         <CustomSelect
                             value={appendDocId}
                             onChange={e => setAppendDocId(e.target.value)}
@@ -756,7 +756,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             ]}
                         />
                         {openDocs.length === 0 && (
-                            <p className="text-[10px] text-amber-500 font-semibold ml-1">No open documents of this type found.</p>
+                            <p className="text-2xs text-amber-500 font-semibold ml-1">No open documents of this type found.</p>
                         )}
                     </div>
                 </div>
@@ -767,7 +767,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         letterhead, and the user is never surprised by the
                         question after the scan has already run. */}
                     <div className="space-y-1.5 md:col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block ml-1">
                             Who is this document for? <span className="normal-case font-bold text-slate-400">(optional — helps the AI a lot)</span>
                         </label>
                         <div className="flex gap-2">
@@ -797,7 +797,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">What would you like to create?</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block ml-1">What would you like to create?</label>
                         <CustomSelect
                             value={targetType}
                             onChange={e => setTargetType(e.target.value)}
@@ -827,7 +827,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Text Commands / Instructions (Optional)</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block ml-1">Text Commands / Instructions (Optional)</label>
                         <input
                             type="text"
                             value={customCommand}
@@ -861,7 +861,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                 <div className="space-y-4">
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Provider</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block mb-1.5">Provider</label>
                         <CustomSelect
                             value={settingsForm.provider}
                             onChange={e => setSettingsForm(f => ({ ...f, provider: e.target.value, model: '' }))}
@@ -871,7 +871,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             }))}
                         />
                         {providerCaps[settingsForm.provider] && (
-                            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                            <p className="text-2xs text-slate-400 mt-1.5 ml-1">
                                 Supports: {['image', 'audio', 'text'].filter(t => providerCaps[settingsForm.provider][t]).map(t => t === 'image' ? 'Photos' : t === 'audio' ? 'Voice' : 'Text').join(', ')}
                                 {!providerCaps[settingsForm.provider].image && ' — no photo scanning!'}
                             </p>
@@ -879,7 +879,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">API Key</label>
+                        <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block mb-1.5">API Key</label>
                         <input
                             type="text"
                             value={settingsForm.api_key}
@@ -891,12 +891,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Model (optional)</label>
+                            <label className="text-2xs font-black uppercase tracking-wider text-slate-400">Model (optional)</label>
                             <button
                                 type="button"
                                 onClick={discoverModels}
                                 disabled={modelsBusy}
-                                className="text-[10px] font-black uppercase tracking-wider text-indigo-500 hover:text-indigo-400 flex items-center gap-1 disabled:opacity-40"
+                                className="text-2xs font-black uppercase tracking-wider text-indigo-500 hover:text-indigo-400 flex items-center gap-1 disabled:opacity-40"
                             >
                                 {modelsBusy ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
                                 Load available models
@@ -925,7 +925,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             />
                         )}
 
-                        <p className="text-[10px] text-slate-400 mt-1.5 ml-1 leading-relaxed">
+                        <p className="text-2xs text-slate-400 mt-1.5 ml-1 leading-relaxed">
                             Leave empty for the recommended default. Newer Flash models read handwriting better and
                             usually cost less — press "Load available models" to see what your key can use.
                         </p>
@@ -1078,13 +1078,13 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/10 transition-all flex flex-col justify-between text-left">
                     <div>
                         <div className="flex justify-between items-start mb-3">
-                            <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
                                 BYOK Lifetime
                             </span>
-                            <div className="text-lg font-black text-slate-800 dark:text-white">$5 <span className="text-[10px] font-normal text-slate-500">once</span></div>
+                            <div className="text-lg font-black text-slate-800 dark:text-white">$5 <span className="text-2xs font-normal text-slate-500">once</span></div>
                         </div>
                         <h5 className="text-xs font-black text-slate-800 dark:text-white mb-1.5">Bring Your Own Key</h5>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-2xs text-slate-500 dark:text-slate-400 leading-relaxed">
                             Provide your own Gemini, OpenAI, Claude, or DeepSeek API key. Bypass platform fees forever.
                         </p>
                     </div>
@@ -1092,7 +1092,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         {ctx?.entitlement?.reason === 'no_key' ? (
                             <button
                                 onClick={openSettings}
-                                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-2xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                             >
                                 <KeyRound size={12} /> Configure API Key
                             </button>
@@ -1100,7 +1100,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <button
                                 onClick={() => handlePurchaseAddon('ai_byok')}
                                 disabled={isPurchasingAddon !== null}
-                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-[#020010] rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-void-950 rounded-lg text-2xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
                             >
                                 {isPurchasingAddon === 'ai_byok' ? <Loader2 size={12} className="animate-spin" /> : 'Buy BYOK Unlock'}
                             </button>
@@ -1112,13 +1112,13 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="md:col-span-2 p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] hover:border-slate-300 dark:hover:border-white/10 transition-all flex flex-col justify-between text-left">
                     <div>
                         <div className="flex justify-between items-start mb-3">
-                            <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
                                 Managed API
                             </span>
-                            <span className="text-[10px] text-slate-500">Monthly Tiers</span>
+                            <span className="text-2xs text-slate-500">Monthly Tiers</span>
                         </div>
                         <h5 className="text-xs font-black text-slate-800 dark:text-white mb-1.5">Managed AI Subscriptions</h5>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
+                        <p className="text-2xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
                             No API keys or developer setup needed. Access our premium high-speed models instantly. Select a volume:
                         </p>
 
@@ -1135,10 +1135,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     className="p-2.5 rounded-lg bg-white dark:bg-white/[0.01] border border-slate-200 dark:border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
                                 >
                                     <div className="flex justify-between items-center mb-0.5">
-                                        <span className="text-[11px] font-black text-slate-800 dark:text-white group-hover:text-purple-400 transition-colors">{plan.label}</span>
-                                        <span className="text-[11px] font-black text-purple-500">{plan.price}</span>
+                                        <span className="text-1xs font-black text-slate-800 dark:text-white group-hover:text-purple-400 transition-colors">{plan.label}</span>
+                                        <span className="text-1xs font-black text-purple-500">{plan.price}</span>
                                     </div>
-                                    <div className="text-[8px] text-slate-500">
+                                    <div className="text-4xs text-slate-500">
                                         {plan.scans} scans / {plan.queries} queries
                                     </div>
                                 </div>
@@ -1168,7 +1168,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                         <div>
                             <h2 className="text-lg font-black tracking-tight">AI Scan</h2>
-                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
+                            <p className="text-2xs text-indigo-300 font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
                                 <span>AI-Powered Transaction Entry</span>
                                 {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
                                     <span className="text-slate-400 normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
@@ -1223,11 +1223,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             {!rateLimit.daily && (
                                 <div className="mt-6 flex flex-col items-center gap-2">
                                     <div className="text-4xl font-black text-slate-800 dark:text-white tabular-nums">{rateLimit.seconds}s</div>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ready again shortly</p>
+                                    <p className="text-2xs font-bold uppercase tracking-wider text-slate-400">Ready again shortly</p>
                                 </div>
                             )}
 
-                            <p className="text-[10px] text-slate-400 mt-6 max-w-sm leading-relaxed">
+                            <p className="text-2xs text-slate-400 mt-6 max-w-sm leading-relaxed">
                                 Your document is still here — nothing was lost, and no request was wasted.
                                 We never retry automatically, because that is what burns through a free-tier key.
                             </p>
@@ -1284,18 +1284,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             {/* New catalogue products should never appear silently */}
                             {successData.createdProducts?.length > 0 && (
                                 <div className="mt-5 max-w-sm w-full text-left bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-4">
-                                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-500 mb-2 flex items-center gap-1.5">
+                                    <p className="text-2xs font-black uppercase tracking-wider text-indigo-500 mb-2 flex items-center gap-1.5">
                                         <Plus size={11} />
                                         {successData.createdProducts.length} new product{successData.createdProducts.length > 1 ? 's' : ''} added to your catalogue
                                     </p>
                                     <ul className="space-y-1">
                                         {successData.createdProducts.map(p => (
-                                            <li key={p.id} className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">
+                                            <li key={p.id} className="text-1xs text-slate-600 dark:text-slate-300 font-semibold">
                                                 {p.name} <span className="text-slate-400 font-mono">({p.sku})</span>
                                             </li>
                                         ))}
                                     </ul>
-                                    <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
+                                    <p className="text-2xs text-slate-400 mt-2 leading-relaxed">
                                         Check the spelling — a misread name creates a near-duplicate that splits your reports.
                                         You can find these under Products, filtered by "created by AI Scan".
                                     </p>
@@ -1326,7 +1326,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="flex flex-wrap items-end gap-5">
                                     {/* Action Intent */}
                                     <div>
-                                        <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">Transaction Intent</label>
+                                        <label className="block text-3xs font-black uppercase text-slate-400 mb-1">Transaction Intent</label>
                                         <CustomSelect
                                             value={extractedData.action}
                                             onChange={(e) => {
@@ -1353,7 +1353,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     {/* Party or Expense Category — explicit, user-confirmed */}
                                     {isExpense ? (
                                         <div>
-                                            <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">
+                                            <label className="block text-3xs font-black uppercase text-slate-400 mb-1">
                                                 Expense Category <span className="text-rose-500">*</span>
                                             </label>
                                             <CustomSelect
@@ -1371,12 +1371,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 ]}
                                             />
                                             {extractedData.expense_category && (
-                                                <p className="text-[9px] text-indigo-400 font-bold mt-0.5">AI suggested: {extractedData.expense_category}</p>
+                                                <p className="text-3xs text-indigo-400 font-bold mt-0.5">AI suggested: {extractedData.expense_category}</p>
                                             )}
                                         </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">
+                                            <label className="block text-3xs font-black uppercase text-slate-400 mb-1">
                                                 {partyType === 'supplier' ? 'Supplier' : 'Customer'} <span className="text-rose-500">*</span>
                                             </label>
                                             <div className="flex items-center gap-1.5 font-sans">
@@ -1408,7 +1408,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 />
                                             </div>
                                             {extractedData.party && (
-                                                <p className="text-[9px] text-indigo-400 font-bold mt-0.5">AI read: "{extractedData.party}"</p>
+                                                <p className="text-3xs text-indigo-400 font-bold mt-0.5">AI read: "{extractedData.party}"</p>
                                             )}
                                         </div>
                                     )}
@@ -1416,7 +1416,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                                 {/* Payment Method */}
                                 <div>
-                                    <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">Payment Method</label>
+                                    <label className="block text-3xs font-black uppercase text-slate-400 mb-1">Payment Method</label>
                                     <div className="flex gap-1.5">
                                         {(isExpense ? ['cash', 'bank'] : ['cash', 'credit', 'bank']).map((method) => (
                                             <button
@@ -1481,7 +1481,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Extracted meta */}
                             {(extractedData.date || extractedData.reference || extractedData.notes || extractedData.meta) && (
-                                <div className="px-8 py-2 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-4 text-[10px] font-semibold text-slate-400">
+                                <div className="px-8 py-2 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-4 text-2xs font-semibold text-slate-400">
                                     {extractedData.date && <span>Date read: <span className="text-slate-600 dark:text-slate-300">{extractedData.date}</span></span>}
                                     {extractedData.reference && <span>Ref: <span className="text-slate-600 dark:text-slate-300 font-mono">{extractedData.reference}</span></span>}
                                     {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-slate-600 dark:text-slate-300">{extractedData.notes}</span></span>}
@@ -1526,15 +1526,15 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI read: "{item.raw_name}"</span>
+                                                            <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">AI read: "{item.raw_name}"</span>
                                                             {unclearReading && (
-                                                                <span className="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-500 border border-amber-500/25 flex items-center gap-1">
+                                                                <span className="px-1.5 py-0.5 rounded-full text-4xs font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-500 border border-amber-500/25 flex items-center gap-1">
                                                                     <Eye size={9} /> Check this reading
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {isLearned && item.match_reason && (
-                                                            <span className="text-[10px] font-bold text-violet-500 flex items-center gap-1 mt-0.5">
+                                                            <span className="text-2xs font-bold text-violet-500 flex items-center gap-1 mt-0.5">
                                                                 <Brain size={10} /> Remembered — {item.match_reason}
                                                             </span>
                                                         )}
@@ -1561,7 +1561,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                 {isNew && (
                                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-indigo-500/20">
                                                                         <div className="sm:col-span-3">
-                                                                            <label className="block text-[9px] font-bold text-indigo-400 uppercase">New Product Name</label>
+                                                                            <label className="block text-3xs font-bold text-indigo-400 uppercase">New Product Name</label>
                                                                             <input
                                                                                 type="text"
                                                                                 value={item.create_new.name}
@@ -1570,7 +1570,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label className="block text-[9px] font-bold text-indigo-400 uppercase">Sale Price</label>
+                                                                            <label className="block text-3xs font-bold text-indigo-400 uppercase">Sale Price</label>
                                                                             <input
                                                                                 type="number" min="0" step="any"
                                                                                 value={item.create_new.price}
@@ -1579,7 +1579,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                             />
                                                                         </div>
                                                                         <div>
-                                                                            <label className="block text-[9px] font-bold text-indigo-400 uppercase">Cost Price</label>
+                                                                            <label className="block text-3xs font-bold text-indigo-400 uppercase">Cost Price</label>
                                                                             <input
                                                                                 type="number" min="0" step="any"
                                                                                 value={item.create_new.cost_price}
@@ -1604,7 +1604,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                                                     <div className="flex items-center gap-3 shrink-0">
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-slate-400 uppercase">Quantity</label>
+                                                            <label className="block text-3xs font-bold text-slate-400 uppercase">Quantity</label>
                                                             <input
                                                                 type="number"
                                                                 value={item.qty}
@@ -1614,7 +1614,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-[9px] font-bold text-slate-400 uppercase">Unit Price</label>
+                                                            <label className="block text-3xs font-bold text-slate-400 uppercase">Unit Price</label>
                                                             <input
                                                                 type="number"
                                                                 value={item.unit_price ?? 0}
@@ -1624,7 +1624,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                             />
                                                         </div>
                                                         <div className="pt-4 flex items-center gap-2">
-                                                            <span className={`px-2 py-1 text-[8px] font-black uppercase rounded-full ${isLearned ? 'bg-violet-500/15 text-violet-600' :
+                                                            <span className={`px-2 py-1 text-4xs font-black uppercase rounded-full ${isLearned ? 'bg-violet-500/15 text-violet-600' :
                                                                 isNew ? 'bg-indigo-150 text-indigo-700' :
                                                                     isHigh ? 'bg-emerald-150 text-emerald-700' :
                                                                         isMedium ? 'bg-amber-150 text-amber-700' :
@@ -1653,11 +1653,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     <span className="text-slate-400 font-medium">Estimated Gross:</span>{' '}
                                     <span className="font-black text-slate-800 dark:text-white text-base">Rs. {calculateGrossTotal()}</span>
                                     {!partyReady ? (
-                                        <span className="block text-[10px] text-rose-500 font-bold mt-0.5">
+                                        <span className="block text-2xs text-rose-500 font-bold mt-0.5">
                                             {isExpense ? 'Select an expense category to continue.' : `Select the ${partyType} to continue.`}
                                         </span>
                                     ) : (
-                                        <span className="block text-[10px] text-violet-500 font-bold mt-0.5 flex items-center gap-1">
+                                        <span className="block text-2xs text-violet-500 font-bold mt-0.5 flex items-center gap-1">
                                             <Brain size={10} /> Your choices here are remembered for this store — next scan will fill them in for you.
                                         </span>
                                     )}
@@ -1764,10 +1764,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                 ) : (
                                                                     <div className="text-center px-1">
                                                                         <FileText className="text-indigo-500 mx-auto" size={26} />
-                                                                        <p className="text-[8px] font-bold text-slate-500 mt-1 truncate max-w-[96px]">{entry.file.name}</p>
+                                                                        <p className="text-4xs font-bold text-slate-500 mt-1 truncate max-w-[96px]">{entry.file.name}</p>
                                                                     </div>
                                                                 )}
-                                                                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-[8px] font-black rounded-md">{idx + 1}</span>
+                                                                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/60 text-white text-4xs font-black rounded-md">{idx + 1}</span>
                                                                 <button
                                                                     onClick={() => removeFile(idx)}
                                                                     className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center"
@@ -1780,11 +1780,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                         {selectedFiles.length < maxFiles && (
                                                             <label htmlFor="capture-file-picker" className="w-28 h-28 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-400 cursor-pointer transition-all">
                                                                 <Plus size={22} />
-                                                                <span className="text-[9px] font-bold mt-1">Add More</span>
+                                                                <span className="text-3xs font-bold mt-1">Add More</span>
                                                             </label>
                                                         )}
                                                     </div>
-                                                    <p className="text-center text-[10px] text-slate-400 font-semibold mt-4">
+                                                    <p className="text-center text-2xs text-slate-400 font-semibold mt-4">
                                                         {selectedFiles.length}/{maxFiles} files — multiple photos are treated as pages of ONE document.
                                                     </p>
                                                 </div>
@@ -1835,7 +1835,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                     <p className="text-sm font-bold text-slate-800 dark:text-white">
                                                         {audioSource === 'uploaded' ? 'Audio File Ready' : 'Voice Memo Recorded'}
                                                     </p>
-                                                    <p className="text-[10px] text-slate-400 mt-1">
+                                                    <p className="text-2xs text-slate-400 mt-1">
                                                         {audioSource === 'uploaded' && audioBlob.name ? audioBlob.name : 'Audio capture ready for analysis'}
                                                     </p>
 
@@ -1843,7 +1843,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                                                     <button
                                                         onClick={() => { setAudioBlob(null); setAudioSource(null); }}
-                                                        className="mt-6 px-4 py-2 border border-slate-200 dark:border-slate-750 rounded-xl text-[10px] font-bold text-slate-600 dark:text-slate-450 hover:bg-slate-100/50 dark:hover:bg-slate-800 transition-all"
+                                                        className="mt-6 px-4 py-2 border border-slate-200 dark:border-slate-750 rounded-xl text-2xs font-bold text-slate-600 dark:text-slate-450 hover:bg-slate-100/50 dark:hover:bg-slate-800 transition-all"
                                                     >
                                                         Delete Audio
                                                     </button>
@@ -1920,7 +1920,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     /* TEXT TAB */
                                     <div className="flex-1 flex flex-col justify-between min-h-[300px]">
                                         <div className="flex-1 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 bg-slate-50/20 dark:bg-slate-900/10 flex flex-col">
-                                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2 ml-1">
+                                            <label className="text-2xs font-black uppercase tracking-wider text-slate-400 block mb-2 ml-1">
                                                 Type or paste your transaction text
                                             </label>
                                             <textarea
@@ -1930,7 +1930,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 maxLength={20000}
                                                 className="flex-1 min-h-[180px] w-full p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-800 dark:text-white outline-none resize-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium leading-relaxed"
                                             />
-                                            <p className="text-[10px] text-slate-400 font-semibold mt-2 ml-1">
+                                            <p className="text-2xs text-slate-400 font-semibold mt-2 ml-1">
                                                 Works with item lists, copied invoices, WhatsApp order messages — any language.
                                             </p>
                                         </div>
@@ -2047,7 +2047,7 @@ function CustomSelect({
                 className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border rounded-xl text-xs font-semibold text-slate-800 dark:text-white transition-all text-left outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isError
                         ? 'border-rose-500 dark:border-rose-500/50'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-650'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
             >
                 <div className="flex-1 truncate">
@@ -2056,12 +2056,12 @@ function CustomSelect({
                             {selectedOption.learned && <Brain size={12} className="text-violet-400 shrink-0" />}
                             <span className="truncate">{selectedOption.label}</span>
                             {selectedOption.confidence !== undefined && (
-                                <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded font-black shrink-0">
+                                <span className="text-3xs bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded font-black shrink-0">
                                     {selectedOption.confidence}%
                                 </span>
                             )}
                             {selectedOption.sku && (
-                                <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                                <span className="text-3xs text-slate-400 font-mono shrink-0">
                                     (SKU: {selectedOption.sku})
                                 </span>
                             )}
@@ -2101,7 +2101,7 @@ function CustomSelect({
                                 if (opt.groupLabel) {
                                     return (
                                         <div key={groupIdx} className="mb-2 last:mb-0">
-                                            <div className="px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-800/25 dark:bg-slate-950/25">
+                                            <div className="px-3 py-1 text-3xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-800/25 dark:bg-slate-950/25">
                                                 {opt.groupLabel}
                                             </div>
                                             <div className="mt-1 space-y-0.5">
@@ -2131,12 +2131,12 @@ function CustomSelect({
                                                                     {subOpt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
                                                                     <span className="truncate">{subOpt.label}</span>
                                                                     {subOpt.confidence !== undefined && (
-                                                                        <span className={`text-[9px] px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                                        <span className={`text-3xs px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
                                                                             {subOpt.confidence}%
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                {subOpt.subtext && <span className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{subOpt.subtext}</span>}
+                                                                {subOpt.subtext && <span className={`text-2xs ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{subOpt.subtext}</span>}
                                                             </div>
                                                             {isSelected && <Check size={12} className="shrink-0 ml-2" />}
                                                         </button>
@@ -2171,12 +2171,12 @@ function CustomSelect({
                                                     {opt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
                                                     <span className="truncate">{opt.label}</span>
                                                     {opt.confidence !== undefined && (
-                                                        <span className={`text-[9px] px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                        <span className={`text-3xs px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
                                                             {opt.confidence}%
                                                         </span>
                                                     )}
                                                 </div>
-                                                {opt.subtext && <span className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{opt.subtext}</span>}
+                                                {opt.subtext && <span className={`text-2xs ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{opt.subtext}</span>}
                                             </div>
                                             {isSelected && <Check size={12} className="shrink-0 ml-2" />}
                                         </button>

@@ -33,6 +33,7 @@ import { formatNumber } from './format';
 import { AMDStation, isAMDStationAvailable } from './AMDStation';
 import PrintPreview from '@/Components/PrintPreview';
 
+import { vq } from '@/theme/runtime';
 // Browsers render at 96 DPI.  1 mm = 96/25.4 ≈ 3.7795 px.
 const PX_PER_MM = 96 / 25.4;
 
@@ -189,7 +190,7 @@ class PrintService {
             paper_size:             s(raw.paper_size, 'A4'),
             paper_orientation:      s(raw.paper_orientation, 'Portrait'),
             print_theme:            s(raw.print_theme, 'modern'),
-            print_theme_color:      s(raw.print_theme_color, '#4f46e5'),
+            print_theme_color:      s(raw.print_theme_color, vq.indigo[600]),
             print_logo:             b(raw.print_logo, true),
             print_logo_path: (() => {
                 const p = raw.print_logo_path || null;

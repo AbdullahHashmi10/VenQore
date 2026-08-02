@@ -66,7 +66,7 @@ function FAQItem({ q, a }) {
                 className="w-full flex items-center justify-between text-left font-bold text-slate-900 dark:text-white group focus:outline-none"
             >
                 <span className="pr-4">{q}</span>
-                <span className={`transform transition-transform duration-200 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0`}>
+                <span className={`transform transition-transform duration-200 text-slate-500 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0`}>
                     <svg className={`w-4 h-4 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>

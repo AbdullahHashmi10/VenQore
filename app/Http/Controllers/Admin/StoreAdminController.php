@@ -235,7 +235,7 @@ class StoreAdminController extends Controller
             ];
         })->sortByDesc('totalSales')->values();
 
-        return Inertia::render('Admin/StaffSummaries', [
+        return Inertia::render('Admin/Users', [
             'mode'        => 'admin',
             'users'       => $users,
             'attendance'  => [

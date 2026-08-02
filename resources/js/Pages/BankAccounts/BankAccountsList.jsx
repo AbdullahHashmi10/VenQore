@@ -243,7 +243,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                     <tr
                                         key={account.id}
                                         className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-indigo-400"
-                                        onClick={() => router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
+                                        onClick={() => account?.id && router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
                                     >
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
@@ -261,7 +261,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                             {account.account_number ? `****${account.account_number.slice(-4)}` : '-'}
                                         </td>
                                         <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide ${account.account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                            <span className={`px-2 py-1 rounded-md text-2xs font-black uppercase tracking-wide ${account.account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                                                     account.account_type === 'savings' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' :
                                                         account.account_type === 'credit' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                                                             'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
@@ -292,7 +292,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                                             <Edit size={14} /> Edit Details
                                                         </button>
                                                         <button
-                                                            onClick={() => router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
+                                                            onClick={() => account?.id && router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
                                                             className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
                                                         >
                                                             <ArrowRightLeft size={14} /> Transactions

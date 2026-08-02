@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('staff_role', 50)->nullable()->after('platform_role'); // e.g. support, content, marketing, finance, sales
+            if (!Schema::hasColumn('users', 'staff_role')) {
+                if (Schema::hasColumn('users', 'platform_role')) {
+                    $table->string('staff_role', 50)->nullable()->after('platform_role');
+                } else {
+                    $table->string('staff_role', 50)->nullable();
+                }
+            }
         });
     }
 

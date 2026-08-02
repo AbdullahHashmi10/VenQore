@@ -22,7 +22,7 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#020010] font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
             <Head title="Confirm Password" />
 
             {/* Ambient */}
@@ -57,7 +57,7 @@ export default function ConfirmPassword() {
 
                     <form onSubmit={submit} className="space-y-5 sm:space-y-6">
                         <div>
-                            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
+                            <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
                                 Password
                             </label>
                             <div className="relative">
@@ -85,7 +85,7 @@ export default function ConfirmPassword() {
                         </div>
 
                         <button type="submit" disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50">
+                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50">
                             {processing ? <><Loader2 size={18} className="animate-spin" /> Confirming...</> : <>Confirm <ArrowRight size={16} /></>}
                         </button>
                     </form>

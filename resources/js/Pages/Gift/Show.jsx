@@ -45,7 +45,7 @@ export default function GiftShow({
     const durationText  = duration_label || 'a limited time';
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans flex items-center justify-center p-8">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-8">
             {/* The title MUST be a single string child.
                 Inertia's <Head> serialises children itself, and its walker calls
                 Object.keys(child.props) on each one. Mixing literal text with an

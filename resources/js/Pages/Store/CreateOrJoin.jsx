@@ -14,7 +14,7 @@ import { Store, Tag, ArrowRight, Sparkles, Users, Key } from 'lucide-react';
  */
 export default function CreateOrJoin({ has_license = false, license_plan = 'trial' }) {
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans flex flex-col">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex flex-col">
             <Head title="Get Started — VenQore" />
 
             {/* Ambient */}

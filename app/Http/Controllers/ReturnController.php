@@ -92,7 +92,7 @@ class ReturnController extends Controller
         $return = Sale::with(['customer', 'user', 'items.product', 'items.variant', 'payments'])
             ->where('status', 'returned')
             ->findOrFail($id);
-            
+
         if ($return->party_id) {
             $net        = LedgerService::partyNetBalance($return->party_id, $return->tenant_id ?? app('current.tenant')->id);
             $balanceDue = max(0, (float) abs($return->total) - (float) $return->payments->sum('amount'));
@@ -101,6 +101,16 @@ class ReturnController extends Controller
             $return->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
+        // Batch restocking: ReturnController::store() does NOT link the newly-created
+        // inventory batch back to this return via any FK (no sale_id/return_id column
+        // on inventory_batches — see receiveBatch() calls in store()). The one reliable,
+        // reference-tagged audit trail for "stock came back in via this return" is the
+        // StockMovement rows written with type='return' and reference_id=reference_number.
+        $restockMovements = \App\Models\StockMovement::with('product')
+            ->where('type', 'return')
+            ->where('reference_id', $return->reference_number)
+            ->get();
+
         if (request()->wantsJson()) {
             return response()->json([
                 'return' => $return
@@ -108,7 +118,8 @@ class ReturnController extends Controller
         }
 
         return Inertia::render('Returns/Show', [
-            'return' => $return
+            'return' => $return,
+            'restockMovements' => $restockMovements,
         ]);
     }
     /**

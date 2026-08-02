@@ -1,0 +1,474 @@
+import { jsxs, jsx } from "react/jsx-runtime";
+import { useState, useEffect } from "react";
+import { usePage, Head, Link, router } from "@inertiajs/react";
+import { O as OneGlanceLayout } from "./marketing-pages-DYgr6x02.js";
+import { XCircle, AlertTriangle, ArrowLeft, CheckCircle2, Play } from "lucide-react";
+import "marked";
+import "axios";
+import "@headlessui/react";
+import "driver.js";
+import "./vendor-core-4m-Uvb-d.js";
+function DataMapping({ file_path, type, file_headers, preview_data, expected_fields }) {
+  const { store } = usePage().props;
+  const [mapping, setMapping] = useState({});
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationData, setValidationData] = useState(null);
+  const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+  const [importAction, setImportAction] = useState("import_all");
+  const [overrides, setOverrides] = useState({});
+  const [ignoredRows, setIgnoredRows] = useState([]);
+  const [editingContext, setEditingContext] = useState(null);
+  useEffect(() => {
+    const initialMapping = {};
+    expected_fields.forEach((field) => {
+      const exactMatch = file_headers.find((h) => h.name.toLowerCase().trim() === field.key.toLowerCase().trim());
+      const looseMatch = file_headers.find((h) => h.name.toLowerCase().trim() === field.label.toLowerCase().trim() || field.label.toLowerCase().includes(h.name.toLowerCase().trim()));
+      if (exactMatch) {
+        initialMapping[field.key] = exactMatch.index;
+      } else if (looseMatch) {
+        initialMapping[field.key] = looseMatch.index;
+      } else {
+        initialMapping[field.key] = "";
+      }
+    });
+    setMapping(initialMapping);
+  }, [expected_fields, file_headers]);
+  const handleMappingChange = (expectedKey, value) => {
+    setMapping((prev) => ({
+      ...prev,
+      [expectedKey]: value === "" ? null : parseInt(value)
+    }));
+    setValidationData(null);
+  };
+  const runValidation = async (currentOverrides = overrides, currentIgnored = ignoredRows) => {
+    const missingRequired = expected_fields.filter((field) => field.required && mapping[field.key] == null);
+    if (missingRequired.length > 0) {
+      alert(`Please map all required fields: ${missingRequired.map((f) => f.label).join(", ")}`);
+      return;
+    }
+    setIsValidating(true);
+    try {
+      const response = await fetch(route("store.admin.data.validate-import", { store_slug: store.slug }), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+        },
+        body: JSON.stringify({
+          file_path,
+          type,
+          mapping,
+          overrides: currentOverrides,
+          ignored_rows: currentIgnored,
+          options: {
+            allow_negative_stock: allowNegativeStock
+          }
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setValidationData(data);
+      } else {
+        alert(data.error || "Validation failed.");
+      }
+    } catch (e) {
+      alert("Error running validation: " + e.message);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+  const submitImport = () => {
+    setIsProcessing(true);
+    router.post(route("store.admin.data.process-import", { store_slug: store.slug }), {
+      file_path,
+      type,
+      mapping,
+      overrides,
+      ignored_rows: ignoredRows,
+      import_action: importAction,
+      options: {
+        allow_negative_stock: allowNegativeStock
+      }
+    }, {
+      onFinish: () => setIsProcessing(false)
+    });
+  };
+  const handleSkip = (rowIndex) => {
+    const newIgnored = [...ignoredRows, rowIndex];
+    setIgnoredRows(newIgnored);
+    runValidation(overrides, newIgnored);
+  };
+  const handleBatchSave = (rows) => {
+    const newOverrides = { ...overrides };
+    rows.forEach((r) => {
+      if (r.index && !r.is_db) {
+        newOverrides[r.index] = r.data;
+      }
+    });
+    setOverrides(newOverrides);
+    setEditingContext(null);
+    runValidation(newOverrides, ignoredRows);
+  };
+  const FIELD_MAPS = {
+    parties: [
+      { key: "name", label: "Contact Name" },
+      { key: "phone", label: "Phone Number", placeholder: "e.g. +923001234567" },
+      { key: "email", label: "Email" },
+      { key: "address", label: "Address" }
+    ],
+    products: [
+      { key: "name", label: "Product Name" },
+      { key: "sku", label: "SKU / Barcode" },
+      { key: "price", label: "Selling Price" },
+      { key: "cost_price", label: "Cost Price" },
+      { key: "opening_stock", label: "Opening Qty" }
+    ],
+    sales: [
+      { key: "invoice_number", label: "Invoice #" },
+      { key: "customer_name", label: "Customer" },
+      { key: "product_name", label: "Product" },
+      { key: "quantity", label: "Qty" },
+      { key: "unit_price", label: "Price" }
+    ],
+    purchases: [
+      { key: "invoice_number", label: "Ref / Invoice #" },
+      { key: "supplier_name", label: "Supplier" },
+      { key: "product_name", label: "Product" },
+      { key: "quantity", label: "Qty" },
+      { key: "cost_price", label: "Cost" }
+    ],
+    expenses: [
+      { key: "date", label: "Date (YYYY-MM-DD)" },
+      { key: "category", label: "Category" },
+      { key: "amount", label: "Amount" },
+      { key: "reference", label: "Ref #" }
+    ],
+    ledger: [
+      { key: "date", label: "Date" },
+      { key: "account_name", label: "Account" },
+      { key: "debit", label: "Debit" },
+      { key: "credit", label: "Credit" }
+    ]
+  };
+  const currentFields = FIELD_MAPS[type] || FIELD_MAPS.parties;
+  const EditColumn = ({ title, subtitle, data, onChange, disabled }) => /* @__PURE__ */ jsxs("div", { className: `flex-1 space-y-4 p-4 rounded-xl ${disabled ? "bg-white/5 opacity-50" : "bg-white/5 border border-white/5"}`, children: [
+    /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("h4", { className: "text-white font-medium text-sm leading-none", children: title }),
+      /* @__PURE__ */ jsx("p", { className: "text-2xs text-gray-400 mt-1 uppercase tracking-wider", children: subtitle })
+    ] }),
+    /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 gap-3", children: currentFields.map((f) => /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsx("label", { className: "text-2xs text-gray-500 block mb-1", children: f.label }),
+      /* @__PURE__ */ jsx(
+        "input",
+        {
+          type: "text",
+          disabled,
+          className: "w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-indigo-500 transition-all font-mono",
+          value: data[f.key] || "",
+          onChange: (e) => onChange({ ...data, [f.key]: e.target.value }),
+          placeholder: f.placeholder || ""
+        }
+      )
+    ] }, f.key)) })
+  ] });
+  return /* @__PURE__ */ jsxs(OneGlanceLayout, { title: "Import Column Mapping", activeMenu: "Setup", children: [
+    /* @__PURE__ */ jsx(Head, { title: "Data Mapping" }),
+    editingContext && /* @__PURE__ */ jsx("div", { className: "fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4", children: /* @__PURE__ */ jsxs("div", { className: "bg-slate-900 border border-white/10 rounded-3xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-start mb-6", children: [
+        /* @__PURE__ */ jsxs("div", { children: [
+          /* @__PURE__ */ jsx("h3", { className: "text-2xl font-bold text-white", children: "Resolve Data Conflict" }),
+          /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-400 mt-1", children: "Compare and edit rows to ensure they are unique." })
+        ] }),
+        /* @__PURE__ */ jsx("button", { onClick: () => setEditingContext(null), className: "text-gray-500 hover:text-white transition-colors", children: /* @__PURE__ */ jsx(XCircle, { className: "w-8 h-8" }) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex flex-col md:flex-row gap-6 mb-8", children: [
+        editingContext.is_db ? /* @__PURE__ */ jsx(
+          EditColumn,
+          {
+            title: "Database Record",
+            subtitle: "Existing Master Data",
+            data: editingContext.db_data,
+            disabled: true
+          }
+        ) : /* @__PURE__ */ jsx(
+          EditColumn,
+          {
+            title: `First Seen: Row ${editingContext.first_row_index}`,
+            subtitle: "Original Entry in File",
+            data: editingContext.first_row_data,
+            onChange: (d) => setEditingContext({ ...editingContext, first_row_data: d })
+          }
+        ),
+        /* @__PURE__ */ jsx("div", { className: "flex items-center justify-center", children: /* @__PURE__ */ jsx(AlertTriangle, { className: "w-6 h-6 text-amber-500 animate-pulse" }) }),
+        /* @__PURE__ */ jsx(
+          EditColumn,
+          {
+            title: `Conflict: Row ${editingContext.row}`,
+            subtitle: "Current Duplicate Entry",
+            data: editingContext.data,
+            onChange: (d) => setEditingContext({ ...editingContext, data: d })
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex gap-4", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: () => setEditingContext(null),
+            className: "flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-300 font-semibold transition-all border border-white/5",
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: () => handleBatchSave([
+              { index: editingContext.row, data: editingContext.data },
+              { index: editingContext.first_row_index, data: editingContext.first_row_data }
+            ]),
+            className: "flex-[2] py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold transition-all shadow-xl shadow-indigo-500/30",
+            children: "Apply Changes & Fix Conflict"
+          }
+        )
+      ] })
+    ] }) }),
+    /* @__PURE__ */ jsxs("div", { className: "max-w-[1600px] mx-auto h-full flex flex-col gap-6", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between shrink-0", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-4", children: [
+          /* @__PURE__ */ jsx(Link, { href: route("store.admin.data", { store_slug: store.slug }), className: "text-gray-400 hover:text-white transition-colors", children: /* @__PURE__ */ jsx(ArrowLeft, { className: "w-6 h-6" }) }),
+          /* @__PURE__ */ jsxs("h1", { className: "text-2xl font-semibold text-white", children: [
+            "Map Your Columns for ",
+            type.charAt(0).toUpperCase() + type.slice(1)
+          ] })
+        ] }),
+        validationData && /* @__PURE__ */ jsx("div", { className: "flex items-center gap-4 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg", children: /* @__PURE__ */ jsxs("span", { className: "text-emerald-400 text-sm font-medium", children: [
+          validationData.new_count,
+          " New • ",
+          validationData.update_count,
+          " Updates",
+          ignoredRows.length > 0 && /* @__PURE__ */ jsxs("span", { className: "text-gray-400 ml-2", children: [
+            "• ",
+            ignoredRows.length,
+            " Skipped"
+          ] })
+        ] }) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6", children: [
+        /* @__PURE__ */ jsxs("div", { id: "tour-mapping-container", className: "lg:col-span-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0", children: [
+          /* @__PURE__ */ jsxs("div", { className: "mb-4 shrink-0", children: [
+            /* @__PURE__ */ jsxs("h2", { className: "text-lg font-medium text-white flex items-center", children: [
+              /* @__PURE__ */ jsx(CheckCircle2, { className: "w-5 h-5 text-emerald-400 mr-2" }),
+              "Match Columns"
+            ] }),
+            /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-400 mt-1", children: "Select columns to map to fields." })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar min-h-0", children: expected_fields.map((field) => /* @__PURE__ */ jsxs("div", { className: "flex flex-col space-y-1 bg-white/5 p-3 rounded-lg shrink-0", children: [
+            /* @__PURE__ */ jsx("label", { className: "text-sm font-medium text-gray-200 flex justify-between", children: /* @__PURE__ */ jsxs("span", { children: [
+              field.label,
+              " ",
+              field.required && /* @__PURE__ */ jsx("span", { className: "text-red-400", children: "*" })
+            ] }) }),
+            /* @__PURE__ */ jsxs(
+              "select",
+              {
+                value: mapping[field.key] !== null ? mapping[field.key] : "",
+                onChange: (e) => handleMappingChange(field.key, e.target.value),
+                className: `w-full bg-slate-800 border rounded-md text-sm p-2 text-white
+                                        ${field.required && mapping[field.key] == null ? "border-amber-400/50 focus:border-amber-400" : "border-white/10 focus:border-indigo-500"}`,
+                children: [
+                  /* @__PURE__ */ jsx("option", { value: "", children: "-- Ignore --" }),
+                  file_headers.map((header) => /* @__PURE__ */ jsx("option", { value: header.index, children: header.name }, header.index))
+                ]
+              }
+            )
+          ] }, field.key)) }),
+          type === "products" && /* @__PURE__ */ jsx("div", { className: "mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl shrink-0", children: /* @__PURE__ */ jsxs("label", { className: "flex items-center gap-3 cursor-pointer group", children: [
+            /* @__PURE__ */ jsxs("div", { className: "relative inline-flex items-center", children: [
+              /* @__PURE__ */ jsx(
+                "input",
+                {
+                  type: "checkbox",
+                  checked: allowNegativeStock,
+                  onChange: (e) => setAllowNegativeStock(e.target.checked),
+                  className: "sr-only peer"
+                }
+              ),
+              /* @__PURE__ */ jsx("div", { className: "w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600" })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex flex-col", children: [
+              /* @__PURE__ */ jsx("span", { className: "text-sm font-bold text-white group-hover:text-emerald-400 transition-colors", children: "Allow Negative Stock" }),
+              /* @__PURE__ */ jsx("p", { className: "text-2xs text-gray-400", children: "If unchecked, negative opening quantities will be set to 0" })
+            ] })
+          ] }) }),
+          validationData?.exceeds_limit && /* @__PURE__ */ jsxs("div", { className: "mb-6 p-5 bg-amber-500/10 border border-amber-500/25 rounded-2xl shrink-0 space-y-4 text-left", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+              /* @__PURE__ */ jsx(AlertTriangle, { className: "w-5 h-5 text-amber-500 shrink-0 mt-0.5" }),
+              /* @__PURE__ */ jsxs("div", { children: [
+                /* @__PURE__ */ jsx("h4", { className: "text-amber-400 font-bold text-sm", children: "Resource Limit Exceeded" }),
+                /* @__PURE__ */ jsxs("p", { className: "text-xs text-gray-300 mt-1 leading-relaxed", children: [
+                  "Importing these items will push your total catalog to ",
+                  /* @__PURE__ */ jsx("strong", { children: validationData.post_import_count }),
+                  " products, which exceeds your plan's limit of ",
+                  /* @__PURE__ */ jsx("strong", { children: validationData.limit }),
+                  "."
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-2", children: [
+              /* @__PURE__ */ jsxs(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setImportAction("truncate"),
+                  className: `w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                            ${importAction === "truncate" ? "border-indigo-500 bg-indigo-500/10 text-white" : "border-white/10 bg-white/5 text-gray-400 hover:border-white/20"}`,
+                  children: [
+                    /* @__PURE__ */ jsxs("div", { className: "pr-4", children: [
+                      /* @__PURE__ */ jsx("div", { children: "Option A: Truncate Import" }),
+                      /* @__PURE__ */ jsxs("div", { className: "text-2xs opacity-80 mt-0.5", children: [
+                        "Only import the first ",
+                        validationData.allowed_to_import,
+                        " new products to stay within limits."
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsx("div", { className: `w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === "truncate" ? "border-indigo-500 bg-indigo-500 text-white" : "border-gray-500"}`, children: importAction === "truncate" && /* @__PURE__ */ jsx("div", { className: "w-1.5 h-1.5 bg-white rounded-full" }) })
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxs(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => setImportAction("import_all"),
+                  className: `w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                            ${importAction === "import_all" ? "border-amber-500 bg-amber-500/10 text-white" : "border-white/10 bg-white/5 text-gray-400 hover:border-white/20"}`,
+                  children: [
+                    /* @__PURE__ */ jsxs("div", { className: "pr-4", children: [
+                      /* @__PURE__ */ jsx("div", { children: "Option B: Import Everything" }),
+                      /* @__PURE__ */ jsxs("div", { className: "text-2xs opacity-80 mt-0.5", children: [
+                        "Import all ",
+                        validationData.new_count,
+                        " products. Starts a 3-day grace period to upgrade your plan."
+                      ] })
+                    ] }),
+                    /* @__PURE__ */ jsx("div", { className: `w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === "import_all" ? "border-amber-500 bg-amber-500 text-white" : "border-gray-500"}`, children: importAction === "import_all" && /* @__PURE__ */ jsx("div", { className: "w-1.5 h-1.5 bg-white rounded-full" }) })
+                  ]
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mt-6 pt-6 border-t border-white/10 shrink-0 space-y-3", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                id: "tour-mapping-validate",
+                onClick: () => runValidation(),
+                disabled: isValidating || isProcessing,
+                className: `w-full flex justify-center items-center py-2 px-4 rounded-xl text-white text-sm font-medium transition-all
+                                ${isValidating ? "bg-indigo-600/50 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500"}
+                                `,
+                children: isValidating ? "Checking for duplicates..." : "Run Pre-Import Validation"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                id: "tour-mapping-submit",
+                onClick: submitImport,
+                disabled: isProcessing || !validationData,
+                className: `w-full flex justify-center items-center py-3 px-4 rounded-xl text-white font-medium transition-all duration-300
+                                ${isProcessing || !validationData ? "bg-gray-600 cursor-not-allowed opacity-50" : "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-lg shadow-emerald-500/20"}
+                            `,
+                children: isProcessing ? "Importing..." : "Confirm & Process Import"
+              }
+            ),
+            !validationData && /* @__PURE__ */ jsx("p", { className: "text-2xs text-gray-500 text-center", children: "Run validation before importing" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "lg:col-span-2 flex flex-col gap-6 min-h-0", children: [
+          validationData && validationData.warnings && validationData.warnings.length > 0 && /* @__PURE__ */ jsxs("div", { className: "border border-amber-500/20 rounded-xl bg-amber-500/5 p-4 shrink-0 overflow-y-auto max-h-[250px] custom-scrollbar", children: [
+            /* @__PURE__ */ jsxs("h3", { className: "text-amber-400 font-bold flex items-center gap-2 mb-3", children: [
+              /* @__PURE__ */ jsx(AlertTriangle, { className: "w-5 h-5" }),
+              "Duplicate Warnings (",
+              validationData.warnings.length,
+              ")"
+            ] }),
+            /* @__PURE__ */ jsx("div", { className: "space-y-3", children: validationData.warnings.map((warn, i) => /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between gap-4 text-xs text-amber-200/70 border-b border-amber-500/10 pb-2 last:border-0 group", children: [
+              /* @__PURE__ */ jsxs("div", { className: "flex-1", children: [
+                /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsxs("span", { className: "font-bold text-amber-400", children: [
+                    "Row ",
+                    warn.row,
+                    ":"
+                  ] }),
+                  /* @__PURE__ */ jsx("span", { className: "text-white font-medium", children: warn.name }),
+                  /* @__PURE__ */ jsxs("span", { className: "text-gray-400", children: [
+                    "(",
+                    warn.phone || "No phone",
+                    ")"
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsx("p", { className: "mt-1 text-2xs text-amber-400/80 italic", children: warn.reason })
+              ] }),
+              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity", children: [
+                /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    onClick: () => setEditingContext({
+                      row: warn.row,
+                      data: warn.data,
+                      first_row_index: warn.first_row_index,
+                      first_row_data: warn.first_row_data,
+                      is_db: warn.is_db,
+                      db_data: warn.db_data
+                    }),
+                    className: "p-1.5 rounded-md bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all",
+                    title: "Resolve this conflict",
+                    children: /* @__PURE__ */ jsx(Play, { className: "w-3 h-3 rotate-[-90deg]" })
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    onClick: () => handleSkip(warn.row),
+                    className: "p-1.5 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all",
+                    title: "Skip this row",
+                    children: /* @__PURE__ */ jsx(XCircle, { className: "w-3 h-3" })
+                  }
+                )
+              ] })
+            ] }, i)) })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "flex-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0", children: [
+            /* @__PURE__ */ jsxs("div", { className: "mb-4 shrink-0", children: [
+              /* @__PURE__ */ jsx("h2", { className: "text-lg font-medium text-white", children: "Data Preview" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-sm text-gray-400 mt-1", children: [
+                "Found ",
+                preview_data.length,
+                " records"
+              ] })
+            ] }),
+            /* @__PURE__ */ jsx("div", { className: "flex-1 overflow-auto rounded-lg border border-white/10 custom-scrollbar min-h-0", children: /* @__PURE__ */ jsxs("table", { className: "w-full text-left text-sm whitespace-nowrap", children: [
+              /* @__PURE__ */ jsx("thead", { className: "bg-slate-800 sticky top-0 z-10", children: /* @__PURE__ */ jsxs("tr", { children: [
+                /* @__PURE__ */ jsx("th", { className: "px-4 py-3 text-gray-300 border-b border-white/10 font-medium", children: "#" }),
+                expected_fields.map((field) => /* @__PURE__ */ jsx("th", { className: `px-4 py-3 border-b border-white/10 font-medium ${mapping[field.key] != null ? "text-indigo-300" : "text-gray-500"}`, children: field.label }, field.key))
+              ] }) }),
+              /* @__PURE__ */ jsx("tbody", { className: "divide-y divide-white/5 bg-slate-900", children: preview_data.map((row, index) => /* @__PURE__ */ jsxs("tr", { className: "hover:bg-white/5 transition-colors", children: [
+                /* @__PURE__ */ jsx("td", { className: "px-4 py-2 text-gray-500", children: index + 1 }),
+                expected_fields.map((field) => {
+                  const fileColIndex = mapping[field.key];
+                  const value = fileColIndex != null ? row[fileColIndex] : null;
+                  return /* @__PURE__ */ jsx("td", { className: `px-4 py-2 ${value ? "text-gray-200" : "text-gray-600 italic text-xs"}`, children: value || "-" }, field.key);
+                })
+              ] }, index)) })
+            ] }) })
+          ] })
+        ] })
+      ] })
+    ] })
+  ] });
+}
+export {
+  DataMapping as default
+};

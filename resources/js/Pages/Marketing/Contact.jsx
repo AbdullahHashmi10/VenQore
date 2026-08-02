@@ -21,7 +21,7 @@ const InputField = ({ label, type = 'text', name, placeholder, required, value, 
 
     return (
         <div className="relative group">
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-3 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-600'}`}>
+            <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-3 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-600'}`}>
                 {label} {required && <span className="text-indigo-500">*</span>}
             </label>
             <Tag
@@ -58,7 +58,7 @@ const ContactMethod = ({ icon: Icon, title, subtitle, action, href, color = 'ind
             <div className={`w-12 h-12 rounded-2xl bg-${color}-500/10 text-${color}-400 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                 <Icon size={22} />
             </div>
-            <h3 className="text-lg font-black text-white tracking-tight mb-1 font-display">{title}</h3>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-1 font-display">{title}</h3>
             <p className="text-slate-600 text-sm mb-3">{subtitle}</p>
             <span className={`text-${color}-400 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 group-hover:gap-3 transition-all`}>
                 {action} <ArrowRight size={12} />
@@ -103,8 +103,8 @@ export default function Contact() {
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.2}>
-                        <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                            Whether you need a personalized walkthrough, have technical questions, or want to discuss enterprise licensing — <span className="text-white">we respond within hours, not days.</span>
+                        <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                            Whether you need a personalized walkthrough, have technical questions, or want to discuss enterprise licensing — <span className="text-slate-900 dark:text-white">we respond within hours, not days.</span>
                         </p>
                     </RevealOnScroll>
                 </div>
@@ -150,7 +150,7 @@ export default function Contact() {
                     <div className="lg:col-span-3">
                         <RevealOnScroll>
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-[3rem] p-8 md:p-12">
-                                <h2 className="text-2xl font-black text-white tracking-tight mb-2 font-display">Send a Message</h2>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2 font-display">Send a Message</h2>
                                 <p className="text-slate-600 text-sm mb-10">We'll get back to you within a few hours.</p>
 
                                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -210,7 +210,7 @@ export default function Contact() {
                                                     ? 'bg-indigo-600/50 text-white/50 cursor-wait'
                                                     : status === 'success'
                                                         ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/25'
-                                                        : 'bg-white text-[#020010] hover:shadow-[0_0_60px_-5px_rgba(255,255,255,0.3)] hover:scale-105'
+                                                        : 'bg-white text-void-950 hover:shadow-[0_0_60px_-5px_rgba(255,255,255,0.3)] hover:scale-105'
                                                 }
                                             `}
                                         >
@@ -225,7 +225,7 @@ export default function Contact() {
                                             {status === 'error' && 'Try Again'}
                                         </button>
 
-                                        <span className="text-[10px] text-slate-700 font-bold uppercase tracking-widest hidden sm:block">
+                                        <span className="text-2xs text-slate-700 font-bold uppercase tracking-widest hidden sm:block">
                                             We respect your privacy
                                         </span>
                                     </div>
@@ -238,12 +238,12 @@ export default function Contact() {
                     <div className="lg:col-span-2 space-y-6">
                         <RevealOnScroll delay={0.1}>
                             <GlassCard padding="p-8">
-                                <Clock size={22} className="text-indigo-400 mb-4" />
-                                <h3 className="text-lg font-black text-white tracking-tight mb-2 font-display">Response Time</h3>
+                                <Clock size={22} className="text-indigo-600 dark:text-indigo-400 mb-4" />
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2 font-display">Response Time</h3>
                                 <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                                    We typically respond within <span className="text-white font-bold">2-4 hours</span> during business hours. WhatsApp is fastest for urgent inquiries.
+                                    We typically respond within <span className="text-slate-900 dark:text-white font-bold">2-4 hours</span> during business hours. WhatsApp is fastest for urgent inquiries.
                                 </p>
-                                <div className="flex items-center gap-2 text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em]">
+                                <div className="flex items-center gap-2 text-2xs text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-[0.2em]">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                     Currently Online
                                 </div>
@@ -252,8 +252,8 @@ export default function Contact() {
 
                         <RevealOnScroll delay={0.2}>
                             <GlassCard padding="p-8">
-                                <MapPin size={22} className="text-indigo-400 mb-4" />
-                                <h3 className="text-lg font-black text-white tracking-tight mb-2 font-display">Location</h3>
+                                <MapPin size={22} className="text-indigo-600 dark:text-indigo-400 mb-4" />
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2 font-display">Location</h3>
                                 <p className="text-slate-500 text-sm leading-relaxed">
                                     We're a remote-first team. Our engineering is based in Pakistan, serving businesses globally.
                                 </p>
@@ -262,12 +262,12 @@ export default function Contact() {
 
                         <RevealOnScroll delay={0.3}>
                             <GlassCard padding="p-8">
-                                <BookOpen size={22} className="text-indigo-400 mb-4" />
-                                <h3 className="text-lg font-black text-white tracking-tight mb-2 font-display">For Partners</h3>
+                                <BookOpen size={22} className="text-indigo-600 dark:text-indigo-400 mb-4" />
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2 font-display">For Partners</h3>
                                 <p className="text-slate-500 text-sm leading-relaxed mb-4">
                                     Interested in reselling, white-labeling, or integrating VenQore into your ecosystem? We'd love to hear from you.
                                 </p>
-                                <a href="mailto:partners@venqore.com" className="text-indigo-400 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-3 transition-all">
+                                <a href="mailto:partners@venqore.com" className="text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2 hover:gap-3 transition-all">
                                     Partner Inquiries <ArrowRight size={12} />
                                 </a>
                             </GlassCard>
@@ -277,12 +277,12 @@ export default function Contact() {
             </section>
 
             {/* ── 4. CTA ──────────────────────────────────────── */}
-            <section className="py-32 px-6 text-center border-t border-white/5">
+            <section className="py-32 px-6 text-center border-t border-slate-900/[0.06] dark:border-white/5">
                 <div className="max-w-3xl mx-auto relative">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/8 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
-                        <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-tight relative z-10 font-display">
-                            Not Ready to Talk?<br /><span className="text-indigo-400">Try It First.</span>
+                        <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tighter leading-tight relative z-10 font-display">
+                            Not Ready to Talk?<br /><span className="text-indigo-600 dark:text-indigo-400">Try It First.</span>
                         </h2>
                         <p className="text-lg text-slate-500 mb-10 max-w-lg mx-auto relative z-10">
                             14-day free trial. No credit card. No sales call required.

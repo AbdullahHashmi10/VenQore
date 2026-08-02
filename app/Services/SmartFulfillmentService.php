@@ -172,6 +172,7 @@ class SmartFulfillmentService
             $saleItems     = [];
             $jitDrafts     = [];
             $grossRevenue  = 0;
+            $cogsTotal     = 0;      // T17 — cost of the stock actually deducted
             $allFromStock  = true;   // Tracks if we need financial_reconciled = false
 
             foreach ($items as $item) {
@@ -227,6 +228,21 @@ class SmartFulfillmentService
                     Stock::where('product_id', $product->id)
                         ->where('warehouse_id', $channel->warehouse_id)
                         ->decrement('quantity', $availableQty);
+
+                    // T17 — accumulate COGS for the clearing journal.
+                    //
+                    // NOTE ON PRECISION: this uses product.cost_price (weighted
+                    // average), not true FIFO batch costs. This service decrements
+                    // Stock directly rather than going through V3\FifoService, so
+                    // per-batch costs are not available here. It is an
+                    // approximation, and a deliberate one — the alternative today
+                    // is posting revenue with NO cost at all, which overstates
+                    // gross profit by 100%. Migrating this service onto FifoService
+                    // is tracked as a follow-up.
+                    //
+                    // FBA lines are excluded on purpose: that stock lives in the
+                    // marketplace's warehouse and was expensed when it shipped there.
+                    $cogsTotal += round((float) ($product->cost_price ?? 0) * $availableQty, 2);
                 }
 
                 // ── Step 5: Build JIT Draft ────────────────────────────────────
@@ -313,8 +329,43 @@ class SmartFulfillmentService
             // ── Step 6: Platform Fee Expense ──────────────────────────────────
             $this->createChannelFeeExpense($sale, $items, $channel);
 
-            return $sale;
+            // ── Step 7 (T17): Post the sale into the Marketplace Clearing pool ──
+            //
+            // AUDIT FINDING: before T17 this method posted NO journal entry at
+            // all. Marketplace revenue, fees and COGS never reached the general
+            // ledger — Amazon / eBay / TikTok sales were completely invisible on
+            // the P&L and Balance Sheet, while WooCommerce (posted elsewhere)
+            // wrongly booked straight to 1000 Cash on Hand.
+            //
+            // Money the platform is still holding is a RECEIVABLE (1205), not
+            // cash. It becomes bank money only when the owner confirms the payout.
+            //
+            // The Expense row created above is retained as a display subledger.
+            // It does not post to the GL (Expense::create bypasses the controller
+            // that would), so booking the fee to 5400 here is not a double-count.
+            $sale->refresh();
+
+            $this->settlement()->postSaleToClearing(
+                $sale,
+                $channel,
+                (float) $grossRevenue,
+                (float) ($sale->gross_platform_fee ?? 0),
+                (float) $cogsTotal
+            );
+
+            return $sale->refresh();
         });
+    }
+
+    /**
+     * Resolved lazily rather than constructor-injected: this class is
+     * instantiated directly with `new SmartFulfillmentService()` in several
+     * existing tests, and adding a required constructor argument would break
+     * every one of them.
+     */
+    private function settlement(): \App\Services\VenSynQ\MarketplaceSettlementService
+    {
+        return app(\App\Services\VenSynQ\MarketplaceSettlementService::class);
     }
 
     /**

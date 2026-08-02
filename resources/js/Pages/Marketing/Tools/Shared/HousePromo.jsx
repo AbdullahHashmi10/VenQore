@@ -35,7 +35,7 @@ export default function HousePromo() {
     return (
         <aside className="hidden xl:block w-80 shrink-0 sticky top-36 self-start max-h-[calc(100vh-11rem)] overflow-y-auto space-y-4 pb-2">
             <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 dark:from-indigo-600/20 dark:to-violet-600/10 border border-indigo-500/20">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300 mb-3">
+                    <p className="text-2xs font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300 mb-3">
                         From the makers of this tool
                     </p>
                     <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 leading-snug">
@@ -58,20 +58,20 @@ export default function HousePromo() {
                         {stats.map((s) => (
                             <div key={s.label} className="p-3 rounded-xl bg-white/60 dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10 text-center">
                                 <p className="text-xl font-black text-slate-900 dark:text-white leading-none mb-1">{s.value}</p>
-                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-500">{s.label}</p>
+                                <p className="text-2xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-500">{s.label}</p>
                             </div>
                         ))}
                     </div>
 
                     <Link
                         href="/pricing"
-                        className="flex items-center justify-center gap-1.5 w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform"
+                        className="flex items-center justify-center gap-1.5 w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform"
                     >
                         Start free trial <ArrowRight size={13} />
                     </Link>
                     <Link
                         href="/demo"
-                        className="block text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mt-3 transition-colors"
+                        className="block text-center text-1xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mt-3 transition-colors"
                     >
                         Or try the live demo →
                     </Link>

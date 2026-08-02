@@ -145,7 +145,7 @@ export default function StockModuleTabs({ activeTab }) {
                                     >
                                         <Icon size={14} />
                                         {tab.label}
-                                        <span className="text-[9px] px-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 ml-1">LOCK</span>
+                                        <span className="text-3xs px-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 ml-1">LOCK</span>
                                     </div>
                                 ) : (
                                     <Link

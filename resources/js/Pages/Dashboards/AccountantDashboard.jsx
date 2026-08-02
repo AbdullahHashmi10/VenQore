@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     DollarSign, TrendingDown, TrendingUp, CreditCard,
     FileText, ArrowUpRight, Clock, AlertCircle, CheckCircle2,
@@ -13,7 +14,7 @@ import {
 } from 'recharts';
 
 // ── Reusable metric card ────────────────────────────────────────────────────
-function MetricCard({ icon: Icon, label, value, sub, color = '#6366f1', onClick, trend }) {
+function MetricCard({ icon: Icon, label, value, sub, color = vq.indigo[500], onClick, trend }) {
     return (
         <div
             onClick={onClick}
@@ -35,14 +36,14 @@ function MetricCard({ icon: Icon, label, value, sub, color = '#6366f1', onClick,
                     <Icon size={18} color={color} />
                 </div>
                 {trend != null && (
-                    <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: trend >= 0 ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: trend >= 0 ? vq.emerald[500] : vq.red[500], display: 'flex', alignItems: 'center', gap: 3 }}>
                         {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                     </span>
                 )}
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main, #0f172a)', lineHeight: 1 }}>{value}</div>
             <div style={{ fontSize: 12, color: 'var(--text-sub, #64748b)', marginTop: 5, fontWeight: 600 }}>{label}</div>
-            {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{sub}</div>}
+            {sub && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 3 }}>{sub}</div>}
         </div>
     );
 }
@@ -51,8 +52,8 @@ function MetricCard({ icon: Icon, label, value, sub, color = '#6366f1', onClick,
 function AgingRow({ bucket, amount, pct, color }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-            <div style={{ width: 80, fontSize: 11, fontWeight: 700, color: '#64748b' }}>{bucket}</div>
-            <div style={{ flex: 1, height: 6, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ width: 80, fontSize: 11, fontWeight: 700, color: vq.slate[500] }}>{bucket}</div>
+            <div style={{ flex: 1, height: 6, background: vq.slate[100], borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 4, transition: 'width 0.6s ease' }} />
             </div>
             <div style={{ width: 90, textAlign: 'right', fontSize: 13, fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>{amount}</div>
@@ -92,7 +93,7 @@ export default function AccountantDashboard({
                     <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main, #0f172a)', margin: 0 }}>
                         💰 Finance Overview
                     </h1>
-                    <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+                    <p style={{ fontSize: 13, color: vq.slate[500], margin: '4px 0 0' }}>
                         {store?.name} · {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                 </div>
@@ -100,7 +101,7 @@ export default function AccountantDashboard({
                 {/* Top KPIs */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
                     <MetricCard
-                        icon={DollarSign} color="#10b981"
+                        icon={DollarSign} color={vq.emerald[500]}
                         label="Net Cash Position"
                         value={fmt(cp.total)}
                         sub={`Cash: ${fmt(cp.cash)} · Bank: ${fmt(cp.bank)}`}
@@ -109,7 +110,7 @@ export default function AccountantDashboard({
                         }))}
                     />
                     <MetricCard
-                        icon={ArrowUpRight} color="#6366f1"
+                        icon={ArrowUpRight} color={vq.indigo[500]}
                         label="Total Receivables"
                         value={fmt(rx.total)}
                         sub={`${rx.overdue_30 > 0 ? fmt(rx.overdue_30) + ' overdue 30d+' : 'No overdue'}`}
@@ -119,7 +120,7 @@ export default function AccountantDashboard({
                         trend={rx.total > 0 ? 1 : null}
                     />
                     <MetricCard
-                        icon={TrendingDown} color="#f59e0b"
+                        icon={TrendingDown} color={vq.amber[500]}
                         label="Total Payables"
                         value={fmt(py.total)}
                         sub={`Due in 7d: ${fmt(py.due_7)}`}
@@ -129,7 +130,7 @@ export default function AccountantDashboard({
                         trend={py.overdue > 0 ? -1 : null}
                     />
                     <MetricCard
-                        icon={BarChart2} color={pl.profit >= 0 ? '#10b981' : '#ef4444'}
+                        icon={BarChart2} color={pl.profit >= 0 ? vq.emerald[500] : vq.red[500]}
                         label="Net Profit (Month)"
                         value={fmt(pl.profit)}
                         sub={`Income ${fmt(pl.income)} · Exp ${fmt(pl.expense)}`}
@@ -150,12 +151,12 @@ export default function AccountantDashboard({
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={plChartData ?? []} barGap={4}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => sym + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v)} />
+                                <XAxis dataKey="month" tick={{ fontSize: 11, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
+                                <YAxis tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} tickFormatter={v => sym + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v)} />
                                 <Tooltip formatter={(v) => fmt(v)} contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12 }} />
                                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                                <Bar dataKey="income"  name="Income"  fill="#10b981" radius={[4,4,0,0]} />
-                                <Bar dataKey="expense" name="Expense" fill="#f87171" radius={[4,4,0,0]} />
+                                <Bar dataKey="income"  name="Income"  fill={vq.emerald[500]} radius={[4,4,0,0]} />
+                                <Bar dataKey="expense" name="Expense" fill={vq.red[400]} radius={[4,4,0,0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -165,23 +166,23 @@ export default function AccountantDashboard({
                         <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)', marginBottom: 8 }}>
                             Receivables Aging
                         </div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 20 }}>Who owes and how overdue</div>
+                        <div style={{ fontSize: 12, color: vq.slate[500], marginBottom: 20 }}>Who owes and how overdue</div>
                         {[
-                            { bucket: '0–30 days', amount: fmt(rx.total - rx.overdue_30 - rx.overdue_60 - rx.overdue_90 - rx.overdue_90plus), pct: rx.total > 0 ? Math.max(5,((rx.total - rx.overdue_30)/rx.total)*100) : 0, color: '#10b981' },
-                            { bucket: '31–60 days', amount: fmt(rx.overdue_30), pct: rx.total > 0 ? (rx.overdue_30/rx.total)*100 : 0, color: '#f59e0b' },
-                            { bucket: '61–90 days', amount: fmt(rx.overdue_60), pct: rx.total > 0 ? (rx.overdue_60/rx.total)*100 : 0, color: '#f97316' },
-                            { bucket: '90+ days',   amount: fmt(rx.overdue_90plus ?? 0), pct: rx.total > 0 ? ((rx.overdue_90plus ?? 0)/rx.total)*100 : 0, color: '#ef4444' },
+                            { bucket: '0–30 days', amount: fmt(rx.total - rx.overdue_30 - rx.overdue_60 - rx.overdue_90 - rx.overdue_90plus), pct: rx.total > 0 ? Math.max(5,((rx.total - rx.overdue_30)/rx.total)*100) : 0, color: vq.emerald[500] },
+                            { bucket: '31–60 days', amount: fmt(rx.overdue_30), pct: rx.total > 0 ? (rx.overdue_30/rx.total)*100 : 0, color: vq.amber[500] },
+                            { bucket: '61–90 days', amount: fmt(rx.overdue_60), pct: rx.total > 0 ? (rx.overdue_60/rx.total)*100 : 0, color: vq.orange[500] },
+                            { bucket: '90+ days',   amount: fmt(rx.overdue_90plus ?? 0), pct: rx.total > 0 ? ((rx.overdue_90plus ?? 0)/rx.total)*100 : 0, color: vq.red[500] },
                         ].map(r => <AgingRow key={r.bucket} {...r} />)}
 
                         <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)', marginBottom: 8 }}>Payables — Due Soon</div>
                             {[
-                                { label: 'Due in 7 days',  value: fmt(py.due_7),  color: '#f59e0b' },
-                                { label: 'Due in 30 days', value: fmt(py.due_30), color: '#6366f1' },
-                                { label: 'Overdue',        value: fmt(py.overdue), color: '#ef4444' },
+                                { label: 'Due in 7 days',  value: fmt(py.due_7),  color: vq.amber[500] },
+                                { label: 'Due in 30 days', value: fmt(py.due_30), color: vq.indigo[500] },
+                                { label: 'Overdue',        value: fmt(py.overdue), color: vq.red[500] },
                             ].map(p => (
                                 <div key={p.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #f8fafc', fontSize: 13 }}>
-                                    <span style={{ color: '#64748b', fontWeight: 500 }}>{p.label}</span>
+                                    <span style={{ color: vq.slate[500], fontWeight: 500 }}>{p.label}</span>
                                     <span style={{ fontWeight: 700, color: p.color }}>{p.value}</span>
                                 </div>
                             ))}
@@ -196,29 +197,29 @@ export default function AccountantDashboard({
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)' }}>Recent Journal Entries</div>
                             {(pendingJournalCount ?? 0) > 0 && (
-                                <span style={{ padding: '3px 10px', borderRadius: 8, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700 }}>
+                                <span style={{ padding: '3px 10px', borderRadius: 8, background: vq.amber[100], color: vq.amber[600], fontSize: 11, fontWeight: 700 }}>
                                     {pendingJournalCount} pending
                                 </span>
                             )}
                         </div>
                         {(recentJournalEntries ?? []).length === 0 ? (
-                            <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No recent entries.</div>
+                            <div style={{ padding: '24px 0', textAlign: 'center', color: vq.slate[400], fontSize: 13 }}>No recent entries.</div>
                         ) : (
                             (recentJournalEntries ?? []).slice(0, 6).map((entry, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f8fafc' }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', flexShrink: 0 }} />
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: vq.indigo[500], flexShrink: 0 }} />
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main,#0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.description ?? 'Journal Entry'}</div>
-                                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{entry.date}</div>
+                                        <div style={{ fontSize: 11, color: vq.slate[400] }}>{entry.date}</div>
                                     </div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: entry.type === 'debit' ? '#10b981' : '#f59e0b', flexShrink: 0 }}>{fmt(entry.amount)}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: entry.type === 'debit' ? vq.emerald[500] : vq.amber[500], flexShrink: 0 }}>{fmt(entry.amount)}</div>
                                 </div>
                             ))
                         )}
                         <button onClick={() => router.visit(route("store.finance.journal", {
                             store_slug: store.slug
                         }))}
-                            style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', color: '#6366f1', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                            style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', color: vq.indigo[500], fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                             View All Journal Entries
                         </button>
                     </div>
@@ -229,12 +230,12 @@ export default function AccountantDashboard({
                             <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,#0f172a)', marginBottom: 14 }}>Bank &amp; Cash Accounts</div>
                             {[...(bankAccounts ?? []), ...(cashAccounts ?? [])].map((acct, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f8fafc', fontSize: 13 }}>
-                                    <span style={{ color: '#475569', fontWeight: 500 }}>{acct.name ?? acct.bank_name ?? 'Account'}</span>
-                                    <span style={{ fontWeight: 700, color: (acct.current_balance ?? 0) >= 0 ? '#10b981' : '#ef4444' }}>{fmt(acct.current_balance ?? 0)}</span>
+                                    <span style={{ color: vq.slate[600], fontWeight: 500 }}>{acct.name ?? acct.bank_name ?? 'Account'}</span>
+                                    <span style={{ fontWeight: 700, color: (acct.current_balance ?? 0) >= 0 ? vq.emerald[500] : vq.red[500] }}>{fmt(acct.current_balance ?? 0)}</span>
                                 </div>
                             ))}
                             {[...(bankAccounts ?? []), ...(cashAccounts ?? [])].length === 0 && (
-                                <div style={{ color: '#94a3b8', fontSize: 13, padding: '12px 0' }}>No accounts configured.</div>
+                                <div style={{ color: vq.slate[400], fontSize: 13, padding: '12px 0' }}>No accounts configured.</div>
                             )}
                         </div>
 
@@ -250,11 +251,11 @@ export default function AccountantDashboard({
                                 ].map(a => (
                                     <button key={a.label}
                                         onClick={() => router.visit(route(a.route, { store_slug: storeSlug }))}
-                                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'background 0.12s' }}
-                                        onMouseEnter={e => e.currentTarget.style.background = '#ede9fe'}
-                                        onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, border: '1px solid #e2e8f0', background: vq.slate[50], color: vq.slate[600], fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'background 0.12s' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = vq.violet[100]}
+                                        onMouseLeave={e => e.currentTarget.style.background = vq.slate[50]}
                                     >
-                                        <a.icon size={14} color="#6366f1" /> {a.label}
+                                        <a.icon size={14} color={vq.indigo[500]} /> {a.label}
                                     </button>
                                 ))}
                             </div>

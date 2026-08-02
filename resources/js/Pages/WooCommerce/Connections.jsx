@@ -84,7 +84,7 @@ function AddConnectionModal({ storeSlug, onClose }) {
                             placeholder="https://my-wordpress-store.com"
                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
                         />
-                        <p className="text-[10px] text-slate-400 mt-0.5">Recommended. Allows triggering instant remote handshakes directly from the POS.</p>
+                        <p className="text-2xs text-slate-400 mt-0.5">Recommended. Allows triggering instant remote handshakes directly from the POS.</p>
                         {errors.site_url && <p className="text-xs text-red-500 mt-1">{errors.site_url}</p>}
                     </div>
 
@@ -148,7 +148,7 @@ function ConnectionCard({ connection, storeSlug }) {
                         <AlertTriangle size={20} />
                     </div>
                     <h4 className="text-white font-bold text-sm">Delete Connection?</h4>
-                    <p className="text-[11px] text-slate-400 mt-1 max-w-[210px] leading-relaxed">
+                    <p className="text-1xs text-slate-400 mt-1 max-w-[210px] leading-relaxed">
                         This permanently disconnects "{connection.name}" and purges all live sync metadata.
                     </p>
                     <div className="flex items-center gap-2 mt-4 w-full px-2">

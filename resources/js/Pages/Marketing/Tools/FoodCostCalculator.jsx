@@ -331,7 +331,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                 <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-slate-900/10 dark:border-white/10 shadow-sm space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900/10 dark:border-white/10 pb-5">
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1">
+                            <span className="text-2xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1">
                                 Quick Start Presets
                             </span>
                             <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -406,7 +406,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     onChange={(e) => setWastePct(e.target.value)}
                                     className="w-full px-3.5 py-2.5 pr-8 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:border-indigo-500"
                                 />
-                                <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">%</span>
+                                <span className="absolute right-3 top-2.5 text-xs text-slate-500 dark:text-slate-400 font-bold">%</span>
                             </div>
                         </div>
                     </div>
@@ -452,7 +452,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 } flex flex-col lg:flex-row lg:items-center gap-3 min-w-[700px]`}
                             >
                                 <div className="flex-1 min-w-[160px]">
-                                    <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                    <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                         Ingredient #{idx + 1} Name
                                     </label>
                                     <input
@@ -467,7 +467,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 {/* Purchase Specs */}
                                 <div className="flex items-center gap-2 min-w-[210px]">
                                     <div className="w-24">
-                                        <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                        <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                             Pur. Cost ({sym})
                                         </label>
                                         <input
@@ -479,9 +479,9 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                             className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-indigo-500"
                                         />
                                     </div>
-                                    <span className="text-xs text-slate-400 font-bold mt-4">/</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-4">/</span>
                                     <div className="w-16">
-                                        <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                        <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                             Pur. Qty
                                         </label>
                                         <input
@@ -494,7 +494,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                         />
                                     </div>
                                     <div className="w-28">
-                                        <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                        <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                             Pur. Unit
                                         </label>
                                         <Select
@@ -505,12 +505,12 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     </div>
                                 </div>
 
-                                <ArrowRight size={14} className="hidden lg:block text-slate-400 mt-4 shrink-0" />
+                                <ArrowRight size={14} className="hidden lg:block text-slate-500 dark:text-slate-400 mt-4 shrink-0" />
 
                                 {/* Recipe Specs */}
                                 <div className="flex items-center gap-2 min-w-[190px]">
                                     <div className="w-20">
-                                        <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                        <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                             Recipe Qty
                                         </label>
                                         <input
@@ -523,7 +523,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                         />
                                     </div>
                                     <div className="w-28">
-                                        <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                        <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                             Recipe Unit
                                         </label>
                                         <Select
@@ -536,7 +536,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
 
                                 {/* Computed Line Cost */}
                                 <div className="min-w-[100px] text-right lg:ml-auto">
-                                    <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">
+                                    <label className="block text-2xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1">
                                         Cost Share
                                     </label>
                                     <span className={`text-sm font-black ${item.unitMismatch ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>
@@ -548,7 +548,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     type="button"
                                     onClick={() => removeIngredient(item.id)}
                                     disabled={ingredients.length <= 1}
-                                    className="p-2 rounded-lg text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-400 transition-colors mt-2 lg:mt-0 shrink-0"
+                                    className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:hover:text-slate-400 transition-colors mt-2 lg:mt-0 shrink-0"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -560,33 +560,33 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                 {/* ── Key Output Metrics Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Card 1: Batch & Portion Cost */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl flex flex-col justify-between">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 text-slate-900 dark:text-white shadow-xl flex flex-col justify-between">
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                            <span className="text-2xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Recipe Cost Structure
                             </span>
                             <div className="mt-3">
-                                <span className="text-3xl font-black text-white block">
+                                <span className="text-3xl font-black text-slate-900 dark:text-white block">
                                     {formatMoney(costPerPortion, sym)}
                                 </span>
-                                <span className="text-xs text-slate-300 font-semibold block mt-1">
+                                <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold block mt-1">
                                     Cost Per Portion ({yieldPortions} portion{num(yieldPortions) === 1 ? '' : 's'})
                                 </span>
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-white/10 space-y-2 text-xs">
-                            <div className="flex justify-between text-slate-300">
+                        <div className="mt-6 pt-4 border-t border-slate-900/[0.08] dark:border-white/10 space-y-2 text-xs">
+                            <div className="flex justify-between text-slate-600 dark:text-slate-300">
                                 <span>Raw Ingredients Total:</span>
-                                <span className="font-bold text-white">{formatMoney(rawBatchCost, sym)}</span>
+                                <span className="font-bold text-slate-900 dark:text-white">{formatMoney(rawBatchCost, sym)}</span>
                             </div>
-                            <div className="flex justify-between text-slate-300">
+                            <div className="flex justify-between text-slate-600 dark:text-slate-300">
                                 <span>Waste Allowance ({wastePct}%):</span>
-                                <span className="font-bold text-emerald-400">+{formatMoney(totalBatchCostWithWaste - rawBatchCost, sym)}</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">+{formatMoney(totalBatchCostWithWaste - rawBatchCost, sym)}</span>
                             </div>
-                            <div className="flex justify-between text-slate-300 font-bold">
+                            <div className="flex justify-between text-slate-600 dark:text-slate-300 font-bold">
                                 <span>Total Batch Cost:</span>
-                                <span className="text-white">{formatMoney(totalBatchCostWithWaste, sym)}</span>
+                                <span className="text-slate-900 dark:text-white">{formatMoney(totalBatchCostWithWaste, sym)}</span>
                             </div>
                         </div>
                     </div>
@@ -594,7 +594,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     {/* Card 2: Target Food Cost % Solver */}
                     <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-slate-900/10 dark:border-white/10 shadow-sm flex flex-col justify-between">
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                            <span className="text-2xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                                 Target Pricing Solver
                             </span>
                             <div className="mt-3">
@@ -621,9 +621,9 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     onChange={(e) => setTargetFoodCostPct(e.target.value)}
                                     className="w-full px-3 py-2 pr-8 rounded-xl bg-slate-900/[0.02] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10 text-slate-900 dark:text-white text-sm font-bold focus:outline-none focus:border-indigo-500"
                                 />
-                                <span className="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                                <span className="absolute right-3 top-2 text-xs text-slate-500 dark:text-slate-400 font-bold">%</span>
                             </div>
-                            <p className="text-[11px] text-slate-400 mt-2">
+                            <p className="text-1xs text-slate-500 dark:text-slate-400 mt-2">
                                 Standard restaurant benchmark: 28% - 35%.
                             </p>
                         </div>
@@ -632,7 +632,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     {/* Card 3: Actual Menu Price & Margin Evaluation */}
                     <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-slate-900/10 dark:border-white/10 shadow-sm flex flex-col justify-between">
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                            <span className="text-2xs font-black uppercase tracking-wider text-violet-600 dark:text-violet-400">
                                 Menu Margin Analysis
                             </span>
                             <div className="mt-3">
@@ -701,11 +701,11 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
 
                     {savedRecipes.length === 0 ? (
                         <div className="p-8 text-center rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.02] border border-dashed border-slate-900/10 dark:border-white/10">
-                            <BookOpen className="mx-auto text-slate-400 mb-2" size={24} />
+                            <BookOpen className="mx-auto text-slate-500 dark:text-slate-400 mb-2" size={24} />
                             <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
                                 No saved recipes in summary yet.
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-1">
+                            <p className="text-1xs text-slate-500 dark:text-slate-400 mt-1">
                                 Click "Add to Summary" above to save multiple menu items side-by-side.
                             </p>
                         </div>
@@ -713,7 +713,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">
                                 <thead>
-                                    <tr className="border-b border-slate-900/10 dark:border-white/10 text-slate-400 font-black uppercase text-[10px]">
+                                    <tr className="border-b border-slate-900/10 dark:border-white/10 text-slate-500 dark:text-slate-400 font-black uppercase text-2xs">
                                         <th className="py-2.5 px-3">Recipe</th>
                                         <th className="py-2.5 px-3">Yield</th>
                                         <th className="py-2.5 px-3">Batch Cost</th>
@@ -744,7 +744,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => removeSavedRecipe(r.id)}
-                                                    className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="p-1 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>

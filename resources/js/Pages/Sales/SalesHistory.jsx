@@ -390,23 +390,23 @@ export default function SalesIndex({ sales, filters, stats }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Today</button>
                         <button
                             onClick={() => { setActiveFilter('month'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'month', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >This Month</button>
                         <button
                             onClick={() => { setActiveFilter('year'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'year', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >This Year</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Custom</button>
                         {/* Custom Date Range - Inline */}
                         {activeFilter === 'custom' && (
@@ -510,23 +510,23 @@ export default function SalesIndex({ sales, filters, stats }) {
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Today</button>
                                 <button
                                     onClick={() => { setActiveFilter('month'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'month', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >This Month</button>
                                 <button
                                     onClick={() => { setActiveFilter('year'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'year', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >This Year</button>
                                 <button
                                     onClick={() => setActiveFilter('custom')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Custom</button>
                             </div>
                             {activeFilter === 'custom' && (
@@ -587,7 +587,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-2 md:p-4 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
+                                            p-2 md:p-4 text-2xs md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
                                             cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
                                             ${col.className || ''}
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
@@ -655,10 +655,10 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.reference_number}</span>
                                                                     {row.source === 'pos' && (
-                                                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded uppercase">POS</span>
+                                                                        <span className="text-2xs font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded uppercase">POS</span>
                                                                     )}
                                                                     {row.is_dropship && (
-                                                                        <span className="text-[10px] font-black bg-indigo-50 border border-indigo-100/50 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/40 dark:text-indigo-400 px-1.5 py-0.5 rounded uppercase tracking-wide flex items-center gap-1.5">
+                                                                        <span className="text-2xs font-black bg-indigo-50 border border-indigo-100/50 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/40 dark:text-indigo-400 px-1.5 py-0.5 rounded uppercase tracking-wide flex items-center gap-1.5">
                                                                             {row.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={12} />}
                                                                             {row.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={12} />}
                                                                             {row.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={12} />}
@@ -834,14 +834,14 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                     {row.customer?.name || 'Walk-in'}
                                                 </h3>
                                                 {row.customer?.phone && (
-                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.customer.phone}</p>
+                                                    <p className="text-2xs text-slate-400 font-semibold">{row.customer.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
                                                     {row.reference_number}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                                     {formatDate(row.created_at)}
                                                 </span>
                                             </div>
@@ -850,15 +850,15 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         {/* Row 2: Badges (Transaction type & payment status) */}
                                         <div className="flex items-center gap-1.5">
                                             {isReturn ? (
-                                                <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                                <span className="text-3xs font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
                                                     Return
                                                 </span>
                                             ) : isPos ? (
-                                                <span className="text-[9px] font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
+                                                <span className="text-3xs font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
                                                     POS Sale
                                                 </span>
                                             ) : (
-                                                <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded border border-emerald-200/30">
+                                                <span className="text-3xs font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded border border-emerald-200/30">
                                                     Sale
                                                 </span>
                                             )}
@@ -876,7 +876,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                     overpaid: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-500/20'
                                                 };
                                                 return (
-                                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[status] || 'bg-slate-100 text-slate-700'}`}>
+                                                    <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[status] || 'bg-slate-100 text-slate-700'}`}>
                                                         {status}
                                                     </span>
                                                 );
@@ -887,13 +887,13 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Total</span>
                                                     <span className="text-xs font-black text-slate-900 dark:text-white">
                                                         {formatCurrency(row.total, store)}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
                                                     {balance > 1 ? (
                                                         <span className="text-xs font-black text-rose-600 dark:text-rose-450">
                                                             {formatCurrency(balance, store)}
@@ -903,7 +903,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             +{formatCurrency(Math.abs(balance), store)}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
+                                                        <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
                                                             Settled
                                                         </span>
                                                     )}
@@ -968,7 +968,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 </button>
                                                                 <button
                                                                     onClick={async () => { if (await confirm('Cancel invoice? Stock will be restored.')) router.post(route('store.sales.cancel', { store_slug: store?.slug, sale: row.id })); }}
-                                                                    className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-650"
+                                                                    className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-600"
                                                                 >
                                                                     <XCircle size={14} /> Cancel Invoice
                                                                 </button>
@@ -1018,11 +1018,11 @@ export default function SalesIndex({ sales, filters, stats }) {
                             <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div>
-                                        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
+                                        <p className="text-2xs sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
                                         <h3 className="text-lg sm:text-xl font-black text-indigo-600 truncate">{quickViewSale.reference_number}</h3>
                                     </div>
                                     {quickViewSale.source === 'pos' && (
-                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
+                                        <span className="text-2xs font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
                                     )}
                                     {(() => {
                                         const statusStyles = {
@@ -1031,7 +1031,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             unpaid: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                                         };
                                         return (
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyles[quickViewSale.payment_status] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[quickViewSale.payment_status] || 'bg-slate-100 text-slate-700'}`}>
                                                 {quickViewSale.payment_status}
                                             </span>
                                         );
@@ -1065,23 +1065,23 @@ export default function SalesIndex({ sales, filters, stats }) {
                                 {/* Top Info Row */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Customer</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Customer</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewSale.customer?.name || 'Walk-in'}</p>
                                         {quickViewSale.customer?.phone && (
                                             <p className="text-xs text-slate-500">{quickViewSale.customer.phone}</p>
                                         )}
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date & Time</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date & Time</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewSale.created_at)}</p>
                                         <p className="text-xs text-slate-500">{formatTime(quickViewSale.created_at)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Payment</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{quickViewSale.payment_method || 'Cash'}</p>
                                     </div>
                                     <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                        <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
+                                        <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
                                         <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total, store)}</p>
                                     </div>
                                 </div>
@@ -1098,14 +1098,14 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         <table className="w-full text-sm">
                                             <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                                 <tr>
-                                                    <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                    <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                    <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">
+                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                    <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">
                                                         {quickViewSale.items?.some(i => parseFloat(i.free_quantity || 0) > 0) ? 'Qty + Free' : 'Qty'}
                                                     </th>
-                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Discount</th>
-                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Discount</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1116,7 +1116,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             <td className="p-3">
                                                                 <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                                 {item.product?.sku && (
-                                                                    <p className="text-[10px] text-slate-400 font-mono">{item.product.sku}</p>
+                                                                    <p className="text-2xs text-slate-400 font-mono">{item.product.sku}</p>
                                                                 )}
                                                             </td>
                                                             <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">
@@ -1156,7 +1156,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             <div>
                                                                 <p className="font-semibold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                                 {item.product?.sku && (
-                                                                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">{item.product.sku}</p>
+                                                                    <p className="text-2xs text-slate-400 font-mono mt-0.5">{item.product.sku}</p>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -1164,7 +1164,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - parseFloat(item.discount_amount || item.discount || 0), store)}
                                                         </p>
                                                     </div>
-                                                    <div className="grid grid-cols-3 gap-2 text-[10px] bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                                    <div className="grid grid-cols-3 gap-2 text-2xs bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                                         <div>
                                                             <span className="text-slate-400 block uppercase">
                                                                 {parseFloat(item.free_quantity || 0) > 0 ? 'Qty + Free' : 'Qty'}
@@ -1199,29 +1199,29 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
                                         <div className="flex flex-wrap justify-between sm:justify-end gap-4 sm:gap-8">
                                             <div className="text-right">
-                                                <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
+                                                <p className="text-2xs text-slate-400 uppercase">Subtotal</p>
                                                 <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal_gross || quickViewSale.subtotal || quickViewSale.total, store)}</p>
                                             </div>
                                             {parseFloat(quickViewSale.total_item_discounts || 0) > 0 && (
                                                 <div className="text-right">
-                                                    <p className="text-[10px] text-slate-400 uppercase">Item Discounts</p>
+                                                    <p className="text-2xs text-slate-400 uppercase">Item Discounts</p>
                                                     <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.total_item_discounts, store)}</p>
                                                 </div>
                                             )}
                                             {parseFloat(quickViewSale.global_discount || quickViewSale.discount || 0) > 0 && (
                                                 <div className="text-right">
-                                                    <p className="text-[10px] text-slate-400 uppercase">Invoice Discount</p>
+                                                    <p className="text-2xs text-slate-400 uppercase">Invoice Discount</p>
                                                     <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.global_discount || quickViewSale.discount, store)}</p>
                                                 </div>
                                             )}
                                             {quickViewSale.tax > 0 && (
                                                 <div className="text-right">
-                                                    <p className="text-[10px] text-slate-400 uppercase">Tax</p>
+                                                    <p className="text-2xs text-slate-400 uppercase">Tax</p>
                                                     <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.tax, store)}</p>
                                                 </div>
                                             )}
                                             <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
-                                                <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
+                                                <p className="text-2xs text-indigo-600 uppercase font-bold">Grand Total</p>
                                                 <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewSale.total, store)}</p>
                                             </div>
                                         </div>
@@ -1232,7 +1232,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                 <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
                                     <div className="flex gap-6 justify-between w-full sm:w-auto">
                                         <div>
-                                            <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Paid Amount</p>
                                             <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0), store)}</p>
                                         </div>
                                         {(() => {
@@ -1241,7 +1241,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             if (balance > 1) {
                                                 return (
                                                     <div>
-                                                        <p className="text-[10px] text-slate-400 uppercase">Balance Due</p>
+                                                        <p className="text-2xs text-slate-400 uppercase">Balance Due</p>
                                                         <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
                                                     </div>
                                                 );
@@ -1268,7 +1268,7 @@ export default function SalesIndex({ sales, filters, stats }) {
 
                             {/* Footer */}
                             <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                                <p className="text-[10px] text-slate-400">Double-click row to edit directly • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                                <p className="text-2xs text-slate-400">Double-click row to edit directly • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
                             </div>
                         </div>
                     </div>

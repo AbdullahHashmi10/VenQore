@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { getCurrencySymbol } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
 const ROLES = {
     owner:           { name: 'Owner',           description: 'Store owner — full access',    icon: Crown,        color: 'from-amber-500 to-yellow-600',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
@@ -203,7 +204,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                 const CatIcon = cat.icon;
 
                 return (
-                    <div key={cat.id} className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4 transition-all hover:border-slate-650/40">
+                    <div key={cat.id} className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4 transition-all hover:border-slate-600/40">
                         {/* Category Header */}
                         <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-slate-800/60">
                             <div className="flex items-center gap-3">
@@ -212,7 +213,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                 </div>
                                 <div>
                                     <h4 className="text-xs font-bold text-white leading-tight">{cat.name}</h4>
-                                    <p className="text-[9px] text-slate-500 leading-tight mt-0.5">{cat.desc}</p>
+                                    <p className="text-3xs text-slate-500 leading-tight mt-0.5">{cat.desc}</p>
                                 </div>
                             </div>
                             
@@ -220,11 +221,11 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => handleToggleCategory(cat.id, catPerms)}
-                                className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border ${
+                                className={`px-2 py-0.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-all border ${
                                     isCatActive
                                         ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400'
                                         : isCatPartial
-                                            ? 'bg-amber-650/15 border-amber-500/50 text-amber-400'
+                                            ? 'bg-amber-600/15 border-amber-500/50 text-amber-400'
                                             : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:text-white'
                                 } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                             >
@@ -251,13 +252,13 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                         <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
                                             isActive
                                                 ? 'bg-indigo-600 border-indigo-500 text-white'
-                                                : 'border-slate-705 bg-[#1e293b]'
+                                                : 'border-slate-700 bg-slate-800'
                                         }`}>
                                             {isActive && <Check size={8} strokeWidth={3} />}
                                         </div>
                                         <div className="flex flex-col justify-center min-w-0">
-                                            <div className={`text-[10px] font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{perm.name}</div>
-                                            <div className="text-[8px] text-slate-500 leading-tight mt-0.5 truncate">{perm.desc}</div>
+                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{perm.name}</div>
+                                            <div className="text-4xs text-slate-500 leading-tight mt-0.5 truncate">{perm.desc}</div>
                                         </div>
                                     </button>
                                 );
@@ -597,31 +598,31 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         
                         {activeTab === 'summaries' ? (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1">Sort:</span>
+                                <span className="text-3xs font-black text-slate-400 uppercase tracking-widest mr-1">Sort:</span>
                                 <button
                                     onClick={() => setSortConfig('sales')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'sales'
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'sales'
                                         ? 'bg-emerald-600 text-white shadow-sm font-black'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }`}
                                 >Total Sales</button>
                                 <button
                                     onClick={() => setSortConfig('transactions')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'transactions'
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'transactions'
                                         ? 'bg-indigo-600 text-white shadow-sm font-black'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }`}
                                 >Transactions</button>
                                 <button
                                     onClick={() => setSortConfig('avg')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'avg'
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-md transition-all ${sortConfig === 'avg'
                                         ? 'bg-purple-600 text-white shadow-sm font-black'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                                         }`}
                                 >Avg. Ticket</button>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[10px] font-extrabold uppercase">
+                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-2xs font-extrabold uppercase">
                                 <span className="px-2.5 py-1 bg-indigo-600 text-white rounded-md shadow-sm">All</span>
                             </div>
                         )}
@@ -681,7 +682,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                     filteredSummaries.map((staff, index) => (
                                         <div key={staff.id || index} className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all group">
                                             {index === 0 && sortConfig === 'sales' && (
-                                                <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                                                <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-2xs font-bold flex items-center gap-1 shadow-sm">
                                                     <Award size={10} /> Top Sales
                                                 </div>
                                             )}
@@ -715,14 +716,14 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                                     <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                         <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
                                                             <Package size={11} />
-                                                            <span className="text-[9px] font-bold uppercase">Txns</span>
+                                                            <span className="text-3xs font-bold uppercase">Txns</span>
                                                         </div>
                                                         <p className="font-bold text-slate-800 dark:text-white">{staff.transactionCount}</p>
                                                     </div>
                                                     <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                         <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
                                                             <TrendingUp size={11} />
-                                                            <span className="text-[9px] font-bold uppercase">Avg</span>
+                                                            <span className="text-3xs font-bold uppercase">Avg</span>
                                                         </div>
                                                         <p className="font-bold text-slate-800 dark:text-white max-w-full truncate">
                                                             {getCurrencySymbol()} {Math.round(staff.avgTransaction).toLocaleString()}
@@ -766,7 +767,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
             {showAddModal && (
                 <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-                    <div className="bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+                    <div className="bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
                         
                         <button onClick={() => { setShowAddModal(false); reset(); }}
                             className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
@@ -774,7 +775,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         </button>
 
                         {/* LEFT COLUMN: Form & Roles */}
-                        <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-[#0f172a] rounded-l-[2rem]">
+                        <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-slate-900 rounded-l-[2rem]">
                             <div className="flex items-center gap-4 mb-10">
                                 <h3 className="font-extrabold text-2xl text-white tracking-tight">Invite Member</h3>
                                 <div className="h-4 w-px bg-slate-700"></div>
@@ -785,31 +786,31 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 
                                 {/* Credentials */}
                                 <div className="space-y-5">
-                                    <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
                                         <User size={14} /> CREDENTIALS
                                     </h4>
                                     
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Name</label>
+                                            <label className="text-2xs font-bold uppercase tracking-wider ml-1">Name</label>
                                             <input type="text" value={data.invitee_name} onChange={e => setData('invitee_name', e.target.value)}
-                                                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
                                                 placeholder="Full Name" required />
-                                            {errors.invitee_name && <p className="text-[10px] text-red-400 ml-1">{errors.invitee_name}</p>}
+                                            {errors.invitee_name && <p className="text-2xs text-red-400 ml-1">{errors.invitee_name}</p>}
                                         </div>
                                         <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Email</label>
+                                            <label className="text-2xs font-bold uppercase tracking-wider ml-1">Email</label>
                                             <input type="email" value={data.invitee_email} onChange={e => setData('invitee_email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
                                                 placeholder="Email Address" required />
-                                            {errors.invitee_email && <p className="text-[10px] text-red-400 ml-1">{errors.invitee_email}</p>}
+                                            {errors.invitee_email && <p className="text-2xs text-red-400 ml-1">{errors.invitee_email}</p>}
                                         </div>
                                     </div>
                                     
                                     <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Phone Number</label>
+                                        <label className="text-2xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
                                         <input type="text" value={data.invitee_phone} onChange={e => setData('invitee_phone', e.target.value)}
-                                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
                                             placeholder="Optional" />
                                     </div>
                                 </div>
@@ -817,10 +818,10 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 {/* Roles */}
                                 <div className="space-y-5">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
                                             <Crown size={14} /> ASSIGN ROLE
                                         </h4>
-                                        <span className="text-[10px] font-bold text-indigo-400 tracking-wider">
+                                        <span className="text-2xs font-bold text-indigo-400 tracking-wider">
                                             {data.roles.length > 0 ? ROLES[data.roles[0]]?.name?.toUpperCase() : 'NONE'}
                                         </span>
                                     </div>
@@ -833,40 +834,40 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                                     className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
                                                         isSelected
                                                             ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-600/20'
-                                                            : 'bg-[#1e293b] border-[#334155] hover:border-indigo-400/50 hover:bg-[#1e293b]/80'
+                                                            : 'bg-slate-800 border-slate-700 hover:border-indigo-400/50 hover:bg-slate-800/80'
                                                     }`}>
                                                     <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
                                                         <role.icon size={16} />
                                                     </div>
                                                     <div>
                                                         <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-300'}`}>{role.name}</div>
-                                                        <div className={`text-[9px] font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
+                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
                                                     </div>
                                                 </button>
                                             );
                                         })}
                                     </div>
-                                    {errors.roles && <p className="text-[10px] text-red-400 ml-1">{errors.roles}</p>}
+                                    {errors.roles && <p className="text-2xs text-red-400 ml-1">{errors.roles}</p>}
                                 </div>
                                 
                             </form>
                         </div>
 
                         {/* RIGHT COLUMN: Permissions Visualization */}
-                        <div className="flex-1 p-8 md:p-10 bg-[#0f172a] rounded-r-[2rem] flex flex-col relative overflow-hidden">
+                        <div className="flex-1 p-8 md:p-10 bg-slate-900 rounded-r-[2rem] flex flex-col relative overflow-hidden">
                             {/* Ambient glow in right panel */}
                             <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
                             
                             <div className="flex items-center justify-between mb-8 relative z-10">
                                 <div className="space-y-1">
-                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                    <h4 className="flex items-center gap-2 text-2xs font-black text-slate-400 uppercase tracking-[0.2em]">
                                         <Shield size={14} className="text-indigo-400" /> System Visibility
                                     </h4>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-6">
+                                    <p className="text-2xs text-slate-500 font-bold uppercase tracking-widest pl-6">
                                         Module Access Control
                                     </p>
                                 </div>
-                                <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
+                                <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-2xs font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
                                     <Sparkles size={12} /> Live Permissions Preview
                                 </div>
                             </div>
@@ -879,7 +880,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                             {/* Bottom Footer Actions inside Right Panel */}
                             <div className="mt-8 pt-8 border-t border-slate-800/50 flex items-center justify-between relative z-10">
                                 <div className="space-y-1">
-                                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                    <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">
                                         Summary
                                     </div>
                                     <div className="text-sm font-black text-white">
@@ -971,7 +972,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                             {roles.map(r => {
                                                 const ri = getRoleInfo(r);
                                                 return (
-                                                    <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${ri.badge}`}>
+                                                    <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${ri.badge}`}>
                                                         <ri.icon size={9} />{ri.name}
                                                     </span>
                                                 );
@@ -1007,11 +1008,11 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                         {inv.status === 'awaiting_approval' && (
                                             <div className="flex items-center gap-1 mt-2">
                                                 <button onClick={() => onApprove(inv)}
-                                                    className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold rounded-lg transition-colors">
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-2xs font-bold rounded-lg transition-colors">
                                                     <Check size={10} /> Approve
                                                 </button>
                                                 <button onClick={() => onDecline(inv)}
-                                                    className="flex items-center gap-1 px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-colors">
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white text-2xs font-bold rounded-lg transition-colors">
                                                     <X size={10} /> Decline
                                                 </button>
                                             </div>
@@ -1115,7 +1116,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                                             </div>
                                             <div>
                                                 <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{user.name}</p>
-                                                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{user.role}</p>
+                                                <p className="text-2xs text-slate-400 uppercase font-bold tracking-wider">{user.role}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -1123,7 +1124,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                                         {data?.first_in || <span className="text-slate-300">Not arrived</span>}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-bold uppercase border ${
                                             isActive 
                                                 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200'
                                                 : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200'
@@ -1201,7 +1202,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                         <div className="flex bg-slate-200/50 dark:bg-slate-800 p-1 rounded-xl">
                             {['7', '14', '30'].map(range => (
                                 <button key={range} onClick={() => setDateRange(range)}
-                                    className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg transition-all ${
+                                    className={`px-3 py-1 text-2xs font-black uppercase rounded-lg transition-all ${
                                         dateRange === range 
                                             ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' 
                                             : 'text-slate-500'
@@ -1225,11 +1226,11 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             <div className="flex gap-4">
                                 <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Arrival Time</span>
+                                    <span className="text-2xs font-black uppercase text-slate-500 tracking-wider">Arrival Time</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Departure Time</span>
+                                    <span className="text-2xs font-black uppercase text-slate-500 tracking-wider">Departure Time</span>
                                 </div>
                             </div>
                         </div>
@@ -1239,17 +1240,17 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                     <AreaChart data={chartData}>
                                         <defs>
                                             <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0}/>
                                             </linearGradient>
                                             <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor={vq.rose[500]} stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor={vq.rose[500]} stopOpacity={0}/>
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#64748b'}} dy={10} />
-                                        <YAxis domain={[0, 24]} axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 700, fill: '#94a3b8'}} tickFormatter={formatYAxis} ticks={[0, 4, 8, 12, 16, 20, 24]} />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.5} />
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: vq.slate[500]}} dy={10} />
+                                        <YAxis domain={[0, 24]} axisLine={false} tickLine={false} tick={{fontSize: 9, fontWeight: 700, fill: vq.slate[400]}} tickFormatter={formatYAxis} ticks={[0, 4, 8, 12, 16, 20, 24]} />
                                         <Tooltip content={({ active, payload }) => {
                                             if (active && payload && payload.length) {
                                                 return (
@@ -1257,11 +1258,11 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                                         <p className="text-xs font-black text-slate-800 dark:text-white mb-2">{payload[0].payload.date}</p>
                                                         <div className="space-y-1.5">
                                                             <div className="flex items-center gap-4 justify-between">
-                                                                <span className="text-[10px] font-bold text-slate-500 uppercase">First In:</span>
+                                                                <span className="text-2xs font-bold text-slate-500 uppercase">First In:</span>
                                                                 <span className="text-xs font-bold text-indigo-600">{payload[0].payload.inLabel || '—'}</span>
                                                             </div>
                                                             <div className="flex items-center gap-4 justify-between">
-                                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Last Out:</span>
+                                                                <span className="text-2xs font-bold text-slate-500 uppercase">Last Out:</span>
                                                                 <span className="text-xs font-bold text-rose-500">{payload[0].payload.outLabel || '—'}</span>
                                                             </div>
                                                         </div>
@@ -1270,10 +1271,10 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                             }
                                             return null;
                                         }} />
-                                        <Area type="monotone" dataKey="in" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorIn)" />
-                                        <Area type="monotone" dataKey="out" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorOut)" />
-                                        <ReferenceLine y={9} stroke="#6366f1" strokeDasharray="3 3" opacity={0.3} label={{ position: 'right', value: '9 AM', fill: '#6366f1', fontSize: 10 }} />
-                                        <ReferenceLine y={18} stroke="#f43f5e" strokeDasharray="3 3" opacity={0.3} label={{ position: 'right', value: '6 PM', fill: '#f43f5e', fontSize: 10 }} />
+                                        <Area type="monotone" dataKey="in" stroke={vq.indigo[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorIn)" />
+                                        <Area type="monotone" dataKey="out" stroke={vq.rose[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorOut)" />
+                                        <ReferenceLine y={9} stroke={vq.indigo[500]} strokeDasharray="3 3" opacity={0.3} label={{ position: 'right', value: '9 AM', fill: vq.indigo[500], fontSize: 10 }} />
+                                        <ReferenceLine y={18} stroke={vq.rose[500]} strokeDasharray="3 3" opacity={0.3} label={{ position: 'right', value: '6 PM', fill: vq.rose[500], fontSize: 10 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -1282,7 +1283,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Zap size={14} className="text-indigo-500" />
-                                    <span className="text-[10px] font-black text-indigo-600 uppercase">Average In</span>
+                                    <span className="text-2xs font-black text-indigo-600 uppercase">Average In</span>
                                 </div>
                                 <p className="text-lg font-black text-indigo-700 dark:text-indigo-400">
                                     {chartData.filter(d => d.in).length > 0 ? (() => {
@@ -1296,7 +1297,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             <div className="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800">
                                 <div className="flex items-center gap-2 mb-1">
                                     <RotateCcw size={14} className="text-rose-500" />
-                                    <span className="text-[10px] font-black text-rose-600 uppercase">Average Out</span>
+                                    <span className="text-2xs font-black text-rose-600 uppercase">Average Out</span>
                                 </div>
                                 <p className="text-lg font-black text-rose-700 dark:text-rose-400">
                                     {chartData.filter(d => d.out).length > 0 ? (() => {
@@ -1310,7 +1311,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                                 <div className="flex items-center gap-2 mb-1 text-slate-500">
                                     <Activity size={14} />
-                                    <span className="text-[10px] font-black uppercase">Punctuality</span>
+                                    <span className="text-2xs font-black uppercase">Punctuality</span>
                                 </div>
                                 <p className="text-lg font-black text-slate-800 dark:text-white">Professional</p>
                             </div>
@@ -1354,7 +1355,7 @@ function EditMemberModal({ member, onClose }) {
 
     return (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-            <div className="bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+            <div className="bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
                 
                 <button onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
@@ -1362,7 +1363,7 @@ function EditMemberModal({ member, onClose }) {
                 </button>
 
                 {/* LEFT COLUMN: Form & Roles */}
-                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-[#0f172a] rounded-l-[2rem] max-h-[85vh] overflow-y-auto">
+                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-slate-900 rounded-l-[2rem] max-h-[85vh] overflow-y-auto">
                     <div className="flex items-center gap-4 mb-10">
                         <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
                         <div className="h-4 w-px bg-slate-700"></div>
@@ -1373,36 +1374,36 @@ function EditMemberModal({ member, onClose }) {
                         
                         {/* Member Profile */}
                         <div className="space-y-5">
-                            <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
                                 <User size={14} /> MEMBER PROFILE
                             </h4>
                             
                             <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Display Name</label>
+                                <label className="text-2xs font-bold uppercase tracking-wider ml-1">Display Name</label>
                                 <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
                                     placeholder="Display Name" required />
-                                {errors.display_name && <p className="text-[10px] text-red-400 ml-1">{errors.display_name}</p>}
+                                {errors.display_name && <p className="text-2xs text-red-400 ml-1">{errors.display_name}</p>}
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                    <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Status</label>
+                                    <label className="text-2xs font-bold uppercase tracking-wider ml-1">Status</label>
                                     <select value={data.status} onChange={e => setData('status', e.target.value)}
                                         disabled={member.role === 'owner'}
-                                        className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                                         <option value="active">Active</option>
                                         <option value="suspended">Suspended</option>
                                     </select>
-                                    {errors.status && <p className="text-[10px] text-red-400 ml-1">{errors.status}</p>}
+                                    {errors.status && <p className="text-2xs text-red-400 ml-1">{errors.status}</p>}
                                 </div>
                                 
                                 <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                                    <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
+                                    <label className="text-2xs font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
                                     <input type="password" value={data.passcode} onChange={e => setData('passcode', e.target.value)}
-                                        className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500 font-mono"
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500 font-mono"
                                         placeholder="Keep original PIN" maxLength={6} />
-                                    {errors.passcode && <p className="text-[10px] text-red-400 ml-1">{errors.passcode}</p>}
+                                    {errors.passcode && <p className="text-2xs text-red-400 ml-1">{errors.passcode}</p>}
                                 </div>
                             </div>
                         </div>
@@ -1410,10 +1411,10 @@ function EditMemberModal({ member, onClose }) {
                         {/* Roles */}
                         <div className="space-y-5">
                             <div className="flex items-center justify-between">
-                                <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <h4 className="flex items-center gap-2 text-2xs font-bold text-slate-400 uppercase tracking-widest">
                                     <Crown size={14} /> ASSIGN ROLE
                                 </h4>
-                                <span className="text-[10px] font-bold text-indigo-400 tracking-wider">
+                                <span className="text-2xs font-bold text-indigo-400 tracking-wider">
                                     {data.role ? ROLES[data.role]?.name?.toUpperCase() : 'NONE'}
                                 </span>
                             </div>
@@ -1429,14 +1430,14 @@ function EditMemberModal({ member, onClose }) {
                                             className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
                                                 isSelected
                                                     ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-600/20'
-                                                    : 'bg-[#1e293b] border-[#334155] hover:border-indigo-400/50 hover:bg-[#1e293b]/80'
+                                                    : 'bg-slate-800 border-slate-700 hover:border-indigo-400/50 hover:bg-slate-800/80'
                                             } ${isOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                             <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
                                                 <role.icon size={16} />
                                             </div>
                                             <div>
                                                 <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-300'}`}>{role.name}</div>
-                                                <div className={`text-[9px] font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
+                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
                                             </div>
                                         </button>
                                     );
@@ -1457,27 +1458,27 @@ function EditMemberModal({ member, onClose }) {
                                     />
                                 </div>
                             )}
-                            {errors.role && <p className="text-[10px] text-red-400 ml-1">{errors.role}</p>}
+                            {errors.role && <p className="text-2xs text-red-400 ml-1">{errors.role}</p>}
                         </div>
                         
                     </form>
                 </div>
 
                 {/* RIGHT COLUMN: Permissions Visualization */}
-                <div className="flex-1 p-8 md:p-10 bg-[#0f172a] rounded-r-[2rem] flex flex-col relative overflow-hidden">
+                <div className="flex-1 p-8 md:p-10 bg-slate-900 rounded-r-[2rem] flex flex-col relative overflow-hidden">
                     {/* Ambient glow in right panel */}
                     <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
                     
                     <div className="flex items-center justify-between mb-8 relative z-10">
                         <div className="space-y-1">
-                            <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <h4 className="flex items-center gap-2 text-2xs font-black text-slate-400 uppercase tracking-[0.2em]">
                                 <Shield size={14} className="text-indigo-400" /> System Visibility
                             </h4>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-6">
+                            <p className="text-2xs text-slate-500 font-bold uppercase tracking-widest pl-6">
                                 Module Access Control
                             </p>
                         </div>
-                        <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
+                        <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-2xs font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
                             <Sparkles size={12} /> Live Permissions Preview
                         </div>
                     </div>
@@ -1491,7 +1492,7 @@ function EditMemberModal({ member, onClose }) {
                     {/* Bottom Footer Actions inside Right Panel */}
                     <div className="mt-8 pt-8 border-t border-slate-800/50 flex items-center justify-between relative z-10">
                         <div className="space-y-1">
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">
                                 Summary
                             </div>
                             <div className="text-sm font-black text-white">
@@ -1600,7 +1601,7 @@ function MembersTable({ users, store }) {
                                                 <div>
                                                     <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
                                                         {user.display_name || user.name}
-                                                        {user.role === 'owner' && <span className="ml-2 text-[10px] font-black bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
+                                                        {user.role === 'owner' && <span className="ml-2 text-2xs font-black bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
                                                     </p>
                                                     <p className="text-xs text-slate-400 font-mono">ID: {user.id}</p>
                                                 </div>
@@ -1671,8 +1672,8 @@ function StatCard({ title, value, icon, color, subtext }) {
                     {icon}
                 </div>
                 <div>
-                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</span>
-                    {subtext && <p className="text-[8px] text-amber-500 font-semibold">{subtext}</p>}
+                    <span className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</span>
+                    {subtext && <p className="text-4xs text-amber-500 font-semibold">{subtext}</p>}
                 </div>
             </div>
             <h3 className="text-base font-black text-slate-800 dark:text-white">{value || 0}</h3>

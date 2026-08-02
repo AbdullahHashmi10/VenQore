@@ -425,7 +425,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             Product <span className="text-indigo-600">Inventory</span>
                         </h1>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-[10px] font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">List View</span>
+                        <span className="text-2xs font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">List View</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-64 relative">
@@ -506,10 +506,10 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                         case 'name': return (<div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">{row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={14} className="text-indigo-600 dark:text-indigo-400" />}</div><div><p className="font-semibold text-slate-800 dark:text-white">{row.name}</p><p className="text-xs text-slate-400">{row.unit || 'pcs'}</p></div></div>);
                                                         case 'sku': return row.sku || '-';
                                                         case 'category': return <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-semibold">{row.category}</span>;
-                                                        case 'available_stock': return (<div className="flex flex-col"><span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>{row.available_stock}</span>{row.reserved_stock > 0 && <span className="text-[10px] text-amber-500">{row.reserved_stock} Rsrvd</span>}</div>);
+                                                        case 'available_stock': return (<div className="flex flex-col"><span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>{row.available_stock}</span>{row.reserved_stock > 0 && <span className="text-2xs text-amber-500">{row.reserved_stock} Rsrvd</span>}</div>);
                                                         case 'cost_price': return formatCurrency(row.cost_price || 0, store);
                                                         case 'price': return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
-                                                        case 'status': return (<span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''} ${row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' : ''} ${row.status === 'Out of Stock' ? 'bg-red-50 text-red-600 border-red-200' : ''}`}>{row.status}</span>);
+                                                        case 'status': return (<span className={`px-2 py-1 rounded-full text-2xs font-bold border ${row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''} ${row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' : ''} ${row.status === 'Out of Stock' ? 'bg-red-50 text-red-600 border-red-200' : ''}`}>{row.status}</span>);
                                                         case 'actions': return (
                                                             <div className="relative action-menu-container">
                                                                 <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><MoreVertical size={16} /></button>
@@ -561,10 +561,10 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                         </div>
                                         <div>
                                             <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">{row.name}</h3>
-                                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.unit || 'pcs'}{row.sku ? ` • ${row.sku}` : ''}</p>
+                                            <p className="text-2xs text-slate-400 font-semibold mt-0.5">{row.unit || 'pcs'}{row.sku ? ` • ${row.sku}` : ''}</p>
                                         </div>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border shrink-0 ${
+                                    <span className={`px-2 py-0.5 rounded-full text-3xs font-black border shrink-0 ${
                                         row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                         row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' :
                                         'bg-red-50 text-red-600 border-red-200'
@@ -574,7 +574,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 {/* Row 2: Category badge */}
                                 {row.category && (
                                     <div>
-                                        <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50">
+                                        <span className="text-3xs font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50">
                                             {row.category}
                                         </span>
                                     </div>
@@ -584,17 +584,17 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                     <div className="flex items-center gap-5">
                                         <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Stock</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Stock</span>
                                             <span className={`text-xs font-black tabular-nums ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-800 dark:text-white'}`}>
                                                 {row.available_stock}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Price</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Price</span>
                                             <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 tabular-nums">{formatCurrency(row.price || 0, store)}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Cost</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Cost</span>
                                             <span className="text-xs font-black text-slate-600 dark:text-slate-400 tabular-nums">{formatCurrency(row.cost_price || 0, store)}</span>
                                         </div>
                                     </div>

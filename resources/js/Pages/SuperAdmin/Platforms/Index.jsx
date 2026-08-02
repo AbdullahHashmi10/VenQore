@@ -88,7 +88,7 @@ export default function PlatformIndex({ platforms }) {
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                <span className={`px-3 py-1 rounded-full text-2xs font-black uppercase tracking-widest ${
                                     p.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-slate-700'
                                 }`}>
                                     {p.is_active ? 'Active' : 'Disabled'}

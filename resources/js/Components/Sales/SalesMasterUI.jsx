@@ -182,7 +182,7 @@ export const CustomerSearchWidget = ({
                 }}
             />
             {customerError && (
-                <p className="absolute -bottom-5 left-2 text-[10px] font-bold text-red-500 animate-pulse">
+                <p className="absolute -bottom-5 left-2 text-2xs font-bold text-red-500 animate-pulse">
                     Please select a registered customer
                 </p>
             )}
@@ -244,7 +244,7 @@ export const PaymentModeToggle = ({ currentInvoice, patchInvoice }) => {
         <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
             <button
                 onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'credit'
+                className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'credit'
                     ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
                     : 'text-slate-500 hover:text-slate-700'
                     }`}
@@ -253,7 +253,7 @@ export const PaymentModeToggle = ({ currentInvoice, patchInvoice }) => {
             </button>
             <button
                 onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'cash'
+                className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'cash'
                     ? 'bg-orange-500 text-white shadow shadow-orange-500/20'
                     : 'text-slate-500 hover:text-slate-700'
                     }`}
@@ -268,7 +268,7 @@ export const PaymentAccountSelector = ({ currentInvoice, patchInvoice, accounts 
     return (
         <div className="relative group/accounts">
             <button
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black min-w-[120px] justify-between"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black min-w-[120px] justify-between"
             >
                 <span className="flex items-center gap-1.5 truncate">
                     <Wallet size={12} className="text-indigo-500" />
@@ -280,7 +280,7 @@ export const PaymentAccountSelector = ({ currentInvoice, patchInvoice, accounts 
             <div className="absolute top-full pt-2 right-0 w-48 z-50 overflow-hidden hidden group-hover/accounts:block animate-in fade-in slide-in-from-top-2">
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                     <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Deposit To</p>
+                        <p className="text-2xs font-bold text-slate-400 uppercase">Deposit To</p>
                     </div>
                     <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
                         {accounts.map(acc => (
@@ -323,7 +323,7 @@ export const MarginToggle = ({ handleProfitDown, handleProfitUp }) => {
             onMouseDown={handleProfitDown}
             onMouseUp={handleProfitUp}
             onMouseLeave={handleProfitUp}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-[10px] font-black select-none"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-2xs font-black select-none"
         >
             <TrendingUp size={12} /> MARGIN
         </button>
@@ -335,7 +335,7 @@ export const TextSizeSelector = ({ textSize, setTextSize, showTextSizeMenu, setS
         <div className="relative">
             <button
                 onClick={() => setShowTextSizeMenu(!showTextSizeMenu)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-[10px] font-black ${textSize > 1
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-2xs font-black ${textSize > 1
                     ? 'bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20'
                     : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30'
                     }`}
@@ -365,7 +365,7 @@ export const SettingsDrawerToggle = ({ setShowSettingsDrawer }) => {
     return (
         <button
             onClick={() => setShowSettingsDrawer(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black"
             title="Quick Settings"
         >
             <Settings size={12} />
@@ -687,7 +687,7 @@ export const ItemRow = ({
                             setProductModalMode('create');
                             setIsProductModalOpen(true);
                         }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-red-500 font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors flex items-center gap-1 z-10"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-2xs text-red-500 font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors flex items-center gap-1 z-10"
                         title="Click to create this product"
                     >
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
@@ -859,7 +859,7 @@ export const CustomerSummaryCard = ({ customer, patchInvoice, setCustomerSearch,
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'}`}>{customer.name}</p>
-                    <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-[10px]'}`}>{customer.phone || 'No Phone'}</p>
+                    <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-2xs'}`}>{customer.phone || 'No Phone'}</p>
                 </div>
                 <button
                     onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(''); }}
@@ -902,22 +902,22 @@ export const InvoiceMetaData = ({ currentInvoice, patchInvoice }) => {
     return (
         <div className="grid grid-cols-2 gap-2">
             <div>
-                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Invoice #</label>
+                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Invoice #</label>
                 <input
                     type="text"
                     value={currentInvoice.invoiceNumber || ''}
                     onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                     placeholder="INV-000001"
                 />
             </div>
             <div>
-                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Date</label>
+                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Date</label>
                 <input
                     type="date"
                     value={currentInvoice.date || ''}
                     onChange={(e) => patchInvoice({ date: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
             </div>
         </div>
@@ -927,11 +927,11 @@ export const InvoiceMetaData = ({ currentInvoice, patchInvoice }) => {
 export const InvoiceTermsSelect = ({ currentInvoice, patchInvoice }) => {
     return (
         <div>
-            <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Terms</label>
+            <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Terms</label>
             <select
                 value={currentInvoice.paymentTerms || 'net30'}
                 onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
             >
                 <option value="immediate">Immediate</option>
                 <option value="net7">Net 7</option>
@@ -949,27 +949,27 @@ export const ChequeDetailsCard = ({ currentInvoice, patchInvoice }) => {
     return (
         <div className="grid grid-cols-2 gap-2 p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/30 animate-in slide-in-from-top-2">
             <div className="col-span-2">
-                <p className="text-[10px] text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
+                <p className="text-2xs text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
                     <Wallet size={12} /> CHEQUE DETAILS
                 </p>
             </div>
             <div>
-                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
+                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
                 <input
                     type="text"
                     value={currentInvoice.paymentReference || ''}
                     onChange={(e) => patchInvoice({ paymentReference: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
                     placeholder="XXXXXX"
                 />
             </div>
             <div>
-                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
+                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
                 <input
                     type="date"
                     value={currentInvoice.chequeDate || new Date().toISOString().split('T')[0]}
                     onChange={(e) => patchInvoice({ chequeDate: e.target.value })}
-                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
             </div>
         </div>
@@ -1034,7 +1034,7 @@ export const DeliveryChargeInput = ({ currentInvoice, patchInvoice, showDelivery
         <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
             <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
             <div className="flex items-center gap-2">
-                <span className="text-slate-600 text-[10px]">Rs</span>
+                <span className="text-slate-600 text-2xs">Rs</span>
                 <input
                     type="number"
                     value={currentInvoice.delivery_charge ?? 0}
@@ -1066,10 +1066,10 @@ export const ExtraChargeInput = ({
                         className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                         placeholder="Extra"
                     />
-                    <span className="text-[10px] text-slate-700">{"\u270E"}</span>
+                    <span className="text-2xs text-slate-700">{"\u270E"}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
+                    <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
                     <input
                         type="number"
                         value={currentInvoice.extra_charge_value ?? 0}
@@ -1099,10 +1099,10 @@ export const ExtraChargeInput = ({
                             className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                             placeholder={`Extra ${idx + 1}`}
                         />
-                        <span className="text-[10px] text-slate-700">{"\u270E"}</span>
+                        <span className="text-2xs text-slate-700">{"\u270E"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
+                        <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
                         <input
                             type="number"
                             value={field.value ?? 0}
@@ -1134,7 +1134,7 @@ export const ExtraChargeInput = ({
                         const current = currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }];
                         patchInvoice({ extraFields: [...current, { id: Date.now(), label: '', value: 0 }] });
                     }}
-                    className="w-full text-center text-[10px] text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
+                    className="w-full text-center text-2xs text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
                 >
                     + Add Extra Field
                 </button>
@@ -1188,7 +1188,7 @@ export const GrandTotalActionPanel = ({
     return (
         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
             <div className="flex justify-between items-center">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
+                <span className="text-2xs text-slate-500 font-bold uppercase">Total</span>
                 <span className="text-2xl font-black text-white">{getCurrencySymbol()} {grandTotal.toLocaleString()}</span>
             </div>
             <div className="space-y-2">
@@ -1239,7 +1239,7 @@ export const GrandTotalActionPanel = ({
 
 export const SideInfoPanel = ({ children }) => {
     return (
-        <div className="w-80 bg-[#1a1d2e] flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800">
+        <div className="w-80 bg-void-700 flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800">
             {children}
         </div>
     );
@@ -1472,7 +1472,7 @@ export const ProfitAnalysisModal = ({
                 <div className="flex-1 overflow-y-auto p-4">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="text-left text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
+                            <tr className="text-left text-2xs font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
                                 <th className="pb-2 pl-2">#</th>
                                 <th className="pb-2">Product</th>
                                 <th className="pb-2 text-center">Qty</th>
@@ -1495,7 +1495,7 @@ export const ProfitAnalysisModal = ({
                                         <td className="py-2 pl-2 text-slate-400 text-xs">{idx + 1}</td>
                                         <td className="py-2">
                                             <p className="font-bold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name}</p>
-                                            <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
+                                            <p className="text-2xs text-slate-400">{item.product?.sku || 'N/A'}</p>
                                         </td>
                                         <td className="py-2 text-center text-xs">{item.quantity}</td>
                                         <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
@@ -1527,15 +1527,15 @@ export const ProfitAnalysisModal = ({
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
+                            <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Cost</p>
                             <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                         </div>
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
+                            <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
                             <p className="text-lg font-bold text-slate-800 dark:text-white">{getCurrencySymbol()} {grandTotal.toLocaleString()}</p>
                         </div>
                         <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
-                            <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
+                            <p className="text-2xs text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                             <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                         <p className="text-lg font-black text-emerald-600">
                             {formatCurrency(profit)}
@@ -1713,7 +1713,7 @@ export const SettingsDrawer = ({
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-slate-700 dark:text-white">Multiple Extra Fields</p>
-                                        <p className="text-[10px] text-slate-500">Add up to 10 custom charges</p>
+                                        <p className="text-2xs text-slate-500">Add up to 10 custom charges</p>
                                     </div>
                                 </div>
                                 <button
@@ -1847,7 +1847,7 @@ export const OverpaymentModal = ({
             />
             {/* Modal */}
             <div className="fixed inset-0 flex items-center justify-center z-[210] p-4">
-                <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
+                <div className="bg-white dark:bg-void-700 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
                     {/* Header - Orange Midnight Nebula Style */}
                     <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 dark:from-amber-600 dark:via-orange-700 dark:to-orange-900 p-6 overflow-hidden">
                         {/* Midnight Nebula ambient glows */}
@@ -1868,7 +1868,7 @@ export const OverpaymentModal = ({
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-[#1a1d2e] dark:to-[#0f121d]">
+                    <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-void-700 dark:to-void-800">
                         <div className="text-center py-2">
                             <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium">
                                 {overpaymentDetails.customerName} paid

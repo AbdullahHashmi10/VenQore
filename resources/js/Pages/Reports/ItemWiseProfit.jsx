@@ -12,6 +12,7 @@ import { // Recharts
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function ItemWiseProfit({ items = [], filters = {}, allProducts = [] }) {
     const {
         store
@@ -98,7 +99,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
         .map((item, index) => ({
             name: item.name,
             value: item.profit,
-            color: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'][index]
+            color: [vq.emerald[500], vq.blue[500], vq.violet[500], vq.amber[500], vq.red[500]][index]
         }));
 
     // --- Formatters ---
@@ -285,7 +286,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
 
                         {/* Margin Percentage Filter Pills */}
                         <div className="px-5 py-3 bg-slate-50/30 dark:bg-slate-800/10 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap gap-1.5 items-center">
-                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Margins:</span>
+                            <span className="text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Margins:</span>
                             {[
                                 { id: 'all', label: 'All' },
                                 { id: 'negative', label: 'Loss (<0%)', hover: 'hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-450 hover:border-rose-300' },
@@ -308,7 +309,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                     <button
                                         key={opt.id}
                                         onClick={() => setMarginFilter(opt.id)}
-                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${activeStyles}`}
+                                        className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all border ${activeStyles}`}
                                     >
                                         {opt.label}
                                     </button>
@@ -366,7 +367,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                         <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                                         </Pie>
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                                         <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -401,11 +402,11 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                             <div className="space-y-4">
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2"><Target size={12} /> Optimization</h4>
-                                    <p className="text-[11px] text-slate-300 mobile-relaxed">Run the AI analyzer to detect margin leaks and find hidden pricing opportunities in your catalog.</p>
+                                    <p className="text-1xs text-slate-300 mobile-relaxed">Run the AI analyzer to detect margin leaks and find hidden pricing opportunities in your catalog.</p>
                                 </div>
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Insight</h4>
-                                    <p className="text-[11px] text-slate-300">Identify "Loss Leaders" that are draining your overall profitability.</p>
+                                    <p className="text-1xs text-slate-300">Identify "Loss Leaders" that are draining your overall profitability.</p>
                                 </div>
                             </div>
 
@@ -512,7 +513,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative z-10 flex justify-between items-center">
                                         <div className="space-y-1">
-                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
                                                 Period: {range ? range.replace('_', ' ') : 'this year'} ({filters.start_date || startDate || 'N/A'} to {filters.end_date || endDate || 'N/A'})
                                             </span>
                                             <h2 className="text-2xl font-black tracking-tight mt-1">{activeProduct.name}</h2>

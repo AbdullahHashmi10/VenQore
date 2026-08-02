@@ -57,7 +57,7 @@ const STATUS_CONFIG = {
 function StatusBadge({ status }) {
     const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.open;
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wider border ${cfg.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
             {cfg.label}
         </span>
@@ -69,7 +69,7 @@ function EscalationBadge({ type }) {
     if (!cfg) return null;
     const Icon = cfg.icon;
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border ${cfg.color}`}>
             <Icon size={9} />
             {cfg.label}
         </span>
@@ -206,7 +206,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                 <div className="shrink-0 flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
                         <Filter size={12} className="text-slate-400" />
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Status:</span>
+                        <span className="text-2xs font-black uppercase tracking-wider text-slate-500">Status:</span>
                         <select
                             value={statusFilter}
                             onChange={(e) => handleStatusChange(e.target.value)}
@@ -223,7 +223,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                     {isPlatform && (
                         <div className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
                             <Filter size={12} className="text-slate-400" />
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Reason:</span>
+                            <span className="text-2xs font-black uppercase tracking-wider text-slate-500">Reason:</span>
                             <select
                                 value={escalationFilter}
                                 onChange={(e) => handleEscalationChange(e.target.value)}
@@ -285,12 +285,12 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {ticket.subject}
                                                     </h3>
                                                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                        <span className="text-1xs text-slate-500 dark:text-slate-400">
                                                             <span className="font-bold">{ticket.requester_name}</span>
                                                             {ticket.requester_email && ` · ${ticket.requester_email}`}
                                                         </span>
                                                         {isPlatform && ticket.tenant && (
-                                                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-700">
+                                                            <span className="text-2xs font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-700">
                                                                 {ticket.tenant.name}
                                                             </span>
                                                         )}
@@ -299,7 +299,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                                                 {/* Time + actions */}
                                                 <div className="shrink-0 flex flex-col items-end gap-2">
-                                                    <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                                                    <div className="flex items-center gap-1 text-2xs text-slate-400">
                                                         <Clock size={10} />
                                                         {formatTime(ticket.created_at)}
                                                     </div>
@@ -309,7 +309,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {ticket.status === 'open' && (
                                                             <button
                                                                 onClick={(e) => { e.preventDefault(); handleStatusUpdate(ticket, 'in_progress'); }}
-                                                                className="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                                                                className="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg text-3xs font-black uppercase tracking-wider hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                                                             >
                                                                 Pick Up
                                                             </button>
@@ -317,7 +317,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                         {ticket.status === 'in_progress' && (
                                                             <button
                                                                 onClick={(e) => { e.preventDefault(); handleStatusUpdate(ticket, 'resolved'); }}
-                                                                className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+                                                                className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-3xs font-black uppercase tracking-wider hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                                                             >
                                                                 Resolve
                                                             </button>
@@ -389,7 +389,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Name</label>
+                                    <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Name</label>
                                     <input 
                                         type="text" required placeholder="e.g. John Doe"
                                         value={formName} onChange={e => setFormName(e.target.value)}
@@ -397,7 +397,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Email</label>
+                                    <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Customer Email</label>
                                     <input 
                                         type="email" required placeholder="e.g. john@example.com"
                                         value={formEmail} onChange={e => setFormEmail(e.target.value)}
@@ -407,7 +407,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Subject / Summary</label>
+                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Subject / Summary</label>
                                 <input 
                                     type="text" required placeholder="Brief description of the issue"
                                     value={formSubject} onChange={e => setFormSubject(e.target.value)}
@@ -416,7 +416,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Priority</label>
+                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Priority</label>
                                 <select 
                                     value={formPriority} onChange={e => setFormPriority(e.target.value)}
                                     className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-slate-900 dark:text-white transition-all font-bold"
@@ -429,7 +429,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Issue details / notes</label>
+                                <label className="block text-2xs font-black uppercase tracking-wider text-slate-400 mb-1.5">Issue details / notes</label>
                                 <textarea 
                                     required rows={4} placeholder="Describe the customer inquiry or ticket details..."
                                     value={formMessage} onChange={e => setFormMessage(e.target.value)}

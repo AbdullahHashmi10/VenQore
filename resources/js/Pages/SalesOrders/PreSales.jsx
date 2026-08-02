@@ -344,15 +344,15 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => applyFilterType('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => applyFilterType('today')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Today</button>
                         <button
                             onClick={() => applyFilterType('confirmed')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Confirmed</button>
                     </div>
 
@@ -426,15 +426,15 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Today</button>
                                 <button
                                     onClick={() => applyFilterType('confirmed')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Confirmed</button>
                             </div>
                         </div>
@@ -643,9 +643,9 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.order_number}</span>
-                                                <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                                <p className="text-2xs text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                            <span className={`px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider
                                                 ${row.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                                                   row.status === 'converted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                                                   row.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
@@ -726,7 +726,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                         converted: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                                     };
                                     return (
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
                                             {quickViewItem.status}
                                         </span>
                                     );
@@ -760,22 +760,22 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                             {/* Top Info Row */}
                             <div className="grid grid-cols-4 gap-3 mb-4">
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Customer</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Customer</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewItem.customer?.name || 'Walk-in'}</p>
                                     {quickViewItem.customer?.phone && (
                                         <p className="text-xs text-slate-500">{quickViewItem.customer.phone}</p>
                                     )}
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Order Date</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Order Date</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.created_at)}</p>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Due Date</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Due Date</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.due_date) || 'Not set'}</p>
                                 </div>
                                 <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
+                                    <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
                                     <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                 </div>
                             </div>
@@ -791,11 +791,11 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                     <table className="w-full text-sm">
                                         <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                             <tr>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -827,15 +827,15 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                 <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
                                     <div className="flex justify-end gap-8">
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase">Paid</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Paid</p>
                                             <p className="font-bold text-emerald-600">{formatCurrency(quickViewItem.paid_amount || 0, store)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase">Balance</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Balance</p>
                                             <p className="font-bold text-red-600">{formatCurrency((quickViewItem.total_amount || 0) - (quickViewItem.paid_amount || 0), store)}</p>
                                         </div>
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
-                                            <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
+                                            <p className="text-2xs text-indigo-600 uppercase font-bold">Grand Total</p>
                                             <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                         </div>
                                     </div>
@@ -895,7 +895,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
 
                         {/* Footer */}
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                            <p className="text-[10px] text-slate-400">Double-click row to view/edit • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                            <p className="text-2xs text-slate-400">Double-click row to view/edit • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
                         </div>
                     </div>
                 </div>

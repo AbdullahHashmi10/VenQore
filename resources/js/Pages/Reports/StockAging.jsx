@@ -14,6 +14,7 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function StockAging({ batches = [], filters = {} }) {
     const {
         store
@@ -49,9 +50,9 @@ export default function StockAging({ batches = [], filters = {} }) {
 
     // Chart Data: Stock Value by Age Group
     const chartData = [
-        { name: 'Fresh (0-90 Days)', value: stats.freshStockValue, fill: '#10b981' },
-        { name: 'Slow (90-180 Days)', value: stats.slowMovingValue, fill: '#f59e0b' },
-        { name: 'Dead (180+ Days)', value: stats.deadStockValue, fill: '#ef4444' }
+        { name: 'Fresh (0-90 Days)', value: stats.freshStockValue, fill: vq.emerald[500] },
+        { name: 'Slow (90-180 Days)', value: stats.slowMovingValue, fill: vq.amber[500] },
+        { name: 'Dead (180+ Days)', value: stats.deadStockValue, fill: vq.red[500] }
     ];
 
     const chartConfig = {
@@ -65,9 +66,9 @@ export default function StockAging({ batches = [], filters = {} }) {
     // Fallback Bar Chart if Pie isn't desired
     // MasterReport supports 'bar', 'area', 'pie'. Let's stick to bar for value comparison.
     const barChartData = [
-        { name: 'Fresh', Value: stats.freshStockValue, fill: '#10b981' },
-        { name: 'Slow', Value: stats.slowMovingValue, fill: '#f59e0b' },
-        { name: 'Dead', Value: stats.deadStockValue, fill: '#ef4444' }
+        { name: 'Fresh', Value: stats.freshStockValue, fill: vq.emerald[500] },
+        { name: 'Slow', Value: stats.slowMovingValue, fill: vq.amber[500] },
+        { name: 'Dead', Value: stats.deadStockValue, fill: vq.red[500] }
     ];
     const barChartConfig = {
         type: 'bar',
@@ -129,7 +130,7 @@ export default function StockAging({ batches = [], filters = {} }) {
                     </div>
                     <div>
                         <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1">{row.product}</div>
-                        <div className="text-[10px] font-mono text-slate-500">Batch: {row.batch || 'N/A'}</div>
+                        <div className="text-2xs font-mono text-slate-500">Batch: {row.batch || 'N/A'}</div>
                     </div>
                 </div>
             )
@@ -146,7 +147,7 @@ export default function StockAging({ batches = [], filters = {} }) {
 
                 return (
                     <div className="w-full max-w-[140px]">
-                        <div className="flex justify-between text-[11px] mb-1 font-bold">
+                        <div className="flex justify-between text-1xs mb-1 font-bold">
                             <span className="text-slate-700 dark:text-slate-300">{days} days</span>
                             <span className="text-slate-400">Target: 90</span>
                         </div>
@@ -164,7 +165,7 @@ export default function StockAging({ batches = [], filters = {} }) {
             render: (row) => {
                 const status = getStatus(parseInt(row.days));
                 return (
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${status.class} uppercase tracking-wide`}>
+                    <span className={`px-2.5 py-1 rounded-full text-2xs font-bold border ${status.class} uppercase tracking-wide`}>
                         {status.label}
                     </span>
                 );

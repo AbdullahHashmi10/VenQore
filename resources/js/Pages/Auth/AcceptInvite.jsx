@@ -44,7 +44,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
     };
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex flex-col items-center justify-center p-6">
             <Head title={`Join ${store_name} — VenQore`} />
 
             {/* Ambient */}

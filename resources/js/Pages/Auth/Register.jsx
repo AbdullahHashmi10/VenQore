@@ -11,7 +11,7 @@ const AuthInput = ({ icon: Icon, label, error, children, ...props }) => {
     const [focused, setFocused] = useState(false);
     return (
         <div>
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
+            <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
                 {label}
             </label>
             <div className="relative group">
@@ -70,7 +70,7 @@ export default function Register() {
     ];
 
     return (
-        <div className="min-h-screen w-full flex bg-[#020010] font-sans selection:bg-indigo-500/40 selection:text-white">
+        <div className="min-h-screen w-full flex bg-void-950 font-sans selection:bg-indigo-500/40 selection:text-white">
             <Head title="Create Account" />
 
             {/* ── Left Panel — Branding ─────────────────────── */}
@@ -146,8 +146,8 @@ export default function Register() {
                     {/* Divider */}
                     <div className="relative mb-3 sm:mb-6">
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/[0.06]" /></div>
-                        <div className="relative flex justify-center text-[10px]">
-                            <span className="px-4 bg-[#020010] text-slate-500 font-bold uppercase tracking-widest">or</span>
+                        <div className="relative flex justify-center text-2xs">
+                            <span className="px-4 bg-void-950 text-slate-500 font-bold uppercase tracking-widest">or</span>
                         </div>
                     </div>
 
@@ -157,7 +157,7 @@ export default function Register() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Password</label>
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Password</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Lock size={18} /></div>
                                     <input type={showPassword ? 'text' : 'password'} value={data.password} onChange={(e) => setData('password', e.target.value)}
@@ -170,7 +170,7 @@ export default function Register() {
                                 {errors.password && <p className="text-red-400 text-xs mt-2">{errors.password}</p>}
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Confirm</label>
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Confirm</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Lock size={18} /></div>
                                     <input type={showPassword ? 'text' : 'password'} value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -197,7 +197,7 @@ export default function Register() {
 
                         {/* Submit */}
                         <button id="register-submit" type="submit" disabled={processing || !agreedToTerms}
-                            className="w-full flex items-center justify-center gap-3 py-3 sm:py-4 px-4 bg-white disabled:bg-white/10 disabled:text-slate-500 text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:cursor-not-allowed disabled:hover:scale-100">
+                            className="w-full flex items-center justify-center gap-3 py-3 sm:py-4 px-4 bg-white disabled:bg-white/10 disabled:text-slate-500 text-void-950 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:cursor-not-allowed disabled:hover:scale-100">
                             {processing ? <><Loader2 size={18} className="animate-spin" /> Creating account...</> : <>Create Account <ArrowRight size={16} /></>}
                         </button>
                     </form>

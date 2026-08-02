@@ -297,7 +297,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                 <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
                                     <img src={logo} alt="" className="w-9 h-9 object-contain rounded bg-white" />
                                     <span className="text-xs text-slate-500 dark:text-slate-400 flex-1 leading-snug">Error correction was switched to High to keep the code scannable with a logo in the center.</span>
-                                    <button onClick={() => setLogo(null)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
+                                    <button onClick={() => setLogo(null)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
                                 </div>
                             )}
                         </div>
@@ -318,7 +318,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                             className="w-full aspect-square rounded-2xl border border-slate-900/[0.08] flex items-center justify-center p-6 mb-3"
                             style={{ background: background || '#ffffff' }}
                         >
-                            {loading && <Loader2 size={20} className="text-slate-400 animate-spin" />}
+                            {loading && <Loader2 size={20} className="text-slate-500 dark:text-slate-400 animate-spin" />}
                             {!loading && result && (
                                 <img
                                     src={`data:${result.mime_type};base64,${result.image_base64}`}
@@ -326,7 +326,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                                     className="max-w-full max-h-full"
                                 />
                             )}
-                            {!loading && !result && <span className="text-slate-400 text-sm text-center px-4">Fill in the fields to see your QR code</span>}
+                            {!loading && !result && <span className="text-slate-500 dark:text-slate-400 text-sm text-center px-4">Fill in the fields to see your QR code</span>}
                         </div>
 
                         <button
@@ -336,7 +336,7 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
                     </div>
                 </div>
             </div>

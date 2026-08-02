@@ -170,15 +170,15 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => handleStatusChange('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => handleStatusChange('pending')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Pending</button>
                         <button
                             onClick={() => handleStatusChange('sent')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Sent</button>
                     </div>
 
@@ -258,15 +258,15 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => handleStatusChange('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => handleStatusChange('pending')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Pending</button>
                                 <button
                                     onClick={() => handleStatusChange('sent')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Sent</button>
                             </div>
                         </div>
@@ -277,7 +277,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                 <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900 flex flex-col justify-between">
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky top-0 z-10 backdrop-blur-sm">
+                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                                 <tr className="border-b border-slate-200 dark:border-slate-800">
                                     <th className="px-6 py-3 text-left">Invoice</th>
                                     <th className="px-6 py-3 text-left">Customer</th>
@@ -384,27 +384,27 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                                                     {reminder.invoice?.reference_number || 'Unknown Invoice'}
                                                 </Link>
                                             </div>
-                                            <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-1">
+                                            <div className="flex items-center gap-1 text-2xs text-slate-400 mt-1">
                                                 <Calendar size={10} />
                                                 <span>Sched: {new Date(reminder.scheduled_at).toLocaleDateString()}</span>
                                             </div>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${getStatusBadge(reminder.status)}`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-2xs font-black uppercase ${getStatusBadge(reminder.status)}`}>
                                             {reminder.status || 'pending'}
                                         </span>
                                     </div>
 
                                     <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
                                         <div>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer</p>
+                                            <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
                                             <div className="flex items-center gap-1 mt-0.5">
                                                 <User size={12} className="text-slate-400" />
                                                 <span className="text-xs font-black text-slate-800 dark:text-white">{reminder.customer?.name || 'Unknown'}</span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type</p>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-semibold text-slate-600 dark:text-slate-400 mt-0.5">
+                                            <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">Type</p>
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-2xs font-semibold text-slate-600 dark:text-slate-400 mt-0.5">
                                                 {reminder.type === 'email' ? <Mail size={10} /> : <MessageSquare size={10} />}
                                                 <span className="capitalize">{reminder.type}</span>
                                             </span>
@@ -417,7 +417,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                                             {reminder.status === 'pending' && (
                                                 <button
                                                     onClick={() => handleSendNow(reminder)}
-                                                    className="px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold transition-all shadow-md flex items-center gap-1 text-[11px]"
+                                                    className="px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-bold transition-all shadow-md flex items-center gap-1 text-1xs"
                                                 >
                                                     <Send size={12} />
                                                     <span>Send Now</span>

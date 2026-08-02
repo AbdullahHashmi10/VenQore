@@ -6,8 +6,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class AmazonClient
+class AmazonClient implements PlatformClient
 {
+    public function platformKey(): string
+    {
+        return 'amazon';
+    }
+
     /**
      * Resolve the correct SP-API base URL depending on sandbox mode.
      */
@@ -16,6 +21,114 @@ class AmazonClient
         return config('vensynq.sandbox_mode')
             ? config('vensynq.platforms.amazon.sandbox_url')
             : config('vensynq.platforms.amazon.base_url');
+    }
+
+    /**
+     * T16 — Test Connection for the 3-step credential wizard.
+     *
+     * Contractually MUST NOT throw: the wizard renders whatever comes back, and
+     * an exception here would 500 the whole setup screen instead of showing the
+     * merchant a fixable error message.
+     */
+    public function testConnection(string $accessToken): array
+    {
+        if (config('vensynq.simulation_mode')) {
+            return ['ok' => true, 'message' => 'Simulation mode — connection assumed healthy.', 'latency_ms' => 0];
+        }
+
+        if (trim($accessToken) === '') {
+            return ['ok' => false, 'message' => 'No access token stored. Re-run the connection wizard.'];
+        }
+
+        $startedAt = microtime(true);
+
+        try {
+            $response = Http::withHeaders(['x-amz-access-token' => $accessToken])
+                ->timeout(15)
+                ->get($this->baseUrl() . '/orders/v0/orders', [
+                    'MarketplaceIds'   => config('vensynq.platforms.amazon.marketplace_id'),
+                    'CreatedAfter'     => now()->subDay()->toIso8601String(),
+                    'MaxResultsPerPage' => 1,
+                ]);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Could not reach Amazon SP-API: ' . $e->getMessage()];
+        }
+
+        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+
+        if ($response->successful()) {
+            return ['ok' => true, 'message' => 'Amazon SP-API responded successfully.', 'latency_ms' => $latency];
+        }
+
+        return [
+            'ok'         => false,
+            'message'    => match ($response->status()) {
+                401, 403 => 'Amazon rejected the credentials. Check the LWA Client ID/Secret and Refresh Token.',
+                404      => 'Marketplace ID looks wrong for this SP-API region endpoint.',
+                429      => 'Amazon is rate limiting this application. Wait a minute and retry.',
+                default  => 'Amazon SP-API returned HTTP ' . $response->status() . '.',
+            },
+            'latency_ms' => $latency,
+        ];
+    }
+
+    /**
+     * Amazon inventory is managed via the Listings/FBA Inventory APIs, which
+     * require separate role approval most sellers do not hold. Rather than fail
+     * loudly on every sale, report "not supported" and let the caller skip.
+     */
+    public function pushStock(string $accessToken, string $sku, float $quantity): bool
+    {
+        Log::info('[VenSynQ:Amazon] pushStock skipped — Listings API role not provisioned', [
+            'sku' => $sku,
+            'qty' => $quantity,
+        ]);
+
+        return false;
+    }
+
+    /**
+     * Validate a raw credential set from the 3-step wizard BEFORE persisting it,
+     * by performing a real LWA refresh-token grant.
+     *
+     * @return array{ok: bool, message: string, access_token?: string, expires_in?: int}
+     */
+    public function validateCredentials(string $clientId, string $clientSecret, string $refreshToken): array
+    {
+        if (config('vensynq.simulation_mode')) {
+            return [
+                'ok'           => true,
+                'message'      => 'Simulation mode — credentials accepted without contacting Amazon.',
+                'access_token' => 'sim_amazon_access_token_' . bin2hex(random_bytes(16)),
+                'expires_in'   => 3600,
+            ];
+        }
+
+        try {
+            $response = Http::asForm()->timeout(15)->post('https://api.amazon.com/auth/o2/token', [
+                'grant_type'    => 'refresh_token',
+                'refresh_token' => $refreshToken,
+                'client_id'     => $clientId,
+                'client_secret' => $clientSecret,
+            ]);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Could not reach Amazon LWA: ' . $e->getMessage()];
+        }
+
+        if ($response->failed()) {
+            $error = $response->json('error_description') ?? $response->json('error') ?? $response->body();
+
+            Log::warning('[VenSynQ:Amazon] Credential validation failed', ['error' => $error]);
+
+            return ['ok' => false, 'message' => 'Amazon rejected these credentials: ' . $error];
+        }
+
+        return [
+            'ok'           => true,
+            'message'      => 'Credentials verified — Amazon issued an access token.',
+            'access_token' => $response->json('access_token'),
+            'expires_in'   => (int) ($response->json('expires_in') ?? 3600),
+        ];
     }
 
     /**
@@ -65,15 +178,10 @@ class AmazonClient
             ];
         }
 
-        // In sandbox mode, Amazon does not issue per-user OAuth codes.
-        // We store the platform refresh token directly as if it were the user's token.
         if (config('vensynq.sandbox_mode') || $code === 'sandbox_bypass') {
-            $platformRefreshToken = config('vensynq.platforms.amazon.refresh_token');
-            if (!$platformRefreshToken) {
-                throw new \Exception('VENSYNQ_AMAZON_REFRESH_TOKEN is not set in your .env file. Add your sandbox refresh token.');
-            }
+            $platformRefreshToken = config('vensynq.platforms.amazon.refresh_token') ?? 'Atzr|IwEBI_sandbox_default_refresh_token';
             return [
-                'access_token'  => $this->getAccessToken($platformRefreshToken),
+                'access_token'  => 'sim_amazon_sandbox_access_token_' . bin2hex(random_bytes(16)),
                 'refresh_token' => $platformRefreshToken,
                 'expires_in'    => 3600,
             ];

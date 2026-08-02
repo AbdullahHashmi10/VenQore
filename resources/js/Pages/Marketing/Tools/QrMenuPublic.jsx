@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 
+import { vq } from '@/theme/runtime';
 /**
  * QrMenuPublic — the page a customer actually sees when they scan the QR
  * code at their table. Public, unauthenticated, read-only, no editing
@@ -15,7 +16,7 @@ const CURRENCY_SYMBOLS = {
     PKR: 'Rs', INR: '₹', AED: 'AED', SAR: 'SAR', JPY: '¥',
 };
 
-export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color = '#4f46e5', currency = 'USD', categories = [] }) {
+export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color = vq.indigo[600], currency = 'USD', categories = [] }) {
     const symbol = CURRENCY_SYMBOLS[currency] || currency;
 
     return (
@@ -28,7 +29,7 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
 
             <div className="min-h-screen bg-slate-50" style={{ '--theme': theme_color }}>
                 <header
-                    className="px-5 pt-10 pb-8 text-center text-white"
+                    className="px-5 pt-10 pb-8 text-center text-slate-900 dark:text-white"
                     style={{ background: `linear-gradient(135deg, ${theme_color}, ${theme_color}cc)` }}
                 >
                     {logo_base64 && (
@@ -40,7 +41,7 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
 
                 <main className="max-w-lg mx-auto px-4 py-6 pb-16">
                     {categories.length === 0 && (
-                        <p className="text-center text-slate-400 py-16">This menu doesn't have any items yet.</p>
+                        <p className="text-center text-slate-500 dark:text-slate-400 py-16">This menu doesn't have any items yet.</p>
                     )}
 
                     {categories.map((cat, ci) => (
@@ -70,7 +71,7 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
                     ))}
                 </main>
 
-                <footer className="text-center text-[11px] text-slate-400 pb-8 px-4">
+                <footer className="text-center text-1xs text-slate-500 dark:text-slate-400 pb-8 px-4">
                     Menu powered by <a href="/tools/qr-menu-generator" className="underline font-semibold">VenQore</a> — free QR menus for restaurants.
                 </footer>
             </div>

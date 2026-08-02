@@ -305,19 +305,19 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => { setActiveFilter('all'); applyFilters({ filter: 'all' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => { setActiveFilter('pending'); applyFilters({ filter: 'pending' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Pending</button>
                         <button
                             onClick={() => { setActiveFilter('accepted'); applyFilters({ filter: 'accepted' }); }}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Accepted</button>
                         <button
                             onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Custom</button>
                         {activeFilter === 'custom' && (
                             <div className="flex items-center gap-1.5 ml-1">
@@ -422,15 +422,15 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => applyFilterType('pending')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Pending</button>
                                 <button
                                     onClick={() => applyFilterType('accepted')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Accepted</button>
                             </div>
                         </div>
@@ -597,9 +597,9 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.proposal_number || `PROP-${row.id}`}</span>
-                                                <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                                <p className="text-2xs text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                            <span className={`px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider
                                                 ${row.status === 'accepted' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                                                   row.status === 'converted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                                                   row.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
@@ -670,7 +670,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                                         rejected: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                                     };
                                     return (
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
                                             {quickViewItem.status || 'pending'}
                                         </span>
                                     );
@@ -704,24 +704,24 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                             {/* Top Info Row */}
                             <div className="grid grid-cols-4 gap-3 mb-4">
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Customer</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Customer</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewItem.customer?.name || 'Walk-in'}</p>
                                     {quickViewItem.customer?.phone && (
                                         <p className="text-xs text-slate-500">{quickViewItem.customer.phone}</p>
                                     )}
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date Created</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date Created</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.created_at)}</p>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Valid Until</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Valid Until</p>
                                     <p className={`font-bold text-sm ${quickViewItem.valid_until && new Date(quickViewItem.valid_until) < new Date() ? 'text-red-600' : 'text-slate-800 dark:text-white'}`}>
                                         {formatDate(quickViewItem.valid_until) || 'No expiry'}
                                     </p>
                                 </div>
                                 <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
+                                    <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
                                     <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewItem.total, store)}</p>
                                 </div>
                             </div>
@@ -737,11 +737,11 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                                     <table className="w-full text-sm">
                                         <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                             <tr>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -752,7 +752,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                                                         <td className="p-3">
                                                             <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             {item.product?.sku && (
-                                                                <p className="text-[10px] text-slate-400 font-mono">{item.product.sku}</p>
+                                                                <p className="text-2xs text-slate-400 font-mono">{item.product.sku}</p>
                                                             )}
                                                         </td>
                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
@@ -776,11 +776,11 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                                 <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
                                     <div className="flex justify-end gap-8">
                                         <div className="text-right">
-                                            <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Subtotal</p>
                                             <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewItem.subtotal || quickViewItem.total, store)}</p>
                                         </div>
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
-                                            <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
+                                            <p className="text-2xs text-indigo-600 uppercase font-bold">Grand Total</p>
                                             <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewItem.total, store)}</p>
                                         </div>
                                     </div>
@@ -808,7 +808,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
 
                         {/* Footer */}
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                            <p className="text-[10px] text-slate-400">Double-click row to view/edit • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                            <p className="text-2xs text-slate-400">Double-click row to view/edit • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
                         </div>
                     </div>
                 </div>

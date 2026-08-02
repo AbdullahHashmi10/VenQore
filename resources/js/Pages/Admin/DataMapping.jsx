@@ -163,16 +163,16 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
         <div className={`flex-1 space-y-4 p-4 rounded-xl ${disabled ? 'bg-white/5 opacity-50' : 'bg-white/5 border border-white/5'}`}>
             <div>
                 <h4 className="text-white font-medium text-sm leading-none">{title}</h4>
-                <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">{subtitle}</p>
+                <p className="text-2xs text-gray-400 mt-1 uppercase tracking-wider">{subtitle}</p>
             </div>
             <div className="grid grid-cols-1 gap-3">
                 {currentFields.map(f => (
                     <div key={f.key}>
-                        <label className="text-[10px] text-gray-500 block mb-1">{f.label}</label>
+                        <label className="text-2xs text-gray-500 block mb-1">{f.label}</label>
                         <input 
                             type="text" 
                             disabled={disabled}
-                            className="w-full bg-[#1E293B] border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-indigo-500 transition-all font-mono"
+                            className="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-indigo-500 transition-all font-mono"
                             value={data[f.key] || ''}
                             onChange={e => onChange({ ...data, [f.key]: e.target.value })}
                             placeholder={f.placeholder || ''}
@@ -190,7 +190,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             {/* Side-by-Side Editing Modal */}
             {editingContext && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-                    <div className="bg-[#0F172A] border border-white/10 rounded-3xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200">
+                    <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">Resolve Data Conflict</h3>
@@ -274,7 +274,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
                     {/* Mapping Controls */}
-                    <div id="tour-mapping-container" className="lg:col-span-1 border border-white/10 rounded-xl bg-[#0F172A] p-6 shadow-2xl flex flex-col min-h-0">
+                    <div id="tour-mapping-container" className="lg:col-span-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0">
                         <div className="mb-4 shrink-0">
                             <h2 className="text-lg font-medium text-white flex items-center">
                                 <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-2" />
@@ -292,7 +292,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     <select
                                         value={mapping[field.key] !== null ? mapping[field.key] : ""}
                                         onChange={(e) => handleMappingChange(field.key, e.target.value)}
-                                        className={`w-full bg-[#1E293B] border rounded-md text-sm p-2 text-white
+                                        className={`w-full bg-slate-800 border rounded-md text-sm p-2 text-white
                                         ${field.required && mapping[field.key] == null ? 'border-amber-400/50 focus:border-amber-400' : 'border-white/10 focus:border-indigo-500'}`}
                                     >
                                         <option value="">-- Ignore --</option>
@@ -318,7 +318,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Allow Negative Stock</span>
-                                        <p className="text-[10px] text-gray-400">If unchecked, negative opening quantities will be set to 0</p>
+                                        <p className="text-2xs text-gray-400">If unchecked, negative opening quantities will be set to 0</p>
                                     </div>
                                 </label>
                             </div>
@@ -347,7 +347,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     >
                                         <div className="pr-4">
                                             <div>Option A: Truncate Import</div>
-                                            <div className="text-[10px] opacity-80 mt-0.5">Only import the first {validationData.allowed_to_import} new products to stay within limits.</div>
+                                            <div className="text-2xs opacity-80 mt-0.5">Only import the first {validationData.allowed_to_import} new products to stay within limits.</div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'truncate' ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-500'}`}>
                                             {importAction === 'truncate' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
@@ -364,7 +364,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     >
                                         <div className="pr-4">
                                             <div>Option B: Import Everything</div>
-                                            <div className="text-[10px] opacity-80 mt-0.5">Import all {validationData.new_count} products. Starts a 3-day grace period to upgrade your plan.</div>
+                                            <div className="text-2xs opacity-80 mt-0.5">Import all {validationData.new_count} products. Starts a 3-day grace period to upgrade your plan.</div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'import_all' ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-500'}`}>
                                             {importAction === 'import_all' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
@@ -398,7 +398,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                             >
                                 {isProcessing ? 'Importing...' : 'Confirm & Process Import'}
                             </button>
-                            {!validationData && <p className="text-[10px] text-gray-500 text-center">Run validation before importing</p>}
+                            {!validationData && <p className="text-2xs text-gray-500 text-center">Run validation before importing</p>}
                         </div>
                     </div>
 
@@ -420,7 +420,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                                     <span className="text-white font-medium">{warn.name}</span>
                                                     <span className="text-gray-400">({warn.phone || 'No phone'})</span>
                                                 </div>
-                                                <p className="mt-1 text-[10px] text-amber-400/80 italic">{warn.reason}</p>
+                                                <p className="mt-1 text-2xs text-amber-400/80 italic">{warn.reason}</p>
                                             </div>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button 
@@ -451,7 +451,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                             </div>
                         )}
 
-                        <div className="flex-1 border border-white/10 rounded-xl bg-[#0F172A] p-6 shadow-2xl flex flex-col min-h-0">
+                        <div className="flex-1 border border-white/10 rounded-xl bg-slate-900 p-6 shadow-2xl flex flex-col min-h-0">
                              <div className="mb-4 shrink-0">
                                 <h2 className="text-lg font-medium text-white">Data Preview</h2>
                                 <p className="text-sm text-gray-400 mt-1">Found {preview_data.length} records</p>
@@ -459,7 +459,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
 
                             <div className="flex-1 overflow-auto rounded-lg border border-white/10 custom-scrollbar min-h-0">
                                 <table className="w-full text-left text-sm whitespace-nowrap">
-                                    <thead className="bg-[#1E293B] sticky top-0 z-10">
+                                    <thead className="bg-slate-800 sticky top-0 z-10">
                                         <tr>
                                             <th className="px-4 py-3 text-gray-300 border-b border-white/10 font-medium">#</th>
                                             {expected_fields.map(field => (
@@ -469,7 +469,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white/5 bg-[#0F172A]">
+                                    <tbody className="divide-y divide-white/5 bg-slate-900">
                                         {preview_data.map((row, index) => (
                                             <tr key={index} className="hover:bg-white/5 transition-colors">
                                                 <td className="px-4 py-2 text-gray-500">{index + 1}</td>

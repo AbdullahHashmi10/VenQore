@@ -156,16 +156,49 @@ class GoldenAuditSeeder extends Seeder
 
 
 
-            // Seed one opening balance for account 7000 to test the Opening Balance Status page
+            // Seed one opening balance for account 7000 to test the Opening Balance
+            // Status page.
+            //
+            // FIXED 2026-08-02: this used to post 1000 (Cash) debit / 7000 (Opening
+            // Balance Equity) credit as its own standalone entry, with nothing anywhere
+            // else in this seeder posting the offsetting debit side to 7000. Since 7000
+            // is credit-normal, that left it sitting at a permanent +10,000 balance —
+            // exactly the "Account 7000 has non-zero balance: Rs.-10,000. Opening
+            // entries incomplete." failure in Tester/tests/Feature/V3/SmokeTest.php
+            // when this seeder's committed data (it runs its own DB::transaction() with
+            // no outer test-transaction rollback) was still present for a later test's
+            // tenant-unscoped global aggregate query.
+            //
+            // The real production opening-balance flow (see
+            // postOpeningBalances() above, and app/Http/Controllers/V3/
+            // OpeningBalanceController.php) always posts the offsetting side to 3000
+            // (Owner's Capital), not 7000 — 7000 is reserved for the LEGACY/migrated
+            // opening-balance path (B19) that nets to zero once fully posted. To
+            // exercise the Opening Balance Status page's 7000 code path without
+            // corrupting the ledger, this entry now posts a matching reversing pair on
+            // the SAME day: a legacy-style opening entry into 7000, immediately offset
+            // by its own closing entry, so 7000 still nets to zero overall while the
+            // account has real posted history to display.
             $this->accounting->createEntry([
                 'date' => '2025-01-01',
                 'reference_type' => 'opening_balance',
                 'reference' => '1000',
-                'description' => 'Opening balance setup',
+                'description' => 'Opening balance setup (legacy B19 path)',
                 'created_by' => self::USER_OWNER,
             ], [
                 ['account_code' => '1000', 'debit' => 10000.00, 'credit' => 0],
                 ['account_code' => '7000', 'debit' => 0, 'credit' => 10000.00],
+            ]);
+
+            $this->accounting->createEntry([
+                'date' => '2025-01-01',
+                'reference_type' => 'opening_balance',
+                'reference' => '1000-CLOSE',
+                'description' => 'Opening balance setup — closes out legacy 7000 suspense balance',
+                'created_by' => self::USER_OWNER,
+            ], [
+                ['account_code' => '7000', 'debit' => 10000.00, 'credit' => 0],
+                ['account_code' => '3000', 'debit' => 0, 'credit' => 10000.00],
             ]);
 
             DB::table('parked_sales')->insert([
@@ -688,8 +721,25 @@ class GoldenAuditSeeder extends Seeder
             $net = round($gross - $discAmt, 2);
             $lineTax = round($net * 0.17, 2);
 
-            // Simple average inventory/cogs deduction
-            $lineCogs = round($qty * $prod['cost_price'], 2);
+            // FIXED 2026-08-02: this used to compute COGS from the product's static
+            // seed cost_price, and never decremented inventory_batches.remaining_qty
+            // on the sale side at all (sale_item_batches was populated separately,
+            // purely for reporting, picking an arbitrary batch id). That meant every
+            // sale credited 1100 by an amount with no corresponding reduction in
+            // batch quantity — over ~549 days of daily seeding the ledger balance and
+            // the batch valuation diverged further with every sale, producing the
+            // "Account 1100 does not match batch value" SmokeTest failure (a
+            // multi-million-rupee gap by the end of the simulation).
+            //
+            // Real FIFO consumption: pull batches for this product oldest-first,
+            // consume from each until $qty is satisfied, and use the ACTUAL
+            // unit_cost of whatever was consumed for COGS — exactly what
+            // FifoService does in production. If stock runs out (possible this late
+            // in an 18-month simulation with randomised quantities), fall back to
+            // the seed cost_price for the unfilled remainder rather than throwing —
+            // this is a best-effort test fixture, not a stock-out enforcement test.
+            $consumption = $this->consumeFifoForSeed($prod['id'], $qty, $prod['cost_price'], $date);
+            $lineCogs = round($consumption['total_cost'], 2);
             $totalDiscount += $discAmt;
 
             $items[] = [
@@ -702,6 +752,7 @@ class GoldenAuditSeeder extends Seeder
                 'tax_amount' => $lineTax,
                 'line_total' => round($net + $lineTax, 2),
                 'cogs' => $lineCogs,
+                'batch_consumption' => $consumption['batches'],
             ];
 
             $subtotal += $net;
@@ -798,27 +849,97 @@ class GoldenAuditSeeder extends Seeder
                 'created_at' => $date->toDateTimeString(),
             ]);
 
-            // Seed sale_item_batches for COGS report verification
-            $batchId = DB::table('inventory_batches')
-                ->where('tenant_id', self::TENANT_ID)
-                ->where('product_id', $item['product_id'])
-                ->value('id');
-
-            if ($batchId) {
+            // Seed sale_item_batches for COGS report verification. Uses the REAL
+            // per-batch consumption computed by consumeFifoForSeed() above (actual
+            // batch id(s) actually decremented, and their actual unit_cost) instead
+            // of an arbitrary batch id + a made-up "unit_price * 0.75" cost estimate.
+            // One row per batch actually drawn from, since a single sale line can
+            // legitimately span more than one batch under FIFO.
+            foreach ($item['batch_consumption'] as $draw) {
                 DB::table('sale_item_batches')->insert([
                     'id' => (string) Str::uuid(),
                     'tenant_id' => self::TENANT_ID,
                     'sale_item_id' => $siId,
-                    'inventory_batch_id' => $batchId,
-                    'qty_deducted' => $item['qty'],
-                    'unit_cost' => $item['unit_price'] * 0.75, // approximate cost price
-                    'total_cogs' => $item['qty'] * ($item['unit_price'] * 0.75),
+                    'inventory_batch_id' => $draw['batch_id'],
+                    'qty_deducted' => $draw['qty'],
+                    'unit_cost' => $draw['unit_cost'],
+                    'total_cogs' => round($draw['qty'] * $draw['unit_cost'], 2),
                     'is_reversed' => 0,
                     'created_at' => $date->toDateTimeString(),
                     'updated_at' => $date->toDateTimeString(),
                 ]);
             }
         }
+    }
+
+    /**
+     * FIFO-consume $qty units of $productId from inventory_batches, oldest batch
+     * first (ordered by created_at, matching purchase chronology since this
+     * seeder inserts batches in date order). Actually decrements remaining_qty
+     * on every batch drawn from, and returns the true weighted cost of what was
+     * consumed — this is what keeps journal account 1100 (Inventory Asset) and
+     * the batches table in agreement with each other, which the seeder's older
+     * version did not do (see the fix note in seedSales() above).
+     *
+     * @return array{total_cost: float, batches: array<int, array{batch_id: string, qty: int, unit_cost: float}>}
+     */
+    private function consumeFifoForSeed(string $productId, int $qty, float $fallbackCostPrice, Carbon $date): array
+    {
+        $remaining = $qty;
+        $totalCost = 0.0;
+        $draws = [];
+
+        $batches = DB::table('inventory_batches')
+            ->where('tenant_id', self::TENANT_ID)
+            ->where('product_id', $productId)
+            ->where('remaining_qty', '>', 0)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get(['id', 'remaining_qty', 'unit_cost']);
+
+        foreach ($batches as $batch) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $take = min($remaining, (int) $batch->remaining_qty);
+            if ($take <= 0) {
+                continue;
+            }
+
+            DB::table('inventory_batches')
+                ->where('id', $batch->id)
+                ->decrement('remaining_qty', $take, ['updated_at' => $date->toDateTimeString()]);
+
+            $draws[] = [
+                'batch_id'  => $batch->id,
+                'qty'       => $take,
+                'unit_cost' => (float) $batch->unit_cost,
+            ];
+            $totalCost += $take * (float) $batch->unit_cost;
+            $remaining -= $take;
+        }
+
+        // Stock ran out across every batch for this product (possible late in an
+        // 18-month daily simulation with randomised sale quantities). Fall back to
+        // the seed cost_price for whatever couldn't be filled from a real batch,
+        // rather than throwing — this is a best-effort test fixture, not a
+        // stock-out enforcement test. This is the one case where the ledger and
+        // the batch table can still diverge slightly, but it is a rare tail case
+        // rather than the systematic, compounding-every-sale gap this fix removes.
+        if ($remaining > 0) {
+            $draws[] = [
+                'batch_id'  => null,
+                'qty'       => $remaining,
+                'unit_cost' => $fallbackCostPrice,
+            ];
+            $totalCost += $remaining * $fallbackCostPrice;
+        }
+
+        return ['total_cost' => $totalCost, 'batches' => array_values(array_filter(
+            $draws,
+            fn ($d) => $d['batch_id'] !== null
+        ))];
     }
 
     private function seedPayments(Carbon $date, array $parties): void

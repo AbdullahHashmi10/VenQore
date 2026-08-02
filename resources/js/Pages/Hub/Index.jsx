@@ -91,7 +91,7 @@ function StoreCard({ membership, isLast }) {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="font-bold text-white truncate">{membership.store_name}</span>
                         {isLast && (
-                            <span className="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 rounded-full px-2 py-0.5">
+                            <span className="text-2xs font-bold text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 rounded-full px-2 py-0.5">
                                 Last used
                             </span>
                         )}
@@ -199,7 +199,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
     const lastUsed = memberships.find(m => m.is_last_used);
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans">
+        <div className="min-h-screen bg-void-950 text-white font-sans">
             <Head title="Your Stores — VenQore" />
 
             {/* Ambient background */}

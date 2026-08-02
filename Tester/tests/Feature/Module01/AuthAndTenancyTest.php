@@ -127,11 +127,16 @@ test('cashier cannot access admin expenses route', function () {
 
 test('superadmin can access venqore routes', function () {
     $this->actingAsSuperAdmin();
-    
+
     $response = $this->get('/VenQore');
-    
-    // Should be allowed and return either 200 or 302 (redirect inside controller)
-    $this->assertTrue(in_array($response->status(), [200, 302]));
+
+    // /VenQore (GET /) maps directly to SuperAdminController::dashboard, an
+    // Inertia render with no redirect step for an authorized superadmin — a
+    // 302 here would mean something is wrong (e.g. falling through to a login
+    // redirect), not an acceptable alternate success path. FIXED 2026-08-02:
+    // previously accepted [200, 302], which could not distinguish "reached the
+    // dashboard" from "got redirected away from it".
+    $response->assertOk();
 });
 
 test('regular user cannot access venqore routes', function () {

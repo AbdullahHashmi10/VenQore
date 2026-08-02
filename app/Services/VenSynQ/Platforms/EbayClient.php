@@ -5,8 +5,66 @@ namespace App\Services\VenSynQ\Platforms;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class EbayClient
+class EbayClient implements PlatformClient
 {
+    public function platformKey(): string
+    {
+        return 'ebay';
+    }
+
+    /**
+     * T16 — health check. Never throws; returns a structured result.
+     */
+    public function testConnection(string $accessToken): array
+    {
+        if (config('vensynq.simulation_mode')) {
+            return ['ok' => true, 'message' => 'Simulation mode — connection assumed healthy.', 'latency_ms' => 0];
+        }
+
+        if (trim($accessToken) === '') {
+            return ['ok' => false, 'message' => 'No access token stored. Reconnect the eBay channel.'];
+        }
+
+        $base = config('vensynq.platforms.ebay.base_url', 'https://api.ebay.com');
+        $startedAt = microtime(true);
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(15)
+                ->get(rtrim($base, '/') . '/sell/fulfillment/v1/order', ['limit' => 1]);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Could not reach eBay: ' . $e->getMessage()];
+        }
+
+        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+
+        if ($response->successful()) {
+            return ['ok' => true, 'message' => 'eBay Sell API responded successfully.', 'latency_ms' => $latency];
+        }
+
+        return [
+            'ok'         => false,
+            'message'    => in_array($response->status(), [401, 403], true)
+                ? 'eBay rejected the token. Reconnect the channel to re-authorize.'
+                : 'eBay returned HTTP ' . $response->status() . '.',
+            'latency_ms' => $latency,
+        ];
+    }
+
+    /**
+     * eBay stock updates run through the Inventory API, which requires the
+     * listing to be inventory-managed. Not wired yet — report unsupported.
+     */
+    public function pushStock(string $accessToken, string $sku, float $quantity): bool
+    {
+        Log::info('[VenSynQ:eBay] pushStock skipped — Inventory API not wired', [
+            'sku' => $sku,
+            'qty' => $quantity,
+        ]);
+
+        return false;
+    }
+
     /**
      * Build the eBay User Authorization URL.
      */

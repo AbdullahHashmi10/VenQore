@@ -5,8 +5,66 @@ namespace App\Services\VenSynQ\Platforms;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class TikTokClient
+class TikTokClient implements PlatformClient
 {
+    public function platformKey(): string
+    {
+        return 'tiktok';
+    }
+
+    /**
+     * T16 — health check. Never throws; returns a structured result.
+     */
+    public function testConnection(string $accessToken): array
+    {
+        if (config('vensynq.simulation_mode')) {
+            return ['ok' => true, 'message' => 'Simulation mode — connection assumed healthy.', 'latency_ms' => 0];
+        }
+
+        if (trim($accessToken) === '') {
+            return ['ok' => false, 'message' => 'No access token stored. Reconnect the TikTok Shop channel.'];
+        }
+
+        $base = config('vensynq.platforms.tiktok.base_url', 'https://open-api.tiktokglobalshop.com');
+        $startedAt = microtime(true);
+
+        try {
+            $response = Http::withHeaders(['x-tts-access-token' => $accessToken])
+                ->timeout(15)
+                ->get(rtrim($base, '/') . '/authorization/202309/shops');
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Could not reach TikTok Shop: ' . $e->getMessage()];
+        }
+
+        $latency = (int) round((microtime(true) - $startedAt) * 1000);
+
+        if ($response->successful()) {
+            return ['ok' => true, 'message' => 'TikTok Shop API responded successfully.', 'latency_ms' => $latency];
+        }
+
+        return [
+            'ok'         => false,
+            'message'    => in_array($response->status(), [401, 403], true)
+                ? 'TikTok rejected the token. Reconnect the channel to re-authorize.'
+                : 'TikTok Shop returned HTTP ' . $response->status() . '.',
+            'latency_ms' => $latency,
+        ];
+    }
+
+    /**
+     * TikTok Shop stock updates require the Product API with seller approval.
+     * Not wired yet — report unsupported rather than failing the sale.
+     */
+    public function pushStock(string $accessToken, string $sku, float $quantity): bool
+    {
+        Log::info('[VenSynQ:TikTok] pushStock skipped — Product API not wired', [
+            'sku' => $sku,
+            'qty' => $quantity,
+        ]);
+
+        return false;
+    }
+
     /**
      * Build the TikTok Shop Partner Authorization URL.
      */

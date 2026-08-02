@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { vq } from '@/theme/runtime';
 import {
     Users, UserPlus, Crown, Shield, LayoutGrid, CreditCard,
     Eye, MoreVertical, Trash2, Edit2, Copy, CheckCircle2,
@@ -10,21 +11,21 @@ import {
 
 // ─── Role Config ─────────────────────────────────────────────────────────────
 const ROLES = {
-    owner:              { label: 'Owner',               color: '#f59e0b', bg: '#fffbeb', border: '#fcd34d', Icon: Crown },
-    admin:              { label: 'Admin',               color: '#6366f1', bg: '#eef2ff', border: '#a5b4fc', Icon: Shield },
-    manager:            { label: 'Manager',             color: '#8b5cf6', bg: '#f5f3ff', border: '#c4b5fd', Icon: LayoutGrid },
-    cashier:            { label: 'Cashier',             color: '#0ea5e9', bg: '#f0f9ff', border: '#7dd3fc', Icon: CreditCard },
-    accountant:         { label: 'Accountant',          color: '#10b981', bg: '#f0fdf4', border: '#6ee7b7', Icon: Zap },
-    purchasing_officer: { label: 'Purchasing Officer',  color: '#f97316', bg: '#fff7ed', border: '#fdba74', Icon: CheckCircle2 },
-    viewer:             { label: 'Viewer',              color: '#64748b', bg: '#f8fafc', border: '#cbd5e1', Icon: Eye },
+    owner:              { label: 'Owner',               color: vq.amber[500], bg: vq.amber[50], border: vq.amber[300], Icon: Crown },
+    admin:              { label: 'Admin',               color: vq.indigo[500], bg: vq.indigo[50], border: vq.indigo[300], Icon: Shield },
+    manager:            { label: 'Manager',             color: vq.violet[500], bg: vq.violet[50], border: vq.violet[300], Icon: LayoutGrid },
+    cashier:            { label: 'Cashier',             color: vq.sky[500], bg: vq.sky[50], border: vq.sky[300], Icon: CreditCard },
+    accountant:         { label: 'Accountant',          color: vq.emerald[500], bg: vq.green[50], border: vq.emerald[300], Icon: Zap },
+    purchasing_officer: { label: 'Purchasing Officer',  color: vq.orange[500], bg: vq.orange[50], border: vq.orange[300], Icon: CheckCircle2 },
+    viewer:             { label: 'Viewer',              color: vq.slate[500], bg: vq.slate[50], border: vq.slate[300], Icon: Eye },
 };
 
 const INVITABLE_ROLES = ['admin', 'manager', 'cashier', 'accountant', 'purchasing_officer', 'viewer'];
 
 const STATUS_CONFIG = {
-    active:    { color: '#10b981', bg: '#f0fdf4', label: 'Active',   Icon: CheckCircle2 },
-    invited:   { color: '#6366f1', bg: '#eef2ff', label: 'Invited',  Icon: Mail },
-    suspended: { color: '#ef4444', bg: '#fef2f2', label: 'Suspended',Icon: AlertTriangle },
+    active:    { color: vq.emerald[500], bg: vq.green[50], label: 'Active',   Icon: CheckCircle2 },
+    invited:   { color: vq.indigo[500], bg: vq.indigo[50], label: 'Invited',  Icon: Mail },
+    suspended: { color: vq.red[500], bg: vq.red[50], label: 'Suspended',Icon: AlertTriangle },
 };
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
@@ -106,11 +107,11 @@ function InviteModal({ storeId, onClose }) {
                         <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-main,#0f172a)' }}>
                             Invite a Team Member
                         </div>
-                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                        <div style={{ fontSize: 13, color: vq.slate[500], marginTop: 4 }}>
                             They'll receive an email with a 7-day invite link.
                         </div>
                     </div>
-                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: '#64748b' }}>
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}>
                         <X size={16} />
                     </button>
                 </div>
@@ -118,7 +119,7 @@ function InviteModal({ storeId, onClose }) {
                 <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {/* Email */}
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 6 }}>
                             Email Address *
                         </label>
                         <input
@@ -126,14 +127,14 @@ function InviteModal({ storeId, onClose }) {
                             value={data.email}
                             onChange={e => setData('email', e.target.value)}
                             placeholder="colleague@example.com"
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${errors.email ? '#ef4444' : '#e2e8f0'}`, background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', color: 'var(--text-main,#0f172a)', boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${errors.email ? vq.red[500] : vq.slate[200]}`, background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', color: 'var(--text-main,#0f172a)', boxSizing: 'border-box' }}
                         />
-                        {errors.email && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors.email}</div>}
+                        {errors.email && <div style={{ fontSize: 11, color: vq.red[500], marginTop: 4 }}>{errors.email}</div>}
                     </div>
 
                     {/* Role */}
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 6 }}>
                             Role *
                         </label>
                         <div style={{ position: 'relative' }}>
@@ -146,11 +147,11 @@ function InviteModal({ storeId, onClose }) {
                                     <option key={r} value={r}>{ROLES[r]?.label ?? r}</option>
                                 ))}
                             </select>
-                            <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                            <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: vq.slate[400], pointerEvents: 'none' }} />
                         </div>
 
                         {/* Role description */}
-                        <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: (ROLES[data.role]?.bg ?? '#f8fafc'), border: `1px solid ${ROLES[data.role]?.border ?? '#e2e8f0'}`, fontSize: 12, color: ROLES[data.role]?.color ?? '#64748b' }}>
+                        <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: (ROLES[data.role]?.bg ?? vq.slate[50]), border: `1px solid ${ROLES[data.role]?.border ?? vq.slate[200]}`, fontSize: 12, color: ROLES[data.role]?.color ?? vq.slate[500] }}>
                             {data.role === 'admin'              && 'Full store access — same as owner, except billing and store deletion.'}
                             {data.role === 'manager'            && 'All operational access. Can view all 38 reports. Cannot manage staff roles.'}
                             {data.role === 'cashier'            && 'POS terminal only. Minimal dashboard. Cannot see financial data.'}
@@ -162,8 +163,8 @@ function InviteModal({ storeId, onClose }) {
 
                     {/* Display Name */}
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>
-                            Display Name <span style={{ color: '#94a3b8', fontWeight: 400 }}>(optional)</span>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 6 }}>
+                            Display Name <span style={{ color: vq.slate[400], fontWeight: 400 }}>(optional)</span>
                         </label>
                         <input
                             type="text"
@@ -177,7 +178,7 @@ function InviteModal({ storeId, onClose }) {
 
                     <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                         <button type="button" onClick={onClose}
-                            style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer' }}>
+                            style={{ flex: 1, padding: '11px', borderRadius: 12, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
                             Cancel
                         </button>
                         <button type="submit" disabled={processing}
@@ -211,26 +212,26 @@ function EditMemberModal({ member, storeId, onClose }) {
             <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 24, padding: 30, width: '100%', maxWidth: 400, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                     <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-main,#0f172a)' }}>Edit {member.name}</div>
-                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: '#64748b' }}><X size={14} /></button>
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}><X size={14} /></button>
                 </div>
                 <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 5 }}>Role</label>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Role</label>
                         <select value={data.role} onChange={e => setData('role', e.target.value)}
                             disabled={member.role === 'owner'}
                             style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                             {INVITABLE_ROLES.map(r => <option key={r} value={r}>{ROLES[r]?.label ?? r}</option>)}
                         </select>
-                        {member.role === 'owner' && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Owner role cannot be changed.</div>}
+                        {member.role === 'owner' && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 4 }}>Owner role cannot be changed.</div>}
                     </div>
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 5 }}>Display Name</label>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Display Name</label>
                         <input value={data.display_name} onChange={e => setData('display_name', e.target.value)}
                             placeholder="POS display name"
                             style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                     </div>
                     <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 5 }}>Status</label>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Status</label>
                         <select value={data.status} onChange={e => setData('status', e.target.value)}
                             disabled={member.role === 'owner'}
                             style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'var(--input-bg,#f8fafc)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
@@ -240,11 +241,11 @@ function EditMemberModal({ member, storeId, onClose }) {
                     </div>
                     <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                         <button type="button" onClick={onClose}
-                            style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer' }}>
+                            style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0', background: 'transparent', fontSize: 13, fontWeight: 600, color: vq.slate[500], cursor: 'pointer' }}>
                             Cancel
                         </button>
                         <button type="submit" disabled={processing}
-                            style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: '#6366f1', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'wait' : 'pointer', opacity: processing ? 0.7 : 1 }}>
+                            style={{ flex: 2, padding: '10px', borderRadius: 10, border: 'none', background: vq.indigo[500], color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'wait' : 'pointer', opacity: processing ? 0.7 : 1 }}>
                             {processing ? 'Saving…' : 'Save Changes'}
                         </button>
                     </div>
@@ -282,11 +283,11 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                         <div>
                             <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main,#0f172a)', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 {member.display_name || member.name}
-                                {isMe && <span style={{ fontSize: 10, fontWeight: 700, background: '#ede9fe', color: '#6366f1', padding: '1px 6px', borderRadius: 5, letterSpacing: '0.04em' }}>YOU</span>}
+                                {isMe && <span style={{ fontSize: 10, fontWeight: 700, background: vq.violet[100], color: vq.indigo[500], padding: '1px 6px', borderRadius: 5, letterSpacing: '0.04em' }}>YOU</span>}
                             </div>
-                            <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{member.email}</div>
+                            <div style={{ fontSize: 11, color: vq.slate[500], marginTop: 2 }}>{member.email}</div>
                             {member.display_name && member.name !== member.display_name && (
-                                <div style={{ fontSize: 10, color: '#94a3b8' }}>Name: {member.name}</div>
+                                <div style={{ fontSize: 10, color: vq.slate[400] }}>Name: {member.name}</div>
                             )}
                         </div>
                     </div>
@@ -300,16 +301,16 @@ function MemberRow({ member, storeId, canManage, myRole }) {
 
                 {/* PIN */}
                 <td style={{ padding: '14px 16px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: member.pos_pin_set ? '#10b981' : '#94a3b8', fontWeight: 600 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: member.pos_pin_set ? vq.emerald[500] : vq.slate[400], fontWeight: 600 }}>
                         <Key size={11} />
                         {member.pos_pin_set ? 'PIN Set' : 'No PIN'}
                     </span>
                 </td>
 
                 {/* Joined */}
-                <td style={{ padding: '14px 16px', fontSize: 12, color: '#64748b' }}>
+                <td style={{ padding: '14px 16px', fontSize: 12, color: vq.slate[500] }}>
                     {member.status === 'invited'
-                        ? <span style={{ color: '#6366f1', fontSize: 11 }}>Invited {member.invited_at ? new Date(member.invited_at).toLocaleDateString() : ''}</span>
+                        ? <span style={{ color: vq.indigo[500], fontSize: 11 }}>Invited {member.invited_at ? new Date(member.invited_at).toLocaleDateString() : ''}</span>
                         : member.joined_at ? new Date(member.joined_at).toLocaleDateString() : '—'
                     }
                 </td>
@@ -320,7 +321,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                             <button
                                 onClick={() => setMenuOpen(v => !v)}
-                                style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center' }}
+                                style={{ padding: '5px 8px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'transparent', cursor: 'pointer', color: vq.slate[500], display: 'flex', alignItems: 'center' }}
                             >
                                 <MoreVertical size={15} />
                             </button>
@@ -329,14 +330,14 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                                     <div style={{ position: 'fixed', inset: 0, zIndex: 30 }} onClick={() => setMenuOpen(false)} />
                                     <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 40, background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
                                         <button onClick={() => { setEditing(true); setMenuOpen(false); }}
-                                            style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: '#475569', cursor: 'pointer', textAlign: 'left' }}
-                                            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                                            style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: vq.slate[600], cursor: 'pointer', textAlign: 'left' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = vq.slate[50]}
                                             onMouseLeave={e => e.currentTarget.style.background = 'none'}>
                                             <Edit2 size={13} /> Edit Role
                                         </button>
                                         <button onClick={remove}
-                                            style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: '#ef4444', cursor: 'pointer', textAlign: 'left' }}
-                                            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                                            style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: vq.red[500], cursor: 'pointer', textAlign: 'left' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = vq.red[50]}
                                             onMouseLeave={e => e.currentTarget.style.background = 'none'}>
                                             <Trash2 size={13} /> Remove
                                         </button>
@@ -386,7 +387,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
 
                 {/* Flash */}
                 {flash?.success && (
-                    <div style={{ marginBottom: 20, padding: '12px 18px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ marginBottom: 20, padding: '12px 18px', borderRadius: 12, background: vq.green[50], border: '1px solid #bbf7d0', color: vq.green[700], fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <CheckCircle2 size={15} /> {flash.success}
                     </div>
                 )}
@@ -395,9 +396,9 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
                     <div>
                         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,#0f172a)', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <Users size={20} color="#6366f1" /> Team Management
+                            <Users size={20} color={vq.indigo[500]} /> Team Management
                         </h1>
-                        <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+                        <p style={{ fontSize: 13, color: vq.slate[500], margin: '4px 0 0' }}>
                             {members?.length ?? 0} member{members?.length !== 1 ? 's' : ''} · {active.length} active, {invited.length} pending, {suspended.length} suspended
                         </p>
                     </div>
@@ -417,7 +418,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
                     {/* Search */}
                     <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#e2e8f0)', borderRadius: 12, padding: '0 14px' }}>
-                        <Users size={14} color="#94a3b8" />
+                        <Users size={14} color={vq.slate[400]} />
                         <input
                             value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Search by name, email, or role…"
@@ -429,15 +430,15 @@ export default function StaffIndex({ members, join_code, store_id }) {
                     {canManage && join_code && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 16px' }}>
                             <div>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Join Code</div>
-                                <div style={{ fontSize: 16, fontWeight: 800, color: '#6366f1', letterSpacing: '0.12em', fontFamily: 'monospace' }}>{join_code}</div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>Join Code</div>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: vq.indigo[500], letterSpacing: '0.12em', fontFamily: 'monospace' }}>{join_code}</div>
                             </div>
                             <button onClick={copyCode}
-                                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: codeCopied ? '#f0fdf4' : 'transparent', color: codeCopied ? '#10b981' : '#64748b', cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: codeCopied ? vq.green[50] : 'transparent', color: codeCopied ? vq.emerald[500] : vq.slate[500], cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
                                 {codeCopied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
                                 {codeCopied ? 'Copied!' : 'Copy'}
                             </button>
-                            <div style={{ fontSize: 11, color: '#94a3b8', maxWidth: 120 }}>Staff can join instantly at the Join page</div>
+                            <div style={{ fontSize: 11, color: vq.slate[400], maxWidth: 120 }}>Staff can join instantly at the Join page</div>
                         </div>
                     )}
                 </div>
@@ -448,7 +449,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--card-border,#f1f5f9)' }}>
                                 {['Member', 'Role', 'Status', 'POS PIN', 'Joined', 'Actions'].map(h => (
-                                    <th key={h} style={{ padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                    <th key={h} style={{ padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                         {h === 'Actions' && !canManage ? '' : h}
                                     </th>
                                 ))}
@@ -458,8 +459,8 @@ export default function StaffIndex({ members, join_code, store_id }) {
                             {filtered.length === 0 && (
                                 <tr>
                                     <td colSpan={6} style={{ padding: '48px', textAlign: 'center' }}>
-                                        <Users size={32} color="#e2e8f0" style={{ margin: '0 auto 12px' }} />
-                                        <div style={{ color: '#94a3b8', fontSize: 14 }}>
+                                        <Users size={32} color={vq.slate[200]} style={{ margin: '0 auto 12px' }} />
+                                        <div style={{ color: vq.slate[400], fontSize: 14 }}>
                                             {search ? 'No members match your search.' : 'No team members yet. Invite your first staff member!'}
                                         </div>
                                     </td>
@@ -480,7 +481,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
 
                 {/* Role Legend */}
                 <div style={{ marginTop: 24, padding: '16px 20px', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,#e2e8f0)', borderRadius: 16 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>Role Permissions</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>Role Permissions</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                         {Object.entries(ROLES).filter(([r]) => r !== 'owner').map(([role, cfg]) => (
                             <div key={role} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -488,7 +489,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                             </div>
                         ))}
                     </div>
-                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 10 }}>
+                    <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 10 }}>
                         💡 Each role gets a tailored dashboard — Cashiers see only POS, Accountants see only finance, Viewers are read-only.
                     </div>
                 </div>

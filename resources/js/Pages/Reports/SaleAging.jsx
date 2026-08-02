@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function SaleAging({ invoices = [], filters = {} }) {
     const {
         store
@@ -85,10 +86,10 @@ export default function SaleAging({ invoices = [], filters = {} }) {
     // --- Chart: Aging Distribution (Donut) ---
     const agingData = useMemo(() => {
         const data = [
-            { name: '0-30 Days', value: stats.buckets['0-30'], color: '#10b981', category: '0-30' },
-            { name: '30-60 Days', value: stats.buckets['30-60'], color: '#3b82f6', category: '30-60' },
-            { name: '60-90 Days', value: stats.buckets['60-90'], color: '#f59e0b', category: '60-90' },
-            { name: '90+ Days', value: stats.buckets['90+'], color: '#ef4444', category: '90+' }
+            { name: '0-30 Days', value: stats.buckets['0-30'], color: vq.emerald[500], category: '0-30' },
+            { name: '30-60 Days', value: stats.buckets['30-60'], color: vq.blue[500], category: '30-60' },
+            { name: '60-90 Days', value: stats.buckets['60-90'], color: vq.amber[500], category: '60-90' },
+            { name: '90+ Days', value: stats.buckets['90+'], color: vq.red[500], category: '90+' }
         ].filter(d => d.value > 0);
         return data;
     }, [stats]);
@@ -285,7 +286,7 @@ export default function SaleAging({ invoices = [], filters = {} }) {
                                                     ))}
                                                 </Pie>
                                                 <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                     itemStyle={{ color: '#fff' }}
                                                     formatter={(val) => formatCurrency(val)}
                                                 />
@@ -294,7 +295,7 @@ export default function SaleAging({ invoices = [], filters = {} }) {
                                         </ResponsiveContainer>
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                             <div className="text-center">
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Total</p>
+                                                <p className="text-2xs text-slate-400 font-bold uppercase">Total</p>
                                                 <p className="text-lg font-black text-slate-700 dark:text-white">
                                                     {((stats.totalOutstanding / 1000).toFixed(1))}k
                                                 </p>
@@ -316,13 +317,13 @@ export default function SaleAging({ invoices = [], filters = {} }) {
                                         <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 30 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
                                             <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
                                             <RechartsTooltip
-                                                cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                 formatter={(value) => formatCurrency(value)}
                                             />
-                                            <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
+                                            <Bar dataKey="value" fill={vq.indigo[500]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -359,10 +360,10 @@ function StatCard({ title, value, icon, color, footer }) {
                 <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
                     {icon}
                 </div>
-                {footer && <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
+                {footer && <span className="text-2xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
             </div>
             <div className="relative z-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
                 <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-0.5">{value}</h3>
             </div>
             <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none group-hover:scale-110 transition-transform duration-500`} />
@@ -380,7 +381,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
         >
             <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 {label}
-                <div className={`flex flex-col text-[8px] leading-none ${isActive ? 'text-orange-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-orange-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
                     <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
                     <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
                 </div>
@@ -390,8 +391,8 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
 }
 
 function AgingBadge({ category }) {
-    if (category === '90+') return <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold rounded animate-pulse">Critical 90+</span>;
-    if (category === '60-90') return <span className="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold rounded">High 60-90</span>;
-    if (category === '30-60') return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold rounded">At Risk 30-60</span>;
-    return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold rounded">Fresh 0-30</span>;
+    if (category === '90+') return <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-2xs font-bold rounded animate-pulse">Critical 90+</span>;
+    if (category === '60-90') return <span className="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-2xs font-bold rounded">High 60-90</span>;
+    if (category === '30-60') return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-2xs font-bold rounded">At Risk 30-60</span>;
+    return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">Fresh 0-30</span>;
 }

@@ -269,11 +269,11 @@ export default function LabelsIndex({ products }) {
                                             height: `${settings.height * 2}px`
                                         }}
                                     >
-                                        {settings.show_name && <div className="font-bold text-[10px] leading-tight mb-1">Sample Product</div>}
+                                        {settings.show_name && <div className="font-bold text-2xs leading-tight mb-1">Sample Product</div>}
                                         {settings.show_barcode && (
                                             <div className="w-full flex flex-col items-center">
                                                 <div className="h-4 w-3/4 bg-slate-800 mb-0.5"></div>
-                                                <div className="text-[8px] text-slate-500">12345678</div>
+                                                <div className="text-4xs text-slate-500">12345678</div>
                                             </div>
                                         )}
                                         {settings.show_price && <div className="font-bold text-xs mt-1">$19.99</div>}

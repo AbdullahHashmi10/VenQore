@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "2c289360054f5810",
+        "id": "530b616f8445e797",
         "type": "tabs",
         "children": [
           {
-            "id": "eee0ecb831e77d47",
+            "id": "2adb802318477650",
             "type": "leaf",
             "state": {
               "type": "graph",
@@ -79,7 +79,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "62f1a1d3d285e941",
@@ -181,9 +182,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "eee0ecb831e77d47",
+  "active": "2adb802318477650",
   "lastOpenFiles": [
-    "Untitled.canvas",
-    "00-MOC/VenQore POS - Home.md"
+    "00-MOC/VenQore POS - Home.md",
+    "Untitled 1.canvas",
+    "Untitled.canvas"
   ]
 }

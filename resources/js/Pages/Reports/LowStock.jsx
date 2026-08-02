@@ -6,6 +6,7 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function LowStock({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
         store
@@ -63,8 +64,8 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
     const chartConfig = {
         type: 'bar',
         bars: [
-            { dataKey: 'Current', fill: '#94a3b8', name: 'Current Stock' },
-            { dataKey: 'Shortage', fill: '#ef4444', name: 'Shortage Qty' }
+            { dataKey: 'Current', fill: vq.slate[400], name: 'Current Stock' },
+            { dataKey: 'Shortage', fill: vq.red[500], name: 'Shortage Qty' }
         ],
         xAxisKey: 'name'
     };
@@ -87,10 +88,10 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                     </div>
                     <div>
                         <div className="font-bold text-sm text-slate-800 dark:text-slate-200 line-clamp-1" title={row.name}>{row.name}</div>
-                        <div className="text-[11px] font-mono text-slate-500 flex items-center gap-2">
+                        <div className="text-1xs font-mono text-slate-500 flex items-center gap-2">
                             <span>{row.sku}</span>
                             {row.category && (
-                                <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-500 border border-slate-200 dark:border-slate-700">
+                                <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-2xs text-slate-500 border border-slate-200 dark:border-slate-700">
                                     {row.category.name}
                                 </span>
                             )}
@@ -117,7 +118,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
 
                 return (
                     <div className="w-full max-w-[160px]">
-                        <div className="flex justify-between text-[11px] mb-1 font-bold">
+                        <div className="flex justify-between text-1xs mb-1 font-bold">
                             <span className={stock === 0 ? 'text-red-500' : (stock < min ? 'text-orange-500' : 'text-emerald-500')}>
                                 {formatNumber(stock)} units
                             </span>
@@ -144,7 +145,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                         <span className="font-mono font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-lg border border-red-100 dark:border-red-900/30 shadow-sm">
                             +{formatNumber(shortage)}
                         </span>
-                        <span className="text-[10px] text-slate-400 mt-1">units needed</span>
+                        <span className="text-2xs text-slate-400 mt-1">units needed</span>
                     </div>
                 );
             }

@@ -23,7 +23,7 @@ export default function RedeemSuccess({ type, plan, description, codes_used, sub
         : 'You have the maximum 3 codes stacked — Business plan unlocked. 🎉';
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans flex items-center justify-center p-8">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-8">
             <Head><title>License Activated — VenQore</title></Head>
 
             {/* Background */}

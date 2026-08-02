@@ -525,7 +525,7 @@ export default function AgentInbox() {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all shrink-0 ${
+                                className={`px-2.5 py-1.5 rounded-full text-3xs font-black uppercase tracking-wider transition-all shrink-0 ${
                                     activeTab === tab.id
                                         ? 'bg-indigo-600 text-white shadow-md'
                                         : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400'
@@ -555,7 +555,7 @@ export default function AgentInbox() {
                                     <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-center px-4">
                                         <CheckCircle2 className="text-emerald-400 mb-2" size={32} />
                                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">All clear!</span>
-                                        <span className="text-[10px] text-slate-400 mt-1">No chats in this category</span>
+                                        <span className="text-2xs text-slate-400 mt-1">No chats in this category</span>
                                     </div>
                                 );
                             }
@@ -583,9 +583,9 @@ export default function AgentInbox() {
                                         >
                                             <div className="flex items-center gap-2">
                                                 {isCollapsed ? <ChevronRight size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
-                                                <span className="text-[10px] font-black uppercase tracking-wider">{groupName}</span>
+                                                <span className="text-2xs font-black uppercase tracking-wider">{groupName}</span>
                                             </div>
-                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[9px] font-black rounded-full">
+                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-3xs font-black rounded-full">
                                                 {groupSessions.length}
                                             </span>
                                         </div>
@@ -620,13 +620,13 @@ export default function AgentInbox() {
                                                                 <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}`}>
                                                                     {s.visitor_name || 'Website Guest'}
                                                                 </span>
-                                                                <span className="text-[9px] text-slate-400 font-medium">
+                                                                <span className="text-3xs text-slate-400 font-medium">
                                                                     {s.last_message_at ? new Date(s.last_message_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
                                                                 </span>
                                                             </div>
 
                                                             {s.messages?.length > 0 && (
-                                                                <p className={`text-[10px] truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                                                                <p className={`text-2xs truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
                                                                     {s.messages[s.messages.length - 1].body}
                                                                 </p>
                                                             )}
@@ -634,34 +634,34 @@ export default function AgentInbox() {
                                                             <div className="flex items-center justify-between mt-1 flex-wrap gap-1">
                                                                 {/* Priority status badge */}
                                                                 {isUnclaimed && (
-                                                                    <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[8px] font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-4xs font-black uppercase tracking-wider rounded-full">
                                                                         Action Required
                                                                     </span>
                                                                 )}
                                                                 {isClaimedByMe && (
-                                                                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[8px] font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-4xs font-black uppercase tracking-wider rounded-full">
                                                                         Claimed by me
                                                                     </span>
                                                                 )}
                                                                 {isClaimedByOther && (
-                                                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-wider rounded-full max-w-[120px] truncate">
+                                                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-4xs font-black uppercase tracking-wider rounded-full max-w-[120px] truncate">
                                                                         {s.claimed_by_name || 'Other'}
                                                                     </span>
                                                                 )}
                                                                 {s.referred_to === currentUser.id && (
-                                                                    <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 text-[8px] font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 text-4xs font-black uppercase tracking-wider rounded-full">
                                                                         Referred to me
                                                                     </span>
                                                                 )}
                                                                 {s.sub_status && (
-                                                                    <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-full ${
+                                                                    <span className={`px-2 py-0.5 text-4xs font-black uppercase tracking-wider rounded-full ${
                                                                         s.sub_status === 'fixed' ? 'bg-emerald-100 dark:bg-emerald-950/20 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950/20 text-amber-600'
                                                                     }`}>
                                                                         {s.sub_status}
                                                                     </span>
                                                                 )}
                                                                 {s.status === 'resolved' && (
-                                                                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[8px] font-black uppercase tracking-wider rounded-full">
+                                                                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-4xs font-black uppercase tracking-wider rounded-full">
                                                                         Resolved
                                                                     </span>
                                                                 )}
@@ -699,7 +699,7 @@ export default function AgentInbox() {
                                             )}
                                         </div>
                                         {selectedSession.escalation_reason && (
-                                            <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
+                                            <p className="text-2xs text-rose-500 font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
                                                 <AlertCircle size={10} />
                                                 Escalation Reason: {selectedSession.escalation_reason.replace('_', ' ')}
                                             </p>
@@ -711,7 +711,7 @@ export default function AgentInbox() {
                                         <button
                                             type="button"
                                             onClick={() => setShowCopilot(!showCopilot)}
-                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border active:scale-95 shrink-0 ${
+                                            className={`px-3 py-1.5 rounded-xl text-2xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border active:scale-95 shrink-0 ${
                                                 showCopilot
                                                     ? 'bg-purple-600/10 border-purple-500/30 text-purple-600 dark:text-purple-400 shadow-sm'
                                                     : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
@@ -725,27 +725,27 @@ export default function AgentInbox() {
                                         <div className="flex items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 gap-2 shrink-0">
                                             {selectedSession.status === 'bot_active' ? (
                                                 <>
-                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1">
+                                                    <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-2xs font-black uppercase tracking-wider rounded-lg flex items-center gap-1">
                                                         <Sparkles size={11} className="animate-pulse" />
                                                         Vena AI Active
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleClaim(selectedSession.session_uuid)}
-                                                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold active:scale-95 transition-all shrink-0"
+                                                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-2xs font-bold active:scale-95 transition-all shrink-0"
                                                     >
                                                         Take Charge
                                                     </button>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                                                    <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase tracking-wider rounded-lg">
                                                         Human Active
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleGiveToAi(selectedSession.session_uuid)}
-                                                        className="px-3 py-1 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-[10px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all shrink-0"
+                                                        className="px-3 py-1 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-2xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all shrink-0"
                                                     >
                                                         Give to AI
                                                     </button>
@@ -782,7 +782,7 @@ export default function AgentInbox() {
                                                     key={tag.id}
                                                     type="button"
                                                     onClick={() => handleSetStatus(selectedSession.session_uuid, tag.id)}
-                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                                                    className={`px-3 py-1.5 rounded-lg text-2xs font-black uppercase tracking-wider transition-all ${
                                                         selectedSession.sub_status === tag.id || (!selectedSession.sub_status && tag.id === 'active')
                                                             ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
                                                             : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -855,7 +855,7 @@ export default function AgentInbox() {
                                             if (isSystem) {
                                                 return (
                                                     <div key={m.id} className="flex justify-center my-2">
-                                                        <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 rounded-full text-[10px] text-slate-500 font-bold uppercase tracking-wider text-center max-w-md">
+                                                        <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 rounded-full text-2xs text-slate-500 font-bold uppercase tracking-wider text-center max-w-md">
                                                             {m.body}
                                                         </span>
                                                     </div>
@@ -875,13 +875,13 @@ export default function AgentInbox() {
                                                                 : 'bg-indigo-600 text-white rounded-br-none font-medium'
                                                     }`}>
                                                         {/* Sender name if group chat */}
-                                                        <div className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-70">
+                                                        <div className="text-2xs font-black uppercase tracking-wider mb-1 opacity-70">
                                                             {m.sender_name || (isVisitor ? 'Guest' : isBot ? 'Vena (AI)' : 'Agent')}
                                                         </div>
                                                         
                                                         <p className="leading-relaxed whitespace-pre-wrap">{m.body}</p>
 
-                                                        <div className="text-[9px] mt-1.5 opacity-60 text-right">
+                                                        <div className="text-3xs mt-1.5 opacity-60 text-right">
                                                             {new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                         </div>
                                                     </div>
@@ -904,7 +904,7 @@ export default function AgentInbox() {
                                         {/* Canned response suggestion dropdown */}
                                         {slashSuggestions.length > 0 && (
                                             <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-50 max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-2">
-                                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700/60 mb-1">
+                                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700/60 mb-1">
                                                     Canned Responses (Tap to insert)
                                                 </div>
                                                 {slashSuggestions.map((r, i) => (
@@ -917,7 +917,7 @@ export default function AgentInbox() {
                                                         <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-500">
                                                             /{r.shortcode}
                                                         </span>
-                                                        <span className="text-slate-400 text-[10px] truncate max-w-[300px]">
+                                                        <span className="text-slate-400 text-2xs truncate max-w-[300px]">
                                                             {r.title}
                                                         </span>
                                                     </button>
@@ -943,7 +943,7 @@ export default function AgentInbox() {
                                                     <ShieldAlert size={16} className="text-indigo-500 shrink-0 animate-pulse" />
                                                     <div>
                                                         <p className="font-bold text-slate-800 dark:text-slate-200">Supervision Mode (Read-Only)</p>
-                                                        <p className="text-[10px] text-slate-400 mt-0.5">
+                                                        <p className="text-2xs text-slate-400 mt-0.5">
                                                             {selectedSession.status === 'bot_active' 
                                                                 ? 'Vena AI is currently handling the thread.' 
                                                                 : selectedSession.claimed_by 
@@ -1003,7 +1003,7 @@ export default function AgentInbox() {
                                             <Sparkles className="text-purple-500 animate-pulse" size={16} />
                                             Vena Assist Co-Pilot
                                         </h3>
-                                        <p className="text-[10px] text-slate-400 mt-1">Real-time co-pilot assist drawer</p>
+                                        <p className="text-2xs text-slate-400 mt-1">Real-time co-pilot assist drawer</p>
                                     </div>
 
                                     <div className="flex-1 chat-scroll p-4 space-y-4">
@@ -1012,11 +1012,11 @@ export default function AgentInbox() {
                                             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl pointer-events-none" />
                                             
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <h4 className="text-2xs font-black text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
                                                     Suggested Draft
                                                 </h4>
                                                 {copilotSuggestion && (
-                                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${
+                                                    <span className={`px-2 py-0.5 rounded-full text-4xs font-black uppercase tracking-wider border ${
                                                         copilotConfidence === 'high' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                                                         copilotConfidence === 'medium' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
                                                         'bg-amber-500/10 border-amber-500/20 text-amber-400'
@@ -1029,7 +1029,7 @@ export default function AgentInbox() {
                                             {copilotLoading ? (
                                                 <div className="flex flex-col items-center justify-center py-6 text-slate-400 gap-2">
                                                     <Loader2 className="animate-spin text-purple-400" size={18} />
-                                                    <span className="text-[10px] font-medium animate-pulse">Analyzing context...</span>
+                                                    <span className="text-2xs font-medium animate-pulse">Analyzing context...</span>
                                                 </div>
                                             ) : copilotSuggestion ? (
                                                 <div className="space-y-3">
@@ -1044,14 +1044,14 @@ export default function AgentInbox() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleReplyDirect(copilotSuggestion)}
-                                                            className="py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
                                                         >
                                                             Send As-Is
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => handleReplyDirect(editableSuggestion)}
-                                                            className="py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
                                                         >
                                                             Edit & Send
                                                         </button>
@@ -1063,14 +1063,14 @@ export default function AgentInbox() {
                                                                     detail: { message: 'Injected into reply box!', type: 'info' }
                                                                 }));
                                                             }}
-                                                            className="py-2 border border-slate-200 dark:border-slate-800 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                                            className="py-2 border border-slate-200 dark:border-slate-800 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg text-3xs font-black uppercase tracking-wider transition-all"
                                                         >
                                                             Inject
                                                         </button>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p className="text-[10px] text-slate-400 py-4 text-center">
+                                                <p className="text-2xs text-slate-400 py-4 text-center">
                                                     Waiting for next customer message...
                                                 </p>
                                             )}
@@ -1078,7 +1078,7 @@ export default function AgentInbox() {
 
                                         {/* Knowledge Base / Cheat Sheet Card */}
                                         <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/10 p-4">
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">
+                                            <h4 className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-3">
                                                 {copilotSimilarKb.length > 0 ? "Verified KB Matches" : "Support Cheat Sheet"}
                                             </h4>
                                             
@@ -1087,14 +1087,14 @@ export default function AgentInbox() {
                                                     copilotSimilarKb.map((item, idx) => (
                                                         <div key={idx} className="border-b border-slate-100 dark:border-slate-800/60 pb-2.5 last:border-b-0 last:pb-0 flex flex-col gap-1">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-[9px] font-black text-slate-850 dark:text-slate-200 truncate max-w-[200px]">
+                                                                <span className="text-3xs font-black text-slate-850 dark:text-slate-200 truncate max-w-[200px]">
                                                                     Q: {item.question}
                                                                 </span>
-                                                                <span className="text-[8px] bg-slate-100 dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-black">
+                                                                <span className="text-4xs bg-slate-100 dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-black">
                                                                     Seen {item.times_seen}x
                                                                 </span>
                                                             </div>
-                                                            <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/[0.02]">
+                                                            <p className="text-3xs text-slate-500 dark:text-slate-400 leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/[0.02]">
                                                                 {item.agent_answer}
                                                             </p>
                                                         </div>
@@ -1106,8 +1106,8 @@ export default function AgentInbox() {
                                                         { q: "Adding a new cashier?", a: "Cashiers are store-specific. Invite them at Store Admin -> Staff -> Invite Staff." }
                                                     ].map((item, idx) => (
                                                         <div key={idx} className="border-b border-slate-100 dark:border-slate-800/60 pb-2 last:border-b-0 last:pb-0">
-                                                            <p className="text-[10px] font-bold text-slate-800 dark:text-slate-200">{item.q}</p>
-                                                            <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.a}</p>
+                                                            <p className="text-2xs font-bold text-slate-800 dark:text-slate-200">{item.q}</p>
+                                                            <p className="text-3xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.a}</p>
                                                         </div>
                                                     ))
                                                 )}
@@ -1121,7 +1121,7 @@ export default function AgentInbox() {
                         <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-center px-6">
                             <MessageSquare className="text-slate-300 dark:text-slate-800 mb-3" size={64} />
                             <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No Chat Selected</h4>
-                            <p className="text-[11px] text-slate-400 mt-1 max-w-[280px]">
+                            <p className="text-1xs text-slate-400 mt-1 max-w-[280px]">
                                 Click on a support session from the queue on the left to start conversing in real-time.
                             </p>
                         </div>
@@ -1147,7 +1147,7 @@ export default function AgentInbox() {
 
                         <form onSubmit={handleResolveSubmit} className="flex-1 flex flex-col gap-5 overflow-y-auto custom-scrollbar">
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
                                     Ticket Category
                                 </label>
                                 <select
@@ -1164,7 +1164,7 @@ export default function AgentInbox() {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
                                     Core Problem Encountered
                                 </label>
                                 <textarea
@@ -1178,7 +1178,7 @@ export default function AgentInbox() {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] text-slate-500 mb-2.5">
                                     Verified Solution Provided
                                 </label>
                                 <textarea

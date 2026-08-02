@@ -132,7 +132,7 @@ export default function ChartOfAccounts({ accounts = [] }) {
                             <button
                                 key={type}
                                 onClick={() => setTypeFilter(type)}
-                                className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all whitespace-nowrap ${typeFilter === type
+                                className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all whitespace-nowrap ${typeFilter === type
                                     ? 'bg-indigo-600 text-white shadow-sm'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                     }`}
@@ -164,11 +164,11 @@ export default function ChartOfAccounts({ accounts = [] }) {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                <th onClick={() => handleSort('code')} className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Code</th>
-                                <th onClick={() => handleSort('name')} className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Account Name</th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type</th>
-                                <th onClick={() => handleSort('balance')} className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Balance</th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                <th onClick={() => handleSort('code')} className="p-3 text-2xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Code</th>
+                                <th onClick={() => handleSort('name')} className="p-3 text-2xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Account Name</th>
+                                <th className="p-3 text-2xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                                <th onClick={() => handleSort('balance')} className="p-3 text-2xs font-bold text-slate-500 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Balance</th>
+                                <th className="p-3 text-2xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -185,7 +185,7 @@ export default function ChartOfAccounts({ accounts = [] }) {
                                                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{account.name}</p>
                                             </td>
                                             <td className="p-3">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${typeConfig.color}`}>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-2xs font-bold uppercase ${typeConfig.color}`}>
                                                     <Icon size={10} />
                                                     {typeConfig.label}
                                                 </span>

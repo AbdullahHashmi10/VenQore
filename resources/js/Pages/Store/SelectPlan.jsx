@@ -79,7 +79,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
     const selectedPlan = plans.find(p => p.slug === selected);
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans">
+        <div className="min-h-screen bg-void-950 text-white font-sans">
             <Head title="Choose your plan — VenQore" />
 
             {/* Ambient */}
@@ -133,7 +133,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 >
                                     {opt.label}
                                     {opt.badge && (
-                                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[8px] font-black rounded-full whitespace-nowrap">
+                                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
                                             {opt.badge}
                                         </span>
                                     )}
@@ -165,7 +165,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                 )}
                                 {plan.popular && (
                                     <div className="absolute top-3 right-4">
-                                        <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-[9px] font-black tracking-widest uppercase">
+                                        <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
                                             Most Popular
                                         </span>
                                     </div>
@@ -180,7 +180,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                         <div className="flex items-center gap-2">
                                             <span className="text-white font-black text-base tracking-tight">{plan.name}</span>
                                             {isSelected && (
-                                                <span className={`text-[9px] font-black tracking-[0.15em] uppercase px-2 py-0.5 rounded-full border ${style.badge}`}>
+                                                <span className={`text-3xs font-black tracking-[0.15em] uppercase px-2 py-0.5 rounded-full border ${style.badge}`}>
                                                     Selected
                                                 </span>
                                             )}
@@ -195,7 +195,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                                             </span>
                                             <span className="text-slate-500 text-sm font-semibold">/mo</span>
                                         </div>
-                                        <span className="text-[10px] text-slate-500 font-semibold mt-1 block">
+                                        <span className="text-2xs text-slate-500 font-semibold mt-1 block">
                                             {interval === 'annual'
                                                 ? `billed annually — ${fmt(plan.annual_total)}/yr`
                                                 : 'billed monthly'}
@@ -262,7 +262,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
                             Continue <ArrowRight size={15} />
                         </button>
                     </div>
-                    <p className="text-center sm:text-left text-[11px] text-slate-500 mt-4 flex items-center gap-1.5 justify-center sm:justify-start">
+                    <p className="text-center sm:text-left text-1xs text-slate-500 mt-4 flex items-center gap-1.5 justify-center sm:justify-start">
                         <CreditCard size={11} /> No credit card required to start. Cancel anytime before your trial ends.
                     </p>
                 </div>

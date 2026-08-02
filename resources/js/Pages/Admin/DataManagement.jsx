@@ -450,7 +450,7 @@ export default function DataManagement() {
                                             <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
                                                 Google Drive Automated Backups
                                                 {store.google_connected && (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest text-emerald-600 bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 animate-pulse">
+                                                    <span className="px-2 py-0.5 rounded-full text-2xs font-black tracking-widest text-emerald-600 bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 animate-pulse">
                                                         CONNECTED & ACTIVE
                                                     </span>
                                                 )}
@@ -490,7 +490,7 @@ export default function DataManagement() {
                                                         <option value={14}>14 backups</option>
                                                         <option value={30}>30 backups</option>
                                                     </select>
-                                                    <span className="text-slate-400 dark:text-slate-500 text-[11px] ml-1">
+                                                    <span className="text-slate-400 dark:text-slate-500 text-1xs ml-1">
                                                         (Est. total size: ~{getEstimatedTotalStorage()})
                                                     </span>
                                                 </div>
@@ -940,7 +940,7 @@ export default function DataManagement() {
                                     <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                         <Database className="text-slate-400" size={20} /> Snapshot History
                                     </h3>
-                                    <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                                    <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-2xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                                         {backupsList.length} Files Found
                                     </span>
                                 </div>
@@ -948,10 +948,10 @@ export default function DataManagement() {
                                     <table className="w-full">
                                         <thead>
                                             <tr className="text-left border-b border-slate-100 dark:border-slate-800">
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Snapshot</th>
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Created</th>
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Size</th>
-                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                                                <th className="px-8 py-4 text-2xs font-black uppercase tracking-widest text-slate-400">Snapshot</th>
+                                                <th className="px-8 py-4 text-2xs font-black uppercase tracking-widest text-slate-400">Created</th>
+                                                <th className="px-8 py-4 text-2xs font-black uppercase tracking-widest text-slate-400">Size</th>
+                                                <th className="px-8 py-4 text-2xs font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">

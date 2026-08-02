@@ -309,7 +309,17 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             {/* Footer */}
                             <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-sm">
                                 <p>Thank you for your business!</p>
-                                <p className="mt-1 text-xs">For any inquiries, please contact us at support@venqorepos.com</p>
+                                <p className="mt-2 text-xs font-medium text-slate-500">
+                                    Powered by{' '}
+                                    <a
+                                        href="https://venqore.com?utm_source=invoice_footer"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-indigo-500 hover:text-indigo-400 font-bold underline transition-colors"
+                                    >
+                                        VenQore
+                                    </a>
+                                </p>
                             </div>
                         </div>
                     </div>

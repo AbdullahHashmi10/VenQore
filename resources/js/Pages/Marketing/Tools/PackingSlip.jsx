@@ -180,7 +180,7 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                     <Upload size={13} /> {shipFrom.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {shipFrom.logo_base64 && (
-                    <button type="button" onClick={() => setShipFrom((sf) => ({ ...sf, logo_base64: null }))} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setShipFrom((sf) => ({ ...sf, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
@@ -214,7 +214,7 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={generate}
@@ -262,10 +262,10 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                         <div className="text-left sm:text-right">
                             <div className="text-2xl font-black tracking-tight text-slate-900">PACKING SLIP</div>
                             <div className="mt-2 text-xs space-y-0.5">
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Order #</span><EditableText value={meta.order_number} onChange={(v) => setMeta((m) => ({ ...m, order_number: v }))} className="font-bold" /></div>
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Pack date</span><EditableText as="date" value={meta.pack_date} onChange={(v) => setMeta((m) => ({ ...m, pack_date: v }))} /></div>
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Carrier</span><EditableText value={meta.carrier} onChange={(v) => setMeta((m) => ({ ...m, carrier: v }))} placeholder="e.g. FedEx, UPS, DHL" emptyLabel="—" /></div>
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Tracking #</span><EditableText value={meta.tracking_number} onChange={(v) => setMeta((m) => ({ ...m, tracking_number: v }))} placeholder="Tracking number" className="font-bold" emptyLabel="—" /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Order #</span><EditableText value={meta.order_number} onChange={(v) => setMeta((m) => ({ ...m, order_number: v }))} className="font-bold" /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Pack date</span><EditableText as="date" value={meta.pack_date} onChange={(v) => setMeta((m) => ({ ...m, pack_date: v }))} /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Carrier</span><EditableText value={meta.carrier} onChange={(v) => setMeta((m) => ({ ...m, carrier: v }))} placeholder="e.g. FedEx, UPS, DHL" emptyLabel="—" /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Tracking #</span><EditableText value={meta.tracking_number} onChange={(v) => setMeta((m) => ({ ...m, tracking_number: v }))} placeholder="Tracking number" className="font-bold" emptyLabel="—" /></div>
                             </div>
                         </div>
                     </div>
@@ -280,16 +280,16 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                     {/* Ship To / Bill To / Ship From recap */}
                     <div className="grid sm:grid-cols-3 gap-6 mb-6">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Ship To (Recipient)</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Ship To (Recipient)</p>
                             <EditableText value={shipTo.name} onChange={(v) => setShipTo((st) => ({ ...st, name: v }))} placeholder="Recipient name" className="block font-bold" inline={false} />
                             <EditableText value={shipTo.address} onChange={(v) => setShipTo((st) => ({ ...st, address: v }))} placeholder="Delivery address" as="textarea" rows={2} className="block text-slate-500 text-xs mt-0.5" inline={false} />
                             <EditableText value={shipTo.phone} onChange={(v) => setShipTo((st) => ({ ...st, phone: v }))} placeholder="Phone (optional)" className="block text-slate-500 text-xs mt-0.5" inline={false} />
                             <EditableText value={shipTo.email} onChange={(v) => setShipTo((st) => ({ ...st, email: v }))} placeholder="Email (optional)" className="block text-slate-500 text-xs mt-0.5" inline={false} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Bill To</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Bill To</p>
                             {sameAsShipTo ? (
-                                <p className="text-slate-400 italic text-xs">Same as Ship To</p>
+                                <p className="text-slate-500 dark:text-slate-400 italic text-xs">Same as Ship To</p>
                             ) : (
                                 <>
                                     <EditableText value={billTo.name} onChange={(v) => setBillTo((bt) => ({ ...bt, name: v }))} placeholder="Billing contact / company" className="block font-bold" inline={false} />
@@ -300,8 +300,8 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                             )}
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Ship From</p>
-                            <p className="font-bold">{shipFrom.name || <span className="italic text-slate-400">Your business name</span>}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Ship From</p>
+                            <p className="font-bold">{shipFrom.name || <span className="italic text-slate-500 dark:text-slate-400">Your business name</span>}</p>
                             {shipFrom.address && <p className="text-slate-500 text-xs">{shipFrom.address}</p>}
                         </div>
                     </div>
@@ -309,12 +309,12 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                     {/* Line items */}
                     <table className="w-full mb-2">
                         <thead>
-                            <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-400 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
-                                <th className="pb-2 pr-2 w-24"><EditableText value={headers.sku} onChange={(v) => setHeaders((h) => ({ ...h, sku: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400" pulse={false} /></th>
-                                <th className="pb-2 px-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400" pulse={false} /></th>
-                                <th className="pb-2 px-2 w-20"><EditableText value={headers.package_number} onChange={(v) => setHeaders((h) => ({ ...h, package_number: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-20"><EditableText value={headers.quantity_ordered} onChange={(v) => setHeaders((h) => ({ ...h, quantity_ordered: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 pl-2 text-right w-20"><EditableText value={headers.quantity_shipped} onChange={(v) => setHeaders((h) => ({ ...h, quantity_shipped: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
+                            <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
+                                <th className="pb-2 pr-2 w-24"><EditableText value={headers.sku} onChange={(v) => setHeaders((h) => ({ ...h, sku: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" pulse={false} /></th>
+                                <th className="pb-2 px-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" pulse={false} /></th>
+                                <th className="pb-2 px-2 w-20"><EditableText value={headers.package_number} onChange={(v) => setHeaders((h) => ({ ...h, package_number: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-20"><EditableText value={headers.quantity_ordered} onChange={(v) => setHeaders((h) => ({ ...h, quantity_ordered: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                                <th className="pb-2 pl-2 text-right w-20"><EditableText value={headers.quantity_shipped} onChange={(v) => setHeaders((h) => ({ ...h, quantity_shipped: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
                                 <th className="w-8"></th>
                             </tr>
                         </thead>
@@ -328,7 +328,7 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                                         </td>
                                         <td className="py-2 px-2">
                                             <EditableText value={item.description} onChange={(v) => updateItem(idx, 'description', v)} placeholder="Item description" className="block" />
-                                            <EditableText value={item.notes} onChange={(v) => updateItem(idx, 'notes', v)} placeholder="Note (optional)" className="block text-slate-400 text-xs" />
+                                            <EditableText value={item.notes} onChange={(v) => updateItem(idx, 'notes', v)} placeholder="Note (optional)" className="block text-slate-500 dark:text-slate-400 text-xs" />
                                         </td>
                                         <td className="py-2 px-2">
                                             <EditableText value={item.package_number} onChange={(v) => updateItem(idx, 'package_number', v)} placeholder="Box 1" />
@@ -340,7 +340,7 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                                             <EditableText as="number" min="0" value={item.quantity_shipped} onChange={(v) => updateItem(idx, 'quantity_shipped', v)} className={`text-right w-14 font-bold ${isShort ? 'text-amber-600' : ''}`} />
                                         </td>
                                         <td className="py-2 pl-1 text-right">
-                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
                                                 <Trash2 size={13} />
                                             </button>
                                         </td>
@@ -349,7 +349,7 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                             })}
                         </tbody>
                     </table>
-                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-8">
+                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-8">
                         <Plus size={12} /> Add line item
                     </button>
 
@@ -365,11 +365,11 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
                         </div>
                     </div>
 
-                    <p className="text-center text-[10px] text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
+                    <p className="text-center text-[10px] text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
                 </div>
             </div>
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 This preview matches your downloaded PDF exactly — click anything above to edit it.
             </p>
         </ToolShell>

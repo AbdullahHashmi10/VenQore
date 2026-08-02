@@ -14,6 +14,7 @@ import {
 } from '@/Platform/ui';
 import { BRAND, GRADIENTS, fmtCurrency, fmtNumber } from '@/Platform/theme';
 
+import { vq } from '@/theme/runtime';
 /* ════════════════ REVENUE (paid, server-side) ════════════════ */
 export function RevenueView({ revenue = {}, stats = {}, payout_pool = {} }) {
     const t = useT();
@@ -133,7 +134,7 @@ export function RevenueView({ revenue = {}, stats = {}, payout_pool = {} }) {
                     </div>
                     
                     {totalEquityAllocated > 100 && (
-                        <div style={{ padding: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, color: '#f87171', fontSize: 12, display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
+                        <div style={{ padding: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, color: vq.red[400], fontSize: 12, display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
                             <AlertTriangle size={15} style={{ flexShrink: 0 }} />
                             <div><strong>Warning:</strong> Total equity allocation is <strong>{totalEquityAllocated}%</strong>, which exceeds 100%! Payout projects will exceed net profit pool.</div>
                         </div>
@@ -491,7 +492,7 @@ export function TestingView() {
                     subtitle="Pest test suite execution terminal logs"
                     width={600}
                 >
-                    <div style={{ background: '#09090e', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 10 }}>
+                    <div style={{ background: vq.zinc[950], border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 10 }}>
                         <SmokeTestRunner 
                             category={activeCategory} 
                             onComplete={(passed) => {

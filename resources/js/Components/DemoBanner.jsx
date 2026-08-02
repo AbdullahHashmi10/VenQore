@@ -38,7 +38,7 @@ export default function DemoBanner() {
         <div className="w-full bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs py-2 px-4 border-b border-indigo-500/30 shadow-md relative z-[100] flex flex-col md:flex-row items-center justify-between gap-2.5">
             {/* Left Info & Message */}
             <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-extrabold tracking-wide uppercase text-[10px]">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-extrabold tracking-wide uppercase text-2xs">
                     <Sparkles size={12} className="text-indigo-400 animate-pulse" />
                     LIVE DEMO STORE
                 </span>
@@ -48,7 +48,7 @@ export default function DemoBanner() {
                 </p>
 
                 {timeLeft && (
-                    <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                    <span className="hidden lg:inline-flex items-center gap-1 text-2xs font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
                         <RefreshCw size={10} className="animate-spin" />
                         Resets in {timeLeft}
                     </span>
@@ -58,8 +58,8 @@ export default function DemoBanner() {
             {/* Right Actions: Role Switcher & Free Trial CTA */}
             <div className="flex items-center gap-2 shrink-0">
                 {/* Quick Role Switcher */}
-                <div className="hidden sm:flex items-center bg-slate-800/80 border border-slate-700/80 rounded-lg p-0.5 text-[11px]">
-                    <span className="px-2 text-slate-400 font-semibold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                <div className="hidden sm:flex items-center bg-slate-800/80 border border-slate-700/80 rounded-lg p-0.5 text-1xs">
+                    <span className="px-2 text-slate-400 font-semibold text-2xs uppercase tracking-wider flex items-center gap-1">
                         <UserCheck size={11} className="text-indigo-400" />
                         Role:
                     </span>
@@ -68,7 +68,7 @@ export default function DemoBanner() {
                             key={role}
                             onClick={() => handleRoleSwitch(role)}
                             disabled={currentRole === role}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold capitalize transition-all ${
+                            className={`px-2 py-0.5 rounded text-2xs font-bold capitalize transition-all ${
                                 currentRole === role
                                     ? 'bg-indigo-600 text-white shadow'
                                     : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
@@ -82,7 +82,7 @@ export default function DemoBanner() {
                 {/* Primary CTA */}
                 <a
                     href="/register"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-extrabold text-[11px] shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-extrabold text-1xs shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                     <span>Start Free Trial & Full Guided Tour</span>
                     <ArrowRight size={12} />

@@ -487,11 +487,17 @@ class LaunchGateTest extends VenQoreTestCase implements RequiresGoldenCompany
     public function test_I05_all_posted_golden_sales_have_journal_entries(): void
     {
         // Check using the reference field linking (as per GoldenVerifyCommand approach)
-        // Golden Company sales use TXN-SAL-### as reference
+        // NOTE: Golden Company sales are seeded through SaleService::post(), which
+        // numbers every sale via SequenceService::generateTransactionNumber('SAL', ...)
+        // — format "SAL-{register}-{ddmmyy}-{seq}". The seeder's inline comments
+        // narrate each event as "TXN-SAL-###" for human readability only; that
+        // string is never written to the database. Nothing in the app generates a
+        // "TXN-" prefixed sale reference_number, so filtering on it always returned
+        // zero rows. Filter on the real prefix instead.
         $goldenSales = DB::table('sales')
             ->where('tenant_id', self::TENANT_ID)
             ->where('status', 'posted')
-            ->where('reference_number', 'like', 'TXN-%')
+            ->where('reference_number', 'like', 'SAL-%')
             ->get();
 
         foreach ($goldenSales as $sale) {
@@ -511,9 +517,7 @@ class LaunchGateTest extends VenQoreTestCase implements RequiresGoldenCompany
         }
 
         // If no golden sales exist, the seeder hasn't run
-        if ($goldenSales->isEmpty()) {
-            $this->markTestSkipped('[I-05] No TXN-* sales found — GoldenCompanySeeder may not have run');
-        }
+        $this->assertNotEmpty($goldenSales, '[I-05] No SAL-* sales found — GoldenCompanySeeder may not have run; GoldenSeedManager guarantees this data exists, so an empty result here means the seeder or schema drifted.');
     }
 
     /**
@@ -529,9 +533,7 @@ class LaunchGateTest extends VenQoreTestCase implements RequiresGoldenCompany
             ->where('code', '4000')
             ->first();
 
-        if (!$incomeAcct) {
-            $this->markTestSkipped('[I-06] Income account 4000 not found — COA may not be seeded');
-        }
+        $this->assertNotNull($incomeAcct, '[I-06] Income account 4000 not found — COA may not be seeded; GoldenSeedManager guarantees this data exists, so a null result here means the seeder or schema drifted.');
 
         $t1Revenue = (float) DB::table('journal_items as ji')
             ->join('journal_entries as je', 'je.id', '=', 'ji.journal_entry_id')

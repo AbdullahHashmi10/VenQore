@@ -24,11 +24,11 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
         if (tool.status !== 'live' || !tool.href) {
             return (
                 <div
-                    className={`${base} text-slate-400 dark:text-slate-600 cursor-default select-none`}
+                    className={`${base} text-slate-500 dark:text-slate-600 cursor-default select-none`}
                     title="Coming soon"
                 >
                     <span className="truncate">{tool.short}</span>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-900/[0.05] dark:bg-white/[0.06] text-slate-400 dark:text-slate-500 shrink-0">
+                    <span className="text-3xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-900/[0.05] dark:bg-white/[0.06] text-slate-500 dark:text-slate-500 shrink-0">
                         Soon
                     </span>
                 </div>
@@ -54,7 +54,7 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
         <nav className="space-y-6">
             {groups.map((group) => (
                 <div key={group.key}>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 mb-2 px-3">
+                    <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-600 mb-2 px-3">
                         {group.label}
                     </p>
                     <div className="space-y-0.5">

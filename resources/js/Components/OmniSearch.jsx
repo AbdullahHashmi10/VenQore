@@ -278,10 +278,10 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                 )}
 
                 <div className="pr-3 hidden sm:flex pointer-events-none">
-                    <kbd className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                    <kbd className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-2xs font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                         <span className="text-xs">⌘</span>
                         <span className="opacity-40">/</span>
-                        <span className="text-[9px]">Ctrl</span>
+                        <span className="text-3xs">Ctrl</span>
                         <span className="ml-1 text-xs">F</span>
                     </kbd>
                 </div>
@@ -312,11 +312,11 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                         <div className={`text-sm font-bold ${selectedIndex === 0 ? 'text-white' : 'text-slate-800 dark:text-indigo-300'}`}>
                                             Ask AI Assistant
                                         </div>
-                                        <div className={`text-[11px] ${selectedIndex === 0 ? 'text-indigo-100' : 'text-slate-500'}`}>
+                                        <div className={`text-1xs ${selectedIndex === 0 ? 'text-indigo-100' : 'text-slate-500'}`}>
                                             Analyze "{query}"...
                                         </div>
                                     </div>
-                                    <div className={`text-[10px] font-medium px-2 py-0.5 rounded ${selectedIndex === 0 ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-indigo-900/50 text-slate-600 dark:text-indigo-400'}`}>
+                                    <div className={`text-2xs font-medium px-2 py-0.5 rounded ${selectedIndex === 0 ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-indigo-900/50 text-slate-600 dark:text-indigo-400'}`}>
                                         ENTER
                                     </div>
                                 </button>
@@ -326,7 +326,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         {/* App Registry Results */}
                         {results.length > 0 && (
                             <div className="p-2">
-                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                                     Navigation
                                 </div>
                                 {results.map((item, idx) => {
@@ -346,12 +346,12 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             <div className="flex-1 text-left">
                                                 <div className="text-sm font-medium">{item.title}</div>
                                                 {item.description && (
-                                                    <div className={`text-[10px] truncate ${selectedIndex === actualIndex ? 'text-indigo-200' : 'text-slate-500'}`}>
+                                                    <div className={`text-2xs truncate ${selectedIndex === actualIndex ? 'text-indigo-200' : 'text-slate-500'}`}>
                                                         {item.description}
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${getCategoryColor(item.category)}`}>
+                                            <span className={`text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${getCategoryColor(item.category)}`}>
                                                 {getCategoryLabel(item.category)}
                                             </span>
                                         </button>
@@ -363,7 +363,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         {/* Database Results */}
                         {dbResults.length > 0 && (
                             <div className="p-2 border-t border-slate-100 dark:border-slate-800/30">
-                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <div className="px-3 py-1.5 text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
                                     Data
                                     {isSearchingDb && <Loader2 size={10} className="animate-spin" />}
                                 </div>
@@ -390,11 +390,11 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             </div>
                                             <div className="flex-1 text-left">
                                                 <div className="text-sm font-medium">{item.title}</div>
-                                                <div className={`text-[10px] ${selectedIndex === actualIndex ? 'text-purple-200' : 'text-slate-500'}`}>
+                                                <div className={`text-2xs ${selectedIndex === actualIndex ? 'text-purple-200' : 'text-slate-500'}`}>
                                                     {item.subtitle}
                                                 </div>
                                             </div>
-                                            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-purple-900/30 text-indigo-600 dark:text-purple-400">
+                                            <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-purple-900/30 text-indigo-600 dark:text-purple-400">
                                                 {item.type}
                                             </span>
                                         </Link>
@@ -428,7 +428,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                             <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{shortcut.label}</span>
                                             <div className="flex gap-1">
                                                 {shortcut.keys.map((key, i) => (
-                                                    <kbd key={i} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-[9px] font-bold text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600">
+                                                    <kbd key={i} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-3xs font-bold text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600">
                                                         {key}
                                                     </kbd>
                                                 ))}
@@ -464,11 +464,11 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between px-4 py-2 bg-slate-50/80 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800/50">
-                        <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                        <div className="flex items-center gap-3 text-2xs text-slate-500">
                             <span><kbd className="font-sans">↑↓</kbd> navigate</span>
                             <span><kbd className="font-sans">↵</kbd> select</span>
                         </div>
-                        <div className="text-[9px] text-slate-500 dark:text-slate-600 font-medium">
+                        <div className="text-3xs text-slate-500 dark:text-slate-600 font-medium">
                             VenQore Intelligence
                         </div>
                     </div>

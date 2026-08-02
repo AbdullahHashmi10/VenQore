@@ -54,7 +54,7 @@ export default function VersionChecker({ checkInterval = 60000 }) {
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-bottom-5 fade-in duration-500">
-            <div className="bg-[#0f172a] border border-slate-700/50 shadow-2xl rounded-2xl p-4 pl-5 flex items-center gap-6 max-w-md w-full relative overflow-hidden">
+            <div className="bg-slate-900 border border-slate-700/50 shadow-2xl rounded-2xl p-4 pl-5 flex items-center gap-6 max-w-md w-full relative overflow-hidden">
 
                 {/* Ambient Glow */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
@@ -77,7 +77,7 @@ export default function VersionChecker({ checkInterval = 60000 }) {
                 {/* Action */}
                 <button
                     onClick={handleReload}
-                    className="group bg-emerald-500 hover:bg-emerald-400 text-[#0f172a] font-black py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap"
+                    className="group bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap"
                 >
                     <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
                     RELOAD

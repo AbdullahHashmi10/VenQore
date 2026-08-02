@@ -188,11 +188,11 @@ function WarehouseManagement({ warehouses }) {
                                         <div className="flex items-center gap-3 mb-1">
                                             <h3 className="font-bold text-slate-900 dark:text-white">{warehouse.name}</h3>
                                             {isInfoMissing ? (
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase tracking-wider">
+                                                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase tracking-wider">
                                                     Info Required
                                                 </span>
                                             ) : (
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">
+                                                <span className="px-2 py-0.5 rounded text-2xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">
                                                     Active
                                                 </span>
                                             )}
@@ -451,7 +451,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                 {/* Row 1: Product + Warehouse */}
                                 <div className="grid grid-cols-12 gap-3">
                                     <div className={hasMultipleWarehouses ? "col-span-8" : "col-span-12"}>
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <label className="block text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                                             Select Product <span className="text-red-500">*</span>
                                         </label>
                                         <AsyncProductCombobox
@@ -463,7 +463,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
 
                                     {hasMultipleWarehouses && (
                                         <div className="col-span-4">
-                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                            <label className="block text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                                                 Warehouse <span className="text-red-500">*</span>
                                             </label>
                                             <PremiumSelect
@@ -480,7 +480,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                 {/* Row 2: Quantity + Reason + Notes */}
                                 <div className="grid grid-cols-12 gap-3">
                                     <div className="col-span-2">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <label className="block text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                                             Quantity <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -496,7 +496,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                     </div>
 
                                     <div className="col-span-3">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <label className="block text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                                             Reason <span className="text-red-500">*</span>
                                         </label>
                                         <PremiumSelect
@@ -510,7 +510,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                     </div>
 
                                     <div className="col-span-5">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <label className="block text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                                             Notes <span className="text-slate-400 font-normal">(optional)</span>
                                         </label>
                                         <input
@@ -552,14 +552,14 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                     {/* Product Info */}
                                     <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg mb-2">
                                         <p className="font-bold text-slate-900 dark:text-white text-sm truncate">{selectedProduct.name}</p>
-                                        <p className="text-[10px] text-slate-500 font-mono">SKU: {selectedProduct.sku}</p>
+                                        <p className="text-2xs text-slate-500 font-mono">SKU: {selectedProduct.sku}</p>
                                     </div>
 
                                     {/* Stock Change Visualization */}
                                     <div className="flex-1 flex flex-col justify-center items-center">
                                         {/* Current Stock */}
                                         <div className="text-center mb-1">
-                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider">Current</p>
+                                            <p className="text-2xs text-slate-400 uppercase tracking-wider">Current</p>
                                             <p className="text-2xl font-black text-slate-900 dark:text-white">{currentStock}</p>
                                         </div>
 
@@ -574,7 +574,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                                 ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800'
                                                 : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800'
                                             }`}>
-                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider">After</p>
+                                            <p className="text-2xs text-slate-400 uppercase tracking-wider">After</p>
                                             <p className={`text-2xl font-black ${data.adjustment_type === 'add'
                                                     ? 'text-green-600 dark:text-green-400'
                                                     : 'text-red-600 dark:text-red-400'
@@ -585,7 +585,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                     {/* Reason Badge */}
                                     {data.reason && (
                                         <div className="mt-2 text-center">
-                                            <span className="inline-block px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-[10px] font-bold">
+                                            <span className="inline-block px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-2xs font-bold">
                                                 {data.reason}
                                             </span>
                                         </div>
@@ -983,7 +983,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                                             <div className="w-full px-2">
                                                 <div className="h-px bg-slate-200 dark:bg-slate-700 w-full" />
                                             </div>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
+                                            <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider text-center">
                                                 {selectedIds.size} Selected
                                             </span>
 
@@ -1016,7 +1016,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                                     title="Save Changes"
                                 >
                                     <Save size={24} />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Save</span>
+                                    <span className="text-2xs font-bold uppercase tracking-wider">Save</span>
                                 </button>
                             </div>
                         </div>

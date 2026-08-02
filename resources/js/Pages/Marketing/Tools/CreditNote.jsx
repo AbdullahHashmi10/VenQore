@@ -236,7 +236,7 @@ export default function CreditNoteTool({
                     <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {company.logo_base64 && (
-                    <button type="button" onClick={() => setCompany((c) => ({ ...c, logo_base64: null }))} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setCompany((c) => ({ ...c, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
@@ -260,7 +260,7 @@ export default function CreditNoteTool({
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={generate}
@@ -312,8 +312,8 @@ export default function CreditNoteTool({
                         <div className="text-left sm:text-right">
                             <div className="text-2xl font-black tracking-tight" style={{ color: accent }}>CREDIT NOTE</div>
                             <div className="mt-2 text-xs space-y-0.5">
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Credit Note #</span><EditableText value={meta.credit_note_number} onChange={(v) => setMeta((m) => ({ ...m, credit_note_number: v }))} className="font-bold" /></div>
-                                <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Credit Note #</span><EditableText value={meta.credit_note_number} onChange={(v) => setMeta((m) => ({ ...m, credit_note_number: v }))} className="font-bold" /></div>
+                                <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Issue date</span><EditableText as="date" value={meta.issue_date} onChange={(v) => setMeta((m) => ({ ...m, issue_date: v }))} /></div>
                             </div>
                         </div>
                     </div>
@@ -354,7 +354,7 @@ export default function CreditNoteTool({
 
                     {/* Credited to */}
                     <div className="mb-6">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Credited To</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Credited To</p>
                         <EditableText value={client.name} onChange={(v) => setClient((c) => ({ ...c, name: v }))} placeholder="Client name" className="block font-bold" inline={false} />
                         <EditableText value={client.address} onChange={(v) => setClient((c) => ({ ...c, address: v }))} placeholder="Client address" as="textarea" rows={2} className="block text-slate-500 text-xs mt-0.5" inline={false} />
                         <EditableText value={client.email} onChange={(v) => setClient((c) => ({ ...c, email: v }))} placeholder="Client email (optional)" className="block text-slate-500 text-xs mt-0.5" inline={false} />
@@ -363,13 +363,13 @@ export default function CreditNoteTool({
                     {/* Line items */}
                     <table className="w-full mb-2">
                         <thead>
-                            <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-400 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
-                                <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.qty} onChange={(v) => setHeaders((h) => ({ ...h, qty: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount} onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 px-2 text-right w-20"><EditableText value={headers.tax} onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
-                                <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount} onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-400 text-right" pulse={false} /></th>
+                            <tr className={`text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 ${isClassic ? 'border-b-2 border-slate-900' : 'border-b border-slate-900'}`}>
+                                <th className="pb-2 pr-2"><EditableText value={headers.description} onChange={(v) => setHeaders((h) => ({ ...h, description: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.qty} onChange={(v) => setHeaders((h) => ({ ...h, qty: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-24"><EditableText value={headers.unit_price} onChange={(v) => setHeaders((h) => ({ ...h, unit_price: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-16"><EditableText value={headers.discount} onChange={(v) => setHeaders((h) => ({ ...h, discount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                                <th className="pb-2 px-2 text-right w-20"><EditableText value={headers.tax} onChange={(v) => setHeaders((h) => ({ ...h, tax: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
+                                <th className="pb-2 pl-2 text-right w-24"><EditableText value={headers.amount} onChange={(v) => setHeaders((h) => ({ ...h, amount: v }))} className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" pulse={false} /></th>
                                 <th className="w-8"></th>
                             </tr>
                         </thead>
@@ -393,7 +393,7 @@ export default function CreditNoteTool({
                                     </td>
                                     <td className="py-2 pl-2 text-right font-bold">{fmtMoney(lineTotals[idx]?.lineTotal)}</td>
                                     <td className="py-2 pl-1 text-right">
-                                        <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                        <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
                                             <Trash2 size={13} />
                                         </button>
                                     </td>
@@ -401,7 +401,7 @@ export default function CreditNoteTool({
                             ))}
                         </tbody>
                     </table>
-                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-red-500 disabled:opacity-40 transition-colors mb-6">
+                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 disabled:opacity-40 transition-colors mb-6">
                         <Plus size={12} /> Add credit item
                     </button>
 
@@ -429,11 +429,11 @@ export default function CreditNoteTool({
                         </div>
                     </div>
 
-                    <p className="text-center text-[10px] text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
+                    <p className="text-center text-[10px] text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — no signup, no watermark, no expiry.</p>
                 </div>
             </div>
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 This preview matches your downloaded PDF exactly — click anything above to edit it.
             </p>
         </ToolShell>

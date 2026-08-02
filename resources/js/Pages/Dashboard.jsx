@@ -210,14 +210,14 @@ export default function Dashboard({
                             <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
 
                             <div className="text-center min-w-0">
-                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
+                                <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
                                 <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
                             </div>
                             <div className="text-center min-w-0">
-                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
+                                <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
                                     {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
                                 </p>
-                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-[9px] font-medium opacity-80 leading-none">
+                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-3xs font-medium opacity-80 leading-none">
                                     <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Revenue">Revenue: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
                                     <span className="text-red-500 whitespace-nowrap" title="Expenses">Expenses: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
                                 </div>
@@ -284,7 +284,7 @@ export default function Dashboard({
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-medium">{item.category}</p>
+                                                    <p className="text-2xs text-slate-400 font-medium">{item.category}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -323,7 +323,7 @@ export default function Dashboard({
                             <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
                                 <div>
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
-                                    <p className="text-[10px] text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
+                                    <p className="text-2xs text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
                                 </div>
                                 {/* PROBLEM 7 FIX: Order button only for roles with purchases permission */}
                                 {(auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || auth?.user?.role === 'manager' || auth?.user?.role === 'purchasing_officer' || auth?.user?.permissions?.includes('purchases')) && (
@@ -385,11 +385,11 @@ export default function Dashboard({
                             >
                                 <div className="min-w-0 flex-1 pr-2">
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.supplier_name}</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">{item.date}</p>
+                                    <p className="text-2xs text-slate-400 font-medium">{item.date}</p>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.total_amount}</span>
-                                    <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
+                                    <p className="text-3xs uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
                                 </div>
                             </div>
                         ))}

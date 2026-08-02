@@ -181,15 +181,15 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => setStatusFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => setStatusFilter('active')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Active</button>
                         <button
                             onClick={() => setStatusFilter('paused')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Paused</button>
                     </div>
 
@@ -269,15 +269,15 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => setStatusFilter('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => setStatusFilter('active')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Active</button>
                                 <button
                                     onClick={() => setStatusFilter('paused')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Paused</button>
                             </div>
                         </div>
@@ -287,7 +287,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                 {/* Main Table container */}
                 <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
                     <table className="hidden md:table w-full text-left border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky top-0 z-10 backdrop-blur-sm">
+                        <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                             <tr className="border-b border-slate-200 dark:border-slate-800">
                                 <th className="px-6 py-3">Title</th>
                                 <th className="px-6 py-3">Customer</th>
@@ -409,23 +409,23 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                             <span className="font-bold text-sm text-slate-800 dark:text-white">
                                                 {invoice.title || `Recurring #${invoice.id}`}
                                             </span>
-                                            <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-0.5">
+                                            <div className="flex items-center gap-1 text-2xs text-slate-400 mt-0.5">
                                                 <Calendar size={10} />
                                                 <span>Next: {invoice.next_invoice_date ? new Date(invoice.next_invoice_date).toLocaleDateString() : '-'}</span>
                                             </div>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${getStatusBadge(invoice.status)}`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-2xs font-black uppercase ${getStatusBadge(invoice.status)}`}>
                                             {invoice.status || 'active'}
                                         </span>
                                     </div>
 
                                     <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
                                         <div>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer</p>
+                                            <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
                                             <p className="text-xs font-black text-slate-800 dark:text-white mt-0.5">{invoice.customer?.name || 'Unknown'}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount</p>
+                                            <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">Amount</p>
                                             <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
                                                 {(parseFloat(invoice.amount || 0) < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(parseFloat(invoice.amount || 0)) || 0)}
                                             </p>
@@ -433,7 +433,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                     </div>
 
                                     <div className="flex justify-between items-center text-xs">
-                                        <div className="text-slate-500 text-[11px]">
+                                        <div className="text-slate-500 text-1xs">
                                             Freq: <span className="font-bold text-slate-700 dark:text-slate-350">{getFrequencyLabel(invoice.frequency)}</span> • Gen: <span className="font-bold text-slate-700 dark:text-slate-350">{invoice.invoices_generated || 0}</span>
                                         </div>
                                         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>

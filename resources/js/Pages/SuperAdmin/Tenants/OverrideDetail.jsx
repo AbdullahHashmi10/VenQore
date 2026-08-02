@@ -82,7 +82,7 @@ function LimitCard({ limitKey, info, tenant, availableKeys }) {
                 <div className="flex items-center gap-1.5">
                     {hasOverride ? (
                         <>
-                            <span className="flex items-center gap-1 text-[10px] font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">
+                            <span className="flex items-center gap-1 text-2xs font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase">
                                 <Zap size={9} /> Override
                             </span>
                             <button onClick={removeOverride} className="p-1 text-red-500/60 hover:text-red-400 transition-colors" title="Remove override">
@@ -90,7 +90,7 @@ function LimitCard({ limitKey, info, tenant, availableKeys }) {
                             </button>
                         </>
                     ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-black text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full uppercase">
+                        <span className="flex items-center gap-1 text-2xs font-black text-slate-600 bg-slate-800 px-2 py-0.5 rounded-full uppercase">
                             <CheckCircle size={9} /> Plan Default
                         </span>
                     )}
@@ -381,7 +381,7 @@ export default function OverrideDetail({ tenant, effective_limits, override_hist
                                 <div key={label} className="bg-slate-800/60 rounded-2xl p-3 text-center">
                                     <Icon size={16} className={`${color} mx-auto mb-1`} />
                                     <div className="text-xl font-black text-white">{value}</div>
-                                    <div className="text-[10px] font-bold text-slate-500 uppercase">{label}</div>
+                                    <div className="text-2xs font-bold text-slate-500 uppercase">{label}</div>
                                 </div>
                             ))}
                         </div>

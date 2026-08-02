@@ -58,15 +58,15 @@ export default function Index({ stats }) {
                     </div>
                     <div className="flex gap-4 self-stretch md:self-auto">
                         <div className="px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-center min-w-[120px]">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Cloud List</span>
+                            <span className="block text-2xs font-bold text-slate-500 uppercase tracking-widest mb-1">Cloud List</span>
                             <span className="text-xl font-black text-white">{stats.cloud_count}</span>
                         </div>
                         <div className="px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-center min-w-[120px]">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Digital List</span>
+                            <span className="block text-2xs font-bold text-slate-500 uppercase tracking-widest mb-1">Digital List</span>
                             <span className="text-xl font-black text-indigo-400">{stats.digital_count}</span>
                         </div>
                         <div className="px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-center min-w-[120px]">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Gross Total</span>
+                            <span className="block text-2xs font-bold text-slate-500 uppercase tracking-widest mb-1">Gross Total</span>
                             <span className="text-xl font-black text-emerald-400">{stats.total_count}</span>
                         </div>
                     </div>
@@ -160,7 +160,7 @@ export default function Index({ stats }) {
                                             </td>
                                             <td className="px-6 py-4">{sub.email}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                                                <span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider border ${
                                                     sub.interest === 'digital'
                                                         ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
                                                         : sub.interest === 'cloud'
@@ -171,7 +171,7 @@ export default function Index({ stats }) {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider text-[9px]">
+                                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider text-3xs">
                                                     {sub.status}
                                                 </span>
                                             </td>

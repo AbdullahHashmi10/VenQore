@@ -152,6 +152,7 @@
 
     <div class="footer">
         <p>This is a pre-order document. Not a valid tax invoice.</p>
+        <p style="margin-top: 4px;">Powered by <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener" style="color: #4f46e5; text-decoration: none; font-weight: bold;">VenQore</a></p>
     </div>
 </body>
 

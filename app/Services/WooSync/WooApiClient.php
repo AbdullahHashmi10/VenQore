@@ -125,6 +125,125 @@ class WooApiClient
         return $this->put("/products/{$wooProductId}/variations/{$variationId}", $data);
     }
 
+    // ─── Orders (T16 — VenSynQ order ingestion) ───────────────────────────────
+
+    /**
+     * Fetch orders. Used by VenSynQ\Platforms\WooCommerceClient::fetchOrders().
+     *
+     * @param  array  $params  status / after / per_page etc.
+     * @return array<int, array<string, mixed>>
+     */
+    public function getOrders(array $params = []): array
+    {
+        $params = array_merge([
+            'per_page' => 100,
+            'page'     => 1,
+            'orderby'  => 'date',
+            'order'    => 'desc',
+        ], $params);
+
+        $orders  = [];
+        $page    = (int) $params['page'];
+        $perPage = (int) $params['per_page'];
+
+        do {
+            $params['page'] = $page;
+            $response = $this->get('/orders', $params);
+
+            if (empty($response) || !is_array($response)) {
+                break;
+            }
+
+            $orders = array_merge($orders, $response);
+            $page++;
+
+            // Hard stop at 10 pages (1,000 orders) so a misconfigured `after`
+            // window can never spin the queue worker forever.
+            if ($page > 10) {
+                Log::warning('[WooApiClient] getOrders hit the 10-page safety ceiling', [
+                    'site' => $this->connection->site_url,
+                ]);
+                break;
+            }
+        } while (count($response) === $perPage);
+
+        return $orders;
+    }
+
+    /**
+     * Update a WooCommerce order (status, meta, etc.).
+     */
+    public function updateOrder(int $wooOrderId, array $data): ?array
+    {
+        return $this->put("/orders/{$wooOrderId}", $data);
+    }
+
+    /**
+     * Attach a note to an order — how we surface tracking numbers to the buyer.
+     */
+    public function createOrderNote(int $wooOrderId, string $note, bool $customerNote = false): ?array
+    {
+        return $this->post("/orders/{$wooOrderId}/notes", [
+            'note'          => $note,
+            'customer_note' => $customerNote,
+        ]);
+    }
+
+    // ─── Stock (T16 — bidirectional stock sync) ───────────────────────────────
+
+    /**
+     * Push an absolute stock level to Woo for a given SKU.
+     *
+     * Resolves the SKU to a product (or variation) id first, because the Woo REST
+     * API has no "update by SKU" endpoint. Returns false rather than throwing so
+     * the caller can queue the SKU into the Action Required list.
+     */
+    public function updateStockBySku(string $sku, float $quantity): bool
+    {
+        $matches = $this->get('/products', ['sku' => $sku, 'per_page' => 1]);
+
+        if (empty($matches) || !isset($matches[0]['id'])) {
+            Log::warning('[WooApiClient] updateStockBySku: SKU not found in WooCommerce', [
+                'sku'  => $sku,
+                'site' => $this->connection->site_url,
+            ]);
+            return false;
+        }
+
+        $product = $matches[0];
+        $payload = [
+            'manage_stock'   => true,
+            'stock_quantity' => (int) round($quantity),
+            'stock_status'   => $quantity > 0 ? 'instock' : 'outofstock',
+        ];
+
+        // A variation carries its own stock record and must be patched on the
+        // /variations sub-resource, not on the parent product.
+        if (($product['type'] ?? '') === 'variation' && !empty($product['parent_id'])) {
+            $result = $this->updateVariation((int) $product['parent_id'], (int) $product['id'], $payload);
+        } else {
+            $result = $this->updateProduct((int) $product['id'], $payload);
+        }
+
+        return $result !== null;
+    }
+
+    /**
+     * Lightweight authenticated round-trip for health checks / Test Connection.
+     */
+    public function ping(): bool
+    {
+        $response = $this->get('/system_status/tools', ['per_page' => 1]);
+
+        // Some hardened hosts block system_status for non-admin keys; fall back
+        // to a 1-item product read, which any read-capable key can perform.
+        if ($response === null) {
+            $response = $this->get('/products', ['per_page' => 1]);
+        }
+
+        return $response !== null;
+    }
+
     // ─── Categories ───────────────────────────────────────────────────────────
 
     /**

@@ -27,7 +27,7 @@ export default function InventoryDashboard({ stats, topMoving }) {
                         <Icon className={`w-5 h-5 md:w-6 md:h-6 ${color.replace('bg-', 'text-')}`} />
                     </div>
                     {subValue && (
-                        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-lg">
+                        <span className="text-2xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-lg">
                             {subValue}
                         </span>
                     )}
@@ -91,7 +91,7 @@ export default function InventoryDashboard({ stats, topMoving }) {
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-xs md:text-sm">
-                                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider text-[10px]">
+                                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase font-black tracking-wider text-2xs">
                                         <tr>
                                             <th className="px-4 py-3 md:px-6 md:py-4 font-bold">Product Name</th>
                                             <th className="px-4 py-3 md:px-6 md:py-4 font-bold text-right">Total Sold</th>
@@ -109,7 +109,7 @@ export default function InventoryDashboard({ stats, topMoving }) {
                                                         {item.total_sold}
                                                     </td>
                                                     <td className="px-4 py-3 md:px-6 md:py-4 text-right">
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-2xs font-extrabold uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
                                                             Popular
                                                         </span>
                                                     </td>

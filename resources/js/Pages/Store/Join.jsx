@@ -97,7 +97,7 @@ export default function JoinStore({ pending_invites = [] }) {
     };
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans flex flex-col">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex flex-col">
             <Head title="Join a Store — VenQore" />
 
             {/* Ambient */}

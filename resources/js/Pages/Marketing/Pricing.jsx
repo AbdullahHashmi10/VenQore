@@ -33,7 +33,7 @@ const FaqItem = ({ question, answer, id }) => {
                 />
             </button>
             <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-80 pb-6' : 'max-h-0'}`}>
-                <p className="text-sm text-slate-400 leading-relaxed">{answer}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{answer}</p>
             </div>
         </div>
     );
@@ -42,21 +42,21 @@ const FaqItem = ({ question, answer, id }) => {
 // ── Comparison Table Row ───────────────────────────────────────────────
 const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
     <tr className={`border-b border-white/[0.04] transition-colors ${highlight ? 'bg-white/[0.015]' : 'hover:bg-white/[0.01]'}`}>
-        <td className="py-3.5 pl-6 pr-4 text-xs text-slate-400 font-medium">{label}</td>
+        <td className="py-3.5 pl-6 pr-4 text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</td>
         <td className="py-3.5 px-4 text-center text-xs">
             {typeof starter === 'boolean'
-                ? (starter ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-300 font-semibold">{starter}</span>}
+                ? (starter ? <Check size={14} className="mx-auto text-indigo-600 dark:text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
+                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{starter}</span>}
         </td>
         <td className="py-3.5 px-4 text-center text-xs bg-indigo-950/20">
             {typeof growth === 'boolean'
-                ? (growth ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-300 font-semibold">{growth}</span>}
+                ? (growth ? <Check size={14} className="mx-auto text-indigo-600 dark:text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
+                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{growth}</span>}
         </td>
         <td className="py-3.5 pr-6 pl-4 text-center text-xs">
             {typeof enterprise === 'boolean'
                 ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-slate-500" />)
-                : <span className="text-slate-300 font-semibold">{enterprise}</span>}
+                : <span className="text-slate-600 dark:text-slate-300 font-semibold">{enterprise}</span>}
         </td>
     </tr>
 );
@@ -72,7 +72,7 @@ const BillingToggle = ({ value, onChange }) => (
             <button
                 key={opt.key}
                 onClick={() => onChange(opt.key)}
-                className={`relative px-4 py-2 rounded-lg text-[11px] font-bold tracking-wide transition-all duration-300
+                className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-300
                     ${value === opt.key
                         ? opt.key === 'ltd'
                             ? 'bg-amber-600/80 text-white shadow-md'
@@ -81,7 +81,7 @@ const BillingToggle = ({ value, onChange }) => (
             >
                 {opt.label}
                 {opt.badge && (
-                    <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[8px] font-black rounded-full whitespace-nowrap">
+                    <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
                         {opt.badge}
                     </span>
                 )}
@@ -420,6 +420,9 @@ export default function Pricing({ plans = [] }) {
         { id: 'faq-service', q: 'How do onboarding services work with the trial?', a: 'You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.' },
         { id: 'faq-cancel', q: 'Can I cancel during the trial?', a: 'Yes, at any time. No questions asked. If you cancel before day 14, you owe nothing for your subscription. If you selected a BYOK activation, that $5 one-time fee is non-refundable (it activated your AI routing). If you added an onboarding service and we have already begun work, the service fee applies per our terms.' },
         { id: 'faq-upgrade', q: 'Can I change my plan later?', a: 'Yes. You can upgrade or downgrade your plan at any time from your admin dashboard. Upgrades take effect immediately. Downgrades take effect at the start of your next billing cycle.' },
+        { id: 'faq-hidden-fees', q: 'Are there any hidden fees or setup costs?', a: 'No. There are zero hidden fees, transaction markups, or setup fees. The monthly or annual price you see is exactly what you pay. Standard payment processing fees from your merchant gateway still apply if you process credit cards.' },
+        { id: 'faq-discounts', q: 'Do you offer discounts for annual billing?', a: 'Yes. Every plan has a discounted annual billing option. Choosing annual billing saves you 20% compared to monthly billing, which is the equivalent of getting two months completely free.' },
+        { id: 'faq-trial-end', q: 'What happens when the 14-day free trial ends?', a: 'Before your trial ends, we will notify you by email and dashboard alert. If you wish to continue using VenQore, you can select your plan and provide payment details. If you choose not to subscribe, your account will be paused, and you can export your data anytime. We never charge you automatically.' },
     ];
 
     const handlePlanSelect = (planKey) => {
@@ -480,7 +483,7 @@ export default function Pricing({ plans = [] }) {
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.15}>
-                        <p className="text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
+                        <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
                             Select a plan below. We'll then show you exactly which AI tier fits it best — so you're never comparing plans, just picking your power level.
                         </p>
                     </RevealOnScroll>
@@ -498,21 +501,21 @@ export default function Pricing({ plans = [] }) {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                <span className="px-2.5 py-0.5 rounded-full text-2xs font-black uppercase tracking-widest bg-emerald-500 text-black">
                                                     SPECIAL GIFT UNLOCKED 🎁
                                                 </span>
-                                                <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
+                                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Exclusive Regional Pricing</span>
                                             </div>
-                                            <h3 className="text-base font-black text-white tracking-tight">
+                                            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
                                                 Special Pakistan Subsidized Rates Unlocked!
                                             </h3>
-                                            <p className="text-xs text-slate-400 mt-0.5">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                                 As a special gift for businesses operating in Pakistan, you get access to heavily subsidized local PKR pricing.
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
+                                    <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-slate-900/[0.08] dark:border-white/10 shrink-0">
                                         <button
                                             onClick={() => setCurrencyDisplay('PKR')}
                                             className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
@@ -573,7 +576,7 @@ export default function Pricing({ plans = [] }) {
                                         )}
                                         {plan.popular && (
                                             <div className="absolute top-3 right-4">
-                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-[9px] font-black tracking-widest uppercase">
+                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
                                                     Most Popular
                                                 </span>
                                             </div>
@@ -586,9 +589,9 @@ export default function Pricing({ plans = [] }) {
                                                     <PlanIcon size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className="text-white font-black text-base tracking-tight">{plan.name}</div>
+                                                    <div className="text-slate-900 dark:text-white font-black text-base tracking-tight">{plan.name}</div>
                                                     {isSelected && (
-                                                        <span className={`text-[9px] font-black tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
+                                                        <span className={`text-3xs font-black tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
                                                             Selected ✓
                                                         </span>
                                                     )}
@@ -597,12 +600,12 @@ export default function Pricing({ plans = [] }) {
 
                                             {/* Price */}
                                             <div className="mb-6 flex flex-col">
-                                                <span className="text-[32px] font-black text-white font-display">{planPriceStr(key)}</span>
+                                                <span className="text-[32px] font-black text-slate-900 dark:text-white font-display">{planPriceStr(key)}</span>
                                                 <span className="text-xs text-slate-500 font-medium mt-1">
                                                     {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
                                                 </span>
                                                 {isPK && (
-                                                    <span className="text-[10px] text-emerald-400 font-bold mt-1.5 block">
+                                                    <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 block">
                                                         ≈ Rs {Math.round(planPricePKR(key)).toLocaleString()}{isLTD ? '' : '/mo'} (billed in USD)
                                                     </span>
                                                 )}
@@ -613,8 +616,8 @@ export default function Pricing({ plans = [] }) {
                                             {/* Inherit banner for Growth & Enterprise */}
                                             {plan.inheritLabel && (
                                                 <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${isSelected ? 'bg-white/[0.04]' : 'bg-white/[0.02]'} border border-white/[0.05]`}>
-                                                    <Layers size={11} className="text-indigo-400 flex-shrink-0" />
-                                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
+                                                    <Layers size={11} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                                                    <span className="text-2xs font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
                                                 </div>
                                             )}
 
@@ -622,8 +625,8 @@ export default function Pricing({ plans = [] }) {
                                             <div className="space-y-2">
                                                 {plan.includes.map((f, i) => (
                                                     <div key={i} className="flex items-center gap-2.5">
-                                                        <Check size={12} className="text-emerald-400 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-300">{f}</span>
+                                                        <Check size={12} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                                        <span className="text-xs text-slate-600 dark:text-slate-300">{f}</span>
                                                     </div>
                                                 ))}
                                                 {plan.excludes.map((f, i) => (
@@ -646,8 +649,8 @@ export default function Pricing({ plans = [] }) {
                                                 }}
                                                 className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
                                                     isSelected
-                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
-                                                        : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
+                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-slate-900 shadow-lg shadow-indigo-500/20'
+                                                        : 'bg-white/[0.04] text-slate-600 dark:text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
                                                 }`}
                                             >
                                                 {isSelected ? 'Selected ✓' : 'Choose Plan'}
@@ -662,6 +665,121 @@ export default function Pricing({ plans = [] }) {
                 </div>
             </section>
 
+            {/* ── Social Proof & Trust Strip ─────────────────────────── */}
+            <section className="px-6 py-12 relative overflow-hidden">
+                <div className="max-w-6xl mx-auto">
+                    <RevealOnScroll>
+                        {/* Trust Badges */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                            {[
+                                { icon: ShieldCheck, text: "14-Day Free Trial", desc: "Test all features risk-free" },
+                                { icon: CreditCard, text: "No Credit Card Required", desc: "Start instantly without friction" },
+                                { icon: Ban, text: "Cancel Anytime", desc: "No contracts, no lock-in" },
+                                { icon: Lock, text: "SOC2-Compliant Security", desc: "Your data is fully encrypted" }
+                            ].map((badge, i) => (
+                                <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-md">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
+                                        <badge.icon size={20} />
+                                    </div>
+                                    <h4 className="text-slate-900 dark:text-white text-xs font-bold tracking-tight mb-1">{badge.text}</h4>
+                                    <p className="text-slate-500 text-3xs leading-relaxed">{badge.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Logo Strip of Trusted Businesses */}
+                        <div className="p-8 rounded-3xl border border-white/[0.05] bg-white/[0.01] backdrop-blur-sm text-center">
+                            <p className="text-slate-500 text-3xs font-black uppercase tracking-[0.2em] mb-6">Trusted by 10,000+ merchants worldwide</p>
+                            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60">
+                                {[
+                                    { name: "APEX RETAIL", sub: "Pharmacy & General" },
+                                    { name: "VERDANT", sub: "Organic Grocery" },
+                                    { name: "SOLAS", sub: "Electronics Hub" },
+                                    { name: "KHATOON", sub: "Fashion Boutique" },
+                                    { name: "OMNISTORE", sub: "Multi-Warehouse" }
+                                ].map((brand, i) => (
+                                    <div key={i} className="flex flex-col items-center">
+                                        <span className="text-slate-600 dark:text-slate-300 font-extrabold tracking-widest text-xs">{brand.name}</span>
+                                        <span className="text-[9px] text-slate-500 tracking-wider font-bold mt-0.5">{brand.sub}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
+            {/* ── Competitor Cost Comparison ─────────────────────────── */}
+            <section className="px-6 py-12 relative overflow-hidden">
+                <div className="max-w-4xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 to-transparent p-8 md:p-12 relative shadow-[0_0_50px_rgba(16,185,129,0.05)]">
+                            <div className="absolute top-0 right-0 p-8 text-emerald-500/[0.02] pointer-events-none">
+                                <TrendingUp size={160} strokeWidth={0.5} />
+                            </div>
+                            
+                            <div className="text-center mb-8">
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-3xs font-black tracking-widest uppercase">
+                                    Why Pay More?
+                                </span>
+                                <h3 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-3 font-display">
+                                    Save up to <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">$13,000/year</span>
+                                </h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 max-w-xl mx-auto">
+                                    Most systems charge extra per register, plus monthly fees for accounting sync, multi-store management, and inventory tools. VenQore includes it all.
+                                </p>
+                            </div>
+
+                            {/* Comparison Table */}
+                            <div className="overflow-x-auto rounded-2xl border border-white/[0.06] bg-black/40">
+                                <table className="w-full text-left text-xs">
+                                    <thead>
+                                        <tr className="border-b border-white/[0.08] bg-white/[0.02]">
+                                            <th className="py-4 px-6 font-bold text-slate-600 dark:text-slate-300">System (1 Store, 3 Devices)</th>
+                                            <th className="py-4 px-4 font-bold text-slate-600 dark:text-slate-300 text-center">Software Fees</th>
+                                            <th className="py-4 px-4 font-bold text-slate-600 dark:text-slate-300 text-center">Required Apps</th>
+                                            <th className="py-4 px-6 font-bold text-slate-600 dark:text-slate-300 text-right">Total Annual Cost</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.04]">
+                                        <tr>
+                                            <td className="py-4 px-6 font-medium text-slate-500 dark:text-slate-400">Shopify POS Pro + Apps</td>
+                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$3,228/yr</td>
+                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$1,800/yr <span className="text-[10px] text-slate-600 block">(accounting & stock sync)</span></td>
+                                            <td className="py-4 px-6 text-right text-slate-500 dark:text-slate-400 font-semibold">$5,028/yr</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="py-4 px-6 font-medium text-slate-500 dark:text-slate-400">Square POS (Plus Device Add-ons)</td>
+                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$2,160/yr</td>
+                                            <td className="py-4 px-4 text-center text-slate-500 dark:text-slate-400">$1,200/yr <span className="text-[10px] text-slate-600 block">(Xero/QuickBooks sync)</span></td>
+                                            <td className="py-4 px-6 text-right text-slate-500 dark:text-slate-400 font-semibold">$3,360/yr</td>
+                                        </tr>
+                                        <tr className="bg-emerald-950/20">
+                                            <td className="py-4 px-6 font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                                <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
+                                                <span>VenQore Growth (Annual)</span>
+                                            </td>
+                                            <td className="py-4 px-4 text-center font-extrabold text-slate-900 dark:text-white">$636/yr</td>
+                                            <td className="py-4 px-4 text-center font-extrabold text-emerald-600 dark:text-emerald-400">$0 <span className="text-[10px] text-emerald-500/80 block">(built-in)</span></td>
+                                            <td className="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400 text-sm">$636/yr</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 p-4 rounded-xl bg-emerald-500/[0.03] border border-emerald-500/10">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                    *Based on standard pricing of Shopify POS Pro ($89/device/mo + basic Shopify plan) and average QuickBooks sync app fees.
+                                </span>
+                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap bg-emerald-500/10 px-3 py-1 rounded-lg">
+                                    Net Savings: $2,724 – $4,392 / year
+                                </span>
+                            </div>
+                        </div>
+                    </RevealOnScroll>
+                </div>
+            </section>
+
             {/* ── AI Configuration Panel — always visible, updates when plan changes ── */}
             {false && (
             <section ref={aiSectionRef} className="px-6 py-6">
@@ -669,7 +787,7 @@ export default function Pricing({ plans = [] }) {
                     <div className="transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-100 translate-y-0">
 
                         {selectedPlan && (
-                            <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-[#0b081e] to-[#060214] overflow-hidden relative">
+                            <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-slate-950 to-slate-950 overflow-hidden relative">
 
                                 {/* Top gradient line */}
                                 <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
@@ -683,11 +801,11 @@ export default function Pricing({ plans = [] }) {
                                                 <span className="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
                                                     <Cpu size={12} />
                                                 </span>
-                                                <span className="text-[10px] font-black tracking-widest text-purple-400 uppercase">
+                                                <span className="text-2xs font-black tracking-widest text-purple-400 uppercase">
                                                     AI Engine — {PLAN_DATA[selectedPlan]?.name}
                                                 </span>
                                             </div>
-                                            <h2 className="text-2xl font-black text-white tracking-tight font-display">
+                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display">
                                                 Which AI level do you want?
                                             </h2>
                                             <p className="text-sm text-slate-500 mt-1 max-w-lg">
@@ -695,7 +813,7 @@ export default function Pricing({ plans = [] }) {
                                             </p>
                                         </div>
                                         <div className="flex-shrink-0">
-                                            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wider uppercase ${PLAN_DATA[selectedPlan]?.badgeBg} border`}>
+                                            <span className={`px-3 py-1.5 rounded-xl text-2xs font-black tracking-wider uppercase ${PLAN_DATA[selectedPlan]?.badgeBg} border`}>
                                                 {PLAN_DATA[selectedPlan]?.name}
                                             </span>
                                         </div>
@@ -723,29 +841,29 @@ export default function Pricing({ plans = [] }) {
                                                             <span className="text-2xl flex-shrink-0">{opt.emoji}</span>
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                                    <span className="text-white font-black text-base">{opt.name}</span>
+                                                                    <span className="text-slate-900 dark:text-white font-black text-base">{opt.name}</span>
                                                                     {idx === 1 && (
-                                                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[8px] font-black tracking-wider whitespace-nowrap">MORE POWER</span>
+                                                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-4xs font-black tracking-wider whitespace-nowrap">MORE POWER</span>
                                                                     )}
                                                                 </div>
                                                                 <div className="text-slate-500 text-xs mt-0.5">{opt.tagline}</div>
                                                             </div>
                                                         </div>
                                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${isChosen ? 'border-purple-400 bg-purple-400' : 'border-slate-600'}`}>
-                                                            {isChosen && <Check size={10} className="text-white" strokeWidth={3} />}
+                                                            {isChosen && <Check size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />}
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                                         <div className="flex gap-2 flex-wrap">
-                                                            <span className="text-[10px] text-purple-400 bg-purple-500/[0.08] border border-purple-500/10 px-2 py-1 rounded-lg font-mono">
+                                                            <span className="text-2xs text-purple-400 bg-purple-500/[0.08] border border-purple-500/10 px-2 py-1 rounded-lg font-mono">
                                                                 {opt.queries} Queries/mo
                                                             </span>
-                                                            <span className="text-[10px] text-indigo-400 bg-indigo-500/[0.08] border border-indigo-500/10 px-2 py-1 rounded-lg font-mono">
+                                                            <span className="text-2xs text-indigo-600 dark:text-indigo-400 bg-indigo-500/[0.08] border border-indigo-500/10 px-2 py-1 rounded-lg font-mono">
                                                                 {opt.scans} Scans/mo
                                                             </span>
                                                         </div>
                                                         <div className="text-right">
-                                                            <span className="text-white font-black text-xl">
+                                                            <span className="text-slate-900 dark:text-white font-black text-xl">
                                                                 +{fmt(opt.priceUSD, opt.pricePKR)}
                                                             </span>
                                                             <span className="text-slate-500 text-xs">/mo</span>
@@ -770,18 +888,18 @@ export default function Pricing({ plans = [] }) {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                                    <Key size={14} className="text-amber-400" />
+                                                    <Key size={14} className="text-amber-600 dark:text-amber-400" />
                                                 </div>
                                                 <div>
-                                                    <div className="text-white text-xs font-bold">Bring Your Own API Key (BYOK)</div>
-                                                    <div className="text-slate-500 text-[10px] mt-0.5">Use your own OpenAI or Gemini key — free forever after</div>
+                                                    <div className="text-slate-900 dark:text-white text-xs font-bold">Bring Your Own API Key (BYOK)</div>
+                                                    <div className="text-slate-500 text-2xs mt-0.5">Use your own OpenAI or Gemini key — free forever after</div>
                                                 </div>
                                             </div>
                                             <div className="flex flex-col items-end gap-1 flex-shrink-0">
                                                 <span className="text-amber-300 font-black text-sm whitespace-nowrap">
                                                     {fmt(5, 1400, ' once')}
                                                 </span>
-                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
+                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
                                             </div>
                                         </button>
 
@@ -800,18 +918,18 @@ export default function Pricing({ plans = [] }) {
                                                     <Ban size={14} className="text-slate-500" />
                                                 </div>
                                                 <div>
-                                                    <div className="text-white text-xs font-bold">Skip AI for now</div>
-                                                    <div className="text-slate-500 text-[10px] mt-0.5">Base retail system — you can add AI later from your dashboard</div>
+                                                    <div className="text-slate-900 dark:text-white text-xs font-bold">Skip AI for now</div>
+                                                    <div className="text-slate-500 text-2xs mt-0.5">Base retail system — you can add AI later from your dashboard</div>
                                                 </div>
                                             </div>
-                                            <span className="text-emerald-400 font-black text-xs whitespace-nowrap">No card needed</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-black text-xs whitespace-nowrap">No card needed</span>
                                         </button>
                                     </div>
 
                                     {/* BYOK clarification line */}
                                     <div className="p-3.5 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.08] flex items-start gap-2.5 mb-6">
-                                        <Key size={12} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                                        <Key size={12} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                                        <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
                                             <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
                                             Select BYOK and pay a one-time {isPK ? (currencyDisplay === 'PKR' ? 'Rs 1,400 (approx. $5, billed in USD)' : '$5 (approx. Rs 1,400, billed in USD)') : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
                                         </p>
@@ -827,7 +945,7 @@ export default function Pricing({ plans = [] }) {
                                                 <div className="text-xs font-black text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
                                                     Unlock the full experience
                                                 </div>
-                                                <div className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                                                <div className="text-1xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                                                     You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't be able to experience any of the AI-powered features</span> like smart catalog intelligence and automated scanning. In order to enjoy complete features, we highly recommend adding one of the premium AI options above — <span className="text-purple-300 font-bold">you don't have to pay anything today!</span> Just add your card to unlock all capabilities, and you can cancel anytime.
                                                 </div>
                                             </div>
@@ -838,14 +956,14 @@ export default function Pricing({ plans = [] }) {
                                             : 'bg-emerald-500/[0.05] border-emerald-500/15'}`}>
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCardRequired && selectedPlan ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
                                                 {isCardRequired && selectedPlan
-                                                    ? <CreditCard size={14} className="text-amber-400" />
-                                                    : <CheckCircle2 size={14} className="text-emerald-400" />}
+                                                    ? <CreditCard size={14} className="text-amber-600 dark:text-amber-400" />
+                                                    : <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />}
                                             </div>
                                             <div>
                                                 <div className={`text-xs font-bold ${isCardRequired && selectedPlan ? 'text-amber-300' : 'text-emerald-300'}`}>
                                                     {isCardRequired && selectedPlan ? 'A credit card will be required at checkout' : 'No credit card required'}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500 mt-0.5">
+                                                <div className="text-2xs text-slate-500 mt-0.5">
                                                     {isCardRequired && selectedPlan
                                                         ? 'An AI add-on is selected. Your card is authorized now but charged only after your 14-day trial ends.'
                                                         : 'No AI selected. Your full 14-day trial starts immediately — no payment details needed.'}
@@ -859,25 +977,25 @@ export default function Pricing({ plans = [] }) {
                                         {/* Summary pill */}
                                         <div className="flex items-center gap-2.5 flex-wrap">
                                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                                                <Check size={11} className="text-indigo-400" />
-                                                <span className="text-[11px] text-slate-300 font-semibold">{PLAN_DATA[selectedPlan]?.name}</span>
+                                                <Check size={11} className="text-indigo-600 dark:text-indigo-400" />
+                                                <span className="text-1xs text-slate-600 dark:text-slate-300 font-semibold">{PLAN_DATA[selectedPlan]?.name}</span>
                                             </div>
                                             {selectedAIData && (
                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/[0.08] border border-purple-500/[0.15]">
                                                     <span className="text-sm">{selectedAIData.emoji}</span>
-                                                    <span className="text-[11px] text-purple-300 font-semibold">{selectedAIData.name}</span>
+                                                    <span className="text-1xs text-purple-300 font-semibold">{selectedAIData.name}</span>
                                                 </div>
                                             )}
                                             {selectedAI === 'byok' && (
                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/[0.08] border border-amber-500/[0.15]">
-                                                    <Key size={11} className="text-amber-400" />
-                                                    <span className="text-[11px] text-amber-300 font-semibold">BYOK</span>
+                                                    <Key size={11} className="text-amber-600 dark:text-amber-400" />
+                                                    <span className="text-1xs text-amber-300 font-semibold">BYOK</span>
                                                 </div>
                                             )}
                                             {selectedAI === 'none' && (
                                                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
                                                     <Ban size={11} className="text-slate-500" />
-                                                    <span className="text-[11px] text-slate-500 font-semibold">No AI</span>
+                                                    <span className="text-1xs text-slate-500 font-semibold">No AI</span>
                                                 </div>
                                             )}
                                         </div>
@@ -886,7 +1004,7 @@ export default function Pricing({ plans = [] }) {
                                         <button
                                             id="ai-panel-continue"
                                             onClick={handleContinue}
-                                            className="w-full flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[#020010] text-sm font-black uppercase tracking-widest hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.25)] shadow-lg transition-all duration-300"
+                                            className="w-full flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-void-950 text-sm font-black uppercase tracking-widest hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.25)] shadow-lg transition-all duration-300"
                                         >
                                             Continue <ArrowRight size={14} />
                                         </button>
@@ -907,7 +1025,7 @@ export default function Pricing({ plans = [] }) {
                     <RevealOnScroll>
                         <div className="text-center mb-10">
                             <SectionLabel icon={BarChart3}>Deep Dive Comparison</SectionLabel>
-                            <h2 className="text-3xl font-black text-white tracking-tight font-display">Everything, side by side.</h2>
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">Everything, side by side.</h2>
                             <p className="text-slate-500 text-sm mt-2">No asterisks. No fine print. Just exactly what each plan includes.</p>
                         </div>
                     </RevealOnScroll>
@@ -917,33 +1035,33 @@ export default function Pricing({ plans = [] }) {
                             <table className="w-full min-w-[600px]">
                                 <thead>
                                     <tr className="border-b border-white/[0.07]">
-                                        <th className="py-5 pl-6 pr-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Feature</th>
+                                        <th className="py-5 pl-6 pr-4 text-left text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Feature</th>
                                         <th className="py-5 px-4 text-center">
                                             <div className="flex flex-col items-center gap-1">
                                                 <Zap size={14} className="text-blue-400" />
-                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Starter</span>
-                                                <span className="text-[10px] text-blue-400 font-bold">{planPriceStr('starter')}</span>
+                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Starter</span>
+                                                <span className="text-2xs text-blue-400 font-bold">{planPriceStr('starter')}</span>
                                             </div>
                                         </th>
                                         <th className="py-5 px-4 text-center bg-indigo-950/20">
                                             <div className="flex flex-col items-center gap-1">
-                                                <TrendingUp size={14} className="text-indigo-400" />
-                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Growth</span>
-                                                <span className="text-[10px] text-indigo-400 font-bold">{planPriceStr('growth')}</span>
+                                                <TrendingUp size={14} className="text-indigo-600 dark:text-indigo-400" />
+                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Growth</span>
+                                                <span className="text-2xs text-indigo-600 dark:text-indigo-400 font-bold">{planPriceStr('growth')}</span>
                                             </div>
                                         </th>
                                         <th className="py-5 pr-6 pl-4 text-center">
                                             <div className="flex flex-col items-center gap-1">
                                                 <Crown size={14} className="text-purple-400" />
-                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Enterprise</span>
-                                                <span className="text-[10px] text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
+                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Enterprise</span>
+                                                <span className="text-2xs text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
                                             </div>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {/* Limits */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Platform Limits</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Platform Limits</td></tr>
                                     <TableRow label="Store Locations" starter="1" growth="3" enterprise="10" />
                                     <TableRow label="Staff Accounts" starter="3" growth="10" enterprise="50" />
                                     <TableRow label="Product SKUs" starter="1,000" growth="10,000" enterprise="50,000" />
@@ -951,7 +1069,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="14-Day Free Trial" starter={true} growth={true} enterprise={true} highlight />
 
                                     {/* POS */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
                                     {false && <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />}
                                     <TableRow label="WebUSB Thermal Printing" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Multi-Tab Checkout" starter="3 tabs" growth="10 tabs" enterprise="50 tabs" />
@@ -960,14 +1078,14 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Serial / IMEI Tracking" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Inventory */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Inventory</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Inventory</td></tr>
                                     <TableRow label="Product Variants & FIFO" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Batch & Expiry Tracking" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Bill of Materials (Recipes)" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Auto-Assembly Production" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Finance */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Finance & Accounting</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Finance & Accounting</td></tr>
                                     <TableRow label="Double-Entry Ledger" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Customer Khata (Credit)" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="WhatsApp Debt Alerts" starter={false} growth={true} enterprise={true} />
@@ -975,7 +1093,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Loyalty & Gift Cards" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Reports */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Reports</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Reports</td></tr>
                                     <TableRow label="Sales & Purchase Reports" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Profit & Loss Statement" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Balance Sheet" starter={false} growth={true} enterprise={true} />
@@ -983,7 +1101,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="40-Report Full Suite" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Support */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Support</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Support</td></tr>
                                     <TableRow label="AI Support Chatbot (Vena)" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Live Agent Support (Handoff)" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Email Support" starter={true} growth={true} enterprise={true} />
@@ -1002,7 +1120,7 @@ export default function Pricing({ plans = [] }) {
                     <RevealOnScroll>
                         <div className="text-center mb-10">
                             <SectionLabel icon={MessageSquare}>Common Questions</SectionLabel>
-                            <h2 className="text-3xl font-black text-white tracking-tight font-display">Straight answers.</h2>
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">Straight answers.</h2>
                         </div>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
@@ -1021,8 +1139,8 @@ export default function Pricing({ plans = [] }) {
                     <RevealOnScroll>
                         <div className="text-center mb-6">
                             {selectedPlan ? (
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-slate-400 mb-4">
-                                    <Check size={14} className="text-emerald-400" />
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                    <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
                                     <span>{PLAN_DATA[selectedPlan]?.name} selected{selectedAIData ? ` + ${selectedAIData.name}` : selectedAI === 'byok' ? ' + BYOK' : ''}</span>
                                 </div>
                             ) : (
@@ -1041,7 +1159,7 @@ export default function Pricing({ plans = [] }) {
                                 <>Select a plan to continue <ArrowRight size={16} /></>
                             )}
                         </MagneticButton>
-                        <p className="text-center text-[11px] text-slate-500 mt-3">
+                        <p className="text-center text-1xs text-slate-500 mt-3">
                             {isCardRequired && selectedPlan
                                 ? 'Card authorized today. Charged only after 14-day trial ends.'
                                 : '14-day free trial. No card. No commitment.'}
@@ -1058,18 +1176,18 @@ export default function Pricing({ plans = [] }) {
             <div className="max-w-3xl mx-auto space-y-8">
                 <RevealOnScroll>
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-[10px] font-black tracking-widest uppercase mb-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
                             Step 2 of 3
                         </div>
-                        <h2 className="text-4xl font-black text-white tracking-tight font-display mb-3">
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
                             Do you sell online?
                         </h2>
-                        <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
                             Connect your existing platforms and everything syncs in one place — stock, orders, and customers. You can also do this anytime from your dashboard.
                         </p>
                         <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                            <CheckCircle2 size={12} className="text-emerald-400" />
-                            <span className="text-[11px] text-emerald-400 font-semibold">No card needed to connect — just to subscribe later</span>
+                            <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-1xs text-emerald-600 dark:text-emerald-400 font-semibold">No card needed to connect — just to subscribe later</span>
                         </div>
                     </div>
                 </RevealOnScroll>
@@ -1097,15 +1215,15 @@ export default function Pricing({ plans = [] }) {
                                                 <SyncIcon size={16} className={isAdded ? 'text-indigo-400' : 'text-slate-500'} />
                                             </div>
                                             <div>
-                                                <div className="text-white text-sm font-bold">{ch.name}</div>
+                                                <div className="text-slate-900 dark:text-white text-sm font-bold">{ch.name}</div>
                                                 <div className="text-slate-500 text-xs mt-0.5 leading-relaxed">{ch.desc}</div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAdded ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
-                                                {isAdded && <Check size={9} className="text-white" strokeWidth={3} />}
+                                                {isAdded && <Check size={9} className="text-slate-900 dark:text-white" strokeWidth={3} />}
                                             </div>
-                                            <span className="text-xs text-white font-bold whitespace-nowrap">
+                                            <span className="text-xs text-slate-900 dark:text-white font-bold whitespace-nowrap">
                                                 +{fmt(ch.priceUSD, ch.pricePKR)}/mo
                                             </span>
                                         </div>
@@ -1118,8 +1236,8 @@ export default function Pricing({ plans = [] }) {
 
                 {selectedSyncs.length > 0 && (
                     <div className="p-4 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-3">
-                        <Globe size={14} className="text-indigo-400 flex-shrink-0" />
-                        <p className="text-xs text-slate-400">
+                        <Globe size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                             The moment a barcode transaction completes inside your POS, stock updates across all connected platforms in under 3 seconds. No overselling. Ever.
                         </p>
                     </div>
@@ -1128,7 +1246,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
                         onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back
                     </button>
@@ -1169,13 +1287,13 @@ export default function Pricing({ plans = [] }) {
 
                 {/* Header */}
                 <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-[10px] font-black tracking-widest uppercase mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
                         Step 3 of 3
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tight font-display mb-3">
+                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
                         Want us to load your products?
                     </h2>
-                    <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
                         We'll upload your catalog for you — fully configured and ready to sell from day one. Pay only for what you need, per product. No fixed packages.
                     </p>
                 </div>
@@ -1198,22 +1316,22 @@ export default function Pricing({ plans = [] }) {
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-3">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 transition-all ${isChosen ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
-                                            {isChosen && <Check size={9} className="text-white" strokeWidth={3} />}
+                                            {isChosen && <Check size={9} className="text-slate-900 dark:text-white" strokeWidth={3} />}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="text-lg">{tier.emoji}</span>
-                                                <span className="text-white font-bold text-sm">{tier.name}</span>
-                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[8px] font-black tracking-widest uppercase">Most Popular</span>}
+                                                <span className="text-slate-900 dark:text-white font-bold text-sm">{tier.name}</span>
+                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-4xs font-black tracking-widest uppercase">Most Popular</span>}
                                             </div>
                                             <p className="text-slate-500 text-xs mt-1 leading-relaxed">{tier.desc}</p>
-                                            <p className="text-slate-500 text-[10px] mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
+                                            <p className="text-slate-500 text-2xs mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
                                         </div>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                        <div className="text-white font-black text-lg">{fmtCost(tier.priceUSD, tier.pricePKR)}</div>
-                                        <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">per product</div>
-                                        <div className="text-[9px] text-indigo-400 font-semibold mt-0.5">+{fmtCost(0.50, 50)} / extra 5 variants</div>
+                                        <div className="text-slate-900 dark:text-white font-black text-lg">{fmtCost(tier.priceUSD, tier.pricePKR)}</div>
+                                        <div className="text-3xs text-slate-500 font-black uppercase tracking-widest">per product</div>
+                                        <div className="text-3xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">+{fmtCost(0.50, 50)} / extra 5 variants</div>
                                     </div>
                                 </div>
                             </button>
@@ -1224,10 +1342,10 @@ export default function Pricing({ plans = [] }) {
                 {/* Variant explanation */}
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-start gap-3">
                     <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Layers size={11} className="text-indigo-400" />
+                        <Layers size={11} className="text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                        <span className="text-white font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
+                    <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <span className="text-slate-900 dark:text-white font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
                         Every additional 5 variants cost {fmtCost(0.50, 50)} more.
                         Example: a product with 20 variants = base price + 3 extra blocks ({fmtCost(1.50, 150)} more).
                     </p>
@@ -1237,16 +1355,16 @@ export default function Pricing({ plans = [] }) {
                 {selectedTier && (
                     <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-b from-indigo-950/30 to-transparent overflow-hidden">
                         <div className="px-6 py-4 border-b border-white/[0.05] flex items-center gap-2">
-                            <BarChart3 size={14} className="text-indigo-400" />
-                            <span className="text-xs font-black text-white uppercase tracking-widest">Cost Estimator</span>
-                            <span className="text-[10px] text-slate-500 ml-1">— see your price before committing</span>
+                            <BarChart3 size={14} className="text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Cost Estimator</span>
+                            <span className="text-2xs text-slate-500 ml-1">— see your price before committing</span>
                         </div>
 
                         <div className="p-6 space-y-5">
                             {/* Inputs */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-2">
+                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-2">
                                         How many products?
                                     </label>
                                     <input
@@ -1258,7 +1376,7 @@ export default function Pricing({ plans = [] }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-2">
+                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-2">
                                         Average variants per product?
                                     </label>
                                     <input
@@ -1268,7 +1386,7 @@ export default function Pricing({ plans = [] }) {
                                         onChange={e => setCalcVariants(e.target.value)}
                                         className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
-                                    <p className="text-[10px] text-slate-500 mt-1.5">Leave blank if products have no variants or ≤5</p>
+                                    <p className="text-2xs text-slate-500 mt-1.5">Leave blank if products have no variants or ≤5</p>
                                 </div>
                             </div>
 
@@ -1276,27 +1394,27 @@ export default function Pricing({ plans = [] }) {
                             {hasEstimate && (
                                 <div className="space-y-2 pt-4 border-t border-white/[0.05]">
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-slate-400">{calcProductsNum} products × {fmtCost(selectedTier.priceUSD, selectedTier.pricePKR)} base</span>
-                                        <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * selectedTier.priceUSD, calcProductsNum * selectedTier.pricePKR)}</span>
+                                        <span className="text-slate-500 dark:text-slate-400">{calcProductsNum} products × {fmtCost(selectedTier.priceUSD, selectedTier.pricePKR)} base</span>
+                                        <span className="text-slate-600 dark:text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * selectedTier.priceUSD, calcProductsNum * selectedTier.pricePKR)}</span>
                                     </div>
                                     {extraBlocks > 0 && (
                                         <div className="flex items-center justify-between text-xs">
-                                            <span className="text-slate-400">
+                                            <span className="text-slate-500 dark:text-slate-400">
                                                 {calcProductsNum} products × {extraBlocks} extra variant block{extraBlocks > 1 ? 's' : ''} × {fmtCost(0.50, 50)}
                                             </span>
-                                            <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * 0.50, calcProductsNum * extraBlocks * 50)}</span>
+                                            <span className="text-slate-600 dark:text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * 0.50, calcProductsNum * extraBlocks * 50)}</span>
                                         </div>
                                     )}
                                     {calcVariantsNum > 1 && (
-                                        <div className="flex items-center justify-between text-[10px] text-slate-500">
+                                        <div className="flex items-center justify-between text-2xs text-slate-500">
                                             <span>Per product: {fmtCost(usdPricePerProduct, pkrPricePerProduct)} ({calcVariantsNum} variants — first 5 free{extraBlocks > 0 ? `, +${extraBlocks} block${extraBlocks > 1 ? 's' : ''}` : ''})</span>
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-1">
-                                        <span className="text-white font-black text-sm">Your estimated total</span>
+                                        <span className="text-slate-900 dark:text-white font-black text-sm">Your estimated total</span>
                                         <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(usdServiceCostNum, pkrServiceCostNum)}</span>
                                     </div>
-                                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                                    <p className="text-2xs text-slate-500 leading-relaxed">
                                         This is an estimate. Final invoice is generated when you initiate the service from your admin panel — after reviewing and confirming.
                                     </p>
                                 </div>
@@ -1315,23 +1433,23 @@ export default function Pricing({ plans = [] }) {
                 <div className="p-5 rounded-2xl bg-emerald-500/[0.04] border border-emerald-500/10 space-y-3">
                     <div className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <ShieldCheck size={12} className="text-emerald-400" />
+                            <ShieldCheck size={12} className="text-emerald-600 dark:text-emerald-400" />
                         </div>
                         <div>
                             <div className="text-emerald-300 text-xs font-bold mb-1">Not charged at checkout</div>
-                            <p className="text-slate-400 text-xs leading-relaxed">
-                                Adding your card now just unlocks the service. You trigger it yourself from the admin panel — <strong className="text-slate-300">that's when the charge happens</strong>, after you've reviewed the final product count.
+                            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+                                Adding your card now just unlocks the service. You trigger it yourself from the admin panel — <strong className="text-slate-600 dark:text-slate-300">that's when the charge happens</strong>, after you've reviewed the final product count.
                             </p>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Rocket size={12} className="text-indigo-400" />
+                            <Rocket size={12} className="text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
                             <div className="text-indigo-300 text-xs font-bold mb-1">Trial paused while we work</div>
-                            <p className="text-slate-400 text-xs leading-relaxed">
-                                Your 14-day trial is <strong className="text-slate-300">held while we load your catalog</strong>. Every one of your trial days starts on a store that's already live and stocked.
+                            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+                                Your 14-day trial is <strong className="text-slate-600 dark:text-slate-300">held while we load your catalog</strong>. Every one of your trial days starts on a store that's already live and stocked.
                             </p>
                         </div>
                     </div>
@@ -1340,7 +1458,7 @@ export default function Pricing({ plans = [] }) {
                 {/* Trial mode */}
                 {selectedService && (
                     <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4">
-                        <h4 className="text-white text-sm font-bold">When should we start your trial?</h4>
+                        <h4 className="text-slate-900 dark:text-white text-sm font-bold">When should we start your trial?</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {[
                                 { key: 'instant', emoji: '⚡', label: 'Start immediately', desc: 'Trial runs now. Request catalog loading whenever you\'re ready from your dashboard.' },
@@ -1357,8 +1475,8 @@ export default function Pricing({ plans = [] }) {
                                         }`}
                                 >
                                     <div className="text-base mb-1">{opt.emoji}</div>
-                                    <div className="text-white text-xs font-bold mb-1">{opt.label}</div>
-                                    <div className="text-slate-500 text-[10px] leading-relaxed">{opt.desc}</div>
+                                    <div className="text-slate-900 dark:text-white text-xs font-bold mb-1">{opt.label}</div>
+                                    <div className="text-slate-500 text-2xs leading-relaxed">{opt.desc}</div>
                                 </button>
                             ))}
                         </div>
@@ -1369,7 +1487,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
                         onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back
                     </button>
@@ -1401,7 +1519,7 @@ export default function Pricing({ plans = [] }) {
             <section className="min-h-screen px-6 py-24">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-10">
-                        <h2 className="text-4xl font-black text-white tracking-tight font-display mb-2">Review & Confirm</h2>
+                        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">Review & Confirm</h2>
                         <p className="text-slate-500 text-sm">Everything you've selected. Clear. In one place.</p>
                     </div>
 
@@ -1412,50 +1530,50 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Plan */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Your Subscription</div>
+                                <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Your Subscription</div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-white font-bold">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</div>
+                                        <div className="text-slate-900 dark:text-white font-bold">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</div>
                                         <div className="text-slate-500 text-xs mt-0.5">14-day free trial → then auto-renews</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-slate-300 font-black text-lg">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</div>
-                                        <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
+                                        <div className="text-slate-600 dark:text-slate-300 font-black text-lg">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</div>
+                                        <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                     </div>
                                 </div>
                                 {selectedAIData && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-white font-bold text-sm">{selectedAIData.emoji} {selectedAIData.name}</div>
+                                            <div className="text-slate-900 dark:text-white font-bold text-sm">{selectedAIData.emoji} {selectedAIData.name}</div>
                                             <div className="text-slate-500 text-xs mt-0.5">Managed AI — included in trial</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-300 font-bold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</div>
-                                            <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
+                                            <div className="text-slate-600 dark:text-slate-300 font-bold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</div>
+                                            <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                         </div>
                                     </div>
                                 )}
                                 {selectedAI === 'byok' && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-white font-bold text-sm">🔑 BYOK AI Activation</div>
+                                            <div className="text-slate-900 dark:text-white font-bold text-sm">🔑 BYOK AI Activation</div>
                                             <div className="text-slate-500 text-xs mt-0.5">One-time unlock — free AI forever after</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-400 font-black">{fmt(5, 1400)}</div>
-                                            <div className="text-amber-400 text-[10px] font-bold">charged today</div>
+                                            <div className="text-amber-600 dark:text-amber-400 font-black">{fmt(5, 1400)}</div>
+                                            <div className="text-amber-600 dark:text-amber-400 text-2xs font-bold">charged today</div>
                                         </div>
                                     </div>
                                 )}
                                 {selectedSyncs.length > 0 && (
                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/[0.05]">
                                         <div>
-                                            <div className="text-white font-bold text-sm">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</div>
+                                            <div className="text-slate-900 dark:text-white font-bold text-sm">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</div>
                                             <div className="text-slate-500 text-xs mt-0.5">{selectedSyncs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-300 font-bold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</div>
-                                            <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
+                                            <div className="text-slate-600 dark:text-slate-300 font-bold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</div>
+                                            <div className="text-emerald-600 dark:text-emerald-400 text-2xs font-bold">$0.00 today</div>
                                         </div>
                                     </div>
                                 )}
@@ -1464,15 +1582,15 @@ export default function Pricing({ plans = [] }) {
                             {/* Services */}
                             {selectedServiceData && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Optional Service</div>
+                                    <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Optional Service</div>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-white font-bold">{selectedTier?.emoji} Catalog Loading — {selectedTier?.name}</div>
+                                            <div className="text-slate-900 dark:text-white font-bold">{selectedTier?.emoji} Catalog Loading — {selectedTier?.name}</div>
                                             <div className="text-slate-500 text-xs mt-0.5">{calcProductsNum} products · charged when initiated from dashboard</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-400 font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</div>
-                                            <div className="text-amber-400 text-[10px] font-bold">deferred — from dashboard</div>
+                                            <div className="text-amber-600 dark:text-amber-400 font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</div>
+                                            <div className="text-amber-600 dark:text-amber-400 text-2xs font-bold">deferred — from dashboard</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1480,15 +1598,15 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Billing Timeline */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5">Your Billing Timeline</div>
+                                <div className="text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-5">Your Billing Timeline</div>
                                 <div className="space-y-5 relative pl-5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:bg-white/[0.05]">
                                     <div className="relative">
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-emerald-400" />
                                         <div className="flex items-center justify-between mb-0.5">
-                                            <span className="text-white text-xs font-bold">Today</span>
-                                            <span className="text-emerald-400 text-xs font-black">{fmt(totalDueToday, pkrTotalDueToday)}</span>
+                                            <span className="text-slate-900 dark:text-white text-xs font-bold">Today</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-black">{fmt(totalDueToday, pkrTotalDueToday)}</span>
                                         </div>
-                                        <p className="text-slate-500 text-[10px]">
+                                        <p className="text-slate-500 text-2xs">
                                             {totalDueToday > 0
                                                 ? 'BYOK activation fee charged. Trial begins.'
                                                 : 'No charge. Trial begins immediately.'}
@@ -1497,10 +1615,10 @@ export default function Pricing({ plans = [] }) {
                                     <div className="relative">
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-indigo-500" />
                                         <div className="flex items-center justify-between mb-0.5">
-                                            <span className="text-white text-xs font-bold">{trialEndStr}</span>
-                                            <span className="text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')}</span>
+                                            <span className="text-slate-900 dark:text-white text-xs font-bold">{trialEndStr}</span>
+                                            <span className="text-indigo-600 dark:text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')}</span>
                                         </div>
-                                        <p className="text-slate-500 text-[10px]">
+                                        <p className="text-slate-500 text-2xs">
                                             First subscription charge — only if you choose to continue. Cancel anytime before this date.
                                         </p>
                                     </div>
@@ -1508,10 +1626,10 @@ export default function Pricing({ plans = [] }) {
                                         <div className="relative">
                                             <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-amber-400" />
                                             <div className="flex items-center justify-between mb-0.5">
-                                                <span className="text-white text-xs font-bold">When you initiate catalog loading</span>
-                                                <span className="text-amber-400 text-xs font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
+                                                <span className="text-slate-900 dark:text-white text-xs font-bold">When you initiate catalog loading</span>
+                                                <span className="text-amber-600 dark:text-amber-400 text-xs font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                             </div>
-                                            <p className="text-slate-500 text-[10px]">
+                                            <p className="text-slate-500 text-2xs">
                                                 Charged per product from your admin panel. Turnaround: {selectedTier?.sla}.
                                             </p>
                                         </div>
@@ -1522,10 +1640,10 @@ export default function Pricing({ plans = [] }) {
                             {/* Totals */}
                             <div className="p-5 rounded-2xl bg-indigo-600/8 border border-indigo-500/20 flex items-center justify-between">
                                 <div>
-                                    <div className="text-white font-bold text-sm">Due today</div>
-                                    <div className="text-slate-400 text-[10px]">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
+                                    <div className="text-slate-900 dark:text-white font-bold text-sm">Due today</div>
+                                    <div className="text-slate-500 dark:text-slate-400 text-2xs">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
                                 </div>
-                                <div className="text-3xl font-black text-emerald-400">
+                                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
                                     {fmt(totalDueToday, pkrTotalDueToday)}
                                 </div>
                             </div>
@@ -1535,12 +1653,12 @@ export default function Pricing({ plans = [] }) {
                         <div className="w-full lg:w-[380px] bg-white/[0.01] border border-white/[0.06] rounded-[1.75rem] p-7">
                             <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Lock size={13} className="text-indigo-400" />
-                                    <span className="text-xs font-black text-white uppercase tracking-widest">Secure Activation</span>
+                                    <Lock size={13} className="text-indigo-600 dark:text-indigo-400" />
+                                    <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Secure Activation</span>
                                 </div>
 
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Business Email</label>
+                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Business Email</label>
                                     <input
                                         type="email" required placeholder="name@business.com"
                                         value={checkoutDetails.email}
@@ -1549,7 +1667,7 @@ export default function Pricing({ plans = [] }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Phone Number</label>
+                                    <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Phone Number</label>
                                     <input
                                         type="tel" required placeholder="+1 (555) 000-0000"
                                         value={checkoutDetails.phone}
@@ -1561,11 +1679,11 @@ export default function Pricing({ plans = [] }) {
                                 {isCardRequired ? (
                                     <div className="space-y-3 pt-4 border-t border-white/[0.05]">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">Card Details</span>
-                                            <span className="text-[10px] text-slate-500 flex items-center gap-1"><Lock size={9} /> Secured</span>
+                                            <span className="text-2xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">Card Details</span>
+                                            <span className="text-2xs text-slate-500 flex items-center gap-1"><Lock size={9} /> Secured</span>
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Cardholder Name</label>
+                                            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Cardholder Name</label>
                                             <input
                                                 type="text" required placeholder="Jane Doe"
                                                 value={checkoutDetails.cardholder}
@@ -1574,7 +1692,7 @@ export default function Pricing({ plans = [] }) {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Card Number</label>
+                                            <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Card Number</label>
                                             <input
                                                 type="text" required placeholder="•••• •••• •••• ••••" maxLength="19"
                                                 value={checkoutDetails.cardNumber}
@@ -1584,7 +1702,7 @@ export default function Pricing({ plans = [] }) {
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Expiry</label>
+                                                <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">Expiry</label>
                                                 <input
                                                     type="text" required placeholder="MM/YY" maxLength="5"
                                                     value={checkoutDetails.expiry}
@@ -1593,7 +1711,7 @@ export default function Pricing({ plans = [] }) {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">CVC</label>
+                                                <label className="text-2xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">CVC</label>
                                                 <input
                                                     type="password" required placeholder="•••" maxLength="4"
                                                     value={checkoutDetails.cvc}
@@ -1602,15 +1720,15 @@ export default function Pricing({ plans = [] }) {
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-[10px] text-slate-500 leading-relaxed">
+                                        <p className="text-2xs text-slate-500 leading-relaxed">
                                             Encrypted connection. Your card is authorized today. Subscription is charged only after your 14-day trial ends — and only if you choose to continue.
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="pt-4 border-t border-white/[0.05]">
                                         <div className="p-3.5 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/10 flex items-start gap-2.5">
-                                            <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-                                            <p className="text-[11px] text-slate-400 leading-relaxed">
+                                            <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                                            <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
                                                 No credit card required. Your trial starts immediately with full dashboard access.
                                             </p>
                                         </div>
@@ -1623,8 +1741,8 @@ export default function Pricing({ plans = [] }) {
                                     disabled={isSubmitting}
                                     className={`w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2
                                         ${isSubmitting
-                                            ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                                            : 'bg-white text-[#020010] hover:shadow-[0_0_60px_-5px_rgba(255,255,255,0.3)] shadow-lg'
+                                            ? 'bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                                            : 'bg-white text-void-950 hover:shadow-[0_0_60px_-5px_rgba(255,255,255,0.3)] shadow-lg'
                                         }`}
                                 >
                                     {isSubmitting ? (
@@ -1637,7 +1755,7 @@ export default function Pricing({ plans = [] }) {
                                 <button
                                     type="button"
                                     onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                    className="w-full text-center text-slate-500 hover:text-slate-400 text-[11px] font-bold uppercase tracking-widest transition-colors"
+                                    className="w-full text-center text-slate-500 hover:text-slate-400 text-1xs font-bold uppercase tracking-widest transition-colors"
                                 >
                                     ← Back
                                 </button>
@@ -1657,49 +1775,49 @@ export default function Pricing({ plans = [] }) {
         return (
             <section className="min-h-screen px-6 py-24 flex items-center justify-center">
                 <div className="max-w-2xl w-full">
-                    <div className="rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-[#0a1a14] to-[#040212] p-10 md:p-12 text-center relative overflow-hidden">
+                    <div className="rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-[#0a1a14] to-void-950 p-10 md:p-12 text-center relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Success mark */}
                             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-                                <CheckCircle2 size={28} className="text-emerald-400" />
+                                <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
                             </div>
 
-                            <h2 className="text-4xl font-black text-white tracking-tight font-display mb-2">You're in.</h2>
-                            <p className="text-slate-400 text-sm mb-8">Your account has been activated. Here's exactly what happens next.</p>
+                            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">You're in.</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Your account has been activated. Here's exactly what happens next.</p>
 
                             {/* What's included */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-3 mb-6">
-                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">What you purchased</div>
+                                <div className="text-2xs font-black text-slate-500 uppercase tracking-widest mb-3">What you purchased</div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-slate-300">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
-                                    <span className="text-slate-400 font-semibold">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</span>
+                                    <span className="text-slate-600 dark:text-slate-300">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 font-semibold">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</span>
                                 </div>
                                 {selectedAIData && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-300">{selectedAIData.emoji} {selectedAIData.name}</span>
-                                        <span className="text-slate-400 font-semibold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</span>
+                                        <span className="text-slate-600 dark:text-slate-300">{selectedAIData.emoji} {selectedAIData.name}</span>
+                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedSyncs.length > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-300">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</span>
-                                        <span className="text-slate-400 font-semibold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</span>
+                                        <span className="text-slate-600 dark:text-slate-300">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</span>
+                                        <span className="text-slate-500 dark:text-slate-400 font-semibold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedServiceData && (
                                     <div className="flex items-center justify-between text-sm pt-2 border-t border-white/[0.05]">
-                                        <span className="text-slate-300">Catalog Loading — {selectedTier?.name}</span>
-                                        <span className="text-amber-400 font-semibold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
+                                        <span className="text-slate-600 dark:text-slate-300">Catalog Loading — {selectedTier?.name}</span>
+                                        <span className="text-amber-600 dark:text-amber-400 font-semibold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Timeline */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-4 mb-6">
-                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What happens next</div>
+                                <div className="text-2xs font-black text-slate-500 uppercase tracking-widest">What happens next</div>
 
                                 {[
                                     { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday, pkrTotalDueToday)} has been processed.` : ' No charge today.'}` },
@@ -1712,17 +1830,17 @@ export default function Pricing({ plans = [] }) {
                                             {i < 2 && <div className="w-px flex-1 bg-white/[0.05] my-1" />}
                                         </div>
                                         <div className="pb-3">
-                                            <div className="text-white text-xs font-bold mb-0.5">{step.title}</div>
-                                            <div className="text-slate-500 text-[11px] leading-relaxed">{step.desc}</div>
+                                            <div className="text-slate-900 dark:text-white text-xs font-bold mb-0.5">{step.title}</div>
+                                            <div className="text-slate-500 text-1xs leading-relaxed">{step.desc}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Human contact */}
-                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center gap-3 mb-6 text-sm text-slate-400">
-                                <MessageSquare size={14} className="text-indigo-400 flex-shrink-0" />
-                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
+                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center gap-3 mb-6 text-sm text-slate-500 dark:text-slate-400">
+                                <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
                             </div>
 
                             <MagneticButton
@@ -1749,14 +1867,14 @@ export default function Pricing({ plans = [] }) {
             { n: 4, label: 'Checkout' },
         ];
         return (
-            <div className="sticky top-[64px] z-40 bg-[#020010]/90 backdrop-blur-xl border-b border-white/[0.05] py-3 px-6">
+            <div className="sticky top-[64px] z-40 bg-void-950/90 backdrop-blur-xl border-b border-white/[0.05] py-3 px-6">
                 <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
                     {steps.map((s) => {
                         const done = currentStep > s.n;
                         const active = currentStep === s.n;
                         return (
-                            <div key={s.n} className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
+                            <div key={s.n} className={`flex items-center gap-1.5 text-2xs font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
                                     {done ? '✓' : s.n}
                                 </div>
                                 <span className="hidden sm:block">{s.label}</span>

@@ -235,7 +235,7 @@ export default function SidebarItem({
                     if (typeof item === 'object' && item.group) {
                         return (
                             <div key={idx} className="mt-2 mb-1">
-                                <p className="px-4 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1">
+                                <p className="px-4 text-2xs uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1">
                                     {item.group}
                                 </p>
                                 {item.items.filter(Boolean).map((subItem, sIdx) => {
@@ -284,9 +284,9 @@ export default function SidebarItem({
                                                 >
                                                     <span className="flex items-center gap-1.5">
                                                         {itemName}
-                                                        <span className="text-[10px]">🔒</span>
+                                                        <span className="text-2xs">🔒</span>
                                                     </span>
-                                                    <span className="text-[9px] px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
+                                                    <span className="text-3xs px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
                                                 </button>
                                             ) : (
                                                 window.route().has(activeRouteName) && (
@@ -349,9 +349,9 @@ export default function SidebarItem({
                                 >
                                     <span className="flex items-center gap-1.5">
                                         {itemName}
-                                        <span className="text-[10px]">🔒</span>
+                                        <span className="text-2xs">🔒</span>
                                     </span>
-                                    <span className="text-[9px] px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
+                                    <span className="text-3xs px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
                                 </button>
                             ) : (
                                 window.route().has(routeName) && (

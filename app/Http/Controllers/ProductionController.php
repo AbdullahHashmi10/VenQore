@@ -119,8 +119,39 @@ class ProductionController extends Controller
         $run = ProductionRun::with(['product'])
             ->findOrFail($id);
 
+        // BOM consumption: production_run_materials records exactly which
+        // inventory_batch(es) were deducted for this run, at what unit cost
+        // (written by ManufacturingService::startRun()). No Eloquent model exists
+        // for this junction table, so we query it directly like the rest of the
+        // V3 services do, and eager-load the raw material product name + BOM item
+        // via the inventory batch and bom_items table.
+        $materials = \Illuminate\Support\Facades\DB::table('production_run_materials as prm')
+            ->join('inventory_batches as ib', 'prm.inventory_batch_id', '=', 'ib.id')
+            ->join('products as p', 'ib.product_id', '=', 'p.id')
+            ->leftJoin('bom_items as bi', 'prm.bom_item_id', '=', 'bi.id')
+            ->where('prm.production_run_id', $id)
+            ->select(
+                'prm.id',
+                'p.name as product_name',
+                'prm.qty_deducted',
+                'prm.unit_cost',
+                'prm.total_cost',
+                'ib.id as batch_id'
+            )
+            ->get();
+
+        // Output / finished-goods batch created by completeRun() — tagged with
+        // production_run_id + batch_type = 'manufactured' on inventory_batches.
+        $outputBatch = \Illuminate\Support\Facades\DB::table('inventory_batches')
+            ->where('production_run_id', $id)
+            ->where('batch_type', 'manufactured')
+            ->where('product_id', $run->product_id)
+            ->first();
+
         return Inertia::render('Inventory/Production/Show', [
-            'run' => $run
+            'run' => $run,
+            'materials' => $materials,
+            'outputBatch' => $outputBatch,
         ]);
     }
 

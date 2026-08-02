@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function SaleOrders({ orders = [], filters = {} }) {
     const {
         store
@@ -82,9 +83,9 @@ export default function SaleOrders({ orders = [], filters = {} }) {
     // --- Chart: Status Distribution (Donut) ---
     const statusData = useMemo(() => {
         return [
-            { name: 'Completed', value: stats.completed, color: '#10b981' }, // Emerald
-            { name: 'Pending', value: stats.pending, color: '#f59e0b' },   // Amber
-            { name: 'Cancelled', value: stats.cancelled, color: '#ef4444' } // Red
+            { name: 'Completed', value: stats.completed, color: vq.emerald[500] }, // Emerald
+            { name: 'Pending', value: stats.pending, color: vq.amber[500] },   // Amber
+            { name: 'Cancelled', value: stats.cancelled, color: vq.red[500] } // Red
         ].filter(d => d.value > 0);
     }, [stats]);
 
@@ -195,14 +196,14 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                             type="date"
                                             value={customStart}
                                             onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-sky-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-sky-500"
                                         />
                                         <span className="text-slate-400">-</span>
                                         <input
                                             type="date"
                                             value={customEnd}
                                             onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-sky-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-sky-500"
                                         />
                                         <button onClick={applyCustomRange} className="p-1.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700">
                                             <ArrowLeft size={10} className="rotate-180" />
@@ -259,7 +260,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                         <button
                                             key={s}
                                             onClick={() => setStatusFilter(s)}
-                                            className={`px-2 py-0.5 rounded-md text-[10px] uppercase font-bold transition-all ${statusFilter === s ? 'bg-white dark:bg-slate-500 shadow-sm text-sky-600' : 'text-slate-500 dark:text-slate-400'}`}
+                                            className={`px-2 py-0.5 rounded-md text-2xs uppercase font-bold transition-all ${statusFilter === s ? 'bg-white dark:bg-slate-500 shadow-sm text-sky-600' : 'text-slate-500 dark:text-slate-400'}`}
                                         >
                                             {s}
                                         </button>
@@ -344,7 +345,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                                     ))}
                                                 </Pie>
                                                 <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                     itemStyle={{ color: '#fff' }}
                                                 />
                                                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
@@ -365,13 +366,13 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                         <BarChart data={timelineData} margin={{ left: -20, right: 10 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
-                                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
                                             <RechartsTooltip
-                                                cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                             />
-                                            <Bar dataKey="count" fill="#0ea5e9" radius={[4, 4, 0, 0]} barSize={20} />
+                                            <Bar dataKey="count" fill={vq.sky[500]} radius={[4, 4, 0, 0]} barSize={20} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -408,10 +409,10 @@ function StatCard({ title, value, icon, color, footer }) {
                 <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
                     {icon}
                 </div>
-                {footer && <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
+                {footer && <span className="text-2xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{footer}</span>}
             </div>
             <div className="relative z-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
                 <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-0.5">{value}</h3>
             </div>
             <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none group-hover:scale-110 transition-transform duration-500`} />
@@ -429,7 +430,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
         >
             <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 {label}
-                <div className={`flex flex-col text-[8px] leading-none ${isActive ? 'text-sky-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-sky-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
                     <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>?</span>
                     <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>?</span>
                 </div>
@@ -439,8 +440,8 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
 }
 
 function StatusBadge({ status }) {
-    if (status === 'completed') return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold rounded">Completed</span>;
-    if (status === 'pending') return <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold rounded animate-pulse">Pending</span>;
-    if (status === 'cancelled') return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-[10px] font-bold rounded">Cancelled</span>;
-    return <span className="px-2 py-0.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-bold rounded">{status}</span>;
+    if (status === 'completed') return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">Completed</span>;
+    if (status === 'pending') return <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-2xs font-bold rounded animate-pulse">Pending</span>;
+    if (status === 'cancelled') return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-2xs font-bold rounded">Cancelled</span>;
+    return <span className="px-2 py-0.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-2xs font-bold rounded">{status}</span>;
 }

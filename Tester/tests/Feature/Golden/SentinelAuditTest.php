@@ -79,6 +79,17 @@ class SentinelAuditTest extends SentinelTestCase
             }
         }
 
+        // Guard against a silently-empty sweep: if the registry has no
+        // LEDGER-DERIVED metrics with a route, $routes is empty, the loop above
+        // never runs, and "$violations is empty" would be trivially true for the
+        // wrong reason — the sweep checked nothing, not that nothing is wrong.
+        $this->assertNotEmpty(
+            $routes,
+            'Sentinel sweep found zero LEDGER-DERIVED routes to check in verification/number_registry.yaml — '
+                . 'the registry may be stale or empty. A sweep that checks nothing proves nothing.'
+        );
+
+        $errorMessage = '';
         if (!empty($violations)) {
             $errorMessage = "\n===============================================================\n"
                 . "✖ SENTINEL LEDGER ISOLATION VIOLATIONS DETECTED!\n"
@@ -93,10 +104,8 @@ class SentinelAuditTest extends SentinelTestCase
 
             $errorMessage .= "Root Cause: These endpoints are bypasses. They query raw tables instead of the Ledger.\n"
                 . "===============================================================\n";
-
-            $this->fail($errorMessage);
         }
 
-        $this->assertTrue(true);
+        $this->assertSame([], $violations, $errorMessage);
     }
 }

@@ -149,28 +149,28 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => setActiveFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all'
                                 ? 'bg-indigo-600 text-white'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >All</button>
                         <button
                             onClick={() => setActiveFilter('low')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'low'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'low'
                                 ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Low Stock</button>
                         <button
                             onClick={() => setActiveFilter('out')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'out'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'out'
                                 ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Out of Stock</button>
                         <button
                             onClick={() => setActiveFilter('normal')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'normal'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'normal'
                                 ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
@@ -215,32 +215,32 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th
                                     onClick={() => handleSort('name')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Product <SortIcon columnKey="name" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Category
                                 </th>
                                 <th
                                     onClick={() => handleSort('stock')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Total Stock <SortIcon columnKey="stock" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Min Stock
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     By Warehouse
                                 </th>
                                 <th
                                     onClick={() => handleSort('value')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Stock Value <SortIcon columnKey="value" />
@@ -287,7 +287,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                                     </div>
                                                     <div>
                                                         <p className="font-semibold text-sm text-slate-800 dark:text-white">{row.name}</p>
-                                                        <p className="text-[10px] text-slate-400 font-mono">{row.sku || 'No SKU'}</p>
+                                                        <p className="text-2xs text-slate-400 font-mono">{row.sku || 'No SKU'}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -316,7 +316,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                                     {row.stocks?.map((stock, idx) => (
                                                         <span
                                                             key={idx}
-                                                            className="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded text-[10px] font-medium"
+                                                            className="px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 rounded text-2xs font-medium"
                                                             title={stock.warehouse?.name}
                                                         >
                                                             {stock.warehouse?.name?.substring(0, 3)}: {stock.quantity}

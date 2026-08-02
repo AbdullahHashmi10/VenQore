@@ -787,7 +787,7 @@ class AdminController extends Controller
             ];
         })->sortByDesc('totalSales')->values();
 
-        return \Inertia\Inertia::render('Admin/StaffSummaries', [
+        return \Inertia\Inertia::render('Admin/Users', [
             'mode' => 'admin',
             'staffData' => $staffData
         ]);

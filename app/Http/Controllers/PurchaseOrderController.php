@@ -323,9 +323,32 @@ class PurchaseOrderController extends Controller
     {
         $purchaseOrder->load(['supplier', 'warehouse', 'items.product', 'user']);
         // For now, return a simple view or the Show page as print friendly, or raw text if no print view exists
-        // Ideally: return Inertia::render('PurchaseOrders/Print', ['order' => $purchaseOrder]);
+        // Renders PurchaseOrders/Show in print mode
         // Or specific PDF generation.
         // We'll mimic the Show page for now but user might want dedicated print.
         return Inertia::render('PurchaseOrders/Show', ['order' => $purchaseOrder, 'print' => true]);
+    }
+
+    public function destroy(PurchaseOrder $purchaseOrder)
+    {
+        // A received PO has already posted inventory batches (see receive() above)
+        // and may have downstream journal entries. Deleting it at that point would
+        // leave those batches referencing a vanished order. Block it — the correct
+        // way to undo a received PO is a purchase return, not deleting the order.
+        if ($purchaseOrder->status === 'received') {
+            return redirect()->back()->with(
+                'error',
+                'This purchase order has already been received and cannot be deleted. Use a purchase return to reverse it instead.'
+            );
+        }
+
+        // Soft delete (PurchaseOrder uses SoftDeletes) — the row and its items
+        // remain in the database for audit purposes; HasActivityLog records the
+        // deletion in store_activity_log automatically.
+        $purchaseOrder->delete();
+
+        return redirect()
+            ->route('store.purchase-orders.index', ['store_slug' => app('current.tenant')->slug])
+            ->with('success', 'Purchase order deleted.');
     }
 }

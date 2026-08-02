@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     BarChart,
     Bar,
@@ -186,7 +187,7 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
     };
 
     // --- Colors ---
-    const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981'];
+    const COLORS = [vq.indigo[500], vq.violet[500], vq.pink[500], vq.rose[500], vq.emerald[500]];
 
     return (
         <ReportsLayout title="Purchases Report">
@@ -338,11 +339,11 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
                                                     </td>
                                                     <td className="p-3 text-right">
                                                         {isPaid ? (
-                                                            <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Paid</span>
+                                                            <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold px-2 py-0.5 rounded-full uppercase">Paid</span>
                                                         ) : isPartial ? (
-                                                            <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Partial</span>
+                                                            <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-2xs font-bold px-2 py-0.5 rounded-full uppercase">Partial</span>
                                                         ) : (
-                                                            <span className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Unpaid</span>
+                                                            <span className="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-2xs font-bold px-2 py-0.5 rounded-full uppercase">Unpaid</span>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -395,12 +396,12 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
                                     <BarChart data={chartData.suppliers} layout="vertical" margin={{ left: 0, right: 30 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.1} />
                                         <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                        <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: vq.slate[400] }} />
                                         <Tooltip
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                             formatter={(val) => formatCurrency(val)}
                                         />
-                                        <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={20} />
+                                        <Bar dataKey="value" fill={vq.indigo[500]} radius={[0, 4, 4, 0]} barSize={20} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -422,7 +423,7 @@ function StatCard({ title, value, icon, color, isCurrency = false, subtext }) {
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                     {isCurrency ? formatCurrency(value || 0) : (value || 0)}
                 </h3>
-                {subtext && <p className="text-[10px] text-slate-400 mt-1">{subtext}</p>}
+                {subtext && <p className="text-2xs text-slate-400 mt-1">{subtext}</p>}
             </div>
             <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform`}>
                 {icon}

@@ -30,8 +30,32 @@
         "react/jsx-no-target-blank": "off",
         "no-case-declarations": "off",
         "no-empty": "off",
-        "no-ex-assign": "off"
+        "no-ex-assign": "off",
+
+        "no-restricted-syntax": [
+            "warn",
+            {
+                "selector": "Literal[value=/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+                "message": "Hardcoded colour. A raw hex is invisible to the theme engine, so it will not follow a theme switch. Use a Tailwind class (bg-brand-500, text-ink) or, for SVG/chart props where var() is not allowed, import { vq } from '@/theme/runtime'. Third-party brand colours are a legitimate exception — add an eslint-disable-next-line with a note saying whose brand it is."
+            },
+            {
+                "selector": "JSXAttribute[name.name='style'] Property[key.name=/^(color|backgroundColor|borderColor|fill|stroke|outlineColor|caretColor)$/] > Literal[value=/rgba?\\(/]",
+                "message": "Hardcoded rgb()/rgba() colour in an inline style. Use a Tailwind class, or rgb(var(--vq-token) / opacity) so it follows the theme."
+            }
+        ]
     },
+    "overrides": [
+        {
+            "files": [
+                "resources/js/theme/**/*.js",
+                "tailwind.config.js",
+                "resources/js/Components/ApplicationLogo.jsx"
+            ],
+            "rules": {
+                "no-restricted-syntax": "off"
+            }
+        }
+    ],
     "globals": {
         "route": "readonly",
         "axios": "readonly"

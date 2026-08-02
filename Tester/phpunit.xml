@@ -105,5 +105,11 @@
         <env name="TELESCOPE_ENABLED"         value="false"/>
         <env name="NIGHTWATCH_ENABLED"        value="false"/>
         <env name="HORIZON_ENABLED"           value="false"/>
+        <!-- VenSynQController::__construct() aborts 404 on every route (including
+             the top-level OAuth callbacks) when this is unset, since it defaults to
+             false. That is what actually 404'd t16_universal_callback and the
+             vensynq.health/money-pipeline/payouts routes in the route sweep — not
+             a route-ordering or method-name bug. -->
+        <env name="VENSYNQ_ENABLED"           value="true"/>
     </php>
 </phpunit>

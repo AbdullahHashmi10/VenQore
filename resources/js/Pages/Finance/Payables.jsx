@@ -85,14 +85,14 @@ export default function Payables({ parties = [] }) {
                 <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2"
+                        className="flex items-center gap-1 text-2xs font-bold text-slate-500 uppercase shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     {!isStatsExpanded && (
-                        <div className="text-[10px] font-bold text-slate-500 truncate">
-                            <span className="text-red-650 dark:text-red-400">Payable: {formatCurrency(stats.totalPayable || 0, store)}</span>
+                        <div className="text-2xs font-bold text-slate-500 truncate">
+                            <span className="text-red-600 dark:text-red-400">Payable: {formatCurrency(stats.totalPayable || 0, store)}</span>
                             <span className="mx-1">|</span>
                             <span className="text-indigo-600">Creditors: {stats.totalParties}</span>
                         </div>
@@ -138,7 +138,7 @@ export default function Payables({ parties = [] }) {
                         <div className="flex flex-col items-end">
                             <p className="text-lg font-black text-rose-600 leading-none">{formatCurrency(parseFloat(stats.largestCreditor.balance ?? stats.largestCreditor.current_balance ?? 0), store)}</p>
                             {stats.largestCreditor.name && (
-                                <p className="text-[10px] font-bold text-slate-400 truncate max-w-[100px] mt-0.5">{stats.largestCreditor.name}</p>
+                                <p className="text-2xs font-bold text-slate-400 truncate max-w-[100px] mt-0.5">{stats.largestCreditor.name}</p>
                             )}
                         </div>
                     </div>
@@ -152,7 +152,7 @@ export default function Payables({ parties = [] }) {
                             Accounts <span className="text-red-600">Payable</span>
                         </h1>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Money Out</span>
+                        <span className="text-2xs font-bold text-slate-400 uppercase">Money Out</span>
                     </div>
 
                     {/* Right: Search + Export */}
@@ -227,24 +227,24 @@ export default function Payables({ parties = [] }) {
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                     onClick={() => handleSort('name')}
                                 >
                                     <div className="flex items-center gap-1">
                                         Supplier {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Since</th>
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Since</th>
                                 <th
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                     onClick={() => handleSort('balance')}
                                 >
                                     <div className="flex items-center justify-end gap-1">
                                         Payable {sortConfig.key === 'balance' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -258,7 +258,7 @@ export default function Payables({ parties = [] }) {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-sm text-slate-900 dark:text-white">{party.name}</p>
-                                                    <p className="text-[10px] text-slate-500">Supplier</p>
+                                                    <p className="text-2xs text-slate-500">Supplier</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -268,7 +268,7 @@ export default function Payables({ parties = [] }) {
                                                     <Phone size={12} /> {party.phone || '-'}
                                                 </div>
                                                 {party.email && (
-                                                    <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
+                                                    <div className="flex items-center gap-1.5 text-slate-400 text-2xs">
                                                         <Mail size={10} /> {party.email}
                                                     </div>
                                                 )}
@@ -327,7 +327,7 @@ export default function Payables({ parties = [] }) {
                                         </div>
                                         <div>
                                             <p className="font-bold text-sm text-slate-900 dark:text-white leading-tight">{party.name}</p>
-                                            <p className="text-[10px] text-slate-500 mt-0.5">Since: {new Date(party.updated_at || party.created_at).toLocaleDateString()}</p>
+                                            <p className="text-2xs text-slate-500 mt-0.5">Since: {new Date(party.updated_at || party.created_at).toLocaleDateString()}</p>
                                         </div>
                                     </div>
                                     <p className="font-mono font-bold text-sm text-rose-600 dark:text-rose-400">
@@ -336,7 +336,7 @@ export default function Payables({ parties = [] }) {
                                 </div>
                                 
                                 <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-2 mt-1">
-                                    <div className="flex flex-col text-[10px] text-slate-500">
+                                    <div className="flex flex-col text-2xs text-slate-500">
                                         {party.phone && <span className="font-medium text-slate-600 dark:text-slate-400">📞 {party.phone}</span>}
                                         {party.email && <span className="truncate max-w-[150px]">✉️ {party.email}</span>}
                                     </div>

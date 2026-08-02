@@ -165,9 +165,30 @@ class WooCommerceController extends Controller
                     $cogsTotal    = round($cogsTotal, 2);
 
                     // ── Post the double-entry journal ──────────────────────────────
-                    // Revenue leg: Woo orders arrive already paid online → debit Cash.
+                    //
+                    // T17 CUTOVER. The revenue leg depends on whether this tenant
+                    // has switched on the Marketplace Clearing pipeline:
+                    //
+                    //   Clearing ON  → DR 1205 Marketplace Clearing
+                    //       The gateway (Stripe/PayPal) is still holding this
+                    //       money for ~2 days and will deduct a fee. It is a
+                    //       receivable, not spendable cash.
+                    //
+                    //   Clearing OFF → DR 1000 Cash on Hand  (legacy behaviour)
+                    //       Preserved verbatim so tenants who have not opted in,
+                    //       and every historical entry, are completely unaffected.
+                    //
+                    // The cutover is per tenant and date-bounded, so closed
+                    // periods and already-filed reports are never rewritten.
+                    $clearingLive = $connection->tenant->clearing_go_live_at !== null
+                        && now()->gte($connection->tenant->clearing_go_live_at);
+
+                    $revenueDebitAccount = $clearingLive
+                        ? \App\Services\VenSynQ\MarketplaceSettlementService::ACCT_CLEARING
+                        : '1000';
+
                     $journalLines = [
-                        ['account_code' => '1000', 'debit' => $revenueTotal, 'credit' => 0, 'party_id' => $party->id],
+                        ['account_code' => $revenueDebitAccount, 'debit' => $revenueTotal, 'credit' => 0, 'party_id' => $party->id],
                         ['account_code' => '4000', 'debit' => 0, 'credit' => $revenueTotal],
                     ];
                     // COGS leg (only when we have a real inventory cost).

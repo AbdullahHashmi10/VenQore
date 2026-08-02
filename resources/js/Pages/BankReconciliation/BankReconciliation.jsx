@@ -117,7 +117,7 @@ export default function BankReconciliationIndex({
                                 <button
                                     key={mode}
                                     onClick={() => setViewMode(mode)}
-                                    className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${viewMode === mode
+                                    className={`px-3 py-1 text-2xs font-bold uppercase rounded-md transition-all ${viewMode === mode
                                             ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
                                             : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                                         }`}
@@ -198,7 +198,7 @@ export default function BankReconciliationIndex({
                                                     <div className="flex justify-between items-start gap-3">
                                                         <div className="min-w-0">
                                                             <p className="font-semibold text-slate-800 dark:text-white text-sm truncate">{item.description || 'Transaction'}</p>
-                                                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{item.date}</p>
+                                                            <p className="text-2xs text-slate-500 font-mono mt-0.5">{item.date}</p>
                                                         </div>
                                                         <span className={`text-sm font-bold whitespace-nowrap ${parseFloat(item.amount) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                             {formatCurrency(Math.abs(parseFloat(item.amount || 0)))}
@@ -232,7 +232,7 @@ export default function BankReconciliationIndex({
                                                     <div className="flex justify-between items-start gap-3">
                                                         <div className="min-w-0">
                                                             <p className="font-semibold text-slate-800 dark:text-white text-sm truncate">{item.description || item.reference || 'Transaction'}</p>
-                                                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{item.date}</p>
+                                                            <p className="text-2xs text-slate-500 font-mono mt-0.5">{item.date}</p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <span className={`text-sm font-bold whitespace-nowrap ${parseFloat(item.amount) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -295,7 +295,7 @@ export default function BankReconciliationIndex({
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getStatusBadge(item.is_reconciled)}`}>
+                                                        <span className={`px-2 py-0.5 rounded text-2xs font-bold uppercase ${getStatusBadge(item.is_reconciled)}`}>
                                                             {item.is_reconciled ? 'Matched' : 'Pending'}
                                                         </span>
                                                     </td>

@@ -256,11 +256,11 @@ export default function ConnectionSetup({
                                     {/* WordPress Site URL & Handshake Trigger */}
                                     <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-3 text-left">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">WordPress Site URL</span>
+                                            <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">WordPress Site URL</span>
                                             {!isEditingUrl && (
                                                 <button
                                                     onClick={() => setIsEditingUrl(true)}
-                                                    className="text-[10px] text-violet-400 hover:text-violet-300 font-semibold"
+                                                    className="text-2xs text-violet-400 hover:text-violet-300 font-semibold"
                                                 >
                                                     Edit URL
                                                 </button>
@@ -282,14 +282,14 @@ export default function ConnectionSetup({
                                                             setIsEditingUrl(false);
                                                             setEditingUrlVal(siteUrl || '');
                                                         }}
-                                                        className="px-2.5 py-1 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-lg text-[10px] font-medium border border-slate-700/30"
+                                                        className="px-2.5 py-1 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-lg text-2xs font-medium border border-slate-700/30"
                                                     >
                                                         Cancel
                                                     </button>
                                                     <button
                                                         onClick={saveUrl}
                                                         disabled={savingUrl}
-                                                        className="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-[10px] font-semibold disabled:opacity-50"
+                                                        className="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-2xs font-semibold disabled:opacity-50"
                                                     >
                                                         {savingUrl ? 'Saving...' : 'Save'}
                                                     </button>
@@ -313,7 +313,7 @@ export default function ConnectionSetup({
                                             </div>
                                         ) : (
                                             <div className="space-y-2">
-                                                <p className="text-[10px] text-slate-400">Not provided. Add site URL to enable remote handshake execution.</p>
+                                                <p className="text-2xs text-slate-400">Not provided. Add site URL to enable remote handshake execution.</p>
                                                 <button
                                                     onClick={() => setIsEditingUrl(true)}
                                                     className="w-full py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/50 rounded-xl text-xs font-semibold"
@@ -369,7 +369,7 @@ export default function ConnectionSetup({
 
                                 <div className="py-2.5 max-w-sm mx-auto bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800/40 flex items-center justify-center gap-3">
                                     <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-                                    <span className="text-xs text-slate-650 dark:text-slate-355 font-medium">Redirecting to operations control...</span>
+                                    <span className="text-xs text-slate-600 dark:text-slate-355 font-medium">Redirecting to operations control...</span>
                                 </div>
 
                                 <div className="pt-4">

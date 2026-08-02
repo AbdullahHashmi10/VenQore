@@ -125,28 +125,28 @@ export default function BatchTracking({ batches, stats, filters }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => handleStatusFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
                                     ? 'bg-indigo-600 text-white'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >All</button>
                         <button
                             onClick={() => handleStatusFilter('valid')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'valid'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'valid'
                                     ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Valid</button>
                         <button
                             onClick={() => handleStatusFilter('expiring')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'expiring'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'expiring'
                                     ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Expiring Soon</button>
                         <button
                             onClick={() => handleStatusFilter('expired')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'expired'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'expired'
                                     ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
@@ -183,35 +183,35 @@ export default function BatchTracking({ batches, stats, filters }) {
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th
                                     onClick={() => handleSort('batch')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Batch # <SortIcon columnKey="batch" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Product
                                 </th>
                                 <th
                                     onClick={() => handleSort('quantity')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
                                 >
                                     <div className="flex items-center justify-end gap-1">
                                         Quantity <SortIcon columnKey="quantity" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Mfg Date
                                 </th>
                                 <th
                                     onClick={() => handleSort('expiry')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Exp Date <SortIcon columnKey="expiry" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                     Status
                                 </th>
                             </tr>
@@ -245,7 +245,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                             <td className="p-3">
                                                 <div>
                                                     <p className="font-medium text-sm text-slate-800 dark:text-white">{batch.product?.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-mono">{batch.product?.code || batch.product?.sku}</p>
+                                                    <p className="text-2xs text-slate-400 font-mono">{batch.product?.code || batch.product?.sku}</p>
                                                 </div>
                                             </td>
                                             <td className="p-3 text-right">
@@ -261,15 +261,15 @@ export default function BatchTracking({ batches, stats, filters }) {
                                             </td>
                                             <td className="p-3 text-center">
                                                 {isExpired ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                                                         <XCircle size={10} /> Expired
                                                     </span>
                                                 ) : isExpiring ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                                         <Clock size={10} /> Expiring
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                                                         <CheckCircle size={10} /> Valid
                                                     </span>
                                                 )}

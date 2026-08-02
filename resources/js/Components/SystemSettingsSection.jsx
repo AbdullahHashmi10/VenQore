@@ -5,6 +5,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { usePage } from '@inertiajs/react';
 
+import { vq } from '@/theme/runtime';
 export default function SystemSettingsSection({ data, setData, activeSubSection = 'system' }) {
     const { woocommerce_enabled, store } = usePage().props;
     const fileInputRef = useRef(null);
@@ -33,7 +34,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
-            background: '#1e293b',
+            background: vq.slate[800],
             color: '#fff',
             didOpen: () => {
                 const b = Swal.getHtmlContainer().querySelector('#swal-backup-bar');
@@ -77,7 +78,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false,
-                    background: '#1e293b',
+                    background: vq.slate[800],
                     color: '#fff'
                 });
 
@@ -91,7 +92,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                 title: 'Backup Failed',
                 text: error.response?.data?.message || 'Could not create backup.',
                 icon: 'error',
-                background: '#1e293b',
+                background: vq.slate[800],
                 color: '#fff'
             });
         } finally {
@@ -113,7 +114,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
         const isExcel = ['xlsx', 'xls', 'csv'].includes(extension);
 
         if (!isSql && !isVyapar && !isExcel) {
-            Swal.fire({ title: 'Unsupported File', text: 'Accepted formats: .sql, .vyb, .vyp, .xlsx, .xls, .csv', icon: 'error', background: '#1e293b', color: '#fff' });
+            Swal.fire({ title: 'Unsupported File', text: 'Accepted formats: .sql, .vyb, .vyp, .xlsx, .xls, .csv', icon: 'error', background: vq.slate[800], color: '#fff' });
             e.target.value = null;
             return;
         }
@@ -138,10 +139,10 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             title, text,
             icon: isSql ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: isSql ? '#dc2626' : '#3085d6',
-            cancelButtonColor: '#64748b',
+            confirmButtonColor: isSql ? vq.red[600] : '#3085d6',
+            cancelButtonColor: vq.slate[500],
             confirmButtonText: confirmText,
-            background: '#1e293b',
+            background: vq.slate[800],
             color: '#fff'
         });
 
@@ -192,7 +193,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
-            background: '#1e293b',
+            background: vq.slate[800],
             color: '#fff',
             didOpen: () => {
                 const b = Swal.getHtmlContainer()?.querySelector('#swal-progress-bar');
@@ -245,7 +246,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                 title: 'Success!',
                 text: response.data.message || 'Operation completed successfully.',
                 icon: 'success',
-                background: '#1e293b',
+                background: vq.slate[800],
                 color: '#fff'
             }).then(() => {
                 window.location.reload();
@@ -256,7 +257,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                 title: 'Operation Failed',
                 text: error.response?.data?.message || 'Something went wrong. Please check your file and try again.',
                 icon: 'error',
-                background: '#1e293b',
+                background: vq.slate[800],
                 color: '#fff'
             });
         } finally {
@@ -338,7 +339,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                     <p className="font-semibold mb-2">💡 Automatic local database backups are coming soon. Use Google Drive Automated Backups to secure your data in the cloud.</p>
                                     <a
                                         href={route('store.admin.data', { store_slug: store?.slug })}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[11px] transition-all shadow-md shadow-sky-600/10 cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-1xs transition-all shadow-md shadow-sky-600/10 cursor-pointer"
                                     >
                                         Configure Google Drive Backup
                                     </a>
@@ -390,7 +391,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 space-y-4 animate-in slide-in-from-top-4 duration-300">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">FBR POS ID</label>
+                                            <label className="text-2xs font-black uppercase tracking-[0.15em] text-slate-400">FBR POS ID</label>
                                             <input
                                                 type="text"
                                                 value={data.fbr_pos_id}
@@ -399,7 +400,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                             />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">FBR USIN</label>
+                                            <label className="text-2xs font-black uppercase tracking-[0.15em] text-slate-400">FBR USIN</label>
                                             <input
                                                 type="text"
                                                 value={data.fbr_usin}
@@ -423,7 +424,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <h5 className="text-lg font-black text-slate-900 dark:text-white leading-tight">Stripe</h5>
-                                            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Upcoming</span>
+                                            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-black uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Upcoming</span>
                                         </div>
                                         <p className="text-xs text-slate-500 font-medium">Process card payments</p>
                                     </div>

@@ -169,7 +169,7 @@ const CustomerProfileCard = ({ customer, onClose }) => {
                 <div className="text-xs uppercase text-slate-500 font-bold mb-2">Growth Engine</div>
                 <div className="bg-gradient-to-r from-amber-500/10 to-transparent p-2 rounded">
                     <div className="text-amber-500 font-bold text-lg">{customer.points || 0} PTS</div>
-                    <div className="text-[10px] text-amber-400/60">Redeemable Value: {formatCurrency((customer.points || 0) * 0.1, store)}</div>
+                    <div className="text-2xs text-amber-400/60">Redeemable Value: {formatCurrency((customer.points || 0) * 0.1, store)}</div>
                 </div>
             </div>
 
@@ -180,7 +180,7 @@ const CustomerProfileCard = ({ customer, onClose }) => {
                 </button>
                 <div className="text-xs uppercase text-slate-500 font-bold mb-2">Last Interaction</div>
                 <div className="text-sm text-slate-300">2 Days Ago</div>
-                <div className="text-[10px] text-slate-500 mb-2">Invoice #INV-2024-001</div>
+                <div className="text-2xs text-slate-500 mb-2">Invoice #INV-2024-001</div>
                 <button className="text-xs text-indigo-400 underline hover:text-indigo-300">View Full Ledger</button>
             </div>
         </div>
@@ -214,7 +214,7 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
             <td className="p-3">
                 <div className="flex flex-col">
                     <span className="font-bold text-slate-100">{item.name}</span>
-                    <div className="flex items-center space-x-2 text-[10px] text-slate-500 font-mono mt-1">
+                    <div className="flex items-center space-x-2 text-2xs text-slate-500 font-mono mt-1">
                         <span className="bg-slate-800 px-1 rounded border border-slate-700">SKU: {item.product?.sku || 'N/A'}</span>
                         {item.product?.stock_quantity <= 0 && <span className="text-red-500 flex items-center"><AlertCircle className="w-3 h-3 mr-1" /> Stock: 0</span>}
                         {item.product?.location && <span>Loc: {item.product.location}</span>}
@@ -225,7 +225,7 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
             {/* BATCH / SERIAL (The Hidden Detail) */}
             <td className="w-24 p-2">
                 {item.product?.has_batch ? (
-                    <select className="bg-slate-900 border border-slate-600 text-[10px] rounded p-1 w-full text-amber-400 cursor-pointer">
+                    <select className="bg-slate-900 border border-slate-600 text-2xs rounded p-1 w-full text-amber-400 cursor-pointer">
                         <option>Batch A (Exp 2025)</option>
                         <option>Batch B (Exp 2026)</option>
                     </select>
@@ -243,7 +243,7 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
                         onChange={(e) => onUpdate(item.id, 'quantity', parseFloat(e.target.value))}
                         className="w-16 bg-slate-800 border-slate-600 rounded text-center font-bold text-white focus:ring-indigo-500"
                     />
-                    <div className="flex flex-col text-[9px] text-slate-500 leading-tight">
+                    <div className="flex flex-col text-3xs text-slate-500 leading-tight">
                         <span className="cursor-pointer hover:text-indigo-400">PCS</span>
                         <span className="cursor-pointer hover:text-indigo-400">BOX</span>
                     </div>
@@ -261,10 +261,10 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
                     />
                     {/* ATOMIC LINK: MARGIN TOOLTIP */}
                     <div className="absolute top-full right-0 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-focus-within/price:block min-w-[150px]">
-                        <div className="text-[10px] text-slate-400 flex justify-between">
+                        <div className="text-2xs text-slate-400 flex justify-between">
                             <span>Cost:</span> <span>{formatCurrency(item.product?.cost || 0, store)}</span>
                         </div>
-                        <div className="text-[10px] text-slate-400 flex justify-between">
+                        <div className="text-2xs text-slate-400 flex justify-between">
                             <span>Margin:</span>
                             <span className={margin < 15 ? 'text-red-400' : 'text-green-400'}>{margin.toFixed(1)}%</span>
                         </div>
@@ -385,7 +385,7 @@ export default function MasterSales() {
 
     // --- RENDER ---
     return (
-        <div className="h-screen w-full bg-[#0B1121] text-slate-300 flex flex-col font-sans overflow-hidden">
+        <div className="h-screen w-full bg-void-800 text-slate-300 flex flex-col font-sans overflow-hidden">
             <Head title="Master Sales Console" />
 
             {/* 1. TOP BAR: TAB MANAGEMENT (THE "VERY TOP" REQUIREMENT) */}
@@ -398,7 +398,7 @@ export default function MasterSales() {
                             className={`
                                 relative group flex items-center px-4 py-2 rounded-t-lg cursor-pointer transition-all border-t-2 select-none min-w-[160px] max-w-[220px]
                                 ${inv.id === currentInvoiceId
-                                    ? 'bg-[#1e293b] border-indigo-500 text-white shadow-lg'
+                                    ? 'bg-slate-800 border-indigo-500 text-white shadow-lg'
                                     : 'bg-slate-900 border-transparent text-slate-500 hover:bg-slate-800'}
                             `}
                         >
@@ -407,7 +407,7 @@ export default function MasterSales() {
                                 <span className="text-xs font-bold truncate">
                                     {inv.customer?.name || `Invoice #${idx + 1}`}
                                 </span>
-                                <span className="text-[9px] font-mono opacity-60 flex justify-between w-full">
+                                <span className="text-3xs font-mono opacity-60 flex justify-between w-full">
                                     <span>{inv.items?.length || 0} Items</span>
                                     <span>{formatCurrency(inv.total || 0, store)}</span>
                                 </span>
@@ -433,7 +433,7 @@ export default function MasterSales() {
             <div className="flex-1 flex overflow-hidden relative">
 
                 {/* LEFT: THE INVOICE SHEET */}
-                <div className="flex-1 flex flex-col bg-[#0f172a] relative">
+                <div className="flex-1 flex flex-col bg-slate-900 relative">
 
                     {/* CUSTOMER HEADER (EXPANDABLE) */}
                     <div className="h-16 border-b border-slate-800 bg-slate-900 flex items-center px-4 justify-between z-10 relative">
@@ -443,7 +443,7 @@ export default function MasterSales() {
                                 <User className="w-5 h-5" />
                             </div>
                             <div className="flex-1">
-                                <label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Customer / Client</label>
+                                <label className="text-2xs uppercase font-bold text-slate-500 tracking-wider">Customer / Client</label>
                                 <AsyncPartyCombobox
                                     partyType="all"
                                     onSelect={(party) => {
@@ -464,21 +464,21 @@ export default function MasterSales() {
                         {/* Meta Info */}
                         <div className="flex items-center space-x-6 text-right">
                             <div>
-                                <label className="text-[10px] uppercase font-bold text-slate-500">Date</label>
+                                <label className="text-2xs uppercase font-bold text-slate-500">Date</label>
                                 <div className="text-sm font-mono text-slate-300">{new Date().toLocaleDateString()}</div>
                             </div>
                             <div>
-                                <label className="text-[10px] uppercase font-bold text-slate-500">Salesman</label>
+                                <label className="text-2xs uppercase font-bold text-slate-500">Salesman</label>
                                 <div className="text-sm font-medium text-slate-300">Admin User</div>
                             </div>
                         </div>
                     </div>
 
                     {/* ITEMS TABLE (SCROLLABLE AREA) */}
-                    <div className="flex-1 overflow-y-auto bg-[#0f172a]" ref={tableRef}>
+                    <div className="flex-1 overflow-y-auto bg-slate-900" ref={tableRef}>
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-[#1e293b] sticky top-0 z-10 border-b border-slate-700 shadow-md">
-                                <tr className="text-[10px] uppercase text-slate-400 font-bold tracking-wider">
+                            <thead className="bg-slate-800 sticky top-0 z-10 border-b border-slate-700 shadow-md">
+                                <tr className="text-2xs uppercase text-slate-400 font-bold tracking-wider">
                                     <th className="p-2 w-10 text-center">#</th>
                                     <th className="p-2">Item Description</th>
                                     <th className="p-2 w-24">Batch/Serial</th>
@@ -521,7 +521,7 @@ export default function MasterSales() {
 
                             {/* PAYMENT SPLIT SIMULATOR */}
                             <div className="w-1/2 pr-10">
-                                <div className="text-[10px] uppercase font-bold text-slate-500 mb-2 flex items-center">
+                                <div className="text-2xs uppercase font-bold text-slate-500 mb-2 flex items-center">
                                     <Layers className="w-3 h-3 mr-1" /> Payment Stack
                                 </div>
                                 <div className="flex space-x-2">
@@ -578,7 +578,7 @@ export default function MasterSales() {
                 </div>
 
                 {/* RIGHT: THE CONTROL TOWER (SIDEBAR) */}
-                <div className="w-[350px] bg-[#020617] border-l border-slate-800 flex flex-col z-30 shadow-2xl">
+                <div className="w-[350px] bg-slate-950 border-l border-slate-800 flex flex-col z-30 shadow-2xl">
 
                     {/* MODE TOGGLE */}
                     <div className="p-2 grid grid-cols-2 gap-2 bg-slate-900 border-b border-slate-800">
@@ -597,11 +597,11 @@ export default function MasterSales() {
                     </div>
 
                     {/* INPUT AREA */}
-                    <div className="p-4 border-b border-slate-800 bg-gradient-to-b from-slate-900 to-[#020617]">
+                    <div className="p-4 border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950">
                         {scanMode ? (
                             <div className="relative">
                                 <input type="text" autoFocus className="w-full bg-black border-2 border-emerald-500/50 text-emerald-400 font-mono text-center text-xl p-3 rounded" placeholder="SCAN BARCODE..." />
-                                <div className="text-[10px] text-center text-emerald-600 mt-2 animate-pulse">Running Barcode Listener...</div>
+                                <div className="text-2xs text-center text-emerald-600 mt-2 animate-pulse">Running Barcode Listener...</div>
                             </div>
                         ) : (
                             <div className="pt-1">
@@ -612,7 +612,7 @@ export default function MasterSales() {
                                     }}
                                     placeholder="Search products... (Alt+P)"
                                 />
-                                <div className="flex justify-between mt-2 text-[10px] text-slate-500">
+                                <div className="flex justify-between mt-2 text-2xs text-slate-500">
                                     <span>Select to add to invoice</span>
                                     <span>Type to search</span>
                                 </div>
@@ -634,7 +634,7 @@ export default function MasterSales() {
                                             <span className="font-bold text-slate-200 group-hover:text-white">Sample Product {i}</span>
                                             <span className="font-mono text-emerald-400 font-bold">{formatCurrency(12.50, store)}</span>
                                         </div>
-                                        <div className="flex justify-between mt-1 text-[10px] text-slate-500">
+                                        <div className="flex justify-between mt-1 text-2xs text-slate-500">
                                             <span>Ware A: 50pcs</span>
                                             <span>Shelf: A-12</span>
                                         </div>
@@ -648,31 +648,31 @@ export default function MasterSales() {
                                 {/* SHORTCUTS / LINKS */}
                                 <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-indigo-400 transition-all">
                                     <Calculator className="w-6 h-6 mb-2" />
-                                    <span className="text-[10px] uppercase font-bold">Calculator</span>
+                                    <span className="text-2xs uppercase font-bold">Calculator</span>
                                 </button>
                                 <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-emerald-400 transition-all">
                                     <Truck className="w-6 h-6 mb-2" />
-                                    <span className="text-[10px] uppercase font-bold">Shipping</span>
+                                    <span className="text-2xs uppercase font-bold">Shipping</span>
                                 </button>
                                 <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-amber-400 transition-all">
                                     <History className="w-6 h-6 mb-2" />
-                                    <span className="text-[10px] uppercase font-bold">Recent</span>
+                                    <span className="text-2xs uppercase font-bold">Recent</span>
                                 </button>
                                 <button className="aspect-square bg-slate-900 border border-slate-800 rounded flex flex-col items-center justify-center hover:bg-slate-800 hover:border-slate-700 text-slate-500 hover:text-red-400 transition-all">
                                     <AlertTriangle className="w-6 h-6 mb-2" />
-                                    <span className="text-[10px] uppercase font-bold">Hold Bill</span>
+                                    <span className="text-2xs uppercase font-bold">Hold Bill</span>
                                 </button>
                             </div>
                         )}
                     </div>
 
                     {/* ACTIVITY STREAM (THE MEMORY) */}
-                    <div className="h-48 border-t border-slate-800 bg-[#020617] flex flex-col">
-                        <div className="p-2 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-500 flex justify-between items-center">
+                    <div className="h-48 border-t border-slate-800 bg-slate-950 flex flex-col">
+                        <div className="p-2 border-b border-slate-800 text-2xs uppercase font-bold text-slate-500 flex justify-between items-center">
                             <span>System Activity Log</span>
                             <RefreshCcw className="w-3 h-3" />
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-[10px]">
+                        <div className="flex-1 overflow-y-auto p-2 space-y-2 font-mono text-2xs">
                             {auditLog.map(log => (
                                 <div key={log.id} className="flex space-x-2 text-slate-500">
                                     <span className="text-slate-600">{log.time}</span>

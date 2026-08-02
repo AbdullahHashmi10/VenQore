@@ -30,6 +30,7 @@ import {
 
 import ElevatedPinModal from '@/Components/ElevatedPinModal';
 
+import { vq } from '@/theme/runtime';
 // --- Components ---
 
 // Modal Component (Reused)
@@ -107,7 +108,7 @@ const ActionCard3D = ({ icon: Icon, title, description, colorClass, glowColor, o
                     <h3 className="text-sm font-bold mb-0.5 text-slate-800 dark:text-white group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors">
                         {title}
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-[10px] font-medium">
+                    <p className="text-slate-500 dark:text-slate-400 text-2xs font-medium">
                         {description}
                     </p>
                 </div>
@@ -152,10 +153,10 @@ const FundFlowChart = ({ transactions, store }) => {
                     Fund Flow Analysis
                 </h2>
                 <div className="flex gap-2">
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
+                    <span className="flex items-center gap-1 text-2xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div> In
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-lg">
+                    <span className="flex items-center gap-1 text-2xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-2 py-1 rounded-lg">
                         <div className="w-2 h-2 rounded-full bg-rose-500"></div> Out
                     </span>
                 </div>
@@ -166,34 +167,34 @@ const FundFlowChart = ({ transactions, store }) => {
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0} />
                             </linearGradient>
                             <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                <stop offset="5%" stopColor={vq.rose[500]} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={vq.rose[500]} stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} strokeOpacity={0.5} />
                         <XAxis
                             dataKey="name"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10, fill: '#94a3b8' }}
+                            tick={{ fontSize: 10, fill: vq.slate[400] }}
                             dy={10}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10, fill: '#94a3b8' }}
+                            tick={{ fontSize: 10, fill: vq.slate[400] }}
                             tickFormatter={(val) => `${getCurrencySymbol()} ${val / 1000}k`}
                         />
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '12px', border: 'none', color: '#fff' }}
+                            contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '12px', border: 'none', color: '#fff' }}
                             itemStyle={{ fontSize: '12px' }}
                         />
-                        <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
-                        <Area type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                        <Area type="monotone" dataKey="income" stroke={vq.emerald[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                        <Area type="monotone" dataKey="expense" stroke={vq.rose[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
@@ -368,13 +369,13 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         onClick={() => handleNavClick('transactions', 'deposits')}
                         className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'deposits' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                     >
-                        Deposits <span className="text-[10px] bg-emerald-200 dark:bg-emerald-800 px-1.5 rounded-full ml-1">Add</span>
+                        Deposits <span className="text-2xs bg-emerald-200 dark:bg-emerald-800 px-1.5 rounded-full ml-1">Add</span>
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'withdrawals')}
                         className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${mode === 'transactions' && subMode === 'withdrawals' ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                     >
-                        Withdrawals <span className="text-[10px] bg-rose-200 dark:bg-rose-800 px-1.5 rounded-full ml-1">Rem</span>
+                        Withdrawals <span className="text-2xs bg-rose-200 dark:bg-rose-800 px-1.5 rounded-full ml-1">Rem</span>
                     </button>
                     <button
                         onClick={() => handleNavClick('transactions', 'transfers')}
@@ -484,11 +485,11 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 mt-6">
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Cash In Hand</p>
+                                                    <p className="text-2xs text-slate-400 uppercase font-bold mb-1">Cash In Hand</p>
                                                     <p className="font-bold text-lg text-emerald-400">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
                                                 </div>
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Bank Accounts</p>
+                                                    <p className="text-2xs text-slate-400 uppercase font-bold mb-1">Bank Accounts</p>
                                                     <p className="font-bold text-lg text-blue-400">{getCurrencySymbol()} {bankAccounts.reduce((sum, b) => sum + parseFloat(b.balance), 0).toLocaleString()}</p>
                                                 </div>
                                             </div>
@@ -505,7 +506,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                     </h3>
                                     <button 
                                         onClick={() => setMode('transactions')}
-                                        className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                                        className="text-2xs font-black uppercase text-indigo-500 hover:text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
                                     >
                                         Full History <ExternalLink size={10} />
                                     </button>
@@ -605,7 +606,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                 <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                                     <td className="p-4 text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{tx.created_at}</td>
                                                     <td className="p-4">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${
+                                                        <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wide border ${
                                                             ['add', 'sale'].includes(tx.type) ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                                             ['remove', 'purchase', 'expense'].includes(tx.type) ? 'bg-rose-50 text-rose-600 border-rose-200' :
                                                             tx.type === 'transfer' ? 'bg-blue-50 text-blue-600 border-blue-200' :
@@ -730,7 +731,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     <div className="space-y-6">
                         {/* FROM SECTION */}
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Transfer From</label>
+                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-400 mb-3">Transfer From</label>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
@@ -782,7 +783,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
 
                         {/* TO SECTION */}
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Transfer To</label>
+                            <label className="block text-2xs font-black uppercase tracking-widest text-slate-400 mb-3">Transfer To</label>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"

@@ -13,7 +13,7 @@ export default function TrialExpired() {
     const { store } = usePage().props;
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans flex items-center justify-center p-6">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-6">
             <Head title="Trial Expired — VenQore" />
 
             <div className="fixed inset-0 pointer-events-none">
@@ -82,14 +82,14 @@ function PlanCard({ plan, price, color, features, badge }) {
     return (
         <div className={`rounded-xl border p-3 relative ${cfg.header}`}>
             {badge && (
-                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-indigo-500 text-[10px] font-bold text-white whitespace-nowrap">
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-indigo-500 text-2xs font-bold text-white whitespace-nowrap">
                     {badge}
                 </div>
             )}
             <p className="text-xs font-bold mb-0.5">{plan}</p>
             <p className="text-lg font-black mb-2">{price}<span className="text-xs font-normal opacity-60">/mo</span></p>
             {features.map(f => (
-                <div key={f} className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1">
+                <div key={f} className="flex items-center gap-1.5 text-2xs text-slate-400 mb-1">
                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                     {f}
                 </div>

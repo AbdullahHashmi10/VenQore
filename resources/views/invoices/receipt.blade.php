@@ -207,9 +207,8 @@
 
     <div class="footer">
         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
-        <div style="margin-top: 10px;">
-            Powered by VENQORE<br>
-            Visit us: www.venqore.com
+        <div style="margin-top: 10px; font-size: 11px; color: #64748b;">
+            Powered by <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener" style="color: #4f46e5; text-decoration: none; font-weight: bold;">VenQore</a>
         </div>
     </div>
 

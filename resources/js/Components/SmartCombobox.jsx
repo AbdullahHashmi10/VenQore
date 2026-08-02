@@ -178,7 +178,7 @@ const SmartCombobox = ({
     const getTypeBadge = (item) => {
         if (item.type === 'customer') {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-black uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                     <ShoppingBag size={10} />
                     Customer
                 </span>
@@ -186,7 +186,7 @@ const SmartCombobox = ({
         }
         if (item.type === 'supplier') {
             return (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-black uppercase bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
                     <Truck size={10} />
                     Supplier
                 </span>
@@ -256,7 +256,7 @@ const SmartCombobox = ({
         }
 
         return (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${colorClass}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-1xs font-bold border ${colorClass}`}>
                 {icon}
                 {label}: {formatCurrency(Math.abs(balance), store || settings)}
             </span>
@@ -271,13 +271,13 @@ const SmartCombobox = ({
 
         if (usagePercent >= 90) {
             return (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 animate-pulse">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 animate-pulse">
                     <AlertTriangle size={10} /> Credit Limit!
                 </span>
             );
         } else if (usagePercent >= 70) {
             return (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-3xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
                     <AlertTriangle size={10} /> {Math.round(usagePercent)}% Used
                 </span>
             );
@@ -297,20 +297,20 @@ const SmartCombobox = ({
         return (
             <span className="inline-flex items-center gap-1.5 flex-wrap">
                 {available <= 0 ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-black bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
                         <AlertTriangle size={10} /> OUT OF STOCK
                     </span>
                 ) : available <= lowStockThreshold ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
                         <AlertTriangle size={10} /> Avail: {available}
                     </span>
                 ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                         <Package size={10} /> Avail: {available}
                     </span>
                 )}
                 {reserved > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
                         🔒 Reserved: {reserved}
                     </span>
                 )}
@@ -327,14 +327,14 @@ const SmartCombobox = ({
 
         if (margin <= 0) {
             return (
-                <span className="text-[10px] text-red-500 font-bold">
+                <span className="text-2xs text-red-500 font-bold">
                     ⚠️ No Profit
                 </span>
             );
         }
 
         return (
-            <span className="text-[10px] text-slate-400">
+            <span className="text-2xs text-slate-400">
                 Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
                 <span className="text-slate-300 ml-1">({marginPercent}%)</span>
             </span>
@@ -358,7 +358,7 @@ const SmartCombobox = ({
         else timeText = `${Math.floor(diffDays / 365)}y ago`;
 
         return (
-            <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
+            <span className="inline-flex items-center gap-1 text-2xs text-slate-400">
                 <Clock size={10} /> {timeText}
             </span>
         );
@@ -427,7 +427,7 @@ const SmartCombobox = ({
 
             {/* Keyboard Hint */}
             {isOpen && filteredItems.length > 0 && (
-                <div className={`absolute right-0 text-[9px] text-slate-400 flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
+                <div className={`absolute right-0 text-3xs text-slate-400 flex items-center gap-2 ${openUpwards ? '-top-5' : '-bottom-5'}`}>
                     <span className="flex items-center gap-0.5"><ArrowUp size={10} /><ArrowDown size={10} /></span>
                     <span>↵ Select</span>
                     <span>Esc Close</span>
@@ -441,11 +441,11 @@ const SmartCombobox = ({
                     {/* Results Count Header */}
                     {filteredItems.length > 0 && (
                         <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider">
                                 {filteredItems.length} Result{filteredItems.length !== 1 ? 's' : ''}
                             </span>
                             {query && (
-                                <span className="text-[10px] text-slate-400">
+                                <span className="text-2xs text-slate-400">
                                     Searching: "<span className="text-indigo-500 font-bold">{query}</span>"
                                 </span>
                             )}
@@ -570,12 +570,12 @@ const SmartCombobox = ({
                                         {isProduct(item) && (
                                             <div className="flex items-center gap-2 flex-wrap mb-1">
                                                 {item.sku && (
-                                                    <span className="font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">
+                                                    <span className="font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-2xs">
                                                         SKU: {item.sku}
                                                     </span>
                                                 )}
                                                 {item.category?.name && (
-                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold">
+                                                    <span className="text-2xs px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold">
                                                         {item.category.name}
                                                     </span>
                                                 )}
@@ -587,7 +587,7 @@ const SmartCombobox = ({
                                         {isProduct(item) && !hideCostAndMargin && (
                                             <div className="flex items-center gap-3">
                                                 {item.cost !== undefined && (
-                                                    <span className="text-[11px] text-slate-400">
+                                                    <span className="text-1xs text-slate-400">
                                                         Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost, store || settings)}</span>
                                                     </span>
                                                 )}
@@ -644,7 +644,7 @@ const SmartCombobox = ({
                                         {addNewLabel}
                                         {query && <span className="text-slate-500 dark:text-slate-400 font-normal ml-1">"{query}"</span>}
                                     </span>
-                                    <span className="text-[10px] text-slate-400">Create a new entry</span>
+                                    <span className="text-2xs text-slate-400">Create a new entry</span>
                                 </div>
                             </button>
                         </div>

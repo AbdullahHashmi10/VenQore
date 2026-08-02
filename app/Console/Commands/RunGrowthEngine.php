@@ -2,311 +2,108 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
+use App\Jobs\RunGrowthEngineForTenant;
 use App\Models\Tenant;
-use App\Models\Party;
-use App\Models\Product;
-use App\Models\CustomerAnalytics;
-use App\Models\AiRecommendation;
-use App\Services\AiRetentionService;
-use App\Models\Invoice;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Services\Growth\GrowthEngine;
+use Illuminate\Console\Command;
 
+/**
+ * growth:analyze — the Growth Engine entry point.
+ *
+ * Replaces the V1 command, which:
+ *   - ran every tenant inline in one process,
+ *   - read the empty `invoices` table so produced nothing,
+ *   - and offered `--force`, which DELETED all of a tenant's recommendations
+ *     and analytics before regenerating. That destroyed the read/dismiss state
+ *     the owner had built up, and — after V2 — would also destroy the outcome
+ *     history the engine learns from. `--force` now means "ignore the
+ *     watermark and re-run", which is what people actually wanted from it.
+ *
+ * Modes:
+ *   deep    full analysis, all four brains, grading + tuning + snapshot (nightly)
+ *   light   fast pass over stock and cash only, skipped entirely if nothing
+ *           new has been recorded (hourly)
+ */
 class RunGrowthEngine extends Command
 {
-    protected $signature = 'growth:analyze {--tenant= : Run for a specific tenant ID only} {--force : Force regenerate all recommendations}';
-    protected $description = 'Run the Growth Engine AI to generate smart business recommendations (per tenant)';
+    protected $signature = 'growth:analyze
+        {--tenant= : Run for a single tenant ID}
+        {--mode=deep : deep|light}
+        {--force : Ignore the change watermark and run anyway}
+        {--sync : Run inline instead of dispatching to the queue}';
 
-    public function handle()
+    protected $description = 'Run the Growth Engine — four brains producing tracked, self-tuning business insights';
+
+    public function handle(GrowthEngine $engine): int
     {
-        $this->info('🚀 Starting Growth Engine Analysis...');
+        $mode = in_array($this->option('mode'), ['deep', 'light'], true)
+            ? $this->option('mode')
+            : 'deep';
 
-        // 6D FIX: Run per active tenant
-        $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
+        $query = Tenant::query()->whereIn('status', ['active', 'trial']);
 
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', $this->option('tenant'));
+            $query->where('id', $this->option('tenant'));
         }
 
-        $tenants = $tenantQuery->get();
+        $tenants = $query->get(['id', 'name']);
 
         if ($tenants->isEmpty()) {
             $this->warn('No active tenants found.');
-            return 0;
+            return self::SUCCESS;
         }
+
+        $this->info("Growth Engine — {$mode} pass across {$tenants->count()} tenant(s)");
+
+        // Inline mode is for local debugging and single-tenant manual runs.
+        // Anything platform-wide goes through the queue so it cannot monopolise
+        // a web worker or block on one slow tenant.
+        $sync = $this->option('sync') || ($this->option('tenant') && $tenants->count() === 1 && $this->option('sync'));
+
+        $created = $skipped = $failed = 0;
 
         foreach ($tenants as $tenant) {
-            $this->info("\n🏪 Tenant [{$tenant->id}] {$tenant->name}");
-            $this->processForTenant($tenant->id);
-        }
+            if ($sync) {
+                $run = $engine->runForTenant($tenant->id, $mode, (bool) $this->option('force'));
 
-        $this->info("\n✅ Growth Engine analysis completed for all tenants.");
-        return 0;
-    }
+                match ($run->status) {
+                    'skipped' => $skipped++,
+                    'failed'  => $failed++,
+                    default   => $created += $run->signals_created,
+                };
 
-    private function processForTenant(string|int $tenantId): void
-    {
-        // Load AI Settings
-        $settings = $this->loadSettings($tenantId);
+                $this->line(sprintf(
+                    '  [%d] %-28s %-8s %5dms  +%d new  ~%d updated  ✓%d resolved',
+                    $tenant->id,
+                    \Illuminate\Support\Str::limit($tenant->name, 26),
+                    $run->status,
+                    $run->duration_ms,
+                    $run->signals_created,
+                    $run->signals_updated,
+                    $run->signals_resolved
+                ));
 
-        // Clear old recommendations if forcing
-        if ($this->option('force')) {
-            AiRecommendation::where('tenant_id', $tenantId)->delete();
-            CustomerAnalytics::where('tenant_id', $tenantId)->delete();
-            $this->info('   - Cleared existing recommendations.');
-        }
-
-        // --- Brain A: Customer Retention Engine ---
-        $this->info('   🧠 Brain A: Customer Retention Engine...');
-        $retentionService = resolve(AiRetentionService::class);
-        $retentionCount = $retentionService->runRetentionAnalysis($tenantId);
-        $this->info("   - Generated {$retentionCount} retention alerts.");
-
-        // --- Brain B: Inventory Forecaster ---
-        $this->runInventoryForecaster($tenantId, $settings);
-
-        // --- Brain C: Churn Detector ---
-        $this->runChurnDetector($tenantId);
-
-        // --- Recovery Alerts: Overdue Invoices ---
-        $this->runRecoveryAlerts($tenantId);
-    }
-
-    private function loadSettings(string|int $tenantId): array
-    {
-        $settings = DB::table('ai_settings')
-            ->where('tenant_id', $tenantId)
-            ->pluck('value', 'key')
-            ->toArray();
-
-        $defaults = [
-            'regular_customer_min_orders' => '3',
-            'regular_customer_period_days' => '60',
-            'min_order_value_filter' => '5000',
-            'lookahead_days' => '7',
-        ];
-
-        $settings = array_merge($defaults, $settings);
-
-        return [
-            'min_orders'      => (int) ($settings['regular_customer_min_orders'] ?? 3),
-            'period_days'     => (int) ($settings['regular_customer_period_days'] ?? 60),
-            'min_order_value' => (float) ($settings['min_order_value_filter'] ?? 5000),
-            'lookahead_days'  => (int) ($settings['lookahead_days'] ?? 7),
-        ];
-    }
-
-    private function runInventoryForecaster(string|int $tenantId, array $settings): void
-    {
-        $this->info('   📦 Brain B: Inventory Forecaster...');
-
-        $lookahead = $settings['lookahead_days'];
-
-        // WOUND 3 FIX: Scope CustomerAnalytics by tenant_id
-        $dueCustomers = CustomerAnalytics::with(['party.invoices' => function ($q) use ($tenantId) {
-                $q->where('tenant_id', $tenantId)
-                  ->where('type', 'sale')
-                  ->latest()
-                  ->take(1)
-                  ->with('items.product');
-            }])
-            ->where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->whereNotNull('predicted_next_order')
-            ->where('predicted_next_order', '<=', Carbon::now()->addDays($lookahead))
-            ->get();
-
-        $expectedDemand = [];
-
-        foreach ($dueCustomers as $analytics) {
-            $party = $analytics->party;
-            if (!$party) continue;
-
-            $lastInvoice = $party->invoices->first();
-            if (!$lastInvoice) continue;
-
-            foreach ($lastInvoice->items as $item) {
-                if (!$item->product) continue;
-
-                $productId = $item->product_id;
-                if (!isset($expectedDemand[$productId])) {
-                    $expectedDemand[$productId] = [
-                        'product'   => $item->product,
-                        'qty'       => 0,
-                        'customers' => 0,
-                    ];
+                if ($run->status === 'failed') {
+                    $this->error('      ' . \Illuminate\Support\Str::limit((string) $run->error, 160));
                 }
-                $expectedDemand[$productId]['qty'] += $item->quantity;
-                $expectedDemand[$productId]['customers']++;
+            } else {
+                RunGrowthEngineForTenant::dispatch(
+                    $tenant->id,
+                    $mode,
+                    (bool) $this->option('force')
+                );
+                $created++;
             }
         }
 
-        $created = 0;
-
-        foreach ($expectedDemand as $productId => $demand) {
-            $product = $demand['product'];
-
-            // WOUND 3 FIX: Scope inventory_batches by tenant_id
-            $currentStock = DB::table('inventory_batches')
-                ->where('tenant_id', $tenantId)
-                ->where('product_id', $productId)
-                ->where('remaining_qty', '>', 0)
-                ->whereNull('deleted_at')
-                ->sum('remaining_qty');
-
-            if ($currentStock >= $demand['qty']) continue;
-
-            $shortfall = $demand['qty'] - $currentStock;
-
-            // WOUND 3 FIX: Check existing alerts scoped to this tenant
-            $exists = AiRecommendation::where('tenant_id', $tenantId)
-                ->where('type', 'forecast')
-                ->where('product_id', $productId)
-                ->where('created_at', '>=', Carbon::now()->startOfDay())
-                ->exists();
-
-            if ($exists) continue;
-
-            AiRecommendation::create([
-                'tenant_id'        => $tenantId,
-                'type'             => 'forecast',
-                'priority'         => 'urgent',
-                'product_id'       => $productId,
-                'title'            => "Stock Risk: {$product->name}",
-                'message'          => "You have {$currentStock} {$product->unit} but expected demand is {$demand['qty']} {$product->unit} from {$demand['customers']} customers this week. Shortfall: {$shortfall} {$product->unit}.",
-                'potential_revenue'=> $shortfall * ($product->price ?? 0),
-                'action_type'      => 'purchase_order',
-                'action_url'       => '/purchase-orders/create', // fallback if route() fails in CLI
-                'data'             => [
-                    'current_stock'   => $currentStock,
-                    'expected_demand' => $demand['qty'],
-                    'shortfall'       => $shortfall,
-                ],
-                'valid_until'      => Carbon::now()->addDays(7),
-            ]);
-
-            $created++;
+        if ($sync) {
+            $this->newLine();
+            $this->info("Done. {$created} new signals, {$skipped} tenant(s) skipped (no new data), {$failed} failed.");
+        } else {
+            $this->info("Queued {$created} tenant job(s) on the 'growth' queue.");
+            $this->comment('Ensure a worker is processing it:  php artisan queue:work --queue=growth');
         }
 
-        $this->info("   - Created {$created} stock risk alerts.");
-    }
-
-    private function runChurnDetector(string|int $tenantId): void
-    {
-        $this->info('   ⚠️ Brain C: Churn Detector...');
-
-        // WOUND 3 FIX: Scope CustomerAnalytics by tenant_id
-        $churned = CustomerAnalytics::with('party')
-            ->where('tenant_id', $tenantId)
-            ->whereIn('status', ['at_risk', 'churned'])
-            ->get();
-
-        $created = 0;
-
-        foreach ($churned as $analytics) {
-            $party = $analytics->party;
-            if (!$party) continue;
-
-            $daysSince = $analytics->last_order_date
-                ? Carbon::parse($analytics->last_order_date)->diffInDays(Carbon::now())
-                : 999;
-
-            $missedCycles = $analytics->avg_days_between_orders
-                ? floor($daysSince / $analytics->avg_days_between_orders)
-                : 0;
-
-            if ($missedCycles < 2) continue;
-
-            // WOUND 3 FIX: Check existing alerts scoped to this tenant
-            $exists = AiRecommendation::where('tenant_id', $tenantId)
-                ->where('type', 'churn')
-                ->where('party_id', $party->id)
-                ->where('created_at', '>=', Carbon::now()->startOfWeek())
-                ->exists();
-
-            if ($exists) continue;
-
-            $priority = $analytics->status === 'churned' ? 'urgent' : 'high';
-
-            AiRecommendation::create([
-                'tenant_id'        => $tenantId,
-                'type'             => 'churn',
-                'priority'         => $priority,
-                'party_id'         => $party->id,
-                'title'            => "Churn Risk: {$party->name}",
-                'message'          => "This customer hasn't ordered in " . round($daysSince) . " days. They have missed {$missedCycles} order cycles. You are losing a regular client worth Rs. " . number_format($analytics->total_spent) . " in past orders.",
-                'potential_revenue'=> $analytics->average_order_value,
-                'action_type'      => 'view_invoice',
-                'action_url'       => "/parties/{$party->id}",
-                'data'             => [
-                    'days_since_order' => $daysSince,
-                    'missed_cycles'    => $missedCycles,
-                    'total_spent'      => $analytics->total_spent,
-                ],
-                'valid_until'      => Carbon::now()->addDays(14),
-            ]);
-
-            $created++;
-        }
-
-        $this->info("   - Created {$created} churn alerts.");
-    }
-
-    private function runRecoveryAlerts(string|int $tenantId): void
-    {
-        $this->info('   💰 Recovery Alerts...');
-
-        // WOUND 3 FIX: Scope journal queries by tenant_id
-        $overdueParties = DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $tenantId)
-            ->where('accounts.code', '1200') // Accounts Receivable
-            ->where('journal_entries.is_reversed', 0)
-            ->whereNotNull('journal_entries.party_id')
-            ->groupBy('journal_entries.party_id')
-            ->havingRaw('SUM(debit) - SUM(credit) > 0')
-            ->selectRaw('journal_entries.party_id, SUM(debit) - SUM(credit) as outstanding_balance')
-            ->get();
-
-        $created = 0;
-
-        foreach ($overdueParties as $row) {
-            $partyId = $row->party_id;
-            $party = Party::where('tenant_id', $tenantId)->find($partyId);
-            if (!$party) continue;
-
-            $totalDue = $row->outstanding_balance;
-
-            // Check if already alerted
-            $exists = AiRecommendation::where('tenant_id', $tenantId)
-                ->where('type', 'recovery')
-                ->where('party_id', $partyId)
-                ->where('created_at', '>=', Carbon::now()->startOfDay())
-                ->exists();
-
-            if ($exists) continue;
-
-            AiRecommendation::create([
-                'tenant_id'        => $tenantId,
-                'type'             => 'recovery',
-                'priority'         => 'high',
-                'party_id'         => $partyId,
-                'title'            => "Overdue: {$party->name}",
-                'message'          => "Total outstanding receivable from this party: Rs. " . number_format($totalDue) . ".",
-                'potential_revenue'=> $totalDue,
-                'action_type'      => 'send_reminder',
-                'action_url'       => "/parties/{$partyId}/ledger",
-                'data'             => [
-                    'outstanding_balance' => $totalDue,
-                ],
-                'valid_until'      => Carbon::now()->addDays(7),
-            ]);
-
-            $created++;
-        }
-
-        $this->info("   - Created {$created} recovery alerts.");
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 }

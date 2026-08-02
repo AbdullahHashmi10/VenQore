@@ -13,7 +13,45 @@ Artisan::command('inspire', function () {
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 \Illuminate\Support\Facades\Schedule::command('parked-sales:cleanup')->hourly();
 \Illuminate\Support\Facades\Schedule::command('staff:generate-daily-summaries')->dailyAt('00:05');
-\Illuminate\Support\Facades\Schedule::command('growth:analyze')->dailyAt('09:00');
+// ── Growth Engine V2 ────────────────────────────────────────────────────────
+// V1 ran one heavy, synchronous, all-tenants pass at 09:00 and nothing else.
+// V2 splits the work into three cheap, queued passes:
+//
+//   06:30  DEEP     all four brains + KPI snapshot. One job per tenant.
+//   hourly LIGHT    stock + cash only, and skipped entirely for any tenant
+//                   with no new transactions since the last run (one indexed
+//                   query to decide). This is what makes the engine feel live
+//                   without adding meaningful load.
+//   02:15  EVALUATE grade yesterday's predictions and re-tune sensitivity.
+//   00:20  SNAPSHOT record the completed day's KPIs as tomorrow's baseline.
+//
+// All of it dispatches to the 'growth' queue, so nothing runs inline in a web
+// request and one large tenant can never block the others.
+\Illuminate\Support\Facades\Schedule::command('growth:analyze', ['--mode' => 'deep'])
+    ->dailyAt('06:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('growth-engine-deep')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+\Illuminate\Support\Facades\Schedule::command('growth:analyze', ['--mode' => 'light'])
+    ->hourly()
+    ->between('7:00', '22:00')   // trading hours only — nobody reads insights at 3am
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('growth-engine-light');
+
+\Illuminate\Support\Facades\Schedule::command('growth:evaluate')
+    ->dailyAt('02:15')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('growth-engine-evaluate');
+
+\Illuminate\Support\Facades\Schedule::command('growth:snapshot')
+    ->dailyAt('00:20')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('growth-engine-snapshot');
 
 // Free Tools program — prunes generated artifacts older than 24h (plan §4.6)
 \Illuminate\Support\Facades\Schedule::command('tools:prune-artifacts')->daily();
@@ -221,3 +259,27 @@ Artisan::command('inspire', function () {
     ->name('platform-backup-verify-weekly')
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
+// ── T16: VenSynQ marketplace sync + token rotation ──────────────────────────
+// AUDIT FINDING: neither job was registered with the scheduler at all. Both
+// classes existed and both were correct-looking, but nothing ever dispatched
+// them, so "scheduled sync" was dead code in production. Registering them here
+// is what actually makes VenSynQ sync on its own.
+//
+// Both jobs also implement ShouldBeUnique with their own cache lock, so
+// withoutOverlapping() here is belt-and-braces: it stops a second *dispatch*,
+// while ShouldBeUnique stops a second *execution* if a dispatch slips through
+// from a manual trigger or a second scheduler host.
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\TokenRefreshJob())
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('vensynq-token-refresh');
+
+// Runs after token rotation so a sync never starts on a token that is about to
+// expire mid-run.
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\VenSynQSyncJob())
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('vensynq-order-sync')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));

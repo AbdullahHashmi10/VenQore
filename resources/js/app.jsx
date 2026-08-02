@@ -10,6 +10,7 @@ import GlobalProviderLayout from '@/Layouts/GlobalProviderLayout';
 
 import GlobalErrorBoundary from '@/Components/GlobalErrorBoundary';
 
+import { vq } from '@/theme/runtime';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Intercept non-JSON responses from Inertia server calls (preventing the default modal block)
@@ -85,7 +86,7 @@ createInertiaApp({
         }
     },
     progress: {
-        color: '#4B5563',
+        color: vq.gray[600],
     },
 });
 
@@ -116,6 +117,11 @@ window.onunhandledrejection = function (event) {
         if (reasonStr.includes('Failed to fetch dynamically imported module') || event.reason?.message?.includes('Failed to fetch dynamically imported module')) {
             console.warn('[Vite] Unhandled rejection: Dynamic import failed. Forcing reload.');
             window.location.reload();
+            return;
+        }
+
+        // Ignore network disconnects / offline client errors
+        if (reasonStr.includes('Failed to fetch') || reasonStr.includes('Network Error') || reasonStr.includes('Load failed')) {
             return;
         }
 

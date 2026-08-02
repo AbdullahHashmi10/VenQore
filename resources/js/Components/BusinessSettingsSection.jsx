@@ -17,7 +17,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1.5 group/input">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">Business Name</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-slate-400 ml-1">Business Name</label>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -30,7 +30,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
                         </div>
                         <div className="space-y-1.5 group/input">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">Tax / NTN</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-slate-400 ml-1">Tax / NTN</label>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -43,7 +43,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
                         </div>
                         <div className="space-y-1.5 group/input">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">Official Email</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-slate-400 ml-1">Official Email</label>
                             <div className="relative">
                                 <input
                                     type="email"
@@ -56,7 +56,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
                         </div>
                         <div className="space-y-1.5 group/input">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">Phone Line</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-slate-400 ml-1">Phone Line</label>
                             <div className="relative">
                                 <input
                                     type="tel"
@@ -82,7 +82,7 @@ export default function BusinessSettingsSection({ data, setData }) {
 
                         <div className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Currency</label>
+                                <label className="text-2xs font-bold uppercase tracking-wider text-slate-400">Currency</label>
                                 <div className="relative">
                                     <select
                                         value={data.currency}
@@ -119,7 +119,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Currency Symbol</label>
+                                <label className="text-2xs font-bold uppercase tracking-wider text-slate-400">Currency Symbol</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -133,7 +133,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Timezone</label>
+                                <label className="text-2xs font-bold uppercase tracking-wider text-slate-400">Timezone</label>
                                 <div className="relative">
                                     <select
                                         value={data.timezone}
@@ -154,7 +154,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                                     <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 rotate-90 pointer-events-none" size={14} />
                                 </div>
-                                <p className="text-[10px] text-slate-400 mt-2">
+                                <p className="text-2xs text-slate-400 mt-2">
                                     Determines date rollovers for reports.
                                 </p>
                             </div>
@@ -169,7 +169,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             <MapPin size={18} />
                         </div>
                         <div className="flex-1 space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Head Office Address</label>
+                            <label className="text-2xs font-bold uppercase tracking-wider text-slate-400">Head Office Address</label>
                             <textarea
                                 value={data.business_address}
                                 onChange={(e) => setData('business_address', e.target.value)}

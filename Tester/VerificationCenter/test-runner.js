@@ -223,55 +223,9 @@ wss.on('connection', (ws) => {
 // ─── Test Runner ────────────────────────────────────────────────────────────
 function runTests(projectPath, ws) {
   const startTime = Date.now();
-  const modules = [
-    ...Array.from({ length: 21 }, (_, i) => `Tester/tests/Feature/Module${String(i + 1).padStart(2, '0')}`),
-    'Tester/tests/Feature/Money',
-    'Tester/tests/Feature/Core',
-    'Tester/tests/Feature/Heart',
-    'Tester/tests/Feature/Guardrails',
-    'Tester/tests/Feature/Smoke',
-    'Tester/tests/Feature/DemoStore',
-    'Tester/tests/Feature/AppSumo',
-    'Tester/tests/Feature/V3',
-    'Tester/tests/Feature/Auth',
-    'Tester/tests/Feature/DocumentConversionTest.php',
-    'Tester/tests/Feature/ProfileTest.php',
-    'Tester/tests/Feature/ImportMappingTest.php',
-    'Tester/tests/Feature/StoreUniqueNameTest.php',
-    'Tester/tests/Feature/MigrateOpeningBalancesTest.php',
-    'Tester/tests/Feature/SitemapTest.php',
-    'Tester/tests/Feature/SystemResetTest.php',
-    'Tester/tests/Feature/Chat',
-    'Tester/tests/Feature/PlanManagementTest.php',
-    'Tester/tests/Feature/Billing',
-    'Tester/tests/Feature/PlanLimitsEnforcerTest.php',
-    'Tester/tests/Feature/ProductDeletionTest.php',
-    'Tester/tests/Feature/FrontendSyntaxIntegrityTest.php',
-    'Tester/tests/Feature/RouteParameterRegressionTest.php',
-    'Tester/tests/Feature/ZiggyRouteIntegrityTest.php',
-    'Tester/tests/Feature/OwnersDailyPulseTest.php',
-    'Tester/tests/Feature/ModalValidationRegressionTest.php',
-    'Tester/tests/Feature/LayoutAndAdminUsersRegressionTest.php',
-    'Tester/tests/Feature/ExampleTest.php',
-    'Tester/tests/Feature/TerminalAppIntegrationTest.php',
-    'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
-    'Tester/tests/Feature/RegressionFixesTest.php',
-    'Tester/tests/Feature/PosFeaturesTest.php',
-    'Tester/tests/Feature/LedgerAccountingIntegrationTest.php',
-    'Tester/tests/Feature/ActivityLogTest.php',
-    'Tester/tests/Feature/DebitNoteTest.php',
-    'Tester/tests/Feature/MigrationTest.php',
-    'Tester/tests/Feature/PaymentAllocationTest.php',
-    'Tester/tests/Feature/PurchasesImportTest.php',
-    'Tester/tests/Feature/SmartFulfillmentTest.php',
-    'Tester/tests/Feature/Golden',
-    'Tester/tests/Feature/Production',
-    'Tester/tests/Feature/V3/Scenarios',
-    'Tester/tests/Performance',
-    'Tester/tests/Unit'
-  ];
+  const modules = ['tests'];
 
-  const cmd = `"${config.phpBin || 'php'}" ${config.phpIni ? `-c "${config.phpIni}"` : ''} vendor/bin/pest ${modules.join(' ')} --configuration Tester/phpunit.xml --no-coverage`;
+  const cmd = `"${config.phpBin || 'php'}" -d memory_limit=-1 ${config.phpIni ? `-c "${config.phpIni}"` : ''} vendor/bin/pest ${modules.join(' ')} --configuration Tester/phpunit.xml --no-coverage`;
 
   ws.send(JSON.stringify({ type: 'start', timestamp: new Date().toISOString(), projectPath }));
 

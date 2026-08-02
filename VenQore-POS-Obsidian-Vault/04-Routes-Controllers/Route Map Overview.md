@@ -11,7 +11,7 @@ Source: `routes/web.php` (1735 lines), `routes/api.php` (94 lines), `routes/auth
 ## Top-Level Groups
 | Group | Prefix | Notes |
 |---|---|---|
-| Marketing / Public | none | `/features`, `/pricing`, `/contact`, `/blog`, `/terms`, `/privacy`, `/sitemap.xml` — see [[Route Map Overview#Marketing]] |
+| Marketing / Public | none | `/features`, `/roadmap`, `/solutions`, `/solutions/{slug}`, `/compare`, `/compare/{slug}`, `/pricing`, `/contact`, `/blog`, `/terms`, `/privacy`, `/sitemap.xml` — see [[Marketing & Solutions Engine]] |
 | Demo Sandbox | `/demo` | Public login/logout into the Golden Master clone |
 | VenSynQ OAuth Callbacks | fixed URLs | `/amazon/callback`, `/tiktok/callback`, `/ebay/callback`, `/google/callback` |
 | Auth | `routes/auth.php` | Standard Breeze + platform owner + staff login variants |

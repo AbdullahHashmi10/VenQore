@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { router, useForm, Head, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { FEATURE_GROUPS, TOTAL_FEATURES, getFeatureDefault } from './featureGroups';
+import { vq } from '@/theme/runtime';
 import {
     Layers, Zap, Database, Ticket, ShoppingBag,
     UserCog, CheckCircle, XCircle, Star, Edit3,
@@ -30,23 +31,23 @@ const LIMIT_KEYS = [
 
 const displayValue = (v) => {
     if (v === null || v === undefined || v === '') {
-        return <span className="badge-glass" style={{ color: '#818cf8', background: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.2)' }}>Unlimited</span>;
+        return <span className="badge-glass" style={{ color: vq.indigo[400], background: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.2)' }}>Unlimited</span>;
     }
     if (v === '0' || v === false) {
-        return <span className="badge-glass" style={{ color: '#f87171', background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.2)' }}>Disabled</span>;
+        return <span className="badge-glass" style={{ color: vq.red[400], background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.2)' }}>Disabled</span>;
     }
     if (v === '1' || v === true) {
-        return <span className="badge-glass" style={{ color: '#34d399', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.2)' }}>Enabled</span>;
+        return <span className="badge-glass" style={{ color: vq.emerald[400], background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.2)' }}>Enabled</span>;
     }
-    return <span className="badge-glass" style={{ color: '#38bdf8', background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.2)' }}>{v}</span>;
+    return <span className="badge-glass" style={{ color: vq.sky[400], background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.2)' }}>{v}</span>;
 };
 
 const planTypeColor = (type) => ({
-    trial: '#6366f1',
-    subscription: '#38bdf8',
-    ltd: '#f59e0b',
-    enterprise: '#10b981'
-}[type] || '#94a3b8');
+    trial: vq.indigo[500],
+    subscription: vq.sky[400],
+    ltd: vq.amber[500],
+    enterprise: vq.emerald[500]
+}[type] || vq.slate[400]);
 
 // ── Feature Cell Component ───────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                         width: 70,
                         background: editing ? 'rgba(99,102,241,0.08)' : (isExplicit ? 'rgba(99,102,241,0.15)' : 'rgba(0,0,0,0.2)'),
                         border: `1px solid ${editing ? 'rgba(99,102,241,0.4)' : (isExplicit ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)')}`,
-                        color: isExplicit ? '#c7d2fe' : '#475569',
+                        color: isExplicit ? vq.indigo[200] : vq.slate[600],
                         padding: '5px 8px',
                         borderRadius: 8,
                         fontSize: 12,
@@ -101,7 +102,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                         transition: 'all 0.15s',
                     }}
                 />
-                {saving && <RefreshCw size={10} style={{ color: '#6366f1', animation: 'spin 1s linear infinite' }} />}
+                {saving && <RefreshCw size={10} style={{ color: vq.indigo[500], animation: 'spin 1s linear infinite' }} />}
             </div>
         );
     }
@@ -117,7 +118,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                     style={{
                         background: isExplicit ? 'rgba(99,102,241,0.15)' : 'rgba(0,0,0,0.25)',
                         border: `1px solid ${isExplicit ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)'}`,
-                        color: isExplicit ? '#c7d2fe' : '#475569',
+                        color: isExplicit ? vq.indigo[200] : vq.slate[600],
                         padding: '5px 8px',
                         borderRadius: 8,
                         fontSize: 11,
@@ -126,12 +127,12 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                         outline: 'none',
                     }}
                 >
-                    <option value="" style={{ color: '#475569' }}>
+                    <option value="" style={{ color: vq.slate[600] }}>
                         {defaultValue ? `default (${defaultValue})` : 'default'}
                     </option>
                     {opts.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
-                {saving && <RefreshCw size={10} style={{ color: '#6366f1', animation: 'spin 1s linear infinite' }} />}
+                {saving && <RefreshCw size={10} style={{ color: vq.indigo[500], animation: 'spin 1s linear infinite' }} />}
             </div>
         );
     }
@@ -150,7 +151,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
     let bg, color, border, label;
     if (isEnabled) {
         if (isExplicit) {
-            bg = 'rgba(16,185,129,0.16)'; color = '#34d399';
+            bg = 'rgba(16,185,129,0.16)'; color = vq.emerald[400];
             border = '1px solid rgba(16,185,129,0.45)'; label = '✓';
         } else {
             bg = 'rgba(16,185,129,0.05)'; color = 'rgba(52,211,153,0.5)';
@@ -158,14 +159,14 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
         }
     } else if (isDisabled) {
         if (isExplicit) {
-            bg = 'rgba(239,68,68,0.12)'; color = '#f87171';
+            bg = 'rgba(239,68,68,0.12)'; color = vq.red[400];
             border = '1px solid rgba(239,68,68,0.35)'; label = '✕';
         } else {
             bg = 'rgba(239,68,68,0.03)'; color = 'rgba(248,113,113,0.4)';
             border = '1px dashed rgba(239,68,68,0.15)'; label = '✕';
         }
     } else {
-        bg = 'rgba(255,255,255,0.03)'; color = '#475569';
+        bg = 'rgba(255,255,255,0.03)'; color = vq.slate[600];
         border = '1px solid rgba(255,255,255,0.05)'; label = '—';
     }
 
@@ -307,7 +308,7 @@ function FeatureMatrix({ plans }) {
         }
     };
 
-    const planColors = ['#818cf8', '#38bdf8', '#10b981', '#f59e0b', '#ec4899', '#a78bfa'];
+    const planColors = [vq.indigo[400], vq.sky[400], vq.emerald[500], vq.amber[500], vq.pink[500], vq.violet[400]];
 
     const handleBulkSet = useCallback((planId, value) => {
         const boolKeys = filteredGroups.flatMap(g =>
@@ -363,22 +364,22 @@ function FeatureMatrix({ plans }) {
                 borderBottom: 'none',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Grid3x3 size={16} color="#818cf8" />
-                    <span style={{ color: '#c7d2fe', fontSize: 13, fontWeight: 800 }}>
+                    <Grid3x3 size={16} color={vq.indigo[400]} />
+                    <span style={{ color: vq.indigo[200], fontSize: 13, fontWeight: 800 }}>
                         Feature Matrix
                     </span>
-                    <span style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', fontSize: 10, fontWeight: 900, padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.2)' }}>
+                    <span style={{ background: 'rgba(99,102,241,0.15)', color: vq.indigo[400], fontSize: 10, fontWeight: 900, padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.2)' }}>
                         {totalFilteredFeatures} FEATURES · {plans.length} PLANS
                     </span>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                    <span style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)' }} />✓ Enabled
                     </span>
-                    <span style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }} />✕ Disabled
                     </span>
-                    <span style={{ fontSize: 11, color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }} />— Default
                     </span>
                 </div>
@@ -393,7 +394,7 @@ function FeatureMatrix({ plans }) {
                 borderTop: 'none', borderBottom: 'none',
                 overflowX: 'auto',
             }}>
-                <span style={{ color: '#475569', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>
+                <span style={{ color: vq.slate[600], fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>
                     Bulk Actions:
                 </span>
                 {plans.map((plan, pi) => (
@@ -405,7 +406,7 @@ function FeatureMatrix({ plans }) {
                             onClick={() => handleBulkSet(plan.id, '1')}
                             title={`Enable all boolean features for ${plan.name}`}
                             style={{
-                                background: 'rgba(16,185,129,0.1)', color: '#10b981',
+                                background: 'rgba(16,185,129,0.1)', color: vq.emerald[500],
                                 border: '1px solid rgba(16,185,129,0.25)',
                                 borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer',
                                 transition: 'all 0.15s',
@@ -419,7 +420,7 @@ function FeatureMatrix({ plans }) {
                             onClick={() => handleBulkSet(plan.id, '0')}
                             title={`Disable all boolean features for ${plan.name}`}
                             style={{
-                                background: 'rgba(239,68,68,0.08)', color: '#f87171',
+                                background: 'rgba(239,68,68,0.08)', color: vq.red[400],
                                 border: '1px solid rgba(239,68,68,0.2)',
                                 borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer',
                                 transition: 'all 0.15s',
@@ -441,7 +442,7 @@ function FeatureMatrix({ plans }) {
                     </colgroup>
                     <thead>
                         <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '2px solid rgba(99,102,241,0.15)', position: 'sticky', top: 0, zIndex: 20 }}>
-                            <th style={{ padding: '14px 20px', textAlign: 'left', color: '#64748b', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                            <th style={{ padding: '14px 20px', textAlign: 'left', color: vq.slate[500], fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                                 Feature / Capability
                             </th>
                             {plans.map((plan, idx) => (
@@ -455,7 +456,7 @@ function FeatureMatrix({ plans }) {
                                         <span style={{ color: planColors[idx % planColors.length], fontWeight: 900, fontSize: 13, letterSpacing: '-0.01em' }}>
                                             {plan.name}
                                         </span>
-                                        <span style={{ color: '#475569', fontSize: 9, fontFamily: 'monospace', fontWeight: 700 }}>
+                                        <span style={{ color: vq.slate[600], fontSize: 9, fontFamily: 'monospace', fontWeight: 700 }}>
                                             {plan.slug}
                                         </span>
                                     </div>
@@ -477,17 +478,17 @@ function FeatureMatrix({ plans }) {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                                 <span style={{ fontSize: 14 }}>{group.emoji}</span>
                                                 <div>
-                                                    <span style={{ color: '#a5b4fc', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    <span style={{ color: vq.indigo[300], fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                                                         {group.label}
                                                     </span>
                                                     {group.description && !isCollapsed && (
-                                                        <div style={{ color: '#475569', fontSize: 10, marginTop: 2 }}>{group.description}</div>
+                                                        <div style={{ color: vq.slate[600], fontSize: 10, marginTop: 2 }}>{group.description}</div>
                                                     )}
                                                 </div>
-                                                <span style={{ color: '#475569', fontSize: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 5, flexShrink: 0 }}>
+                                                <span style={{ color: vq.slate[600], fontSize: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 5, flexShrink: 0 }}>
                                                     {group.features.length} features
                                                 </span>
-                                                <span style={{ marginLeft: 'auto', color: '#475569' }}>
+                                                <span style={{ marginLeft: 'auto', color: vq.slate[600] }}>
                                                     {isCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
                                                 </span>
                                             </div>
@@ -505,22 +506,22 @@ function FeatureMatrix({ plans }) {
                                             <td style={{ padding: '9px 20px 9px 32px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                    <span style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>
+                                                    <span style={{ color: vq.slate[400], fontSize: 12, fontWeight: 600 }}>
                                                         {feature.label}
                                                     </span>
                                                     {feature.type === 'number' && (
-                                                        <span style={{ fontSize: 9, color: '#38bdf8', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                                                        <span style={{ fontSize: 9, color: vq.sky[400], background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
                                                             NUM
                                                         </span>
                                                     )}
                                                     {feature.type === 'select' && (
-                                                        <span style={{ fontSize: 9, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
+                                                        <span style={{ fontSize: 9, color: vq.amber[500], background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
                                                             TIER
                                                         </span>
                                                     )}
                                                 </div>
                                                 {feature.note && (
-                                                    <span style={{ fontSize: 10, color: '#475569', fontStyle: 'italic' }}>{feature.note}</span>
+                                                    <span style={{ fontSize: 10, color: vq.slate[600], fontStyle: 'italic' }}>{feature.note}</span>
                                                 )}
                                             </div>
                                             </td>
@@ -546,7 +547,7 @@ function FeatureMatrix({ plans }) {
             </div>
 
             {/* Footer note */}
-            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: '#475569', fontSize: 11 }}>
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: vq.slate[600], fontSize: 11 }}>
                 <Shield size={11} />
                 Changes are staged locally. Click "Save Changes" at the bottom to publish all updates instantly to active tenants.
             </div>
@@ -586,14 +587,14 @@ function FeatureMatrix({ plans }) {
                             height: 24,
                             borderRadius: '50%',
                             background: 'rgba(99, 102, 241, 0.2)',
-                            color: '#a5b4fc',
+                            color: vq.indigo[300],
                             fontSize: 12,
                             fontWeight: 900,
                             border: '1px solid rgba(99, 102, 241, 0.4)'
                         }}>
                             {stagedCount}
                         </span>
-                        <span style={{ color: '#c7d2fe', fontSize: 13, fontWeight: 700 }}>
+                        <span style={{ color: vq.indigo[200], fontSize: 13, fontWeight: 700 }}>
                             Unsaved Feature Matrix changes pending
                         </span>
                     </div>
@@ -604,7 +605,7 @@ function FeatureMatrix({ plans }) {
                             style={{
                                 background: 'transparent',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: '#94a3b8',
+                                color: vq.slate[400],
                                 padding: '8px 16px',
                                 borderRadius: 10,
                                 fontSize: 12,
@@ -612,8 +613,8 @@ function FeatureMatrix({ plans }) {
                                 cursor: 'pointer',
                                 transition: 'all 0.15s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = '#f87171'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = vq.red[400]; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = vq.slate[400]; }}
                         >
                             Discard
                         </button>
@@ -702,7 +703,7 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
             <div style={{ flex: 1, background: 'rgba(2, 6, 23, 0.7)', backdropFilter: 'blur(8px)', transition: 'all 0.3s' }} onClick={onClose} />
             <div style={{
                 width: 600,
-                background: '#0b0f19',
+                background: vq.void[800],
                 overflowY: 'auto',
                 boxShadow: '-10px 0 40px rgba(0,0,0,0.6)',
                 display: 'flex',
@@ -715,12 +716,12 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
 
                 <div style={{ padding: '28px 32px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 10, letterSpacing: '-0.02em' }}>
-                            <Layers size={20} color="#818cf8" /> {isEdit ? `Edit Plan: ${plan.name}` : 'Create New Plan'}
+                        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: vq.slate[50], display: 'flex', alignItems: 'center', gap: 10, letterSpacing: '-0.02em' }}>
+                            <Layers size={20} color={vq.indigo[400]} /> {isEdit ? `Edit Plan: ${plan.name}` : 'Create New Plan'}
                         </h2>
-                        <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace', marginTop: 4, display: 'block' }}>Standard-aligned subscription pipeline parameters</span>
+                        <span style={{ fontSize: 11, color: vq.slate[500], fontFamily: 'monospace', marginTop: 4, display: 'block' }}>Standard-aligned subscription pipeline parameters</span>
                     </div>
-                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.04)', border: 'none', color: '#94a3b8', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>✕</button>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.04)', border: 'none', color: vq.slate[400], width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>✕</button>
                 </div>
 
                 <form onSubmit={submit} style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -785,25 +786,25 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                         </div>
 
                         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16 }}>
-                            <h4 style={{ ...sectionTitle, color: '#34d399', fontSize: 11, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <h4 style={{ ...sectionTitle, color: vq.emerald[400], fontSize: 11, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                                 🇵🇰 Localized Rupee Pricing (PKR Overrides)
                             </h4>
                             <div style={grid3}>
                                 <Field label="Monthly (PKR)" error={errors.price_monthly_pkr}>
                                     <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: '#34d399' }}>Rs</span>
+                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
                                         <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_monthly_pkr} onChange={e => setData('price_monthly_pkr', e.target.value)} placeholder="1100" />
                                     </div>
                                 </Field>
                                 <Field label="Annual (PKR)" error={errors.price_annual_pkr}>
                                     <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: '#34d399' }}>Rs</span>
+                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
                                         <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_annual_pkr} onChange={e => setData('price_annual_pkr', e.target.value)} placeholder="11000" />
                                     </div>
                                 </Field>
                                 <Field label="Lifetime (PKR)" error={errors.price_lifetime_pkr}>
                                     <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: '#34d399' }}>Rs</span>
+                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
                                         <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_lifetime_pkr} onChange={e => setData('price_lifetime_pkr', e.target.value)} placeholder="22120" />
                                     </div>
                                 </Field>
@@ -832,14 +833,14 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
                                         {['System Feature / Key Allowances', 'Max Allowance (blank = ∞)', 'Reset Frequency'].map(h => (
-                                            <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#64748b', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                            <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: vq.slate[500], fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.limits.map((lim, i) => (
                                         <tr key={lim.key} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                                            <td style={{ padding: '12px 14px', color: '#e2e8f0', fontSize: 12, fontWeight: 600 }}>{LIMIT_KEYS[i]?.label || lim.key}</td>
+                                            <td style={{ padding: '12px 14px', color: vq.slate[200], fontSize: 12, fontWeight: 600 }}>{LIMIT_KEYS[i]?.label || lim.key}</td>
                                             <td style={{ padding: '8px 14px' }}>
                                                 <input
                                                     style={{ ...input, padding: '6px 12px', fontSize: 12, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}
@@ -963,7 +964,7 @@ export default function PlansIndex({ plans, platforms }) {
                 }
             `}</style>
 
-            <div style={{ padding: '32px 40px', minHeight: '100vh', background: '#030712', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ padding: '32px 40px', minHeight: '100vh', background: vq.gray[950], position: 'relative', overflow: 'hidden' }}>
 
                 {/* Background Auroras */}
                 <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
@@ -973,11 +974,11 @@ export default function PlansIndex({ plans, platforms }) {
                     {/* Page Header */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, marginBottom: 36 }}>
                         <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#818cf8', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: vq.indigo[400], fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>
                                 <Activity size={14} /> Monetization Pipeline
                             </div>
-                            <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: '#f8fafc', letterSpacing: '-0.03em' }}>Subscription Tiers</h1>
-                            <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 14, maxWidth: 550, lineHeight: 1.6 }}>
+                            <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: vq.slate[50], letterSpacing: '-0.03em' }}>Subscription Tiers</h1>
+                            <p style={{ margin: '6px 0 0', color: vq.slate[500], fontSize: 14, maxWidth: 550, lineHeight: 1.6 }}>
                                 Edit limit matrices, toggle features per tier, and configure pricing. Changes propagate instantly to all active tenants.
                             </p>
                         </div>
@@ -988,7 +989,7 @@ export default function PlansIndex({ plans, platforms }) {
                                     onClick={() => setViewMode('list')}
                                     style={{
                                         background: viewMode === 'list' ? 'rgba(99,102,241,0.15)' : 'transparent',
-                                        color: viewMode === 'list' ? '#a5b4fc' : '#64748b',
+                                        color: viewMode === 'list' ? vq.indigo[300] : vq.slate[500],
                                         border: viewMode === 'list' ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
                                         padding: '8px 16px', borderRadius: 9,
                                         fontSize: 12, fontWeight: 800, cursor: 'pointer',
@@ -1002,7 +1003,7 @@ export default function PlansIndex({ plans, platforms }) {
                                     onClick={() => setViewMode('matrix')}
                                     style={{
                                         background: viewMode === 'matrix' ? 'rgba(99,102,241,0.15)' : 'transparent',
-                                        color: viewMode === 'matrix' ? '#a5b4fc' : '#64748b',
+                                        color: viewMode === 'matrix' ? vq.indigo[300] : vq.slate[500],
                                         border: viewMode === 'matrix' ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
                                         padding: '8px 16px', borderRadius: 9,
                                         fontSize: 12, fontWeight: 800, cursor: 'pointer',
@@ -1030,7 +1031,7 @@ export default function PlansIndex({ plans, platforms }) {
                                     style={{
                                         background: isTabActive ? 'rgba(99,102,241,0.12)' : 'transparent',
                                         border: `1px solid ${isTabActive ? 'rgba(99,102,241,0.4)' : 'transparent'}`,
-                                        color: isTabActive ? '#a5b4fc' : '#64748b',
+                                        color: isTabActive ? vq.indigo[300] : vq.slate[500],
                                         padding: '10px 22px',
                                         fontSize: 13, fontWeight: 800, cursor: 'pointer',
                                         borderRadius: '12px 12px 0 0',
@@ -1042,7 +1043,7 @@ export default function PlansIndex({ plans, platforms }) {
                                     <span style={{
                                         marginLeft: 6,
                                         background: isTabActive ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.03)',
-                                        color: isTabActive ? '#c7d2fe' : '#475569',
+                                        color: isTabActive ? vq.indigo[200] : vq.slate[600],
                                         padding: '2px 8px', borderRadius: 6,
                                         fontSize: 10, fontFamily: 'monospace', fontWeight: 900
                                     }}>
@@ -1068,14 +1069,14 @@ export default function PlansIndex({ plans, platforms }) {
                                     <thead>
                                         <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                                             {['Subscription Tier', 'Platform Type', 'Standard Pricing', 'Active Stores', 'Key Limits Matrix', 'Visibility', 'Operator Control'].map(h => (
-                                                <th key={h} style={{ padding: '16px 20px', textAlign: 'left', color: '#94a3b8', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                                                <th key={h} style={{ padding: '16px 20px', textAlign: 'left', color: vq.slate[400], fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredPlans.length === 0 ? (
                                             <tr>
-                                                <td colSpan={7} style={{ padding: '72px 0', textAlign: 'center', color: '#475569', fontSize: 14 }}>
+                                                <td colSpan={7} style={{ padding: '72px 0', textAlign: 'center', color: vq.slate[600], fontSize: 14 }}>
                                                     <LayoutGrid size={24} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
                                                     No plans registered under this platform yet. Click "+ Create New Plan" to establish one.
                                                 </td>
@@ -1089,12 +1090,12 @@ export default function PlansIndex({ plans, platforms }) {
                                             >
                                                 <td style={{ padding: '18px 20px' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.is_active ? '#10b981' : '#64748b', boxShadow: plan.is_active ? '0 0 8px #10b981' : 'none', flexShrink: 0 }} />
+                                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.is_active ? vq.emerald[500] : vq.slate[500], boxShadow: plan.is_active ? '0 0 8px #10b981' : 'none', flexShrink: 0 }} />
                                                         <div>
-                                                            <div style={{ fontWeight: 800, color: '#f1f5f9', fontSize: 14 }}>{plan.name}</div>
-                                                            <div style={{ fontSize: 10, color: '#475569', marginTop: 2, fontFamily: 'monospace' }}>{plan.slug}</div>
+                                                            <div style={{ fontWeight: 800, color: vq.slate[100], fontSize: 14 }}>{plan.name}</div>
+                                                            <div style={{ fontSize: 10, color: vq.slate[600], marginTop: 2, fontFamily: 'monospace' }}>{plan.slug}</div>
                                                         </div>
-                                                        {plan.is_featured && <span style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24', fontSize: 9, padding: '2px 8px', borderRadius: 6, fontWeight: 900, letterSpacing: '0.08em' }}><Star size={8} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />FEATURED</span>}
+                                                        {plan.is_featured && <span style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: vq.amber[400], fontSize: 9, padding: '2px 8px', borderRadius: 6, fontWeight: 900, letterSpacing: '0.08em' }}><Star size={8} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />FEATURED</span>}
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
@@ -1102,15 +1103,15 @@ export default function PlansIndex({ plans, platforms }) {
                                                         {plan.type}
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '18px 20px', color: '#cbd5e1', fontSize: 13, fontWeight: 600 }}>
+                                                <td style={{ padding: '18px 20px', color: vq.slate[300], fontSize: 13, fontWeight: 600 }}>
                                                     <div>
                                                         {plan.price_monthly  ? `$${parseFloat(plan.price_monthly).toFixed(0)}/mo` : ''}
                                                         {plan.price_annual   ? ` · $${parseFloat(plan.price_annual).toFixed(0)}/yr` : ''}
                                                         {plan.price_lifetime ? `$${parseFloat(plan.price_lifetime).toFixed(0)} once` : ''}
-                                                        {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: '#475569' }}>—</span> : ''}
+                                                        {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: vq.slate[600] }}>—</span> : ''}
                                                     </div>
                                                     {(plan.price_monthly_pkr || plan.price_annual_pkr || plan.price_lifetime_pkr) && (
-                                                        <div style={{ fontSize: 11, color: '#10b981', marginTop: 4, fontWeight: 700 }}>
+                                                        <div style={{ fontSize: 11, color: vq.emerald[500], marginTop: 4, fontWeight: 700 }}>
                                                             {plan.price_monthly_pkr  ? `Rs ${parseFloat(plan.price_monthly_pkr).toFixed(0)}/mo` : ''}
                                                             {plan.price_annual_pkr   ? ` · Rs ${parseFloat(plan.price_annual_pkr).toFixed(0)}/yr` : ''}
                                                             {plan.price_lifetime_pkr ? ` · Rs ${parseFloat(plan.price_lifetime_pkr).toFixed(0)} once` : ''}
@@ -1118,29 +1119,29 @@ export default function PlansIndex({ plans, platforms }) {
                                                     )}
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
-                                                    <span style={{ fontWeight: 900, color: plan.active_tenant_count > 0 ? '#10b981' : '#475569', fontSize: 16, fontFamily: 'monospace' }}>
+                                                    <span style={{ fontWeight: 900, color: plan.active_tenant_count > 0 ? vq.emerald[500] : vq.slate[600], fontSize: 16, fontFamily: 'monospace' }}>
                                                         {plan.active_tenant_count ?? 0}
                                                     </span>
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
                                                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 400 }}>
                                                         {plan.limits?.slice(0, 4).map(l => (
-                                                            <span key={l.key} style={{ fontSize: 10, color: '#94a3b8', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace' }}>
+                                                            <span key={l.key} style={{ fontSize: 10, color: vq.slate[400], background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace' }}>
                                                                 {LIMIT_KEYS.find(k => k.key === l.key)?.label.replace(' Integration', '').replace(' AI', '').replace(' Support', '') || l.key}: {l.value ?? '∞'}
                                                             </span>
                                                         ))}
-                                                        {plan.limits?.length > 4 && <span style={{ fontSize: 9, color: '#475569', padding: '3px 6px', fontWeight: 700 }}>+{plan.limits.length - 4} more</span>}
+                                                        {plan.limits?.length > 4 && <span style={{ fontSize: 9, color: vq.slate[600], padding: '3px 6px', fontWeight: 700 }}>+{plan.limits.length - 4} more</span>}
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
                                                     {plan.archived_at ? (
-                                                        <span style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, border: '1px solid rgba(239,68,68,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archived</span>
+                                                        <span style={{ color: vq.red[500], background: 'rgba(239,68,68,0.1)', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, border: '1px solid rgba(239,68,68,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archived</span>
                                                     ) : (
                                                         <button
                                                             onClick={() => toggleActive(plan)}
                                                             style={{
                                                                 background: plan.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
-                                                                color: plan.is_active ? '#10b981' : '#64748b',
+                                                                color: plan.is_active ? vq.emerald[500] : vq.slate[500],
                                                                 border: `1px solid ${plan.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)'}`,
                                                                 padding: '4px 14px', borderRadius: 8,
                                                                 fontSize: 11, fontWeight: 800, cursor: 'pointer',
@@ -1157,11 +1158,11 @@ export default function PlansIndex({ plans, platforms }) {
                                                         <button onClick={() => openEdit(plan)} style={btnSmall}><Edit3 size={11} /> Edit</button>
                                                         <button onClick={() => duplicate(plan)} style={btnSmall}><Copy size={11} /> Clone</button>
                                                         {plan.archived_at ? (
-                                                            <button onClick={() => unarchive(plan)} style={{ ...btnSmall, color: '#10b981', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)' }} title="Restore Plan">
+                                                            <button onClick={() => unarchive(plan)} style={{ ...btnSmall, color: vq.emerald[500], background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)' }} title="Restore Plan">
                                                                 Restore
                                                             </button>
                                                         ) : (
-                                                            <button onClick={() => archive(plan)} style={{ ...btnSmall, color: '#f59e0b', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }} title="Archive Plan">
+                                                            <button onClick={() => archive(plan)} style={{ ...btnSmall, color: vq.amber[500], background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }} title="Archive Plan">
                                                                 Archive
                                                             </button>
                                                         )}
@@ -1171,7 +1172,7 @@ export default function PlansIndex({ plans, platforms }) {
                                                             title={plan.active_tenant_count > 0 ? `${plan.active_tenant_count} tenants on this plan` : 'Delete'}
                                                             style={{
                                                                 ...btnSmall,
-                                                                color: '#ef4444',
+                                                                color: vq.red[500],
                                                                 background: 'rgba(239,68,68,0.05)',
                                                                 border: '1px solid rgba(239,68,68,0.15)',
                                                                 opacity: plan.active_tenant_count > 0 ? 0.3 : 1,
@@ -1193,7 +1194,7 @@ export default function PlansIndex({ plans, platforms }) {
                     {/* ── Feature Matrix View ──────────────────────────────────── */}
                     {viewMode === 'matrix' && (
                         filteredPlans.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '72px 0', color: '#475569' }}>
+                            <div style={{ textAlign: 'center', padding: '72px 0', color: vq.slate[600] }}>
                                 <Grid3x3 size={28} style={{ margin: '0 auto 14px', opacity: 0.4 }} />
                                 <p>No plans exist for this platform yet. Create a plan first, then return here to configure its feature matrix.</p>
                                 <button onClick={() => setViewMode('list')} style={{ ...btnPrimary, marginTop: 16 }}>Go to Plans List</button>
@@ -1215,9 +1216,9 @@ export default function PlansIndex({ plans, platforms }) {
 function Field({ label, error, children }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-            <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
+            <label style={{ fontSize: 11, color: vq.slate[400], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
             {children}
-            {error && <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 600, marginTop: 2 }}>{error}</span>}
+            {error && <span style={{ fontSize: 11, color: vq.red[500], fontWeight: 600, marginTop: 2 }}>{error}</span>}
         </div>
     );
 }
@@ -1225,13 +1226,13 @@ function Field({ label, error, children }) {
 function ToggleField({ label, value, onChange }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-            <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
+            <label style={{ fontSize: 11, color: vq.slate[400], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
             <button
                 type="button"
                 onClick={() => onChange(!value)}
                 style={{
                     background: value ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.02)',
-                    color: value ? '#a5b4fc' : '#64748b',
+                    color: value ? vq.indigo[300] : vq.slate[500],
                     border: '1px solid ' + (value ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'),
                     padding: '8px 16px', borderRadius: 10,
                     fontSize: 12, fontWeight: 800, cursor: 'pointer',
@@ -1256,7 +1257,7 @@ const cardSection = {
 
 const sectionTitle = {
     margin: '0 0 4px', fontSize: 11, fontWeight: 900,
-    color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.1em',
+    color: vq.indigo[400], textTransform: 'uppercase', letterSpacing: '0.1em',
     display: 'flex', alignItems: 'center', gap: 6
 };
 
@@ -1265,8 +1266,8 @@ const grid3 = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
 
 const input = {
     width: '100%', boxSizing: 'border-box',
-    background: '#131924', border: '1px solid rgba(255,255,255,0.08)',
-    color: '#f8fafc', padding: '10px 14px',
+    background: vq.gray[900], border: '1px solid rgba(255,255,255,0.08)',
+    color: vq.slate[50], padding: '10px 14px',
     borderRadius: 10, fontSize: 13, outline: 'none',
     fontFamily: 'inherit', transition: 'border 0.2s',
 };
@@ -1274,7 +1275,7 @@ const input = {
 const inputPrefix = {
     position: 'absolute', left: 12, top: '52%',
     transform: 'translateY(-50%)',
-    color: '#475569', fontSize: 13, fontWeight: 700
+    color: vq.slate[600], fontSize: 13, fontWeight: 700
 };
 
 const btnPrimary = {
@@ -1286,13 +1287,13 @@ const btnPrimary = {
 };
 
 const btnSecondary = {
-    background: 'rgba(255,255,255,0.03)', color: '#94a3b8',
+    background: 'rgba(255,255,255,0.03)', color: vq.slate[400],
     border: '1px solid rgba(255,255,255,0.06)', padding: '10px 22px',
     borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer',
 };
 
 const btnSmall = {
-    background: 'rgba(255,255,255,0.03)', color: '#cbd5e1',
+    background: 'rgba(255,255,255,0.03)', color: vq.slate[300],
     border: '1px solid rgba(255,255,255,0.05)', padding: '6px 14px',
     borderRadius: 8, fontWeight: 700, fontSize: 11, cursor: 'pointer',
     whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,

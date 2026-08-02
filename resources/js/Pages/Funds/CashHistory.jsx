@@ -37,7 +37,7 @@ export default function CashHistory({ balance, ledger, store }) {
         <OneGlanceLayout title="Cash Ledger" activeMenu="Money">
             <Head title="Cash In Hand" />
 
-            <div className="flex flex-col h-full bg-[#f8f9fa] dark:bg-slate-950 overflow-hidden">
+            <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 overflow-hidden">
                 
                 {/* Top Toolbar (Similar to screenshot) */}
                 <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3 flex items-center justify-between shadow-sm shrink-0">
@@ -89,18 +89,18 @@ export default function CashHistory({ balance, ledger, store }) {
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full">
                         <div className="overflow-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-[#fcfdfe] dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                                     <tr>
-                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
+                                        <th className="px-4 py-4 text-1xs font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
                                             <div className="flex items-center justify-between">Type <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
+                                        <th className="px-4 py-4 text-1xs font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
                                             <div className="flex items-center justify-between">Name <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
+                                        <th className="px-4 py-4 text-1xs font-bold text-slate-400 uppercase tracking-tight border-r border-slate-50 dark:border-slate-800">
                                             <div className="flex items-center justify-between">Date <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-tight text-right w-48">
+                                        <th className="px-4 py-4 text-1xs font-bold text-slate-400 uppercase tracking-tight text-right w-48">
                                             <div className="flex items-center justify-between">Amount <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
                                         <th className="w-12"></th>
@@ -108,20 +108,20 @@ export default function CashHistory({ balance, ledger, store }) {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {filteredLedger.map((item, idx) => (
-                                        <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-[#fcfdfe]'} dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group`}>
+                                        <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group`}>
                                             <td className="px-4 py-4 text-sm font-bold text-slate-700 dark:text-slate-200 border-r border-slate-50 dark:border-slate-800">
                                                 {item.type}
                                             </td>
                                             <td className="px-4 py-4 text-sm font-bold text-slate-600 dark:text-slate-300 border-r border-slate-50 dark:border-slate-800">
                                                 {item.name}
                                                 {item.description && item.description !== item.name && (
-                                                    <p className="text-[10px] text-slate-400 font-normal mt-0.5 line-clamp-1">{item.description}</p>
+                                                    <p className="text-2xs text-slate-400 font-normal mt-0.5 line-clamp-1">{item.description}</p>
                                                 )}
                                             </td>
                                             <td className="px-4 py-4 text-[13px] font-medium text-slate-500 dark:text-slate-400 border-r border-slate-50 dark:border-slate-800">
                                                 {item.date}
                                             </td>
-                                            <td className={`px-4 py-4 text-right text-sm font-black tabular-nums ${item.mode === 'in' ? 'text-[#10b981]' : 'text-[#f43f5e]'}`}>
+                                            <td className={`px-4 py-4 text-right text-sm font-black tabular-nums ${item.mode === 'in' ? 'text-emerald-500' : 'text-rose-500'}`}>
                                                 {getCurrencySymbol()} {item.amount.toLocaleString()}
                                             </td>
                                             <td className="px-4 py-4 text-right">

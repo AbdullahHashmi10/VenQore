@@ -155,7 +155,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                         <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                            <Clock className="text-slate-400" size={20} /> Snapshot History
                         </h3>
-                        <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                        <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-2xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                             {backups.length} Files Found
                         </span>
                     </div>
@@ -164,10 +164,10 @@ export default function Backups({ backups: initialBackups = [] }) {
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left border-b border-slate-100 dark:border-slate-800">
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Snapshot Name</th>
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Created Date</th>
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">File Size</th>
-                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">Snapshot Name</th>
+                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">Created Date</th>
+                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400">File Size</th>
+                                    <th className="px-8 py-5 text-2xs font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
@@ -191,7 +191,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-xs">{backup.name}</p>
-                                                        <p className="text-[10px] font-black uppercase tracking-tighter text-slate-400 mt-0.5">SQL Database Dump</p>
+                                                        <p className="text-2xs font-black uppercase tracking-tighter text-slate-400 mt-0.5">SQL Database Dump</p>
                                                     </div>
                                                 </div>
                                             </td>

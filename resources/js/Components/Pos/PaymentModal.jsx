@@ -152,7 +152,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                             <span className="truncate">
                                                 {paymentMethods.find(m => m.id === payment.method)?.name || 'Method'}
                                             </span>
-                                            <span className="text-slate-400 text-[10px]">▼</span>
+                                            <span className="text-slate-400 text-2xs">▼</span>
                                         </button>
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                                             {(() => {
@@ -200,12 +200,12 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                              <button 
                                                  type="button"
                                                  onClick={() => setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index)}
-                                                 className="w-full bg-slate-100 dark:bg-slate-700 rounded-lg py-1.5 px-3 text-[10px] font-bold text-slate-650 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
+                                                 className="w-full bg-slate-100 dark:bg-slate-700 rounded-lg py-1.5 px-3 text-2xs font-bold text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
                                              >
                                                  <span>
                                                      {bankAccounts.find(acc => String(acc.id) === String(payment.account_id))?.name || bankAccounts[0]?.name || 'Select Account'}
                                                  </span>
-                                                 <span className="text-slate-400 text-[8px] ml-1">▼</span>
+                                                 <span className="text-slate-400 text-4xs ml-1">▼</span>
                                              </button>
 
                                              {activeAccountDropdownIndex === index && (
@@ -218,7 +218,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                                                  updatePayment(index, 'account_id', acc.id);
                                                                  setActiveAccountDropdownIndex(null);
                                                              }}
-                                                             className={`w-full text-left px-3 py-2 text-[10px] font-bold hover:bg-slate-105 dark:hover:bg-slate-750 transition-colors ${String(payment.account_id) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                             className={`w-full text-left px-3 py-2 text-2xs font-bold hover:bg-slate-105 dark:hover:bg-slate-750 transition-colors ${String(payment.account_id) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
                                                          >
                                                              {acc.name}
                                                          </button>

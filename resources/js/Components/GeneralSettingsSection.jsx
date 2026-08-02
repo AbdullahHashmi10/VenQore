@@ -74,7 +74,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                                 />
                                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400" size={18} />
                             </div>
-                            <p className="text-[10px] text-red-600 dark:text-red-400 mt-2 font-medium">Used for refunds, voids, and settings.</p>
+                            <p className="text-2xs text-red-600 dark:text-red-400 mt-2 font-medium">Used for refunds, voids, and settings.</p>
                         </div>
                     </div>
 
@@ -174,7 +174,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                                         style={{ left: `calc(${((data.ui_scale - 75) / (125 - 75)) * 100}% - 12px)` }}
                                     />
                                 </div>
-                                <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
+                                <div className="flex justify-between text-2xs font-bold text-slate-400 uppercase tracking-widest px-1">
                                     <span>Compact (75%)</span>
                                     <span>Normal (100%)</span>
                                     <span>Large (125%)</span>

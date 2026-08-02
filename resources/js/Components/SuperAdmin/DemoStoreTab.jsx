@@ -11,6 +11,7 @@ import {
 
 import SmokeTestRunner from './SmokeTestRunner';
 
+import { vq } from '@/theme/runtime';
 // ─── Constants & Parsers for Test Runner ──────────────────────────────────────
 
 const STATUS = {
@@ -23,16 +24,16 @@ const STATUS = {
 const POLL_INTERVAL_MS = 800;
 
 const LINE_COLORS = {
-    pass:     '#10b981',  // emerald
-    fail:     '#ef4444',  // red
-    skip:     '#f59e0b',  // amber
-    suite:    '#a78bfa',  // violet
-    summary:  '#f1f5f9',  // near-white
-    duration: '#475569',  // muted
-    error:    '#f87171',  // light red
-    trace:    '#64748b',  // slate
-    divider:  '#1e293b',  // divider
-    info:     '#94a3b8',  // default slate
+    pass:     vq.emerald[500],  // emerald
+    fail:     vq.red[500],  // red
+    skip:     vq.amber[500],  // amber
+    suite:    vq.violet[400],  // violet
+    summary:  vq.slate[100],  // near-white
+    duration: vq.slate[600],  // muted
+    error:    vq.red[400],  // light red
+    trace:    vq.slate[500],  // slate
+    divider:  vq.slate[800],  // divider
+    info:     vq.slate[400],  // default slate
 };
 
 function parseLine(raw) {
@@ -63,10 +64,10 @@ function parseLine(raw) {
 
 function RunnerStatusBadge({ status }) {
     const configs = {
-        [STATUS.IDLE]:    { color: '#64748b', bg: 'rgba(100,116,139,0.1)', label: 'Idle' },
-        [STATUS.RUNNING]: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  label: 'Running…' },
-        [STATUS.PASSED]:  { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  label: 'All Passed' },
-        [STATUS.FAILED]:  { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   label: 'Failed' },
+        [STATUS.IDLE]:    { color: vq.slate[500], bg: 'rgba(100,116,139,0.1)', label: 'Idle' },
+        [STATUS.RUNNING]: { color: vq.amber[500], bg: 'rgba(245,158,11,0.1)',  label: 'Running…' },
+        [STATUS.PASSED]:  { color: vq.emerald[500], bg: 'rgba(16,185,129,0.1)',  label: 'All Passed' },
+        [STATUS.FAILED]:  { color: vq.red[500], bg: 'rgba(239,68,68,0.1)',   label: 'Failed' },
     };
     const c = configs[status];
     return (
@@ -105,13 +106,13 @@ function RunnerLineRow({ item, index }) {
             opacity:      item.type === 'divider' ? 0.3 : 1,
         }}>
             {item.type === 'pass' && (
-                <span style={{ color: '#10b981', marginRight: 4 }}>✓</span>
+                <span style={{ color: vq.emerald[500], marginRight: 4 }}>✓</span>
             )}
             {item.type === 'fail' && (
-                <span style={{ color: '#ef4444', marginRight: 4 }}>✗</span>
+                <span style={{ color: vq.red[500], marginRight: 4 }}>✗</span>
             )}
             {item.type === 'skip' && (
-                <span style={{ color: '#f59e0b', marginRight: 4 }}>–</span>
+                <span style={{ color: vq.amber[500], marginRight: 4 }}>–</span>
             )}
             {item.text.replace(/^[✓✗⨯]\s*/, '')}
         </div>
@@ -121,16 +122,16 @@ function RunnerLineRow({ item, index }) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const ROLE_COLORS = {
-    owner:              '#f59e0b',
-    admin:              '#6366f1',
-    manager:            '#8b5cf6',
-    cashier:            '#10b981',
-    accountant:         '#3b82f6',
-    purchasing_officer: '#ec4899',
-    viewer:             '#64748b',
+    owner:              vq.amber[500],
+    admin:              vq.indigo[500],
+    manager:            vq.violet[500],
+    cashier:            vq.emerald[500],
+    accountant:         vq.blue[500],
+    purchasing_officer: vq.pink[500],
+    viewer:             vq.slate[500],
 };
 
-function StatCard({ label, value, icon: Icon, color = '#6366f1', sub }) {
+function StatCard({ label, value, icon: Icon, color = vq.indigo[500], sub }) {
     return (
         <div style={{
             background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.3) 0%, rgba(15, 23, 42, 0.45) 100%)',
@@ -152,11 +153,11 @@ function StatCard({ label, value, icon: Icon, color = '#6366f1', sub }) {
                 <Icon size={18} style={{ color }} />
             </div>
             <div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#f8fafc', lineHeight: 1 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: vq.slate[50], lineHeight: 1 }}>
                     {value ?? '—'}
                 </div>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>{label}</div>
-                {sub && <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{sub}</div>}
+                <div style={{ fontSize: 12, color: vq.slate[400], marginTop: 3 }}>{label}</div>
+                {sub && <div style={{ fontSize: 11, color: vq.slate[500], marginTop: 2 }}>{sub}</div>}
             </div>
         </div>
     );
@@ -477,7 +478,7 @@ export default function DemoStoreTab() {
 
     if (loading) {
         return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, gap: 10, color: '#94a3b8' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, gap: 10, color: vq.slate[400] }}>
                 <RefreshCw size={18} className="animate-spin" />
                 <span>Loading demo store status...</span>
             </div>
@@ -493,13 +494,13 @@ export default function DemoStoreTab() {
                     borderRadius: 16,
                     padding: '32px',
                     textAlign: 'center',
-                    color: '#64748b',
+                    color: vq.slate[500],
                     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
                     backdropFilter: 'blur(16px)',
                 }}>
-                    <Monitor size={40} style={{ margin: '0 auto 16px', color: '#6366f1', opacity: 0.8 }} />
-                    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', color: '#f8fafc', marginBottom: 8 }}>No Demo Store Found</h3>
-                    <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24 }}>
+                    <Monitor size={40} style={{ margin: '0 auto 16px', color: vq.indigo[500], opacity: 0.8 }} />
+                    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', color: vq.slate[50], marginBottom: 8 }}>No Demo Store Found</h3>
+                    <p style={{ fontSize: 14, color: vq.slate[400], marginBottom: 24 }}>
                         No tenant with <code>is_demo = true</code> exists yet.
                     </p>
 
@@ -510,7 +511,7 @@ export default function DemoStoreTab() {
                             style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 8,
                                 padding: '12px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                                background: '#6366f1', color: '#fff', fontWeight: 600, fontSize: 14,
+                                background: vq.indigo[500], color: '#fff', fontWeight: 600, fontSize: 14,
                                 transition: 'all 0.2s', margin: '0 auto',
                             }}
                         >
@@ -518,10 +519,10 @@ export default function DemoStoreTab() {
                             Create & Deploy Demo Store
                         </button>
                     ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#cbd5e1', fontSize: 14, fontWeight: 600 }}>
-                            <RefreshCw size={16} className="animate-spin" style={{ color: '#6366f1' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: vq.slate[300], fontSize: 14, fontWeight: 600 }}>
+                            <RefreshCw size={16} className="animate-spin" style={{ color: vq.indigo[500] }} />
                             <span>Deploying Demo Store...</span>
-                            <span style={{ color: '#64748b', fontWeight: 400, marginLeft: 6 }}>
+                            <span style={{ color: vq.slate[500], fontWeight: 400, marginLeft: 6 }}>
                                 ⏱ {deployElapsed < 60 ? `${deployElapsed}s` : `${Math.floor(deployElapsed / 60)}m ${deployElapsed % 60}s`}
                             </span>
                         </div>
@@ -534,8 +535,8 @@ export default function DemoStoreTab() {
                         background: 'rgba(15, 23, 42, 0.65)',
                         backdropFilter: 'blur(12px)',
                         border: `1px solid ${
-                            deployStatus === STATUS.RUNNING ? '#f59e0b' :
-                            deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444'
+                            deployStatus === STATUS.RUNNING ? vq.amber[500] :
+                            deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500]
                         }`,
                         borderRadius: '16px',
                         padding: '20px 24px',
@@ -545,16 +546,16 @@ export default function DemoStoreTab() {
                         gap: 12,
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: '#f8fafc' }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: vq.slate[50] }}>
                                 🛠️ Seeding Logs
                             </span>
                             <span style={{
-                                fontSize: 11, fontWeight: 600, color: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                fontSize: 11, fontWeight: 600, color: deployStatus === STATUS.RUNNING ? vq.amber[500] : deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                                 display: 'inline-flex', alignItems: 'center', gap: 4
                             }}>
                                 <span style={{
                                     width: 6, height: 6, borderRadius: '50%',
-                                    background: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                    background: deployStatus === STATUS.RUNNING ? vq.amber[500] : deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                                     animation: deployStatus === STATUS.RUNNING ? 'demoRunnerPulse 1.2s infinite' : 'none',
                                 }} />
                                 {deployStatus === STATUS.RUNNING ? 'Running...' : deployStatus === STATUS.PASSED ? 'Complete' : 'Failed'}
@@ -564,7 +565,7 @@ export default function DemoStoreTab() {
                         <div
                             ref={deployTermRef}
                             style={{
-                                background: '#080d17',
+                                background: vq.gray[950],
                                 border: '1px solid #1e293b',
                                 borderRadius: '10px',
                                 padding: '14px 16px',
@@ -584,7 +585,7 @@ export default function DemoStoreTab() {
 
                             {deployStatus === STATUS.RUNNING && (
                                 <span style={{
-                                    color: '#f59e0b',
+                                    color: vq.amber[500],
                                     animation: 'demoRunnerBlink 1s step-end infinite',
                                     fontSize: '0.9rem',
                                 }}>
@@ -607,9 +608,9 @@ export default function DemoStoreTab() {
             {msg && (
                 <div style={{
                     padding: '12px 16px', borderRadius: 10, fontSize: 14, fontWeight: 500,
-                    background: msg.type === 'error' ? '#fef2f2' : msg.type === 'success' ? '#f0fdf4' : '#eff6ff',
-                    color:      msg.type === 'error' ? '#dc2626' : msg.type === 'success' ? '#16a34a' : '#2563eb',
-                    border:     `1px solid ${msg.type === 'error' ? '#fca5a5' : msg.type === 'success' ? '#86efac' : '#93c5fd'}`,
+                    background: msg.type === 'error' ? vq.red[50] : msg.type === 'success' ? vq.green[50] : vq.blue[50],
+                    color:      msg.type === 'error' ? vq.red[600] : msg.type === 'success' ? vq.green[600] : vq.blue[600],
+                    border:     `1px solid ${msg.type === 'error' ? vq.red[300] : msg.type === 'success' ? vq.green[300] : vq.blue[300]}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                     <span>{msg.text}</span>
@@ -628,24 +629,24 @@ export default function DemoStoreTab() {
                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#6366f118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Monitor size={20} style={{ color: '#6366f1' }} />
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: vq.indigo[500], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Monitor size={20} style={{ color: vq.indigo[500] }} />
                     </div>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 16, color: '#f8fafc' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 16, color: vq.slate[50] }}>
                             🎭 Demo Store
                             <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 4,
                                 fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                                 background: data.status === 'active' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-                                color:      data.status === 'active' ? '#10b981' : '#f59e0b',
+                                color:      data.status === 'active' ? vq.emerald[500] : vq.amber[500],
                                 border:     `1px solid ${data.status === 'active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`,
                             }}>
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
                                 {data.status === 'active' ? 'LIVE' : data.status?.toUpperCase()}
                             </span>
                         </div>
-                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+                        <div style={{ fontSize: 12, color: vq.slate[400], marginTop: 2 }}>
                             venqore.com/demo · Last reset: {data.last_reset_at}
                         </div>
                     </div>
@@ -660,7 +661,7 @@ export default function DemoStoreTab() {
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 14px', borderRadius: 9, border: '1px solid rgba(255, 255, 255, 0.08)',
-                            background: 'rgba(255, 255, 255, 0.04)', color: '#cbd5e1', fontSize: 13, fontWeight: 600,
+                            background: 'rgba(255, 255, 255, 0.04)', color: vq.slate[300], fontSize: 13, fontWeight: 600,
                             textDecoration: 'none', cursor: 'pointer',
                         }}
                     >
@@ -672,7 +673,7 @@ export default function DemoStoreTab() {
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 14px', borderRadius: 9, border: '1px solid rgba(255, 255, 255, 0.08)',
-                            background: 'rgba(255, 255, 255, 0.04)', color: '#cbd5e1', fontSize: 13, fontWeight: 600,
+                            background: 'rgba(255, 255, 255, 0.04)', color: vq.slate[300], fontSize: 13, fontWeight: 600,
                             cursor: (resetting || deploying || runnerStatus === STATUS.RUNNING) ? 'not-allowed' : 'pointer',
                             opacity: (resetting || deploying || runnerStatus === STATUS.RUNNING) ? 0.6 : 1,
                         }}
@@ -686,7 +687,7 @@ export default function DemoStoreTab() {
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 16px', borderRadius: 9, border: 'none',
-                            background: deploying ? '#818cf8' : '#6366f1',
+                            background: deploying ? vq.indigo[400] : vq.indigo[500],
                             color: '#fff', fontSize: 13, fontWeight: 600,
                             cursor: (deploying || resetting || runnerStatus === STATUS.RUNNING) ? 'not-allowed' : 'pointer',
                             opacity: (deploying || resetting || runnerStatus === STATUS.RUNNING) ? 0.6 : 1,
@@ -703,7 +704,7 @@ export default function DemoStoreTab() {
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 16px', borderRadius: 9, border: 'none',
-                            background: data?.pest_available === false ? '#475569' : (runnerStatus === STATUS.RUNNING ? '#f59e0b' : '#10b981'),
+                            background: data?.pest_available === false ? vq.slate[600] : (runnerStatus === STATUS.RUNNING ? vq.amber[500] : vq.emerald[500]),
                             color: '#fff', fontSize: 13, fontWeight: 600,
                             cursor: (runnerStatus === STATUS.RUNNING || deploying || resetting || data?.pest_available === false) ? 'not-allowed' : 'pointer',
                             opacity: (runnerStatus === STATUS.RUNNING || deploying || resetting || data?.pest_available === false) ? 0.6 : 1,
@@ -723,8 +724,8 @@ export default function DemoStoreTab() {
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                     border:       `1px solid ${
-                        deployStatus === STATUS.RUNNING ? '#f59e0b' :
-                        deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444'
+                        deployStatus === STATUS.RUNNING ? vq.amber[500] :
+                        deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500]
                     }`,
                     borderRadius: '16px',
                     padding:      '20px 24px',
@@ -741,10 +742,10 @@ export default function DemoStoreTab() {
                                 🚀
                             </div>
                             <div>
-                                <h3 style={{ color: '#f8fafc', margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                                <h3 style={{ color: vq.slate[50], margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
                                     Demo Store Seeding & Deploy Logs
                                 </h3>
-                                <p style={{ color: '#94a3b8', margin: '2px 0 0', fontSize: '0.75rem' }}>
+                                <p style={{ color: vq.slate[400], margin: '2px 0 0', fontSize: '0.75rem' }}>
                                     Wiping and seeding data modules in real-time
                                 </p>
                             </div>
@@ -752,7 +753,7 @@ export default function DemoStoreTab() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {deployStatus === STATUS.RUNNING && (
-                                <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
+                                <span style={{ color: vq.slate[500], fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
                                     ⏱ {deployElapsed < 60 ? `${deployElapsed}s` : `${Math.floor(deployElapsed / 60)}m ${deployElapsed % 60}s`}
                                 </span>
                             )}
@@ -761,7 +762,7 @@ export default function DemoStoreTab() {
                                 <button onClick={() => setDeployStatus(STATUS.IDLE)} style={{
                                     background:   'transparent',
                                     border:       '1px solid rgba(255, 255, 255, 0.12)',
-                                    color:        '#cbd5e1',
+                                    color:        vq.slate[300],
                                     padding:      '6px 14px',
                                     borderRadius: '8px',
                                     cursor:       'pointer',
@@ -777,12 +778,12 @@ export default function DemoStoreTab() {
                                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                                 padding: '5px 12px', borderRadius: '20px',
                                 background: deployStatus === STATUS.RUNNING ? 'rgba(245,158,11,0.1)' : deployStatus === STATUS.PASSED ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                                color: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                color: deployStatus === STATUS.RUNNING ? vq.amber[500] : deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                                 fontSize: '0.72rem', fontWeight: 600,
                             }}>
                                 <span style={{
                                     width: 6, height: 6, borderRadius: '50%',
-                                    background: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                    background: deployStatus === STATUS.RUNNING ? vq.amber[500] : deployStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                                     animation: deployStatus === STATUS.RUNNING ? 'demoRunnerPulse 1.2s infinite' : 'none',
                                 }} />
                                 {deployStatus === STATUS.RUNNING ? 'Deploying...' : deployStatus === STATUS.PASSED ? 'Completed' : 'Failed'}
@@ -793,7 +794,7 @@ export default function DemoStoreTab() {
                     <div
                         ref={deployTermRef}
                         style={{
-                            background:   '#080d17',
+                            background:   vq.gray[950],
                             border:       '1px solid #1e293b',
                             borderRadius: '10px',
                             padding:      '14px 16px',
@@ -810,7 +811,7 @@ export default function DemoStoreTab() {
 
                         {deployStatus === STATUS.RUNNING && (
                             <span style={{
-                                color:     '#f59e0b',
+                                color:     vq.amber[500],
                                 animation: 'demoRunnerBlink 1s step-end infinite',
                                 fontSize:  '0.9rem',
                             }}>
@@ -823,10 +824,10 @@ export default function DemoStoreTab() {
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 12 }}>
-                <StatCard label="Live Right Now" value={data.live_now} icon={Activity} color="#10b981" sub="Active demo sessions" />
-                <StatCard label="Visitors Today" value={data.today?.toLocaleString()} icon={Users} color="#6366f1" />
-                <StatCard label="This Month" value={data.this_month?.toLocaleString()} icon={TrendingUp} color="#8b5cf6" />
-                <StatCard label="All Time" value={data.total_all?.toLocaleString()} icon={Globe} color="#f59e0b" />
+                <StatCard label="Live Right Now" value={data.live_now} icon={Activity} color={vq.emerald[500]} sub="Active demo sessions" />
+                <StatCard label="Visitors Today" value={data.today?.toLocaleString()} icon={Users} color={vq.indigo[500]} />
+                <StatCard label="This Month" value={data.this_month?.toLocaleString()} icon={TrendingUp} color={vq.violet[500]} />
+                <StatCard label="All Time" value={data.total_all?.toLocaleString()} icon={Globe} color={vq.amber[500]} />
             </div>
 
             {/* Visitor Chart + Role Breakdown */}
@@ -840,18 +841,18 @@ export default function DemoStoreTab() {
                     backdropFilter: 'blur(16px)',
                     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
                     padding: 20,
-                    color: '#f8fafc'
+                    color: vq.slate[50]
                 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', marginBottom: 16 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: vq.slate[100], marginBottom: 16 }}>
                         Daily Visitors — Last 30 Days
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={data.visitor_chart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
-                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} interval={4} />
-                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                            <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)', background: '#0f172a', color: '#f8fafc', fontSize: 12 }} />
-                            <Bar dataKey="total" fill="#6366f1" radius={[3, 3, 0, 0]} name="Visitors" />
+                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: vq.slate[400] }} interval={4} />
+                            <YAxis tick={{ fontSize: 10, fill: vq.slate[400] }} />
+                            <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)', background: vq.slate[900], color: vq.slate[50], fontSize: 12 }} />
+                            <Bar dataKey="total" fill={vq.indigo[500]} radius={[3, 3, 0, 0]} name="Visitors" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -864,22 +865,22 @@ export default function DemoStoreTab() {
                     backdropFilter: 'blur(16px)',
                     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
                     padding: 20,
-                    color: '#f8fafc'
+                    color: vq.slate[50]
                 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', marginBottom: 16 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: vq.slate[100], marginBottom: 16 }}>
                         Role Breakdown (30d)
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {(data.role_breakdown ?? []).map(r => {
                             const pct = Math.round((r.total / totalRoles) * 100);
-                            const color = ROLE_COLORS[r.role] ?? '#6366f1';
+                            const color = ROLE_COLORS[r.role] ?? vq.indigo[500];
                             return (
                                 <div key={r.role}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                                        <span style={{ fontWeight: 600, color: '#cbd5e1', textTransform: 'capitalize' }}>
+                                        <span style={{ fontWeight: 600, color: vq.slate[300], textTransform: 'capitalize' }}>
                                             {r.role.replace('_', ' ')}
                                         </span>
-                                        <span style={{ color: '#94a3b8' }}>{r.total} ({pct}%)</span>
+                                        <span style={{ color: vq.slate[400] }}>{r.total} ({pct}%)</span>
                                     </div>
                                     <div style={{ height: 6, borderRadius: 3, background: 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
                                         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3, transition: 'width 0.5s' }} />
@@ -888,7 +889,7 @@ export default function DemoStoreTab() {
                             );
                         })}
                         {(!data.role_breakdown || data.role_breakdown.length === 0) && (
-                            <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '20px 0' }}>
+                            <p style={{ fontSize: 12, color: vq.slate[400], textAlign: 'center', padding: '20px 0' }}>
                                 No visitor data yet. Role breakdown will appear after the first demo login.
                             </p>
                         )}
@@ -904,19 +905,19 @@ export default function DemoStoreTab() {
                 backdropFilter: 'blur(16px)',
                 boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
                 padding: 20,
-                color: '#f8fafc'
+                color: vq.slate[50]
             }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#f1f5f9', marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: vq.slate[100], marginBottom: 16 }}>
                     📦 Data Population Coverage
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
                     {[
-                        { key: 'products',  label: 'Products',           icon: Package,      color: '#6366f1' },
-                        { key: 'sales',     label: 'Sales (5yr)',         icon: TrendingUp,   color: '#10b981' },
-                        { key: 'purchases', label: 'Purchases (5yr)',     icon: ShoppingCart, color: '#f59e0b' },
-                        { key: 'expenses',  label: 'Expenses (5yr)',      icon: FileText,     color: '#ef4444' },
-                        { key: 'parties',   label: 'Customers/Suppliers', icon: Users,        color: '#8b5cf6' },
-                        { key: 'proposals', label: 'Proposals',           icon: FileText,     color: '#ec4899' },
+                        { key: 'products',  label: 'Products',           icon: Package,      color: vq.indigo[500] },
+                        { key: 'sales',     label: 'Sales (5yr)',         icon: TrendingUp,   color: vq.emerald[500] },
+                        { key: 'purchases', label: 'Purchases (5yr)',     icon: ShoppingCart, color: vq.amber[500] },
+                        { key: 'expenses',  label: 'Expenses (5yr)',      icon: FileText,     color: vq.red[500] },
+                        { key: 'parties',   label: 'Customers/Suppliers', icon: Users,        color: vq.violet[500] },
+                        { key: 'proposals', label: 'Proposals',           icon: FileText,     color: vq.pink[500] },
                     ].map(({ key, label, icon: Icon, color }) => {
                         const count = data.data_counts?.[key] ?? 0;
                         const populated = count > 0;
@@ -941,12 +942,12 @@ export default function DemoStoreTab() {
                                     title="Include this module in seeding"
                                 />
                                 {populated
-                                    ? <CheckCircle2 size={14} style={{ color: '#10b981', flexShrink: 0 }} />
-                                    : <AlertTriangle size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                                    ? <CheckCircle2 size={14} style={{ color: vq.emerald[500], flexShrink: 0 }} />
+                                    : <AlertTriangle size={14} style={{ color: vq.amber[500], flexShrink: 0 }} />
                                 }
                                 <div style={{ minWidth: 0 }}>
-                                    <div style={{ fontSize: 12, fontWeight: 600, color: '#cbd5e1' }}>{label}</div>
-                                    <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                    <div style={{ fontSize: 12, fontWeight: 600, color: vq.slate[300] }}>{label}</div>
+                                    <div style={{ fontSize: 11, color: vq.slate[400] }}>
                                         {count > 0 ? `${count.toLocaleString()} records` : 'Not seeded yet'}
                                     </div>
                                 </div>
@@ -955,7 +956,7 @@ export default function DemoStoreTab() {
                     })}
                 </div>
                 {Object.values(data.data_counts ?? {}).every(v => v === 0) && (
-                    <div style={{ textAlign: 'center', padding: '20px 0 4px', fontSize: 13, color: '#64748b' }}>
+                    <div style={{ textAlign: 'center', padding: '20px 0 4px', fontSize: 13, color: vq.slate[500] }}>
                         Run <strong>Full Deploy</strong> to populate all modules with 5-year data.
                     </div>
                 )}
@@ -969,7 +970,7 @@ export default function DemoStoreTab() {
                         onClick={() => setActiveTestTab('page-health')}
                         style={{
                             background: activeTestTab === 'page-health' ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
-                            color: activeTestTab === 'page-health' ? '#10b981' : '#94a3b8',
+                            color: activeTestTab === 'page-health' ? vq.emerald[500] : vq.slate[400],
                             border: `1px solid ${activeTestTab === 'page-health' ? 'rgba(16, 185, 129, 0.2)' : 'transparent'}`,
                             padding: '8px 16px',
                             borderRadius: '8px',
@@ -985,7 +986,7 @@ export default function DemoStoreTab() {
                         onClick={() => setActiveTestTab('smoke')}
                         style={{
                             background: activeTestTab === 'smoke' ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
-                            color: activeTestTab === 'smoke' ? '#818cf8' : '#94a3b8',
+                            color: activeTestTab === 'smoke' ? vq.indigo[400] : vq.slate[400],
                             border: `1px solid ${activeTestTab === 'smoke' ? 'rgba(99, 102, 241, 0.2)' : 'transparent'}`,
                             padding: '8px 16px',
                             borderRadius: '8px',
@@ -1005,9 +1006,9 @@ export default function DemoStoreTab() {
                         backdropFilter: 'blur(12px)',
                         WebkitBackdropFilter: 'blur(12px)',
                         border:       `1px solid ${
-                            runnerStatus === STATUS.RUNNING ? '#f59e0b' :
-                            runnerStatus === STATUS.PASSED ? '#10b981' :
-                            runnerStatus === STATUS.FAILED ? '#ef4444' : 'rgba(255, 255, 255, 0.08)'
+                            runnerStatus === STATUS.RUNNING ? vq.amber[500] :
+                            runnerStatus === STATUS.PASSED ? vq.emerald[500] :
+                            runnerStatus === STATUS.FAILED ? vq.red[500] : 'rgba(255, 255, 255, 0.08)'
                         }`,
                         borderRadius: '16px',
                         padding:      '20px 24px',
@@ -1026,12 +1027,12 @@ export default function DemoStoreTab() {
                                 </div>
                                 <div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                        <h3 style={{ color: '#f8fafc', margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                                        <h3 style={{ color: vq.slate[50], margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
                                             Demo Store Page Health Tests
                                         </h3>
                                         <RunnerStatusBadge status={runnerStatus} />
                                     </div>
-                                    <p style={{ color: '#94a3b8', margin: '2px 0 0', fontSize: '0.75rem' }}>
+                                    <p style={{ color: vq.slate[400], margin: '2px 0 0', fontSize: '0.75rem' }}>
                                         35+ Authenticated GET checks across all active module sections
                                     </p>
                                 </div>
@@ -1039,7 +1040,7 @@ export default function DemoStoreTab() {
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {runnerStatus === STATUS.RUNNING && (
-                                    <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
+                                    <span style={{ color: vq.slate[500], fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
                                         ⏱ {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`}
                                     </span>
                                 )}
@@ -1049,7 +1050,7 @@ export default function DemoStoreTab() {
                                         <button onClick={copyLogsToClipboard} style={{
                                             background:   'transparent',
                                             border:       '1px solid rgba(255, 255, 255, 0.12)',
-                                            color:        '#cbd5e1',
+                                            color:        vq.slate[300],
                                             padding:      '6px 14px',
                                             borderRadius: '8px',
                                             cursor:       'pointer',
@@ -1062,7 +1063,7 @@ export default function DemoStoreTab() {
                                         <button onClick={resetRunner} style={{
                                             background:   'transparent',
                                             border:       '1px solid rgba(255, 255, 255, 0.12)',
-                                            color:        '#cbd5e1',
+                                            color:        vq.slate[300],
                                             padding:      '6px 14px',
                                             borderRadius: '8px',
                                             cursor:       'pointer',
@@ -1080,13 +1081,13 @@ export default function DemoStoreTab() {
                                     disabled={runnerStatus === STATUS.RUNNING || deploying || resetting}
 
                                     style={{
-                                        background:   runnerStatus === STATUS.RUNNING ? 'transparent' : (runnerStatus !== STATUS.IDLE ? 'transparent' : '#10b981'),
+                                        background:   runnerStatus === STATUS.RUNNING ? 'transparent' : (runnerStatus !== STATUS.IDLE ? 'transparent' : vq.emerald[500]),
                                         border:       `1px solid ${
-                                            runnerStatus === STATUS.RUNNING ? '#f59e0b' :
-                                            runnerStatus === STATUS.PASSED ? '#10b981' :
-                                            runnerStatus === STATUS.FAILED ? '#ef4444' : '#10b981'
+                                            runnerStatus === STATUS.RUNNING ? vq.amber[500] :
+                                            runnerStatus === STATUS.PASSED ? vq.emerald[500] :
+                                            runnerStatus === STATUS.FAILED ? vq.red[500] : vq.emerald[500]
                                         }`,
-                                        color:        runnerStatus === STATUS.RUNNING ? '#f59e0b' : (runnerStatus === STATUS.PASSED ? '#10b981' : runnerStatus === STATUS.FAILED ? '#ef4444' : '#fff'),
+                                        color:        runnerStatus === STATUS.RUNNING ? vq.amber[500] : (runnerStatus === STATUS.PASSED ? vq.emerald[500] : runnerStatus === STATUS.FAILED ? vq.red[500] : '#fff'),
                                         padding:      '8px 18px',
                                         borderRadius: '10px',
                                         cursor:       runnerStatus === STATUS.RUNNING ? 'not-allowed' : 'pointer',
@@ -1108,9 +1109,9 @@ export default function DemoStoreTab() {
                         {(runnerStatus === STATUS.RUNNING || runnerStatus !== STATUS.IDLE) && (
                             <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                                 {[
-                                    { label: 'Passed',  count: runnerCounts.pass, color: '#10b981' },
-                                    { label: 'Failed',  count: runnerCounts.fail, color: '#ef4444' },
-                                    { label: 'Skipped', count: runnerCounts.skip, color: '#f59e0b' },
+                                    { label: 'Passed',  count: runnerCounts.pass, color: vq.emerald[500] },
+                                    { label: 'Failed',  count: runnerCounts.fail, color: vq.red[500] },
+                                    { label: 'Skipped', count: runnerCounts.skip, color: vq.amber[500] },
                                 ].map(({ label, count, color }) => (
                                     <div key={label} style={{
                                         padding:      '5px 14px',
@@ -1132,7 +1133,7 @@ export default function DemoStoreTab() {
                             <div
                                 ref={runnerTermRef}
                                 style={{
-                                    background:   '#080d17',
+                                    background:   vq.gray[950],
                                     border:       '1px solid #1e293b',
                                     borderRadius: '10px',
                                     padding:      '14px 16px',
@@ -1151,7 +1152,7 @@ export default function DemoStoreTab() {
 
                                 {runnerStatus === STATUS.RUNNING && (
                                     <span style={{
-                                        color:     '#f59e0b',
+                                        color:     vq.amber[500],
                                         animation: 'demoRunnerBlink 1s step-end infinite',
                                         fontSize:  '0.9rem',
                                     }}>
@@ -1168,12 +1169,12 @@ export default function DemoStoreTab() {
                                 borderRadius: '10px',
                                 padding:      '24px',
                                 textAlign:    'center',
-                                color:        '#64748b',
+                                color:        vq.slate[500],
                                 fontSize:     '0.8rem',
                             }}>
-                                Click <strong style={{ color: '#10b981' }}>Run Page Tests</strong> to initiate a live health scan of all frontend routes.
+                                Click <strong style={{ color: vq.emerald[500] }}>Run Page Tests</strong> to initiate a live health scan of all frontend routes.
                                 <br />
-                                <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6, display: 'block' }}>
+                                <span style={{ fontSize: '0.72rem', color: vq.slate[500], marginTop: 6, display: 'block' }}>
                                     Simulates full Owner authentication · Scans P&L, POS, Staff, Inventory, Sales, CRM and 30+ pages
                                 </span>
                             </div>
@@ -1196,7 +1197,7 @@ export default function DemoStoreTab() {
                                 </span>
                                 <div>
                                     <div style={{
-                                        color:      runnerStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                        color:      runnerStatus === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                                         fontSize:   '0.84rem',
                                         fontWeight: 600,
                                     }}>
@@ -1204,7 +1205,7 @@ export default function DemoStoreTab() {
                                             ? 'All page checks passed — the platform is 100% stable.'
                                             : 'Page issues detected — some sections returned non-200 responses.'}
                                     </div>
-                                    <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '2px' }}>
+                                    <div style={{ color: vq.slate[500], fontSize: '0.72rem', marginTop: '2px' }}>
                                         {runnerCounts.pass} passed · {runnerCounts.fail} failed · {runnerCounts.skip} skipped · {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`} total
                                     </div>
                                 </div>

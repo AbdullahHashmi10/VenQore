@@ -1079,7 +1079,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                         </span>
                         <button
                             onClick={() => setAiPrefillNotice(null)}
-                            className="ml-auto text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                            className="ml-auto text-2xs font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
                         >
                             Dismiss
                         </button>
@@ -1087,17 +1087,17 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                     {aiPrefillNotice.costChanges?.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-indigo-500/20">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-500 mb-1.5">
+                            <p className="text-2xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-500 mb-1.5">
                                 Cost change — this will affect future profit calculations
                             </p>
                             <ul className="space-y-0.5">
                                 {aiPrefillNotice.costChanges.map((c, i) => (
-                                    <li key={i} className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                    <li key={i} className="text-1xs font-semibold text-slate-600 dark:text-slate-300">
                                         {c.name}: {formatCurrency(c.from)} → <span className="text-amber-600 dark:text-amber-500">{formatCurrency(c.to)}</span>
                                     </li>
                                 ))}
                             </ul>
-                            <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                            <p className="text-2xs text-slate-400 mt-1.5 leading-relaxed">
                                 Saving receives stock at the new cost, which becomes the FIFO layer used for COGS.
                                 If a figure was misread, correct it before saving.
                             </p>
@@ -1106,7 +1106,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                 </div>
             )}
 
-            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
+            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-void-800 transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
 
                 <style>{`
                     .senior-mode input, .senior-mode button, .senior-mode p, .senior-mode span, .senior-mode td, .senior-mode th {
@@ -1120,7 +1120,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                         color: #2563eb !important;
                         font-weight: 900 !important;
                     }
-                    .senior-mode .bg-slate-900, .senior-mode .bg-[#1a1f2e] {
+                    .senior-mode .bg-slate-900, .senior-mode .bg-void-700 {
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         border: 2px solid #000000 !important;
@@ -1288,7 +1288,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         />
                                         {/* Error Message */}
                                         {supplierError && (
-                                            <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                            <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-4xs font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
                                                 Please select supplier
                                             </p>
                                         )}
@@ -1301,7 +1301,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                                     <button
                                         onClick={() => patchPurchase({ paymentMethod: 'credit' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'credit'
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'credit'
                                             ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
                                             : 'text-slate-500 hover:text-slate-700'
                                             }`}
@@ -1310,7 +1310,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     </button>
                                     <button
                                         onClick={() => patchPurchase({ paymentMethod: 'cash' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'cash'
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentPurchase.paymentMethod === 'cash'
                                             ? 'bg-orange-500 text-white shadow shadow-orange-500/20'
                                             : 'text-slate-500 hover:text-slate-700'
                                             }`}
@@ -1322,7 +1322,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 {/* Payment Account Dropdown */}
                                 <div className="relative group/accounts">
                                     <button
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black min-w-[120px] justify-between"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black min-w-[120px] justify-between"
                                     >
                                         <span className="flex items-center gap-1.5 truncate">
                                             <Wallet size={12} className="text-indigo-500" />
@@ -1334,7 +1334,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     <div className="absolute top-full pt-2 right-0 w-48 z-50 overflow-hidden hidden group-hover/accounts:block animate-in fade-in slide-in-from-top-2">
                                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                                             <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Pay From</p>
+                                                <p className="text-2xs font-bold text-slate-400 uppercase">Pay From</p>
                                             </div>
                                             <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
                                                 {accounts.map(acc => (
@@ -1373,7 +1373,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowTextSizeMenu(!showTextSizeMenu)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-[10px] font-black ${textSize > 1
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-2xs font-black ${textSize > 1
                                             ? 'bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20'
                                             : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30'
                                             }`}
@@ -1399,7 +1399,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 {/* Quick Settings */}
                                 <button
                                     onClick={() => setShowSettingsDrawer(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black"
                                     title="Quick Settings"
                                 >
                                     <Settings size={12} />
@@ -1408,7 +1408,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                         </div>
 
                         {/* TOP ACTION BAR - Mobile View (Compact & Premium) */}
-                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-[#0f121d] border-b border-slate-800/80 shrink-0">
+                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-void-800 border-b border-slate-800/80 shrink-0">
                             {/* Row 1: Back (Left), Purchase Pill (Center), Settings & Cancel (Right) */}
                             <div className="flex items-center justify-between w-full relative">
                                 <button
@@ -1421,7 +1421,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 
                                 <button
                                     onClick={() => setShowMobilePurchaseModal(true)}
-                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-[11px] font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
+                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-1xs font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
                                 >
                                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
                                     <span className="truncate">
@@ -1466,7 +1466,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                             <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
                                                 <div className="min-w-0 flex-1">
                                                     <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentPurchase.supplier.name}</p>
-                                                    <p className="text-[9px] text-slate-500 leading-none">{currentPurchase.supplier.phone || 'No Phone'}</p>
+                                                    <p className="text-3xs text-slate-500 leading-none">{currentPurchase.supplier.phone || 'No Phone'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => { patchPurchase({ supplier: null }); setSupplierSearch(''); }}
@@ -1495,7 +1495,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                 inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${supplierError ? '!border-red-500 !ring-red-500/20' : ''}`}
                                             />
                                             {supplierError && (
-                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-4xs font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
                                                     Please select supplier
                                                 </p>
                                             )}
@@ -1509,14 +1509,14 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <button
                                             type="button"
                                             onClick={() => patchPurchase({ paymentMethod: 'credit' })}
-                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentPurchase.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentPurchase.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CREDIT
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => patchPurchase({ paymentMethod: 'cash' })}
-                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentPurchase.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentPurchase.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CASH
                                         </button>
@@ -1529,7 +1529,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
                                             <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
                                                 <div className="p-1 border-b border-slate-700 bg-slate-900/50">
-                                                    <p className="text-[8px] font-bold text-slate-500 uppercase">Paid From</p>
+                                                    <p className="text-4xs font-bold text-slate-500 uppercase">Paid From</p>
                                                 </div>
                                                 <div className="max-h-32 overflow-y-auto custom-scrollbar p-0.5">
                                                     {accounts.map(acc => (
@@ -1551,7 +1551,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                                     });
                                                                 }
                                                             }}
-                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-[9px] font-bold transition-colors flex items-center justify-between ${(currentPurchase.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-3xs font-bold transition-colors flex items-center justify-between ${(currentPurchase.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-700'}`}
                                                         >
                                                             <span className="truncate">{acc.name}</span>
                                                             {(currentPurchase.paymentAccountId || 1) === acc.id && <CheckCircle2 size={9} />}
@@ -1617,7 +1617,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                             <td className="py-3 text-center">
                                                 {/* Quantity */}
                                                 <div className="md:col-span-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                                                    <label className="text-2xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
                                                         Qty
                                                     </label>
                                                     <input
@@ -1762,7 +1762,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                         className="w-16 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                     />
                                                     {item.product && (
-                                                        <span className={`absolute -bottom-4 text-[10px] font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                                                        <span className={`absolute -bottom-4 text-2xs font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                                                             (Avail: {item.available_stock || 0})
                                                         </span>
                                                     )}
@@ -1833,7 +1833,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     <button
                                                         onClick={() => toggleItemTotalMode(item.id)}
                                                         title={getItemTotalMode(item.id) === 'price' ? 'Recalculates: Price (scroll/click to change)' : 'Recalculates: Qty (scroll/click to change)'}
-                                                        className={`w-7 h-7 rounded-md text-[10px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                        className={`w-7 h-7 rounded-md text-2xs font-black transition-all shrink-0 border flex items-center justify-center ${
                                                             getItemTotalMode(item.id) === 'price'
                                                                 ? 'bg-indigo-600 text-white border-indigo-500 shadow shadow-indigo-500/30'
                                                                 : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
@@ -1882,7 +1882,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <div key={item.id} className="bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1 animate-in fade-in slide-in-from-top-2 duration-200">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-2xs font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                                                         {idx + 1}
                                                     </span>
                                                     <div className="flex-1">
@@ -1914,7 +1914,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                 <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
                                                     {/* Qty */}
                                                     <div className="col-span-2 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Qty</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.quantity ?? 1}
@@ -1925,7 +1925,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                                                     {/* Free Qty */}
                                                     <div className="col-span-2 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-emerald-500 uppercase">Free</span>
+                                                        <span className="text-3xs font-bold text-emerald-500 uppercase">Free</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.freeQuantity ?? 0}
@@ -1936,7 +1936,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                                                     {/* Price */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Price</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.price ?? 0}
@@ -1947,7 +1947,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                                                     {/* Discount */}
                                                     <div className="col-span-2 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Disc</span>
                                                         <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pr-0.5">
                                                             <WheelInput
                                                                 type="number"
@@ -1957,7 +1957,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                             />
                                                             <button
                                                                 onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                                className={`w-3.5 h-3.5 rounded text-[8px] font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
+                                                                className={`w-3.5 h-3.5 rounded text-4xs font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
                                                             >
                                                                 {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                             </button>
@@ -1966,11 +1966,11 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                                                     {/* Total */}
                                                     <div className="col-span-3 flex flex-col gap-0.5 text-right">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Total</span>
                                                         <div className="flex items-center gap-1">
                                                             <button
                                                                 onClick={() => toggleItemTotalMode(item.id)}
-                                                                className={`w-4 h-4 rounded text-[8px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                                className={`w-4 h-4 rounded text-4xs font-black transition-all shrink-0 border flex items-center justify-center ${
                                                                     getItemTotalMode(item.id) === 'price'
                                                                         ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
                                                                         : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
@@ -2014,21 +2014,21 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 className={`py-1 rounded-lg border transition-all flex flex-col items-center justify-center ${currentPurchase.amountPaid === vendorTotal && vendorTotal > 0 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
                             >
                                 <span className="text-[7.5px] uppercase font-bold text-slate-400">Vendor</span>
-                                <span className="text-[10px] font-extrabold">{formatCurrency(vendorTotal)}</span>
+                                <span className="text-2xs font-extrabold">{formatCurrency(vendorTotal)}</span>
                             </button>
                             <button
                                 onClick={() => patchPurchase({ amountPaid: totalExtras })}
                                 className={`py-1 rounded-lg border transition-all flex flex-col items-center justify-center ${currentPurchase.amountPaid === totalExtras && totalExtras > 0 ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
                             >
                                 <span className="text-[7.5px] uppercase font-bold text-slate-400">Extras</span>
-                                <span className="text-[10px] font-extrabold">{formatCurrency(totalExtras)}</span>
+                                <span className="text-2xs font-extrabold">{formatCurrency(totalExtras)}</span>
                             </button>
                             <button
                                 onClick={() => patchPurchase({ amountPaid: grandTotal })}
                                 className={`py-1 rounded-lg border transition-all flex flex-col items-center justify-center ${currentPurchase.amountPaid === grandTotal && grandTotal > 0 ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}
                             >
                                 <span className="text-[7.5px] uppercase font-bold text-slate-400">Full Pay</span>
-                                <span className="text-[10px] font-extrabold">{formatCurrency(grandTotal)}</span>
+                                <span className="text-2xs font-extrabold">{formatCurrency(grandTotal)}</span>
                             </button>
                         </div>
 
@@ -2037,7 +2037,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             (3 + (showDeliveryCharges ? 1 : 0) + (totalExtras >= 0 ? 1 : 0)) === 5 ? 'grid-cols-5' : (3 + (showDeliveryCharges ? 1 : 0) + (totalExtras >= 0 ? 1 : 0)) === 4 ? 'grid-cols-4' : 'grid-cols-3'
                         }`}>
                             <div>
-                                <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
+                                <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
                                 <input
                                     type="number"
                                     value={currentPurchase.discount ?? 0}
@@ -2048,7 +2048,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             </div>
                             {showDeliveryCharges && (
                                 <div>
-                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Delivery</span>
+                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Delivery</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.delivery_charge ?? 0}
@@ -2059,7 +2059,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 </div>
                             )}
                             <div>
-                                <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Landed Cost</span>
+                                <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Landed Cost</span>
                                 <button
                                     onClick={() => setShowSettingsDrawer(true)}
                                     className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1 h-8 text-orange-600 dark:text-orange-400 text-xs font-bold text-right outline-none flex items-center justify-end"
@@ -2068,7 +2068,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 </button>
                             </div>
                             <div>
-                                <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
+                                <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
                                 <input
                                     type="number"
                                     value={currentPurchase.amountPaid ?? 0}
@@ -2078,7 +2078,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 />
                             </div>
                             <div>
-                                <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
+                                <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
                                 <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-lg px-1 h-8 text-xs font-extrabold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
                                     {formatCurrency(balanceDue)}
                                 </div>
@@ -2112,7 +2112,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                     </div>
 
                     {/* RIGHT SECTION - Side Info Panel */}
-                    <div className="hidden lg:flex w-80 bg-[#1a1d2e] flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
+                    <div className="hidden lg:flex w-80 bg-void-700 flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
 
                         {/* Supplier Summary Section - Text Size Responsive */}
                         <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
@@ -2124,7 +2124,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'}`}>{currentPurchase.supplier.name}</p>
-                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-[10px]'}`}>{currentPurchase.supplier.phone || 'No Phone'}</p>
+                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-2xs'}`}>{currentPurchase.supplier.phone || 'No Phone'}</p>
                                         </div>
                                         <button
                                             onClick={() => { patchPurchase({ supplier: null }); setSupplierSearch(''); }}
@@ -2164,33 +2164,33 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             {/* Invoice # & Date Row */}
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Bill / Ref #</label>
+                                    <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Bill / Ref #</label>
                                     <input
                                         type="text"
                                         value={currentPurchase.invoiceNumber || ''}
                                         onChange={(e) => patchPurchase({ invoiceNumber: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         placeholder="PUR-000001"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Date</label>
+                                    <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Date</label>
                                     <input
                                         type="date"
                                         value={currentPurchase.date || ''}
                                         onChange={(e) => patchPurchase({ date: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Terms Row */}
                             <div>
-                                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Terms</label>
+                                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Terms</label>
                                 <select
                                     value={currentPurchase.paymentTerms || 'net30'}
                                     onChange={(e) => patchPurchase({ paymentTerms: e.target.value })}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                 >
                                     <option value="immediate">Immediate</option>
                                     <option value="net7">Net 7</option>
@@ -2204,27 +2204,27 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             {currentPurchase.paymentAccountId === 'CHEQUE' && (
                                 <div className="grid grid-cols-2 gap-2 p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/30 animate-in slide-in-from-top-2">
                                     <div className="col-span-2">
-                                        <p className="text-[10px] text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
+                                        <p className="text-2xs text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
                                             <Wallet size={12} /> CHEQUE DETAILS
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
+                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
                                         <input
                                             type="text"
                                             value={currentPurchase.paymentReference || ''}
                                             onChange={(e) => patchPurchase({ paymentReference: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
                                             placeholder="XXXXXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
+                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
                                         <input
                                             type="date"
                                             value={currentPurchase.chequeDate || new Date().toISOString().split('T')[0]}
                                             onChange={(e) => patchPurchase({ chequeDate: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -2277,7 +2277,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                     <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
+                                        <span className="text-slate-600 text-2xs">{getCurrencySymbol()}</span>
                                         <input
                                             type="number"
                                             value={currentPurchase.delivery_charge ?? 0}
@@ -2307,7 +2307,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     newExtras[idx] = { ...newExtras[idx], category_id: e.target.value };
                                                     patchPurchase({ extras: newExtras });
                                                 }}
-                                                className="w-full bg-transparent border-none text-[10px] font-bold text-white p-0 focus:ring-0 cursor-pointer"
+                                                className="w-full bg-transparent border-none text-2xs font-bold text-white p-0 focus:ring-0 cursor-pointer"
                                             >
                                                 <option value="" className="bg-slate-800 text-slate-400">Select Expense...</option>
                                                 {expenseCategories.map(cat => (
@@ -2321,7 +2321,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     newExtras[idx] = { ...newExtras[idx], method: e.target.value };
                                                     patchPurchase({ extras: newExtras });
                                                 }}
-                                                className="w-full bg-transparent border-none text-[9px] text-slate-500 p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                                                className="w-full bg-transparent border-none text-3xs text-slate-500 p-0 focus:ring-0 mt-0.5 cursor-pointer"
                                             >
                                                 <option value="value">By Value</option>
                                                 <option value="quantity">By Quantity</option>
@@ -2331,7 +2331,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         {/* Amount */}
                                         <div className="w-20">
                                             <div className="flex items-center gap-1 justify-end">
-                                                <span className="text-[10px] text-slate-500">{getCurrencySymbol()}</span>
+                                                <span className="text-2xs text-slate-500">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={extra.amount || ''}
@@ -2364,7 +2364,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         const newExtras = [...(currentPurchase.extras || []), { id: Date.now(), category_id: '', amount: 0, method: 'value' }];
                                         patchPurchase({ extras: newExtras });
                                     }}
-                                    className="w-full py-1.5 border border-dashed border-slate-700 hover:border-orange-500/50 hover:bg-orange-500/10 rounded-lg text-[10px] font-bold text-slate-500 hover:text-orange-400 transition-all flex items-center justify-center gap-1"
+                                    className="w-full py-1.5 border border-dashed border-slate-700 hover:border-orange-500/50 hover:bg-orange-500/10 rounded-lg text-2xs font-bold text-slate-500 hover:text-orange-400 transition-all flex items-center justify-center gap-1"
                                 >
                                     <Plus size={10} /> Add Landed Cost
                                 </button>
@@ -2372,11 +2372,11 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                             {/* Payment Toolbar - Quick Pay */}
                             <div className="bg-slate-800/20 rounded-xl p-2 border border-slate-700/50 space-y-2">
-                                <p className="text-[10px] uppercase font-bold text-slate-500 pl-1">Quick Pay</p>
+                                <p className="text-2xs uppercase font-bold text-slate-500 pl-1">Quick Pay</p>
                                 <div className="grid grid-cols-3 gap-1.5">
                                     <button
                                         onClick={() => patchPurchase({ amountPaid: vendorTotal })}
-                                        className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === vendorTotal && vendorTotal > 0
+                                        className={`px-2 py-2 rounded-lg text-2xs font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === vendorTotal && vendorTotal > 0
                                             ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
                                             : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}
                                     >
@@ -2385,7 +2385,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     </button>
                                     <button
                                         onClick={() => patchPurchase({ amountPaid: totalExtras })}
-                                        className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === totalExtras && totalExtras > 0
+                                        className={`px-2 py-2 rounded-lg text-2xs font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === totalExtras && totalExtras > 0
                                             ? 'bg-orange-500/20 text-orange-400 border-orange-500/50'
                                             : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}
                                     >
@@ -2394,7 +2394,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     </button>
                                     <button
                                         onClick={() => patchPurchase({ amountPaid: grandTotal })}
-                                        className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === grandTotal && grandTotal > 0
+                                        className={`px-2 py-2 rounded-lg text-2xs font-bold border transition-all flex flex-col items-center justify-center gap-0.5 ${currentPurchase.amountPaid === grandTotal && grandTotal > 0
                                             ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50'
                                             : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}
                                     >
@@ -2432,7 +2432,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                         {/* GRAND TOTAL & SAVE - Compact */}
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
+                                <span className="text-2xs text-slate-500 font-bold uppercase">Total</span>
                                 <span className="text-2xl font-black text-white">{formatCurrency(grandTotal)}</span>
                             </div>
                             <div className="space-y-2">
@@ -2671,7 +2671,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             <div className="flex-1 overflow-y-auto p-4">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
+                                        <tr className="text-left text-2xs font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
                                             <th className="pb-2 pl-2">#</th>
                                             <th className="pb-2">Product</th>
                                             <th className="pb-2 text-center">Qty</th>
@@ -2694,7 +2694,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     <td className="py-2 pl-2 text-slate-400 text-xs">{idx + 1}</td>
                                                     <td className="py-2">
                                                         <p className="font-bold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name}</p>
-                                                        <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
+                                                        <p className="text-2xs text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
                                                     <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
@@ -2726,15 +2726,15 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Cost</p>
                                         <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
                                         <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
-                                        <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
+                                        <p className="text-2xs text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                                         <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                             {formatCurrency(profit)}
                                             {grandTotal > 0 && (
@@ -2841,7 +2841,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                                 newExtras[idx] = { ...newExtras[idx], category_id: e.target.value };
                                                                 patchPurchase({ extras: newExtras });
                                                             }}
-                                                            className="w-full bg-transparent border-none text-[10px] font-bold text-slate-750 dark:text-white p-0 focus:ring-0 cursor-pointer"
+                                                            className="w-full bg-transparent border-none text-2xs font-bold text-slate-750 dark:text-white p-0 focus:ring-0 cursor-pointer"
                                                         >
                                                             <option value="" className="bg-white dark:bg-slate-800 text-slate-400">Select Expense...</option>
                                                             {expenseCategories.map(cat => (
@@ -2855,7 +2855,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                                 newExtras[idx] = { ...newExtras[idx], method: e.target.value };
                                                                 patchPurchase({ extras: newExtras });
                                                             }}
-                                                            className="w-full bg-transparent border-none text-[9px] text-slate-400 p-0 focus:ring-0 mt-0.5 cursor-pointer"
+                                                            className="w-full bg-transparent border-none text-3xs text-slate-400 p-0 focus:ring-0 mt-0.5 cursor-pointer"
                                                         >
                                                             <option value="value">By Value</option>
                                                             <option value="quantity">By Quantity</option>
@@ -2864,7 +2864,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                                                     <div className="w-16 shrink-0">
                                                         <div className="flex items-center gap-0.5 justify-end">
-                                                            <span className="text-[10px] text-slate-400">{getCurrencySymbol()}</span>
+                                                            <span className="text-2xs text-slate-400">{getCurrencySymbol()}</span>
                                                             <input
                                                                 type="number"
                                                                 value={extra.amount || ''}
@@ -2896,7 +2896,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     const newExtras = [...(currentPurchase.extras || []), { id: Date.now(), category_id: '', amount: 0, method: 'value' }];
                                                     patchPurchase({ extras: newExtras });
                                                 }}
-                                                className="w-full py-1.5 border border-dashed border-slate-205 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-lg text-[9px] font-bold text-slate-500 hover:text-orange-500 transition-all flex items-center justify-center gap-1 mt-1"
+                                                className="w-full py-1.5 border border-dashed border-slate-200 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-lg text-3xs font-bold text-slate-500 hover:text-orange-500 transition-all flex items-center justify-center gap-1 mt-1"
                                             >
                                                 <Plus size={9} /> Add Landed Cost
                                             </button>
@@ -2997,7 +2997,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-slate-700 dark:text-white">Multiple Extra Fields</p>
-                                                    <p className="text-[10px] text-slate-500">Add up to 10 custom charges</p>
+                                                    <p className="text-2xs text-slate-500">Add up to 10 custom charges</p>
                                                 </div>
                                             </div>
                                             <button
@@ -3018,7 +3018,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                             <div>
                                                 <p className="text-sm font-bold text-slate-700 dark:text-white">Delivery Charges</p>
-                                                <p className="text-[10px] text-slate-500">Show delivery charges field</p>
+                                                <p className="text-2xs text-slate-500">Show delivery charges field</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowDeliveryCharges(!showDeliveryCharges)}
@@ -3032,7 +3032,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                             <div>
                                                 <p className="text-sm font-bold text-slate-700 dark:text-white">Extra Field</p>
-                                                <p className="text-[10px] text-slate-500">Show extra charge field(s)</p>
+                                                <p className="text-2xs text-slate-500">Show extra charge field(s)</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowExtraField(!showExtraField)}
@@ -3159,12 +3159,12 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     >
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-2">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-indigo-500 animate-pulse' : 'bg-slate-650'}`}></span>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-indigo-500 animate-pulse' : 'bg-slate-600'}`}></span>
                                                 <p className="font-extrabold text-xs text-white truncate">
                                                     {pur.supplier?.name || `Purchase #${idx + 1}`}
                                                 </p>
                                             </div>
-                                            <p className="text-[10px] text-slate-500 mt-1">
+                                            <p className="text-2xs text-slate-500 mt-1">
                                                 {itemCount} {itemCount === 1 ? 'item' : 'items'} • {formatCurrency(purTotal)}
                                             </p>
                                         </div>

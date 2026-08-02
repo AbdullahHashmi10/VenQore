@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function SalesReport({ sales = [], stats = {}, chartData = [], filters = {} }) {
     const {
         store
@@ -179,9 +180,9 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                                 <td className="px-6 py-3 text-right font-bold font-mono text-slate-800 dark:text-white">{formatCurrency(total, store)}</td>
                                                 <td className="px-6 py-3 text-right">
                                                     {due > 5 ? (
-                                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
+                                                        <span className="px-2 py-0.5 rounded text-2xs font-bold bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
                                                     ) : (
-                                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Paid</span>
+                                                        <span className="px-2 py-0.5 rounded text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Paid</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -207,14 +208,14 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                     <AreaChart data={chartData}>
                                         <defs>
                                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.1} vertical={false} />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
-                                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke={vq.slate[700]} opacity={0.1} vertical={false} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: vq.slate[400] }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                        <Area type="monotone" dataKey="value" stroke={vq.emerald[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -248,11 +249,11 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                             <div className="space-y-4">
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2"><Activity size={12} /> Live Pulse</h4>
-                                    <p className="text-[11px] text-slate-300 mobile-relaxed">Monitor real-time sales velocity and detect dips before they become trends.</p>
+                                    <p className="text-1xs text-slate-300 mobile-relaxed">Monitor real-time sales velocity and detect dips before they become trends.</p>
                                 </div>
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
                                     <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Smart Insight</h4>
-                                    <p className="text-[11px] text-slate-300">Reducing total outstanding by 10% improves cash flow significantly.</p>
+                                    <p className="text-1xs text-slate-300">Reducing total outstanding by 10% improves cash flow significantly.</p>
                                 </div>
                             </div>
 
@@ -305,13 +306,13 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                             <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div>
-                                        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
+                                        <p className="text-2xs sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
                                         <h3 className="text-lg sm:text-xl font-black text-indigo-600 truncate">{quickViewSale.reference_number || quickViewSale.invoice_number}</h3>
                                     </div>
                                     {quickViewSale.source === 'pos' && (
-                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
+                                        <span className="text-2xs font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
                                     )}
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${quickViewSale.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                    <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${quickViewSale.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                                         quickViewSale.payment_status === 'partial' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                                             'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                                         }`}>
@@ -346,23 +347,23 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                 {/* Top Info Row */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Customer</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Customer</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewSale.party?.name || quickViewSale.customer?.name || 'Walk-in'}</p>
                                         {quickViewSale.party?.phone && (
                                             <p className="text-xs text-slate-500">{quickViewSale.party.phone}</p>
                                         )}
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date & Time</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date & Time</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewSale.created_at)}</p>
                                         <p className="text-xs text-slate-500">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment</p>
+                                        <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Payment</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm uppercase">{quickViewSale.payment_method || 'Cash'}</p>
                                     </div>
                                     <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                        <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
+                                        <p className="text-2xs font-bold text-indigo-600 uppercase mb-1">Total</p>
                                         <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total, store)}</p>
                                     </div>
                                 </div>
@@ -379,11 +380,11 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                         <table className="w-full text-sm">
                                             <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                                 <tr>
-                                                    <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                    <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                    <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                    <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -428,7 +429,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                                             {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}
                                                         </p>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                                    <div className="grid grid-cols-2 gap-2 text-2xs bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                                         <div>
                                                             <span className="text-slate-400 block uppercase">Qty</span>
                                                             <span className="font-bold text-slate-700 dark:text-slate-300">{formatNumber(item.quantity)}</span>
@@ -452,7 +453,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                 <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
                                     <div className="flex gap-6 justify-between w-full sm:w-auto">
                                         <div>
-                                            <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
+                                            <p className="text-2xs text-slate-400 uppercase">Paid Amount</p>
                                             <p className="font-bold text-emerald-600">{formatCurrency(Number(quickViewSale.paid_amount) || 0, store)}</p>
                                         </div>
                                         {(() => {
@@ -462,7 +463,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                             if (balance > 1) {
                                                 return (
                                                     <div>
-                                                        <p className="text-[10px] text-slate-400 uppercase">Balance Due</p>
+                                                        <p className="text-2xs text-slate-400 uppercase">Balance Due</p>
                                                         <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
                                                     </div>
                                                 );
@@ -494,7 +495,7 @@ function RatioCard({ title, value, color, icon }) {
             <div className={`p-2 rounded-lg ${colors[color]} shrink-0 group-hover:scale-105 transition-transform`}>
                 {React.cloneElement(icon, { size: 16 })}
             </div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{title}</span>
+            <span className="text-1xs font-bold text-slate-500 uppercase tracking-wider">{title}</span>
             <span className="ml-auto text-base font-black text-slate-800 dark:text-white tracking-tight">{value}</span>
         </div>
     );

@@ -18,15 +18,15 @@ export default function StockSummaryByCategory({ categories }) {
             stats={
                 <>
                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Categories</p>
+                        <p className="text-2xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Categories</p>
                         <p className="text-lg font-black text-slate-800 dark:text-white">{categories.length}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Products</p>
+                        <p className="text-2xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Products</p>
                         <p className="text-lg font-black text-slate-800 dark:text-white">{totalProducts}</p>
                     </div>
                     <div className="col-span-2 bg-indigo-600 p-4 rounded-xl shadow-lg shadow-indigo-500/20">
-                        <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mb-1">Total Inventory Value</p>
+                        <p className="text-2xs font-bold text-indigo-100 uppercase tracking-widest mb-1">Total Inventory Value</p>
                         <p className="text-lg font-black text-white">{formatCurrency(totalValue)}</p>
                     </div>
                 </>

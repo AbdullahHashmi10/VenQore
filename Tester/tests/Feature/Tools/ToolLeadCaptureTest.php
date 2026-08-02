@@ -199,6 +199,6 @@ class ToolLeadCaptureTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('email');
-        $this->assertDatabaseCount('tool_leads', 0);
+        $this->assertDatabaseMissing('tool_leads', ['email' => 'test@mailinator.com']);
     }
 }

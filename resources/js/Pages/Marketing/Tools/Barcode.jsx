@@ -371,7 +371,7 @@ export default function BarcodeTool({
                                 <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/10">
                                     <img src={logo} alt="" className="w-9 h-9 object-contain rounded bg-white" />
                                     <span className="text-xs text-slate-500 dark:text-slate-400 flex-1 leading-snug">Keep it small — a large logo over the bars can stop the code scanning.</span>
-                                    <button onClick={() => setLogo(null)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
+                                    <button onClick={() => setLogo(null)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
                                 </div>
                             )}
                         </div>
@@ -398,7 +398,7 @@ export default function BarcodeTool({
                     {/* Preview */}
                     <div className="flex flex-col min-w-0">
                         <div className="w-full aspect-[3/2] rounded-2xl bg-white border border-slate-900/[0.08] flex items-center justify-center p-6 mb-3">
-                            {loading && <Loader2 size={20} className="text-slate-400 animate-spin" />}
+                            {loading && <Loader2 size={20} className="text-slate-500 dark:text-slate-400 animate-spin" />}
                             {!loading && result && (
                                 <img
                                     src={`data:${result.mime_type};base64,${result.image_base64}`}
@@ -406,7 +406,7 @@ export default function BarcodeTool({
                                     className="max-w-full max-h-full"
                                 />
                             )}
-                            {!loading && !result && <span className="text-slate-400 text-sm text-center px-4">Enter a value to see your barcode</span>}
+                            {!loading && !result && <span className="text-slate-500 dark:text-slate-400 text-sm text-center px-4">Enter a value to see your barcode</span>}
                         </div>
 
                         <button
@@ -416,7 +416,7 @@ export default function BarcodeTool({
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-600 text-center mt-2">Free — no email, no watermark.</p>
                     </div>
                 </div>
             </div>
@@ -461,7 +461,7 @@ export default function BarcodeTool({
                     {sheetLoading ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
                     {sheetLoading ? 'Building PDF…' : 'Download print sheet (PDF)'}
                 </button>
-                <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-2.5 leading-relaxed">
+                <p className="text-[11px] text-slate-500 dark:text-slate-600 mt-2.5 leading-relaxed">
                     Print at 100% / "Actual size" — never "Fit to page", or the labels won't line up with your stock.
                 </p>
             </div>

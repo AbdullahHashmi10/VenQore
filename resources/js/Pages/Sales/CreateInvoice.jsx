@@ -1157,14 +1157,14 @@ const CreateInvoice = ({ sale }) => {
                     </span>
                     <button
                         onClick={() => setAiPrefillNotice(null)}
-                        className="ml-auto text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                        className="ml-auto text-2xs font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
                     >
                         Dismiss
                     </button>
                 </div>
             )}
 
-            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
+            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-void-800 transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
                 <style>{`
                     .senior-mode input, .senior-mode button, .senior-mode p, .senior-mode span, .senior-mode td, .senior-mode th {
                         font-size: 1.25rem !important;
@@ -1177,7 +1177,7 @@ const CreateInvoice = ({ sale }) => {
                         color: #2563eb !important;
                         font-weight: 900 !important;
                     }
-                    .senior-mode .bg-slate-900, .senior-mode .bg-[#1a1f2e] {
+                    .senior-mode .bg-slate-900, .senior-mode .bg-void-700 {
                         background-color: #ffffff !important;
                         color: #000000 !important;
                         border: 2px solid #000000 !important;
@@ -1350,7 +1350,7 @@ const CreateInvoice = ({ sale }) => {
                                         />
                                         {/* Error Message */}
                                         {customerError && (
-                                            <p className="absolute -bottom-5 left-2 text-[10px] font-bold text-red-500 animate-pulse">
+                                            <p className="absolute -bottom-5 left-2 text-2xs font-bold text-red-500 animate-pulse">
                                                 Please select a registered customer
                                             </p>
                                         )}
@@ -1363,7 +1363,7 @@ const CreateInvoice = ({ sale }) => {
                                 <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                                     <button
                                         onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'credit'
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'credit'
                                             ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
                                             : 'text-slate-500 hover:text-slate-700'
                                             }`}
@@ -1372,7 +1372,7 @@ const CreateInvoice = ({ sale }) => {
                                     </button>
                                     <button
                                         onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'cash'
+                                        className={`px-3 py-1.5 rounded-lg text-2xs font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'cash'
                                             ? 'bg-orange-500 text-white shadow shadow-orange-500/20'
                                             : 'text-slate-500 hover:text-slate-700'
                                             }`}
@@ -1384,7 +1384,7 @@ const CreateInvoice = ({ sale }) => {
                                 {/* Payment Account Dropdown */}
                                 <div className="relative group/accounts">
                                     <button
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black min-w-[120px] justify-between"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black min-w-[120px] justify-between"
                                     >
                                         <span className="flex items-center gap-1.5 truncate">
                                             <Wallet size={12} className="text-indigo-500" />
@@ -1396,7 +1396,7 @@ const CreateInvoice = ({ sale }) => {
                                     <div className="absolute top-full pt-2 right-0 w-48 z-50 overflow-hidden hidden group-hover/accounts:block animate-in fade-in slide-in-from-top-2">
                                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                                             <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Deposit To</p>
+                                                <p className="text-2xs font-bold text-slate-400 uppercase">Deposit To</p>
                                             </div>
                                             <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
                                                 {accounts.map(acc => (
@@ -1436,7 +1436,7 @@ const CreateInvoice = ({ sale }) => {
                                         onMouseDown={handleProfitDown}
                                         onMouseUp={handleProfitUp}
                                         onMouseLeave={handleProfitUp}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-[10px] font-black select-none"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800 text-2xs font-black select-none"
                                     >
                                         <TrendingUp size={12} /> MARGIN
                                     </button>
@@ -1445,7 +1445,7 @@ const CreateInvoice = ({ sale }) => {
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowTextSizeMenu(!showTextSizeMenu)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-[10px] font-black ${textSize > 1
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-2xs font-black ${textSize > 1
                                             ? 'bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20'
                                             : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30'
                                             }`}
@@ -1471,7 +1471,7 @@ const CreateInvoice = ({ sale }) => {
                                 {/* Quick Settings */}
                                 <button
                                     onClick={() => setShowSettingsDrawer(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-2xs font-black"
                                     title="Quick Settings"
                                 >
                                     <Settings size={12} />
@@ -1480,7 +1480,7 @@ const CreateInvoice = ({ sale }) => {
                         </div>
 
                         {/* TOP ACTION BAR - Mobile View (Compact & Premium) */}
-                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-[#0f121d] border-b border-slate-800/80 shrink-0">
+                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-void-800 border-b border-slate-800/80 shrink-0">
                             {/* Row 1: Back (Left), Sale Pill (Center), Settings (Right) */}
                             <div className="flex items-center justify-between w-full relative">
                                 <button
@@ -1493,7 +1493,7 @@ const CreateInvoice = ({ sale }) => {
                                 
                                 <button
                                     onClick={() => setShowMobileSalesModal(true)}
-                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-[11px] font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
+                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-1xs font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
                                 >
                                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
                                     <span className="truncate">
@@ -1536,7 +1536,7 @@ const CreateInvoice = ({ sale }) => {
                                             <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
                                                 <div className="min-w-0 flex-1">
                                                     <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentInvoice.customer.name}</p>
-                                                    <p className="text-[9px] text-slate-500 leading-none">{currentInvoice.customer.phone || 'No Phone'}</p>
+                                                    <p className="text-3xs text-slate-500 leading-none">{currentInvoice.customer.phone || 'No Phone'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(''); }}
@@ -1565,7 +1565,7 @@ const CreateInvoice = ({ sale }) => {
                                                 inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${customerError ? '!border-red-500 !ring-red-500/20' : ''}`}
                                             />
                                             {customerError && (
-                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-4xs font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
                                                     Please select customer
                                                 </p>
                                             )}
@@ -1578,13 +1578,13 @@ const CreateInvoice = ({ sale }) => {
                                     <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[36px]">
                                         <button
                                             onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentInvoice.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CREDIT
                                         </button>
                                         <button
                                             onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-2xs font-black transition-all ${currentInvoice.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CASH
                                         </button>
@@ -1597,7 +1597,7 @@ const CreateInvoice = ({ sale }) => {
                                         <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
                                             <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
                                                 <div className="p-1 border-b border-slate-700 bg-slate-900/50">
-                                                    <p className="text-[8px] font-bold text-slate-500 uppercase">Deposit To</p>
+                                                    <p className="text-4xs font-bold text-slate-500 uppercase">Deposit To</p>
                                                 </div>
                                                 <div className="max-h-32 overflow-y-auto custom-scrollbar p-0.5">
                                                     {accounts.map(acc => (
@@ -1618,7 +1618,7 @@ const CreateInvoice = ({ sale }) => {
                                                                     });
                                                                 }
                                                             }}
-                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-[9px] font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-455' : 'text-slate-300 hover:bg-slate-700'}`}
+                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-3xs font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-455' : 'text-slate-300 hover:bg-slate-700'}`}
                                                         >
                                                             <span className="truncate">{acc.name}</span>
                                                             {(currentInvoice.paymentAccountId || 1) === acc.id && <CheckCircle2 size={9} />}
@@ -1809,7 +1809,7 @@ const CreateInvoice = ({ sale }) => {
                                                         className="w-16 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all no-spinner disabled:opacity-60 disabled:cursor-not-allowed"
                                                     />
                                                     {item.product && (
-                                                        <span className={`absolute -bottom-4 text-[10px] font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                                                        <span className={`absolute -bottom-4 text-2xs font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                                                             (Avail: {item.available_stock || 0})
                                                         </span>
                                                     )}
@@ -1881,7 +1881,7 @@ const CreateInvoice = ({ sale }) => {
                                                     <button
                                                         onClick={() => !isPosted && toggleItemTotalMode(item.id)}
                                                         disabled={isPosted}
-                                                        className={`w-7 h-7 rounded-md text-[10px] font-black transition-all shrink-0 border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${
+                                                        className={`w-7 h-7 rounded-md text-2xs font-black transition-all shrink-0 border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${
                                                             getItemTotalMode(item.id) === 'price'
                                                                 ? 'bg-indigo-600 text-white border-indigo-500 shadow shadow-indigo-500/30'
                                                                 : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
@@ -1949,7 +1949,7 @@ const CreateInvoice = ({ sale }) => {
                                         </div>
                                         <div className="grid grid-cols-3 gap-2">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                <span className="text-3xs font-bold text-slate-400 uppercase">Qty</span>
                                                 <input
                                                     type="number"
                                                     value={quickEntry.quantity}
@@ -1958,7 +1958,7 @@ const CreateInvoice = ({ sale }) => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                <span className="text-3xs font-bold text-slate-400 uppercase">Price</span>
                                                 <input
                                                     type="number"
                                                     value={quickEntry.price}
@@ -1988,7 +1988,7 @@ const CreateInvoice = ({ sale }) => {
                                         <div key={item.id} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1.5">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-2xs font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                                                         {idx + 1}
                                                     </span>
                                                     <div className="flex-1">
@@ -2024,7 +2024,7 @@ const CreateInvoice = ({ sale }) => {
                                                 <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
                                                     {/* Qty */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Qty</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.quantity ?? 1}
@@ -2035,7 +2035,7 @@ const CreateInvoice = ({ sale }) => {
 
                                                     {/* Price */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Price</span>
                                                         <WheelInput
                                                             type="number"
                                                             value={item.price ?? 0}
@@ -2047,7 +2047,7 @@ const CreateInvoice = ({ sale }) => {
                                                     {/* Discount (Conditional) */}
                                                     {settings?.billing_type !== 'lite' && (
                                                         <div className="col-span-3 flex flex-col gap-0.5">
-                                                            <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
+                                                            <span className="text-3xs font-bold text-slate-400 uppercase">Disc</span>
                                                             <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pr-0.5">
                                                                 <WheelInput
                                                                     type="number"
@@ -2058,7 +2058,7 @@ const CreateInvoice = ({ sale }) => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                                    className={`w-3.5 h-3.5 rounded text-[8px] font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
+                                                                    className={`w-3.5 h-3.5 rounded text-4xs font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
                                                                 >
                                                                     {item.discountType === 'percent' ? '%' : (getCurrencySymbol(store || settings))}
                                                                 </button>
@@ -2068,12 +2068,12 @@ const CreateInvoice = ({ sale }) => {
 
                                                     {/* Total + Conversion mode toggle */}
                                                     <div className={`${settings?.billing_type !== 'lite' ? 'col-span-3' : 'col-span-6'} flex flex-col gap-0.5 text-right`}>
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                                                        <span className="text-3xs font-bold text-slate-400 uppercase">Total</span>
                                                         <div className="flex items-center gap-1">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => toggleItemTotalMode(item.id)}
-                                                                className={`w-5 h-5 rounded text-[8px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                                className={`w-5 h-5 rounded text-4xs font-black transition-all shrink-0 border flex items-center justify-center ${
                                                                     getItemTotalMode(item.id) === 'price'
                                                                         ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
                                                                         : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
@@ -2116,55 +2116,55 @@ const CreateInvoice = ({ sale }) => {
                                 colsCount === 5 ? 'grid-cols-5' : colsCount === 4 ? 'grid-cols-4' : 'grid-cols-3'
                             }`}>
                                 <div>
-                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
+                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
                                     <input
                                         type="number"
                                         value={currentInvoice.discount ?? 0}
                                         onChange={(e) => patchInvoice({ discount: parseFloat(e.target.value) || 0 })}
                                         disabled={isPosted}
-                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                                         placeholder="0"
                                     />
                                 </div>
                                 {showDeliveryCharges && (
                                     <div>
-                                        <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Delivery</span>
+                                        <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Delivery</span>
                                         <input
                                             type="number"
                                             value={currentInvoice.delivery_charge ?? 0}
                                             onChange={(e) => patchInvoice({ delivery_charge: parseFloat(e.target.value) || 0 })}
                                             disabled={isPosted}
-                                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                                             placeholder="0"
                                         />
                                     </div>
                                 )}
                                 {showExtraField && (
                                     <div>
-                                        <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Extra</span>
+                                        <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Extra</span>
                                         <input
                                             type="number"
                                             value={currentInvoice.extra_charge_value ?? 0}
                                             onChange={(e) => patchInvoice({ extra_charge_value: parseFloat(e.target.value) || 0 })}
                                             disabled={isPosted}
-                                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                                             placeholder="0"
                                         />
                                     </div>
                                 )}
                                 <div>
-                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
+                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
                                     <input
                                         type="number"
                                         value={currentInvoice.amountPaid ?? 0}
                                         onChange={(e) => patchInvoice({ amountPaid: parseFloat(e.target.value) || 0 })}
                                         disabled={isPosted}
-                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                                         placeholder="0"
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
+                                    <span className="text-4xs text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
                                     <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 h-9 text-xs font-extrabold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
                                         {formatCurrency(balanceDue, store || settings)}
                                     </div>
@@ -2188,7 +2188,7 @@ const CreateInvoice = ({ sale }) => {
                                             <Printer size={15} /> Print
                                         </button>
                                     </div>
-                                    <p className="text-center text-[10px] font-bold text-red-500 uppercase tracking-wide">Posted sales can't be modified</p>
+                                    <p className="text-center text-2xs font-bold text-red-500 uppercase tracking-wide">Posted sales can't be modified</p>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2 px-2 py-1.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
@@ -2219,7 +2219,7 @@ const CreateInvoice = ({ sale }) => {
                     </div>
 
                     {/* RIGHT SECTION - Side Info Panel */}
-                    <div className="hidden lg:flex w-full lg:w-80 bg-[#1a1d2e] flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
+                    <div className="hidden lg:flex w-full lg:w-80 bg-void-700 flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
 
                         {/* Customer Summary Section - Text Size Responsive */}
                         <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
@@ -2231,7 +2231,7 @@ const CreateInvoice = ({ sale }) => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'}`}>{currentInvoice.customer.name}</p>
-                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-[10px]'}`}>{currentInvoice.customer.phone || 'No Phone'}</p>
+                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-2xs'}`}>{currentInvoice.customer.phone || 'No Phone'}</p>
                                         </div>
                                         {!isPosted && (
                                             <button
@@ -2274,34 +2274,34 @@ const CreateInvoice = ({ sale }) => {
                             <div className="grid grid-cols-2 gap-2">
                                 {settings?.invoice_number_enabled !== '0' && (
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Invoice #</label>
+                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Invoice #</label>
                                         <input
                                             type="text"
                                             value={currentInvoice.invoiceNumber || ''}
                                             onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                             placeholder="INV-000001"
                                         />
                                     </div>
                                 )}
                                 <div>
-                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Date</label>
+                                    <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Date</label>
                                     <input
                                         type="date"
                                         value={currentInvoice.date || ''}
                                         onChange={(e) => patchInvoice({ date: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Terms Row */}
                             <div>
-                                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Terms</label>
+                                <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Terms</label>
                                 <select
                                     value={currentInvoice.paymentTerms || 'net30'}
                                     onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                 >
                                     <option value="immediate">Immediate</option>
                                     <option value="net7">Net 7</option>
@@ -2315,27 +2315,27 @@ const CreateInvoice = ({ sale }) => {
                             {currentInvoice.paymentAccountId === 'CHEQUE' && (
                                 <div className="grid grid-cols-2 gap-2 p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/30 animate-in slide-in-from-top-2">
                                     <div className="col-span-2">
-                                        <p className="text-[10px] text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
+                                        <p className="text-2xs text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
                                             <Wallet size={12} /> CHEQUE DETAILS
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
+                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
                                         <input
                                             type="text"
                                             value={currentInvoice.paymentReference || ''}
                                             onChange={(e) => patchInvoice({ paymentReference: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
                                             placeholder="XXXXXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
+                                        <label className="text-3xs text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
                                         <input
                                             type="date"
                                             value={currentInvoice.chequeDate || new Date().toISOString().split('T')[0]}
                                             onChange={(e) => patchInvoice({ chequeDate: e.target.value })}
-                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-2xs font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -2399,7 +2399,7 @@ const CreateInvoice = ({ sale }) => {
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                     <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                        <span className="text-slate-600 text-2xs">{getCurrencySymbol(store || settings)}</span>
                                         <input
                                             type="number"
                                             value={currentInvoice.delivery_charge ?? 0}
@@ -2425,10 +2425,10 @@ const CreateInvoice = ({ sale }) => {
                                                     className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                                                     placeholder="Extra"
                                                 />
-                                                <span className="text-[10px] text-slate-700">{"\u270E"}</span>
+                                                <span className="text-2xs text-slate-700">{"\u270E"}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                                <span className="text-slate-600 text-2xs">{getCurrencySymbol(store || settings)}</span>
                                                 <input
                                                     type="number"
                                                     value={currentInvoice.extra_charge_value ?? 0}
@@ -2455,10 +2455,10 @@ const CreateInvoice = ({ sale }) => {
                                                             className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                                                             placeholder={`Extra ${idx + 1}`}
                                                         />
-                                                        <span className="text-[10px] text-slate-700">{"\u270E"}</span>
+                                                        <span className="text-2xs text-slate-700">{"\u270E"}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                                        <span className="text-slate-600 text-2xs">{getCurrencySymbol(store || settings)}</span>
                                                         <input
                                                             type="number"
                                                             value={field.value ?? 0}
@@ -2490,7 +2490,7 @@ const CreateInvoice = ({ sale }) => {
                                                         const current = currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }];
                                                         patchInvoice({ extraFields: [...current, { id: Date.now(), label: '', value: 0 }] });
                                                     }}
-                                                    className="w-full text-center text-[10px] text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
+                                                    className="w-full text-center text-2xs text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
                                                 >
                                                     + Add Extra Field
                                                 </button>
@@ -2529,7 +2529,7 @@ const CreateInvoice = ({ sale }) => {
                         {/* GRAND TOTAL & SAVE - Compact */}
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
+                                <span className="text-2xs text-slate-500 font-bold uppercase">Total</span>
                                 <span className="text-2xl font-black text-white">{formatCurrency(grandTotal, store || settings)}</span>
                             </div>
                             {isPosted ? (
@@ -2563,7 +2563,7 @@ const CreateInvoice = ({ sale }) => {
                                             <Printer size={16} /> PRINT
                                         </button>
                                     </div>
-                                    <p className="text-center text-[10px] font-bold text-red-500 uppercase tracking-wide pt-0.5">Posted sales can't be modified</p>
+                                    <p className="text-center text-2xs font-bold text-red-500 uppercase tracking-wide pt-0.5">Posted sales can't be modified</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
@@ -2814,7 +2814,7 @@ const CreateInvoice = ({ sale }) => {
                             <div className="flex-1 overflow-y-auto p-4">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
+                                        <tr className="text-left text-2xs font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
                                             <th className="pb-2 pl-2">#</th>
                                             <th className="pb-2">Product</th>
                                             <th className="pb-2 text-center">Qty</th>
@@ -2837,7 +2837,7 @@ const CreateInvoice = ({ sale }) => {
                                                     <td className="py-2 pl-2 text-slate-400 text-xs">{idx + 1}</td>
                                                     <td className="py-2">
                                                         <p className="font-bold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name}</p>
-                                                        <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
+                                                        <p className="text-2xs text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
                                                     <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol(store || settings)} {cost.toLocaleString()}</td>
@@ -2869,15 +2869,15 @@ const CreateInvoice = ({ sale }) => {
                             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Cost</p>
                                         <p className="text-lg font-bold text-slate-600">{getCurrencySymbol(store || settings)} {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
                                         <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal, store || settings)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
-                                        <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
+                                        <p className="text-2xs text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                                         <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                             {formatCurrency(profit, store || settings)}
                                             {grandTotal > 0 && (
@@ -3061,7 +3061,7 @@ const CreateInvoice = ({ sale }) => {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-slate-700 dark:text-white">Multiple Extra Fields</p>
-                                                    <p className="text-[10px] text-slate-500">Add up to 10 custom charges</p>
+                                                    <p className="text-2xs text-slate-500">Add up to 10 custom charges</p>
                                                 </div>
                                             </div>
                                             <button
@@ -3082,7 +3082,7 @@ const CreateInvoice = ({ sale }) => {
                                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                             <div>
                                                 <p className="text-sm font-bold text-slate-700 dark:text-white">Delivery Charges</p>
-                                                <p className="text-[10px] text-slate-500">Show delivery charges field</p>
+                                                <p className="text-2xs text-slate-500">Show delivery charges field</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowDeliveryCharges(!showDeliveryCharges)}
@@ -3096,7 +3096,7 @@ const CreateInvoice = ({ sale }) => {
                                         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                             <div>
                                                 <p className="text-sm font-bold text-slate-700 dark:text-white">Extra Field</p>
-                                                <p className="text-[10px] text-slate-500">Show extra charge field(s)</p>
+                                                <p className="text-2xs text-slate-500">Show extra charge field(s)</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowExtraField(!showExtraField)}
@@ -3209,7 +3209,7 @@ const CreateInvoice = ({ sale }) => {
                         />
                         {/* Modal */}
                         <div className="fixed inset-0 flex items-center justify-center z-[210] p-4">
-                            <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
+                            <div className="bg-white dark:bg-void-700 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
                                 {/* Header - Orange Midnight Nebula Style */}
                                 <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 dark:from-amber-600 dark:via-orange-700 dark:to-orange-900 p-6 overflow-hidden">
                                     {/* Midnight Nebula ambient glows */}
@@ -3230,7 +3230,7 @@ const CreateInvoice = ({ sale }) => {
                                 </div>
 
                                 {/* Content */}
-                                <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-[#1a1d2e] dark:to-[#0f121d]">
+                                <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-void-700 dark:to-void-800">
                                     <div className="text-center py-2">
                                         <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium">
                                             {overpaymentDetails.customerName} paid
@@ -3339,12 +3339,12 @@ const CreateInvoice = ({ sale }) => {
                                     >
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-2">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-indigo-500 animate-pulse' : 'bg-slate-650'}`}></span>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-indigo-500 animate-pulse' : 'bg-slate-600'}`}></span>
                                                 <p className="font-extrabold text-xs text-white truncate">
                                                     {inv.customer?.name || `Sale #${idx + 1}`}
                                                 </p>
                                             </div>
-                                            <p className="text-[10px] text-slate-500 mt-1">
+                                            <p className="text-2xs text-slate-500 mt-1">
                                                 {itemCount} {itemCount === 1 ? 'item' : 'items'} • {formatCurrency(invTotal, store || settings)}
                                             </p>
                                         </div>

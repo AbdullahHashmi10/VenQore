@@ -128,7 +128,7 @@ export default function EditableText({
                 border-b border-dashed border-slate-300 dark:border-slate-600
                 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:border-indigo-400 dark:hover:border-indigo-400
                 ${showPulse ? 'animate-[editablePulse_1.8s_ease-in-out_2]' : ''}
-                ${isEmpty ? 'italic text-slate-400 dark:text-slate-600' : ''} ${className}`}
+                ${isEmpty ? 'italic text-slate-500 dark:text-slate-600' : ''} ${className}`}
         >
             {display}
             <Pencil

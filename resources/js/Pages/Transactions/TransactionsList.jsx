@@ -177,16 +177,16 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                 <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2"
+                        className="flex items-center gap-1 text-2xs font-bold text-slate-500 uppercase shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     {!isStatsExpanded && (
-                        <div className="text-[10px] font-bold text-slate-500 truncate">
+                        <div className="text-2xs font-bold text-slate-500 truncate">
                             <span className="text-emerald-600">Sales: {formatCurrency(stats.total_debit || 0, store)}</span>
                             <span className="mx-1">|</span>
-                            <span className="text-red-605 dark:text-red-400">Due: {formatCurrency(stats.total_balance_due || 0, store)}</span>
+                            <span className="text-red-600 dark:text-red-400">Due: {formatCurrency(stats.total_balance_due || 0, store)}</span>
                         </div>
                     )}
                 </div>
@@ -198,7 +198,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
                                 <FileText size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Count</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Count</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.count || 0}</p>
                     </div>
@@ -207,7 +207,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
                                 <TrendingUp size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Sales</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Sales</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit || 0, store)}</p>
                     </div>
@@ -216,7 +216,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
                                 <ArrowDownCircle size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Received</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Received</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit || 0, store)}</p>
                     </div>
@@ -225,7 +225,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             <div className="p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0">
                                 <ArrowUpCircle size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Unpaid / Due</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Unpaid / Due</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_balance_due || 0, store)}</p>
                     </div>
@@ -284,19 +284,19 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                     {showMobileFilters && (
                         <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
+                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
                                 <div className="flex bg-slate-100 dark:bg-slate-850 rounded-lg p-1 gap-1 flex-1">
                                     <button
                                         onClick={() => { setTypeFilter('all'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-705 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >All</button>
                                     <button
                                         onClick={() => { setTypeFilter('sale'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'sale' ? 'bg-white dark:bg-slate-705 text-emerald-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'sale' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >Sales</button>
                                     <button
                                         onClick={() => { setTypeFilter('purchase'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'purchase' ? 'bg-white dark:bg-slate-705 text-blue-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'purchase' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                                     >Purchases</button>
                                 </div>
                             </div>
@@ -314,15 +314,15 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                         <div className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => setTypeFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => setTypeFilter('sale')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'sale' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'sale' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Sales</button>
                         <button
                             onClick={() => setTypeFilter('purchase')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'purchase' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'purchase' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Purchases</button>
                     </div>
 
@@ -361,7 +361,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                         <th
                                             key={col.key}
                                             onClick={() => handleSort(col.key)}
-                                            className={`p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 ${col.align === 'right' ? 'text-right' : ''}`}
+                                            className={`p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 ${col.align === 'right' ? 'text-right' : ''}`}
                                             style={{ width: col.width }}
                                         >
                                             <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
@@ -369,7 +369,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                             </div>
                                         </th>
                                     ))}
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-[10%]">
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-[10%]">
                                         Actions
                                     </th>
                                 </tr>
@@ -397,11 +397,11 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                         <p className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[180px]">
                                                             {row.party?.name || 'Walk-in Customer'}
                                                         </p>
-                                                        {row.party?.phone && <p className="text-[10px] text-slate-400">{row.party.phone}</p>}
+                                                        {row.party?.phone && <p className="text-2xs text-slate-400">{row.party.phone}</p>}
                                                     </div>
                                                 </td>
                                                 <td className="p-3">
-                                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase ${typeConfig.color}`}>
+                                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-2xs font-bold uppercase ${typeConfig.color}`}>
                                                         <Icon size={10} />
                                                         {typeConfig.label}
                                                     </span>
@@ -417,13 +417,13 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                             {formatCurrency(row.balance_due, store)}
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase">
+                                                        <span className="inline-flex px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-2xs font-bold uppercase">
                                                             Settled
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td className="p-3">
-                                                    <span className={`text-[10px] font-bold uppercase ${row.payment_status === 'paid' ? 'text-emerald-600' :
+                                                    <span className={`text-2xs font-bold uppercase ${row.payment_status === 'paid' ? 'text-emerald-600' :
                                                         row.payment_status === 'partial' ? 'text-amber-600' :
                                                             row.payment_status === 'unpaid' ? 'text-red-600' : 'text-slate-500'
                                                         }`}>
@@ -486,10 +486,10 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                 return (
                                     <div key={row.id + '-' + row.type} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/10 flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] text-slate-500 font-medium font-mono">
+                                            <span className="text-2xs text-slate-500 font-medium font-mono">
                                                 {formatDate(row.date)}
                                             </span>
-                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase ${typeConfig.color}`}>
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-3xs font-bold uppercase ${typeConfig.color}`}>
                                                 <Icon size={8} />
                                                 {typeConfig.label}
                                             </span>
@@ -502,15 +502,15 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 {row.party?.name || 'Walk-in Customer'}
                                             </p>
                                         </div>
-                                        <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-dashed border-slate-150 dark:border-slate-800 mt-1">
+                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-slate-150 dark:border-slate-800 mt-1">
                                             <div className="flex gap-2">
                                                 <span className="text-slate-800 dark:text-white font-mono font-bold">Amt: {formatCurrency(row.amount, store)}</span>
                                                 {row.balance_due > 0 && (
-                                                    <span className="text-red-650 dark:text-red-400 font-mono font-bold">Due: {formatCurrency(row.balance_due, store)}</span>
+                                                    <span className="text-red-600 dark:text-red-400 font-mono font-bold">Due: {formatCurrency(row.balance_due, store)}</span>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-[9px] font-bold uppercase ${row.payment_status === 'paid' ? 'text-emerald-600' :
+                                                <span className={`text-3xs font-bold uppercase ${row.payment_status === 'paid' ? 'text-emerald-600' :
                                                     row.payment_status === 'partial' ? 'text-amber-600' : 'text-red-600'
                                                 }`}>
                                                     {row.payment_status || '-'}
@@ -522,14 +522,14 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                     <MoreVertical size={12} />
                                                     {activeActionMenu === row.id && (
                                                         <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-950 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-1 z-50 animate-in zoom-in-95">
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-[10px] font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-2xs font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                                                 <Eye size={10} /> View Details
                                                             </button>
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-[10px] font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                                                            <button className="w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-2xs font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                                                 <FileText size={10} /> PDF Invoice
                                                             </button>
                                                             <div className="h-px bg-slate-100 dark:bg-slate-800 my-0.5"></div>
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-[10px] font-medium flex items-center gap-1.5 text-red-600">
+                                                            <button className="w-full text-left px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-2xs font-medium flex items-center gap-1.5 text-red-600">
                                                                     <Trash2 size={10} /> Delete
                                                             </button>
                                                         </div>

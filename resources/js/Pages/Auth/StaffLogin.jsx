@@ -12,7 +12,7 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
     const [focused, setFocused] = useState(false);
     return (
         <div>
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-violet-400' : 'text-slate-500'}`}>
+            <label className={`block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-violet-400' : 'text-slate-500'}`}>
                 {label}
             </label>
             <div className="relative group">
@@ -57,7 +57,7 @@ export default function StaffLogin({ status, flash }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#02000c] font-sans selection:bg-violet-500/40 selection:text-white">
+        <div className="min-h-screen w-full flex bg-void-900 font-sans selection:bg-violet-500/40 selection:text-white">
             <Head title="Staff Access Portal" />
 
             {/* ── Left Panel — Branding ─────────────────────── */}
@@ -104,7 +104,7 @@ export default function StaffLogin({ status, flash }) {
                 <div className="w-full max-w-md relative z-10">
                     {/* Header */}
                     <div className="mb-10 text-center sm:text-left">
-                        <span className="text-[10px] bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-3">
+                        <span className="text-2xs bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-3">
                             Platform Command Portal
                         </span>
                         <h2 className="text-3xl font-black text-white tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
@@ -144,7 +144,7 @@ export default function StaffLogin({ status, flash }) {
                             />
 
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-500">Password</label>
+                                <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-500">Password</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-600">
                                         <Lock size={18} />
@@ -174,7 +174,7 @@ export default function StaffLogin({ status, flash }) {
                             </div>
 
                             <button type="submit" disabled={processing}
-                                className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-white text-[#02000c] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50">
+                                className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-white text-void-900 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(139,92,246,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50">
                                 {processing ? <><Loader2 size={18} className="animate-spin" /> Authorizing...</> : <>Enter Staff Hub <ArrowRight size={16} /></>}
                             </button>
                         </div>

@@ -44,7 +44,7 @@ const Section = ({ title, children }) => (
 
 export default function WhatIsIncluded() {
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans">
+        <div className="min-h-screen bg-void-950 text-white font-sans">
             <Head>
                 <title>What's Included — VenQore AppSumo LTD</title>
                 <meta name="description" content="Full feature breakdown for VenQore's AppSumo Lifetime Deal. See exactly what's included in each tier." />

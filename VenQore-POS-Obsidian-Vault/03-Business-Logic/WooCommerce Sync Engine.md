@@ -4,9 +4,18 @@ tags: [services, woocommerce, integrations]
 
 # WooCommerce Sync Engine
 
-Part of [[VenQore POS - Home]] · [[Models - WooCommerce Integration]]
+Part of [[VenQore POS - Home]] · [[Models - WooCommerce Integration]] · [[VenSynQ Integration Engine]]
 
 `app/Services/WooSync/*` — "all sync intelligence lives here": priority resolution, conflict detection, SKU matching, queuing, webhook processing.
+
+> [!info] T16 — scope split with VenSynQ
+> This module owns **catalogue** sync (products, variations, categories, webhooks).
+> **Order** ingestion, dispatch, health and stock push now run through
+> [[VenSynQ Integration Engine]] via `WooCommerceClient`, joined on
+> `ecommerce_channels.external_seller_id === woo_connections.uuid`.
+> Credentials are not duplicated — they stay encrypted on `WooConnection`.
+> T16 added `getOrders()`, `updateOrder()`, `createOrderNote()`, `updateStockBySku()`
+> and `ping()` to `WooApiClient`. See [[T16 - VenSynQ Integration Audit]].
 
 ## SyncEngine
 Constructor: takes a `WooConnection`; builds `FieldMapper` and `WooApiClient` internally.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
+import { vq } from '@/theme/runtime';
 /**
  * ConnectionGuard
  *
@@ -64,7 +65,7 @@ export default function ConnectionGuard({ children, pingUrl = '/ping' }) {
                     top: 0,
                     left: 0,
                     right: 0,
-                    background: '#dc2626',
+                    background: vq.red[600],
                     color: '#fff',
                     textAlign: 'center',
                     padding: '10px',

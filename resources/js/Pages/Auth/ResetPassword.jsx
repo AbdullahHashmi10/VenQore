@@ -25,7 +25,7 @@ export default function ResetPassword({ token, email }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#020010] font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
             <Head title="Reset Password" />
 
             <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/15 rounded-full blur-[160px] pointer-events-none" />
@@ -56,7 +56,7 @@ export default function ResetPassword({ token, email }) {
                     <form onSubmit={submit} className="space-y-4 sm:space-y-5">
                         {/* Email (read-only display) */}
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Email</label>
+                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Email</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Mail size={18} /></div>
                                 <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)}
@@ -67,7 +67,7 @@ export default function ResetPassword({ token, email }) {
 
                         {/* Password */}
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">New Password</label>
+                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">New Password</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Lock size={18} /></div>
                                 <input type={showPassword ? 'text' : 'password'} value={data.password} onChange={(e) => setData('password', e.target.value)}
@@ -82,7 +82,7 @@ export default function ResetPassword({ token, email }) {
 
                         {/* Confirm */}
                         <div>
-                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Confirm Password</label>
+                            <label className="block text-2xs font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400">Confirm Password</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Lock size={18} /></div>
                                 <input type={showPassword ? 'text' : 'password'} value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -93,7 +93,7 @@ export default function ResetPassword({ token, email }) {
                         </div>
 
                         <button type="submit" disabled={processing}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 mt-2">
+                            className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-void-950 rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 mt-2">
                             {processing ? <><Loader2 size={18} className="animate-spin" /> Resetting...</> : <>Reset Password <ArrowRight size={16} /></>}
                         </button>
                     </form>

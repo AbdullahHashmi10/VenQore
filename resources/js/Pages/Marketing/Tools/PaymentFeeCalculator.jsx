@@ -210,23 +210,23 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                                 <tr key={p.id} className="border-t border-slate-900/[0.06] dark:border-white/[0.06]">
                                     <td className="px-3 py-2">
                                         <p className="font-bold text-slate-900 dark:text-white">{p.name}</p>
-                                        <p className="text-[11px] text-slate-400 dark:text-slate-500">{p.note} — illustrative, verify current rates</p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-500">{p.note} — illustrative, verify current rates</p>
                                     </td>
                                     <td className="px-3 py-2 w-28">
                                         <div className="relative">
                                             <input type="number" step="0.01" value={p.pct} onChange={(e) => updateProcessor(p.id, 'pct', e.target.value)} className={`${inputCls} pr-7 py-1.5`} />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">%</span>
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 w-28">
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">$</span>
                                             <input type="number" step="0.01" value={p.fixed} onChange={(e) => updateProcessor(p.id, 'fixed', e.target.value)} className={`${inputCls} pl-6 py-1.5`} />
                                         </div>
                                     </td>
                                     <td className="px-3 py-2 w-32">
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-xs">$</span>
                                             <input type="number" step="0.01" value={p.monthly} onChange={(e) => updateProcessor(p.id, 'monthly', e.target.value)} className={`${inputCls} pl-6 py-1.5`} placeholder="0" />
                                         </div>
                                     </td>
@@ -241,7 +241,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                     <div className="max-w-xs mb-6">
                         <label className={labelCls}>Transaction amount</label>
                         <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">$</span>
                             <input type="number" step="0.01" value={txAmount} onChange={(e) => setTxAmount(e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                         </div>
                     </div>
@@ -250,7 +250,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         <div>
                             <label className={labelCls}>Average transaction amount</label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm">$</span>
                                 <input type="number" step="0.01" value={avgTicket} onChange={(e) => setAvgTicket(e.target.value)} className={`${inputCls} pl-8`} placeholder="0.00" />
                             </div>
                         </div>

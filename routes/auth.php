@@ -16,16 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
-Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
-
-    // Apply the named 'auth' rate limiter (10/min per IP, defined in
-    // AppServiceProvider) to the unauthenticated credential-submitting
-    // endpoints so they can't be brute-forced from a single source.
-    Route::post('register', [RegisteredUserController::class, 'store'])
-        ->middleware('throttle:auth');
-
+Route::middleware(['guest', \App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
@@ -53,7 +44,15 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
+
+    Route::post('register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:auth');
+});
+
+Route::middleware(['auth', \App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
@@ -78,12 +77,12 @@ Route::middleware('auth')->group(function () {
 });
 
 // ── Platform Owner Secure HQ Login ──────────────────────────────────────────
-// Separate from regular user login. Only platform admins can authenticate here.
-// Route is intentionally NOT at /admin/login to avoid common attack vectors.
-Route::get('/VenQore-login',         [PlatformOwnerAuthController::class, 'create'])->name('platform.login');
-Route::post('/VenQore-login',        [PlatformOwnerAuthController::class, 'store'])->name('platform.login.store');
-Route::post('/VenQore-login/pin',    [PlatformOwnerAuthController::class, 'storePin'])->name('platform.login.pin');
+Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
+    Route::get('/VenQore-login',         [PlatformOwnerAuthController::class, 'create'])->name('platform.login');
+    Route::post('/VenQore-login',        [PlatformOwnerAuthController::class, 'store'])->name('platform.login.store');
+    Route::post('/VenQore-login/pin',    [PlatformOwnerAuthController::class, 'storePin'])->name('platform.login.pin');
 
-// ── Staff Member Login ──────────────────────────────────────────────────────
-Route::get('/staff-login',           [\App\Http\Controllers\Auth\StaffAuthController::class, 'create'])->name('staff.login');
-Route::post('/staff-login',          [\App\Http\Controllers\Auth\StaffAuthController::class, 'store'])->name('staff.login.store');
+    // ── Staff Member Login ──────────────────────────────────────────────────────
+    Route::get('/staff-login',           [\App\Http\Controllers\Auth\StaffAuthController::class, 'create'])->name('staff.login');
+    Route::post('/staff-login',          [\App\Http\Controllers\Auth\StaffAuthController::class, 'store'])->name('staff.login.store');
+});

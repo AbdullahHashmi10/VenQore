@@ -177,7 +177,7 @@ export default function SellModuleTabs({ activeTab }) {
                                 >
                                     <Icon size={14} />
                                     <span>{tab.label}</span>
-                                    <span className="text-[10px]">🔒</span>
+                                    <span className="text-2xs">🔒</span>
                                 </button>
                             );
                         }

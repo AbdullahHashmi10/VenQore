@@ -115,7 +115,7 @@ const Card3D = ({ report }) => {
                     <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover/locked:scale-110 transition-transform duration-300">
                         <Lock size={16} />
                     </div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 px-2.5 py-1 bg-white/95 dark:bg-slate-800/95 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
+                    <span className="text-1xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 px-2.5 py-1 bg-white/95 dark:bg-slate-800/95 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
                         Upgrade to {requiredTier === 'growth' ? 'Growth' : 'Business'}
                     </span>
                 </div>
@@ -131,7 +131,7 @@ const Card3D = ({ report }) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{ transform: transform, transition: 'transform 0.1s ease-out' }}
-            className="group relative bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-100 dark:border-slate-800/80 overflow-hidden flex flex-col h-full transform-gpu"
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/80 overflow-hidden flex flex-col h-full transform-gpu"
         >
             {/* Spotlight / Glow Effect - WIDER & BRIGHTER */}
             <div
@@ -141,7 +141,7 @@ const Card3D = ({ report }) => {
                 }}
             />
 
-            <div className="relative p-6 flex flex-col h-full z-10 bg-white/5 dark:bg-[#0f172a]/90 backdrop-blur-3xl h-full">
+            <div className="relative p-6 flex flex-col h-full z-10 bg-white/5 dark:bg-slate-900/90 backdrop-blur-3xl h-full">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -652,7 +652,7 @@ export default function ReportsHub() {
                                 placeholder="Search reports..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 w-full md:w-64 shadow-sm outline-none transition-all placeholder:text-slate-500"
+                                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 w-full md:w-64 shadow-sm outline-none transition-all placeholder:text-slate-500"
                             />
                         </div>
                     }

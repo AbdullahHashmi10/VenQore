@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FinalTester/phpunit.xml — THE CANONICAL SUITE DEFINITION
+  ========================================================
+
+  This file defines every test exactly ONCE. A bare run:
+
+      vendor/bin/pest with this file as the configuration
+
+  executes the complete estate with no test running twice, which is what makes
+  the "executed / expected" progress maths in the dashboard trustworthy.
+
+  IF YOU ADD AN OVERLAPPING TESTSUITE HERE YOU WILL BREAK THE COUNTS.
+  Category lanes (Financial, Security, Routes, ...) deliberately overlap and
+  therefore live in a SEPARATE file: config/phpunit.categories.xml, which must
+  always be invoked with an explicit testsuite flag. See README.md for the
+  exact command lines.
+
+  Database policy: MySQL only. amd_pos_test only. Never venqore_pos.
+  Both invariants are enforced at runtime by bootstrap.php.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         cacheDirectory=".phpunit.cache"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnIncompleteTests="true"
+         displayDetailsOnSkippedTests="true"
+>
+    <!-- Append-only evidence record for every run.
+         Writes to FinalTester/VerificationCenter/runs/<runId>/ -->
+    <extensions>
+        <bootstrap class="Tests\Support\RunLedger\RunLedgerExtension"/>
+        <!-- Streams assertion counts and incomplete markers to STDOUT so the
+             dashboard can show them live. The TeamCity protocol carries
+             neither. See tests/Support/Live/LiveMetricsExtension.php -->
+        <bootstrap class="Tests\Support\Live\LiveMetricsExtension"/>
+    </extensions>
+
+    <!-- ===================================================================
+         CANONICAL, NON-OVERLAPPING SUITES.
+         Union of these three == the entire test estate, each test once.
+         =================================================================== -->
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">tests/Unit</directory>
+        </testsuite>
+
+        <testsuite name="Feature">
+            <directory suffix="Test.php">tests/Feature</directory>
+        </testsuite>
+
+        <testsuite name="Routes">
+            <directory suffix="Test.php">tests/Routes</directory>
+        </testsuite>
+
+        <testsuite name="Performance">
+            <directory suffix="Test.php">tests/Performance</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">../app</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="APP_NAME"               value="VenQore FinalTester"/>
+        <env name="APP_ENV"                value="testing"/>
+        <env name="APP_KEY"                value="base64:2yEI71seB86Bj2BjZitdmFfCsRVzPqp56iV6TCJ5wx0="/>
+        <env name="APP_DEBUG"              value="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS"          value="4"/>
+        <env name="BROADCAST_CONNECTION"   value="null"/>
+        <env name="CACHE_STORE"            value="array"/>
+        <env name="CACHE_DRIVER"           value="array"/>
+
+        <!-- MySQL. Not SQLite. Ever. See bootstrap.php for the hard guard. -->
+        <env name="DB_CONNECTION"          value="mysql"/>
+        <env name="DB_HOST"                value="127.0.0.1"/>
+        <env name="DB_PORT"                value="3306"/>
+        <env name="DB_DATABASE"            value="amd_pos_test"/>
+        <env name="DB_USERNAME"            value="root"/>
+        <env name="DB_PASSWORD"            value=""/>
+
+        <!-- Smoke tests may target a specific DB. Local: amd_pos_test.
+             On the live server this is the ONLY value you change. -->
+        <env name="SMOKE_DB_DATABASE"      value="amd_pos_test"/>
+
+        <env name="QUEUE_CONNECTION"       value="sync"/>
+        <env name="MAIL_MAILER"            value="array"/>
+        <env name="SESSION_DRIVER"         value="array"/>
+
+        <!-- Intentionally empty: regression pin for the WooCommerce
+             credential-isolation bug. Do not populate. -->
+        <env name="WOOCOMMERCE_KEY"        value=""/>
+        <env name="WOOCOMMERCE_SECRET"     value=""/>
+        <env name="WOOCOMMERCE_URL"        value=""/>
+
+        <env name="PULSE_ENABLED"          value="false"/>
+        <env name="TELESCOPE_ENABLED"      value="false"/>
+        <env name="NIGHTWATCH_ENABLED"     value="false"/>
+        <env name="HORIZON_ENABLED"        value="false"/>
+        <!-- VenSynQController::__construct() aborts 404 on every vensynq route
+             (including the top-level OAuth callbacks) when this is unset — it
+             defaults to false. Root cause of t16_universal_callback's 404 and the
+             vensynq.health/money-pipeline/payouts 404s in the route sweep. -->
+        <env name="VENSYNQ_ENABLED"        value="true"/>
+    </php>
+</phpunit>

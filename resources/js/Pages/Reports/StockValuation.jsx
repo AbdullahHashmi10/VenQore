@@ -190,7 +190,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
                 <div className="grid grid-cols-4 gap-4 mb-10">
                     {reportStats.map((s, idx) => (
                         <div key={idx} className="border p-4 rounded-xl">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">{s.label}</p>
+                            <p className="text-2xs font-bold text-slate-400 uppercase">{s.label}</p>
                             <p className="text-xl font-black">{s.value}</p>
                         </div>
                     ))}
@@ -210,7 +210,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
                             <tr key={idx}>
                                 <td className="py-3">
                                     <div className="font-bold">{row.name}</div>
-                                    <div className="text-[10px] text-slate-500">{row.sku}</div>
+                                    <div className="text-2xs text-slate-500">{row.sku}</div>
                                 </td>
                                 <td className="py-3 text-right font-bold">{formatNumber(row.stock_quantity)}</td>
                                 <td className="py-3 text-right">{formatCurrency(row.unit_cost, store)}</td>

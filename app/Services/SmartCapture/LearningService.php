@@ -152,12 +152,19 @@ class LearningService
     {
         $tenantId = $this->tenantId();
 
+        // IMPORTANT: withoutGlobalScope('tenant') only — NOT withoutGlobalScopes().
+        // Dropping every global scope would also drop SoftDeletes on Product/Party,
+        // which is exactly what we don't want (a soft-deleted target must read as
+        // gone). Dropping only the HasTenant scope avoids the '1 = 0' fallback that
+        // trait injects when there is no bound tenant / authenticated user (e.g. a
+        // queued job or Artisan command) — without this, every alias would read as
+        // "target missing" outside a request context and get pruned.
         return match ($kind) {
-            SmartCaptureAlias::KIND_PRODUCT  => Product::withoutGlobalScopes()
+            SmartCaptureAlias::KIND_PRODUCT  => Product::withoutGlobalScope('tenant')
                 ->where('tenant_id', $tenantId)->whereKey($targetId)->exists(),
-            SmartCaptureAlias::KIND_PARTY    => Party::withoutGlobalScopes()
+            SmartCaptureAlias::KIND_PARTY    => Party::withoutGlobalScope('tenant')
                 ->where('tenant_id', $tenantId)->whereKey($targetId)->exists(),
-            SmartCaptureAlias::KIND_CATEGORY => ExpenseCategory::withoutGlobalScopes()
+            SmartCaptureAlias::KIND_CATEGORY => ExpenseCategory::withoutGlobalScope('tenant')
                 ->where('tenant_id', $tenantId)->whereKey($targetId)->exists(),
             default => false,
         };

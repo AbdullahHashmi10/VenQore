@@ -79,7 +79,7 @@ const TONE = {
 const TIMELINE = [
     { k: 'The frustration', d: 'Owners ringing up a thousand sales a day still could not answer one question: did I actually make money this month?' },
     { k: 'The decision', d: 'Instead of bolting reports onto a cash register, we chose to rebuild retail software on a real double-entry foundation.' },
-    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in 665+ automated tests so the math can never quietly drift.' },
+    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in 1,500+ automated tests so the math can never quietly drift.' },
     { k: 'The platform', d: '226+ features grew on top of that engine: POS, inventory, manufacturing, AI and 40+ reports — one connected system.' },
     { k: 'Today', d: 'From a single counter to multi-store operations, VenQore gives owners one number they can finally trust.' },
 ];
@@ -99,11 +99,11 @@ const TimelineItem = ({ item, i, last }) => {
     return (
         <div ref={ref} className="relative pl-14 pb-10">
             {!last && <span className="absolute left-[18px] top-9 bottom-0 w-px bg-gradient-to-b from-indigo-500/40 to-transparent" />}
-            <span className={`absolute left-0 top-1 w-9 h-9 rounded-full border flex items-center justify-center text-[12px] font-black transition-all duration-700 ${v ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200 scale-100' : 'bg-white/[0.02] border-white/10 text-slate-600 scale-90'}`}
+            <span className={`absolute left-0 top-1 w-9 h-9 rounded-full border flex items-center justify-center text-[12px] font-black transition-all duration-700 ${v ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200 scale-100' : 'bg-white/[0.02] border-slate-900/[0.08] dark:border-white/10 text-slate-600 scale-90'}`}
                 style={{ transitionDelay: `${i * 0.05}s` }}>{i + 1}</span>
             <div style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(16px)', transition: 'opacity .7s cubic-bezier(0.22,1,0.36,1), transform .7s cubic-bezier(0.22,1,0.36,1)' }}>
-                <h3 className="text-xl md:text-2xl font-black text-white tracking-tight font-display mb-2">{item.k}</h3>
-                <p className="text-slate-400 leading-relaxed max-w-2xl">{item.d}</p>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-2">{item.k}</h3>
+                <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">{item.d}</p>
             </div>
         </div>
     );
@@ -124,8 +124,8 @@ export default function About() {
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.16}>
-                        <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
-                            VenQore began with one maddening problem: a shop could ring up a thousand sales a day and still not answer — <span className="text-white font-semibold">did I actually make money?</span> So we rebuilt retail software on real accounting, and obsessed over every tiny detail in between.
+                        <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-medium">
+                            VenQore began with one maddening problem: a shop could ring up a thousand sales a day and still not answer — <span className="text-slate-900 dark:text-white font-semibold">did I actually make money?</span> So we rebuilt retail software on real accounting, and obsessed over every tiny detail in between.
                         </p>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.24}>
@@ -136,10 +136,10 @@ export default function About() {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.3}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 border-t border-white/[0.06] pt-10">
-                            {[{ e: 226, s: '+', l: 'Features' }, { e: 665, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
+                            {[{ e: 226, s: '+', l: 'Features' }, { e: 1000, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
                                 <div key={i} className="text-center">
-                                    <div className="text-3xl md:text-4xl font-black text-white tracking-tighter font-display"><Num end={x.e} suffix={x.s} /></div>
-                                    <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{x.l}</div>
+                                    <div className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-display"><Num end={x.e} suffix={x.s} /></div>
+                                    <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{x.l}</div>
                                 </div>
                             ))}
                         </div>
@@ -155,10 +155,10 @@ export default function About() {
                             <div className="absolute top-0 right-0 p-10 text-white/[0.025] pointer-events-none"><Calculator size={240} strokeWidth={0.3} /></div>
                             <div className="relative z-10 max-w-4xl">
                                 <SectionLabel icon={AlertTriangle}>The uncomfortable truth</SectionLabel>
-                                <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-8 leading-[0.9] font-display">
+                                <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white mb-8 leading-[0.9] font-display">
                                     Your software has been<br /><span className="bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent italic">lying to you.</span>
                                 </h2>
-                                <p className="text-lg md:text-xl text-slate-400 leading-relaxed max-w-3xl mb-12">
+                                <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl mb-12">
                                     Not on purpose — structurally. We lived these three lies for years before we decided to end them. They are the reason VenQore exists.
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -166,7 +166,7 @@ export default function About() {
                                         <RevealOnScroll key={i} delay={0.1 + i * 0.1}>
                                             <div className={`h-full p-7 rounded-3xl border ${TONE[c.c].b} transition-all duration-500 hover:-translate-y-1`}>
                                                 <c.ic className={`${TONE[c.c].c} mb-5`} size={26} />
-                                                <h4 className="text-white font-bold mb-2.5 tracking-tight text-lg font-display">{c.t}</h4>
+                                                <h4 className="text-slate-900 dark:text-white font-bold mb-2.5 tracking-tight text-lg font-display">{c.t}</h4>
                                                 <p className="text-slate-500 text-sm leading-relaxed">{c.d}</p>
                                             </div>
                                         </RevealOnScroll>
@@ -184,8 +184,8 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14 max-w-3xl mx-auto">
                             <SectionLabel icon={Sparkles}>Attention to detail</SectionLabel>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">We sweat the small stuff —<br /><span className="text-indigo-400">because you live in it.</span></h2>
-                            <p className="text-slate-400 text-base md:text-lg mt-5">A real business day is a thousand tiny frictions. Most software ignores them. We treat each one as a feature worth building. Here are a few we obsess over.</p>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.92] font-display">We sweat the small stuff —<br /><span className="text-indigo-600 dark:text-indigo-400">because you live in it.</span></h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-base md:text-lg mt-5">A real business day is a thousand tiny frictions. Most software ignores them. We treat each one as a feature worth building. Here are a few we obsess over.</p>
                         </div>
                     </RevealOnScroll>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -193,7 +193,7 @@ export default function About() {
                             <RevealOnScroll key={i} delay={(i % 3) * 0.07}>
                                 <div className="group h-full p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all duration-500 hover:-translate-y-1">
                                     <div className="w-11 h-11 rounded-xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"><d.ic size={20} /></div>
-                                    <h4 className="text-white font-bold text-[15px] tracking-tight mb-1.5 font-display">{d.t}</h4>
+                                    <h4 className="text-slate-900 dark:text-white font-bold text-[15px] tracking-tight mb-1.5 font-display">{d.t}</h4>
                                     <p className="text-slate-500 text-[13px] leading-relaxed">{d.d}</p>
                                 </div>
                             </RevealOnScroll>
@@ -203,12 +203,12 @@ export default function About() {
             </section>
 
             {/* ── ENGINEERING / REAL DEAL ──────────────────────── */}
-            <section className="py-20 md:py-28 px-6 border-y border-white/5">
+            <section className="py-20 md:py-28 px-6 border-y border-slate-900/[0.06] dark:border-white/5">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                     <RevealOnScroll direction="right">
                         <SectionLabel icon={ShieldCheck}>Proof, not promises</SectionLabel>
-                        <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] mb-6 font-display">Built like financial<br /><span className="text-emerald-400">infrastructure.</span></h2>
-                        <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-xl">
+                        <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.92] mb-6 font-display">Built like financial<br /><span className="text-emerald-600 dark:text-emerald-400">infrastructure.</span></h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-8 max-w-xl">
                             Anyone can claim accuracy. We make it verifiable. The accounting core is guarded by five layers of automated checks, and the whole system is re-tested on every release — because trust you cannot measure is just marketing.
                         </p>
                         <div className="space-y-3">
@@ -219,8 +219,8 @@ export default function About() {
                             ].map((r, i) => (
                                 <RevealOnScroll key={i} delay={i * 0.08} direction="right">
                                     <div className="flex items-start gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-                                        <CheckCircle2 size={18} className="text-emerald-400 mt-0.5 shrink-0" />
-                                        <div><div className="text-white font-bold text-[14px]">{r[0]}</div><div className="text-slate-500 text-[13px] leading-snug">{r[1]}</div></div>
+                                        <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                                        <div><div className="text-slate-900 dark:text-white font-bold text-[14px]">{r[0]}</div><div className="text-slate-500 text-[13px] leading-snug">{r[1]}</div></div>
                                     </div>
                                 </RevealOnScroll>
                             ))}
@@ -229,15 +229,15 @@ export default function About() {
                     <RevealOnScroll delay={0.12} direction="left">
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { e: 665, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
+                                { e: 1000, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
                                 { e: 4000, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-indigo-300' },
                                 { e: 13, s: '', l: 'E2E Scenarios', ic: Activity, c: 'text-cyan-300' },
                                 { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-violet-300' },
                             ].map((x, i) => (
                                 <div key={i} className="p-6 rounded-3xl border border-white/[0.07] bg-white/[0.02] hover:border-indigo-400/20 transition-colors duration-500">
                                     <x.ic size={22} className={`${x.c} mb-4`} />
-                                    <div className="text-2xl md:text-3xl font-black text-white tracking-tighter font-display mb-1">{x.disp ? <span className="text-lg md:text-xl">{x.disp}</span> : <Num end={x.e} suffix={x.s} />}</div>
-                                    <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em]">{x.l}</div>
+                                    <div className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter font-display mb-1">{x.disp ? <span className="text-lg md:text-xl">{x.disp}</span> : <Num end={x.e} suffix={x.s} />}</div>
+                                    <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.2em]">{x.l}</div>
                                 </div>
                             ))}
                         </div>
@@ -251,7 +251,7 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14">
                             <SectionLabel icon={TrendingUp}>The journey</SectionLabel>
-                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter font-display leading-[0.95]">From frustration<br /><span className="text-indigo-400">to financial truth.</span></h2>
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter font-display leading-[0.95]">From frustration<br /><span className="text-indigo-600 dark:text-indigo-400">to financial truth.</span></h2>
                         </div>
                     </RevealOnScroll>
                     <div>
@@ -266,7 +266,7 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14 max-w-3xl mx-auto">
                             <SectionLabel icon={Crosshair}>What we believe</SectionLabel>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">Six principles we<br /><span className="text-indigo-400">refuse to bend.</span></h2>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.92] font-display">Six principles we<br /><span className="text-indigo-600 dark:text-indigo-400">refuse to bend.</span></h2>
                         </div>
                     </RevealOnScroll>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -274,7 +274,7 @@ export default function About() {
                             <RevealOnScroll key={i} delay={(i % 3) * 0.07}>
                                 <GlassCard className="h-full" padding="p-7">
                                     <div className="w-12 h-12 rounded-2xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500"><p.ic size={22} /></div>
-                                    <h3 className="text-lg font-black text-white tracking-tight mb-2 font-display">{p.t}</h3>
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2 font-display">{p.t}</h3>
                                     <p className="text-slate-500 text-sm leading-relaxed">{p.d}</p>
                                 </GlassCard>
                             </RevealOnScroll>
@@ -290,10 +290,10 @@ export default function About() {
                         <GlassCard hover={false} padding="p-10 md:p-16" className="text-center overflow-hidden">
                             <div className="absolute inset-0 vq-dot-pattern opacity-30 pointer-events-none" />
                             <Quote size={36} className="text-indigo-400/50 mx-auto mb-6 relative z-10" />
-                            <p className="relative z-10 text-2xl md:text-4xl font-black text-white tracking-tight leading-[1.15] font-display">
+                            <p className="relative z-10 text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15] font-display">
                                 “We are not trying to be the biggest POS. We are trying to be the one whose numbers you never have to question.”
                             </p>
-                            <div className="relative z-10 mt-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">— The VenQore Team</div>
+                            <div className="relative z-10 mt-8 text-1xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.25em]">— The VenQore Team</div>
                         </GlassCard>
                     </RevealOnScroll>
                 </div>
@@ -304,12 +304,12 @@ export default function About() {
                 <div className="max-w-5xl mx-auto text-center">
                     <RevealOnScroll>
                         <SectionLabel icon={Building2}>Built for real businesses</SectionLabel>
-                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter font-display mb-10 leading-[0.95]">If you sell something,<br /><span className="text-indigo-400">we built this for you.</span></h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter font-display mb-10 leading-[0.95]">If you sell something,<br /><span className="text-indigo-600 dark:text-indigo-400">we built this for you.</span></h2>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
                         <div className="flex flex-wrap justify-center gap-3">
                             {INDUSTRIES.map((x) => (
-                                <span key={x} className="px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.025] text-sm font-bold text-slate-300 hover:border-indigo-400/30 hover:text-white transition-colors">{x}</span>
+                                <span key={x} className="px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.025] text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-indigo-400/30 hover:text-white transition-colors">{x}</span>
                             ))}
                         </div>
                     </RevealOnScroll>
@@ -321,8 +321,8 @@ export default function About() {
                 <div className="max-w-4xl mx-auto relative">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
-                        <h2 className="text-4xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Run your business on<br /><span className="vq-headline-grad">numbers you trust.</span></h2>
-                        <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
+                        <h2 className="text-4xl md:text-7xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Run your business on<br /><span className="vq-headline-grad">numbers you trust.</span></h2>
+                        <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
                             <MagneticButton href="/contact" variant="ghost">Talk to us</MagneticButton>

@@ -275,7 +275,7 @@ export default function ImportTourGuide({ store }) {
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             Bulk Import Tour
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-indigo-400">
                             Step {currentStep} of 8
                         </span>
                     </div>

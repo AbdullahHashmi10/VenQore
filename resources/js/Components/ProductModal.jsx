@@ -416,13 +416,13 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     <button 
                         type="button"
                         onClick={() => setShowPasscodeModal(true)}
-                        className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all uppercase tracking-tight"
+                        className="text-2xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all uppercase tracking-tight"
                     >
                         <LockIcon size={12} /> Unlock Stock
                     </button>
                 )}
                 {mode === 'edit' && isStockUnlocked && (
-                    <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 uppercase tracking-tight animate-pulse">
+                    <div className="text-2xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg flex items-center gap-1.5 uppercase tracking-tight animate-pulse">
                         <Unlock size={12} /> Stock Editable
                     </div>
                 )}
@@ -463,7 +463,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         ) : (
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-center relative group">
-                                    <span className="block text-[10px] text-slate-400 uppercase">Total</span>
+                                    <span className="block text-2xs text-slate-400 uppercase">Total</span>
                                     <span className="block text-sm font-bold text-slate-700 dark:text-white">
                                         {product?.stock ?? product?.stock_quantity ?? 0}
                                     </span>
@@ -472,13 +472,13 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     )}
                                 </div>
                                 <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 text-center">
-                                    <span className="block text-[10px] text-amber-600 dark:text-amber-400 uppercase">Reserved</span>
+                                    <span className="block text-2xs text-amber-600 dark:text-amber-400 uppercase">Reserved</span>
                                     <span className="block text-sm font-bold text-amber-700 dark:text-amber-300">
                                         {product?.reserved_stock ?? product?.reserved_quantity ?? 0}
                                     </span>
                                 </div>
                                 <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800 text-center">
-                                    <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 uppercase">Available</span>
+                                    <span className="block text-2xs text-emerald-600 dark:text-emerald-400 uppercase">Available</span>
                                     <span className="block text-sm font-bold text-emerald-700 dark:text-emerald-300">
                                         {product?.available_stock ?? ((product?.stock ?? product?.stock_quantity ?? 0) - (product?.reserved_stock ?? product?.reserved_quantity ?? 0))}
                                     </span>
@@ -800,7 +800,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                         />
                                                     </div>
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 mt-1 ml-1">
+                                                <p className="text-2xs text-slate-400 mt-1 ml-1">
                                                     1 {data.secondary_unit || 'Box'} = {data.conversion_rate || 12} {data.base_unit || 'Pcs'}
                                                 </p>
                                             </div>
@@ -1118,7 +1118,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     {attributes.map(attr => (
                                         <div key={attr.id} className="px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300">
                                             {attr.name}
-                                            <span className="ml-2 text-[10px] text-slate-400">
+                                            <span className="ml-2 text-2xs text-slate-400">
                                                 ({attr.options?.length || 0} options)
                                             </span>
                                         </div>
@@ -1158,7 +1158,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                 <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(variant.selling_price || variant.price || 0, store || settings)}</span>
                                                             </div>
                                                             <div className="flex items-center gap-1">
-                                                                <span className="text-[10px] text-slate-400 uppercase font-medium">Cost:</span>
+                                                                <span className="text-2xs text-slate-400 uppercase font-medium">Cost:</span>
                                                                 <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">{formatCurrency(variant.cost_price || variant.cost || 0, store || settings)}</span>
                                                             </div>
                                                             <div>
@@ -1239,7 +1239,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                     title="Click to preview Â· Double-click to edit"
                                                 >
                                                     <td className="p-4 pl-8">
-                                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${item.type === 'Sale'
+                                                        <span className={`px-2.5 py-1 rounded-lg text-2xs font-bold border ${item.type === 'Sale'
                                                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
                                                                 : item.type === 'Return'
                                                                     ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/20 dark:border-rose-800'
@@ -1294,7 +1294,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                 <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
                                                     <div className="flex items-center gap-3">
                                                         <div>
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">
                                                                 {quickViewHistory.type === 'Sale' ? 'Sale Preview' : 'Purchase Preview'}
                                                             </p>
                                                             <h3 className={`text-xl font-black ${quickViewHistory.type === 'Sale' ? 'text-emerald-600' : 'text-indigo-600'
@@ -1302,7 +1302,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                 {quickViewHistory.invoice_number || quickViewHistory.reference_number || '...'}
                                                             </h3>
                                                         </div>
-                                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${quickViewHistory.type === 'Sale'
+                                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold border ${quickViewHistory.type === 'Sale'
                                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                                                 : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                                                             }`}>
@@ -1313,7 +1313,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             {quickViewHistory.type}
                                                         </span>
                                                         {quickViewHistory.payment_status && (
-                                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${quickViewHistory.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                                            <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${quickViewHistory.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
                                                                     quickViewHistory.payment_status === 'partial' ? 'bg-amber-100 text-amber-700' :
                                                                         'bg-red-100 text-red-700'
                                                                 }`}>{quickViewHistory.payment_status}</span>
@@ -1365,7 +1365,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             {/* Info Cards */}
                                                             <div className="grid grid-cols-3 gap-3 mb-4">
                                                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">
+                                                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">
                                                                         {quickViewHistory.type === 'Sale' ? 'Customer' : 'Supplier'}
                                                                     </p>
                                                                     <p className="font-bold text-slate-800 dark:text-white text-sm">
@@ -1373,13 +1373,13 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                     </p>
                                                                 </div>
                                                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date</p>
+                                                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Date</p>
                                                                     <p className="font-bold text-slate-800 dark:text-white text-sm">
                                                                         {quickViewHistory.date || (quickViewHistory.created_at ? new Date(quickViewHistory.created_at).toLocaleDateString() : 'N/A')}
                                                                     </p>
                                                                 </div>
                                                                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800">
-                                                                    <p className="text-[10px] font-bold text-indigo-500 uppercase mb-1">Total</p>
+                                                                    <p className="text-2xs font-bold text-indigo-500 uppercase mb-1">Total</p>
                                                                     <p className="font-black text-indigo-600 text-lg">
                                                                         {settings?.currency_symbol || 'Rs'} {Number(quickViewHistory.total || 0).toLocaleString()}
                                                                     </p>
@@ -1398,10 +1398,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                         <table className="w-full text-sm">
                                                                             <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                                                                 <tr>
-                                                                                    <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item</th>
-                                                                                    <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                                                    <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                                                    <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item</th>
+                                                                                    <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                                                    <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1409,7 +1409,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                                                     <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                                                                         <td className="p-3">
                                                                                             <p className="font-semibold text-slate-800 dark:text-white">{itm.product?.name || itm.name || 'Unknown'}</p>
-                                                                                            {itm.product?.sku && <p className="text-[10px] text-slate-400 font-mono">{itm.product.sku}</p>}
+                                                                                            {itm.product?.sku && <p className="text-2xs text-slate-400 font-mono">{itm.product.sku}</p>}
                                                                                         </td>
                                                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{itm.quantity}</td>
                                                                                         <td className="p-3 text-right text-slate-500">{settings?.currency_symbol || 'Rs'} {Number(itm.unit_price || itm.price || 0).toLocaleString()}</td>

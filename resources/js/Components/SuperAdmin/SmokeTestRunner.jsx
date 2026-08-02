@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+import { vq } from '@/theme/runtime';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS = {
@@ -47,26 +48,26 @@ function parseLine(raw) {
 // ─── Color Map ────────────────────────────────────────────────────────────────
 
 const LINE_COLORS = {
-    pass:     '#10b981',  // emerald
-    fail:     '#ef4444',  // red
-    skip:     '#f59e0b',  // amber
-    suite:    '#a78bfa',  // violet — suite-level PASS/FAIL header
-    summary:  '#f1f5f9',  // near-white
-    duration: '#475569',  // muted
-    error:    '#f87171',  // light red
-    trace:    '#64748b',  // slate
-    divider:  '#1e293b',  // barely visible
-    info:     '#94a3b8',  // default slate
+    pass:     vq.emerald[500],  // emerald
+    fail:     vq.red[500],  // red
+    skip:     vq.amber[500],  // amber
+    suite:    vq.violet[400],  // violet — suite-level PASS/FAIL header
+    summary:  vq.slate[100],  // near-white
+    duration: vq.slate[600],  // muted
+    error:    vq.red[400],  // light red
+    trace:    vq.slate[500],  // slate
+    divider:  vq.slate[800],  // barely visible
+    info:     vq.slate[400],  // default slate
 };
 
 // ─── Sub-Components ───────────────────────────────────────────────────────────
 
 function StatusBadge({ status }) {
     const configs = {
-        [STATUS.IDLE]:    { color: '#64748b', bg: 'rgba(100,116,139,0.1)', label: 'Idle' },
-        [STATUS.RUNNING]: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  label: 'Running…' },
-        [STATUS.PASSED]:  { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  label: 'All Passed' },
-        [STATUS.FAILED]:  { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   label: 'Failed' },
+        [STATUS.IDLE]:    { color: vq.slate[500], bg: 'rgba(100,116,139,0.1)', label: 'Idle' },
+        [STATUS.RUNNING]: { color: vq.amber[500], bg: 'rgba(245,158,11,0.1)',  label: 'Running…' },
+        [STATUS.PASSED]:  { color: vq.emerald[500], bg: 'rgba(16,185,129,0.1)',  label: 'All Passed' },
+        [STATUS.FAILED]:  { color: vq.red[500], bg: 'rgba(239,68,68,0.1)',   label: 'Failed' },
     };
     const c = configs[status];
     return (
@@ -105,13 +106,13 @@ function LineRow({ item, index }) {
             opacity:      item.type === 'divider' ? 0.3 : 1,
         }}>
             {item.type === 'pass' && (
-                <span style={{ color: '#10b981', marginRight: 4 }}>✓</span>
+                <span style={{ color: vq.emerald[500], marginRight: 4 }}>✓</span>
             )}
             {item.type === 'fail' && (
-                <span style={{ color: '#ef4444', marginRight: 4 }}>✗</span>
+                <span style={{ color: vq.red[500], marginRight: 4 }}>✗</span>
             )}
             {item.type === 'skip' && (
-                <span style={{ color: '#f59e0b', marginRight: 4 }}>–</span>
+                <span style={{ color: vq.amber[500], marginRight: 4 }}>–</span>
             )}
             {item.text.replace(/^[✓✗⨯]\s*/, '')}
         </div>
@@ -229,10 +230,10 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
     // ── Derived UI State ──────────────────────────────────────────────────────
 
     const borderColor = {
-        [STATUS.IDLE]:    '#334155',
-        [STATUS.RUNNING]: '#f59e0b',
-        [STATUS.PASSED]:  '#10b981',
-        [STATUS.FAILED]:  '#ef4444',
+        [STATUS.IDLE]:    vq.slate[700],
+        [STATUS.RUNNING]: vq.amber[500],
+        [STATUS.PASSED]:  vq.emerald[500],
+        [STATUS.FAILED]:  vq.red[500],
     }[status];
 
     const isRunning = status === STATUS.RUNNING;
@@ -265,12 +266,12 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                     </div>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h3 style={{ color: '#f1f5f9', margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>
+                            <h3 style={{ color: vq.slate[100], margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>
                                 Production Smoke Tests
                             </h3>
                             <StatusBadge status={status} />
                         </div>
-                        <p style={{ color: '#475569', margin: '2px 0 0', fontSize: '0.75rem' }}>
+                        <p style={{ color: vq.slate[600], margin: '2px 0 0', fontSize: '0.75rem' }}>
                             38 read-only checks · safe to run on live server
                         </p>
                     </div>
@@ -279,7 +280,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                 {/* Control buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {isRunning && (
-                        <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ color: vq.slate[500], fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
                             ⏱ {formatElapsed(elapsed)}
                         </span>
                     )}
@@ -289,7 +290,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                             <button onClick={copyToClipboard} style={{
                                 background:   'transparent',
                                 border:       '1px solid #334155',
-                                color:        '#94a3b8',
+                                color:        vq.slate[400],
                                 padding:      '6px 14px',
                                 borderRadius: '8px',
                                 cursor:       'pointer',
@@ -301,7 +302,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                             <button onClick={reset} style={{
                                 background:   'transparent',
                                 border:       '1px solid #334155',
-                                color:        '#94a3b8',
+                                color:        vq.slate[400],
                                 padding:      '6px 14px',
                                 borderRadius: '8px',
                                 cursor:       'pointer',
@@ -318,9 +319,9 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                         onClick={status === STATUS.IDLE ? runTests : undefined}
                         disabled={isRunning}
                         style={{
-                            background:   isRunning ? 'transparent' : (isDone ? 'transparent' : '#6366f1'),
-                            border:       `1px solid ${isRunning ? '#f59e0b' : (status === STATUS.PASSED ? '#10b981' : status === STATUS.FAILED ? '#ef4444' : '#6366f1')}`,
-                            color:        isRunning ? '#f59e0b' : (status === STATUS.PASSED ? '#10b981' : status === STATUS.FAILED ? '#ef4444' : '#fff'),
+                            background:   isRunning ? 'transparent' : (isDone ? 'transparent' : vq.indigo[500]),
+                            border:       `1px solid ${isRunning ? vq.amber[500] : (status === STATUS.PASSED ? vq.emerald[500] : status === STATUS.FAILED ? vq.red[500] : vq.indigo[500])}`,
+                            color:        isRunning ? vq.amber[500] : (status === STATUS.PASSED ? vq.emerald[500] : status === STATUS.FAILED ? vq.red[500] : '#fff'),
                             padding:      '8px 18px',
                             borderRadius: '10px',
                             cursor:       isRunning ? 'not-allowed' : 'pointer',
@@ -342,9 +343,9 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
             {(isRunning || isDone) && (
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                     {[
-                        { label: 'Passed',  count: counts.pass, color: '#10b981' },
-                        { label: 'Failed',  count: counts.fail, color: '#ef4444' },
-                        { label: 'Skipped', count: counts.skip, color: '#f59e0b' },
+                        { label: 'Passed',  count: counts.pass, color: vq.emerald[500] },
+                        { label: 'Failed',  count: counts.fail, color: vq.red[500] },
+                        { label: 'Skipped', count: counts.skip, color: vq.amber[500] },
                     ].map(({ label, count, color }) => (
                         <div key={label} style={{
                             padding:      '5px 14px',
@@ -366,7 +367,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                 <div
                     ref={termRef}
                     style={{
-                        background:   '#080d17',
+                        background:   vq.gray[950],
                         border:       '1px solid #1e293b',
                         borderRadius: '10px',
                         padding:      '14px 16px',
@@ -386,7 +387,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                     {/* Blinking cursor while running */}
                     {isRunning && (
                         <span style={{
-                            color:     '#f59e0b',
+                            color:     vq.amber[500],
                             animation: 'smokeRunnerBlink 1s step-end infinite',
                             fontSize:  '0.9rem',
                         }}>
@@ -403,12 +404,12 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                     borderRadius: '10px',
                     padding:      '24px',
                     textAlign:    'center',
-                    color:        '#334155',
+                    color:        vq.slate[700],
                     fontSize:     '0.8rem',
                 }}>
-                    Click <strong style={{ color: '#6366f1' }}>Run Smoke Tests</strong> to verify the production environment is healthy.
+                    Click <strong style={{ color: vq.indigo[500] }}>Run Smoke Tests</strong> to verify the production environment is healthy.
                     <br />
-                    <span style={{ fontSize: '0.72rem', color: '#1e293b', marginTop: 6, display: 'block' }}>
+                    <span style={{ fontSize: '0.72rem', color: vq.slate[800], marginTop: 6, display: 'block' }}>
                         Checks DB · Tables · Cache · Storage · Routes · API · Logs
                     </span>
                 </div>
@@ -431,7 +432,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                     </span>
                     <div>
                         <div style={{
-                            color:      status === STATUS.PASSED ? '#10b981' : '#ef4444',
+                            color:      status === STATUS.PASSED ? vq.emerald[500] : vq.red[500],
                             fontSize:   '0.84rem',
                             fontWeight: 600,
                         }}>
@@ -439,7 +440,7 @@ export default function SmokeTestRunner({ category = 'all', onComplete }) {
                                 ? 'All checks passed — production environment is healthy.'
                                 : 'One or more checks failed — do not deploy until resolved.'}
                         </div>
-                        <div style={{ color: '#475569', fontSize: '0.72rem', marginTop: '2px' }}>
+                        <div style={{ color: vq.slate[600], fontSize: '0.72rem', marginTop: '2px' }}>
                             {counts.pass} passed · {counts.fail} failed · {counts.skip} skipped · {formatElapsed(elapsed)} total
                         </div>
                     </div>

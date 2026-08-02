@@ -63,7 +63,7 @@ export default function TaxSettingsSection({ data, setData }) {
 
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Tax Name</label>
+                                <label className="text-2xs uppercase font-black tracking-widest text-slate-400">Tax Name</label>
                                 <input
                                     type="text"
                                     value={tax.name}
@@ -75,7 +75,7 @@ export default function TaxSettingsSection({ data, setData }) {
 
                             <div className="flex gap-4">
                                 <div className="flex-1 space-y-1">
-                                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Rate</label>
+                                    <label className="text-2xs uppercase font-black tracking-widest text-slate-400">Rate</label>
                                     <div className="relative">
                                         <input
                                             type="number"
@@ -86,7 +86,7 @@ export default function TaxSettingsSection({ data, setData }) {
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                    <label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Type</label>
+                                    <label className="text-2xs uppercase font-black tracking-widest text-slate-400">Type</label>
                                     <select
                                         value={tax.type}
                                         onChange={(e) => updateTax(i, 'type', e.target.value)}

@@ -269,19 +269,19 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => handleFilterChange('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >All</button>
                         <button
                             onClick={() => handleFilterChange('pending')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Pending</button>
                         <button
                             onClick={() => handleFilterChange('ordered')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'ordered' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'ordered' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Ordered</button>
                         <button
                             onClick={() => handleFilterChange('received')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'received' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'received' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
                         >Received</button>
                     </div>
 
@@ -359,19 +359,19 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                             <div className="flex flex-wrap gap-1.5">
                                 <button
                                     onClick={() => handleFilterChange('all')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >All</button>
                                 <button
                                     onClick={() => handleFilterChange('pending')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Pending</button>
                                 <button
                                     onClick={() => handleFilterChange('ordered')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'ordered' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'ordered' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Ordered</button>
                                 <button
                                     onClick={() => handleFilterChange('received')}
-                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'received' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'received' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
                                 >Received</button>
                             </div>
                         </div>
@@ -511,14 +511,14 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                                     {row.supplier?.name || 'Unknown Supplier'}
                                                 </h3>
                                                 {row.supplier?.phone && (
-                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                    <p className="text-2xs text-slate-400 font-semibold">{row.supplier.phone}</p>
                                                 )}
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
                                                     {row.reference_number || '-'}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                <span className="text-2xs text-slate-400 font-semibold block mt-0.5">
                                                     {formatDate(row.order_date || row.created_at)}
                                                 </span>
                                             </div>
@@ -526,10 +526,10 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
 
                                         {/* Row 2: Badges (Transaction type & status) */}
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] font-black uppercase bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 px-2 py-0.5 rounded border border-purple-200/30">
+                                            <span className="text-3xs font-black uppercase bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 px-2 py-0.5 rounded border border-purple-200/30">
                                                 Pre-Purchase
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-3xs font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
                                                 {row.status}
                                             </span>
                                         </div>
@@ -538,13 +538,13 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Total</span>
                                                     <span className="text-xs font-black text-slate-900 dark:text-white">
                                                         {formatCurrency(row.total_amount, store)}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Items</span>
+                                                    <span className="text-3xs text-slate-400 font-bold uppercase block tracking-wider">Items</span>
                                                     <span className="text-xs font-black text-slate-700 dark:text-slate-350">
                                                         {row.items?.length || 0}
                                                     </span>
@@ -605,7 +605,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                         pending: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
                                     };
                                     return (
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${statusStyles[quickViewItem.status] || 'bg-slate-100 text-slate-700'}`}>
                                             {quickViewItem.status}
                                         </span>
                                     );
@@ -635,18 +635,18 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                             {/* Top Info Row */}
                             <div className="grid grid-cols-3 gap-3 mb-4">
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Supplier</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Supplier</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
                                     {quickViewItem.supplier?.phone && (
                                         <p className="text-xs text-slate-500">{quickViewItem.supplier.phone}</p>
                                     )}
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Order Date</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase mb-1">Order Date</p>
                                     <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewItem.order_date)}</p>
                                 </div>
                                 <div className="bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 p-3 rounded-xl border border-purple-200 dark:border-purple-800">
-                                    <p className="text-[10px] font-bold text-purple-600 uppercase mb-1">Total</p>
+                                    <p className="text-2xs font-bold text-purple-600 uppercase mb-1">Total</p>
                                     <p className="font-black text-purple-600 text-lg">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                 </div>
                             </div>
@@ -662,11 +662,11 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                     <table className="w-full text-sm">
                                         <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                             <tr>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
-                                                <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
-                                                <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">#</th>
+                                                <th className="text-left p-3 text-2xs font-bold text-slate-400 uppercase">Item Name</th>
+                                                <th className="text-center p-3 text-2xs font-bold text-slate-400 uppercase">Qty</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Rate</th>
+                                                <th className="text-right p-3 text-2xs font-bold text-slate-400 uppercase">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -698,7 +698,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                 <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
                                     <div className="flex justify-end">
                                         <div className="text-right">
-                                            <p className="text-[10px] text-purple-600 uppercase font-bold">Grand Total</p>
+                                            <p className="text-2xs text-purple-600 uppercase font-bold">Grand Total</p>
                                             <p className="font-black text-lg text-purple-600">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                         </div>
                                     </div>
@@ -722,7 +722,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
 
                         {/* Footer */}
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-center shrink-0">
-                            <p className="text-[10px] text-slate-400">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
+                            <p className="text-2xs text-slate-400">Double-click row to view details • Press <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 font-mono">Esc</kbd> to close</p>
                         </div>
                     </div>
                 </div>

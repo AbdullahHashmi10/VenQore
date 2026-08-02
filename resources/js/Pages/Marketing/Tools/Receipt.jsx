@@ -223,14 +223,14 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
-                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={onLogoChange} />
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={generate}
@@ -293,15 +293,15 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                     {/* Line items */}
                     <table className="w-full mb-1">
                         <thead>
-                            <tr className="text-left text-[9px] font-bold uppercase tracking-wide text-slate-400 border-b border-slate-900">
+                            <tr className="text-left text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-900">
                                 <th className="pb-1 pr-1">
-                                    <EditableText value={headers.item} onChange={(v) => setHeaders((h) => ({ ...h, item: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-400" />
+                                    <EditableText value={headers.item} onChange={(v) => setHeaders((h) => ({ ...h, item: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400" />
                                 </th>
                                 <th className="pb-1 px-1 text-right w-10">
-                                    <EditableText value={headers.quantity} onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-400 text-right" />
+                                    <EditableText value={headers.quantity} onChange={(v) => setHeaders((h) => ({ ...h, quantity: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" />
                                 </th>
                                 <th className="pb-1 pl-1 text-right w-16">
-                                    <EditableText value={headers.total} onChange={(v) => setHeaders((h) => ({ ...h, total: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-400 text-right" />
+                                    <EditableText value={headers.total} onChange={(v) => setHeaders((h) => ({ ...h, total: v }))} pulse={false} className="text-[9px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 text-right" />
                                 </th>
                                 <th className="w-4"></th>
                             </tr>
@@ -315,7 +315,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                                     <tr key={idx} className="border-b border-slate-100 group align-top">
                                         <td className="py-1.5 pr-1">
                                             <EditableText value={item.name} onChange={(v) => updateItem(idx, 'name', v)} placeholder="Product name" className="block" />
-                                            <div className="flex items-center gap-1 text-[9px] text-slate-400 mt-0.5">
+                                            <div className="flex items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">
                                                 <EditableText as="number" min="0" value={item.quantity} onChange={(v) => updateItem(idx, 'quantity', v)} className="w-8" />
                                                 <span>@</span>
                                                 <EditableText as="number" min="0" value={item.unit_price} onChange={(v) => updateItem(idx, 'unit_price', v)} formatDisplay={fmtMoney} className="w-12" />
@@ -324,7 +324,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                                         <td className="py-1.5 px-1 text-right">{qty}</td>
                                         <td className="py-1.5 pl-1 text-right font-bold">{fmtMoney(lineTotal)}</td>
                                         <td className="py-1.5 text-right">
-                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                            <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
                                                 <Trash2 size={11} />
                                             </button>
                                         </td>
@@ -333,7 +333,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                             })}
                         </tbody>
                     </table>
-                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-2.5">
+                    <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-2.5">
                         <Plus size={11} /> Add product
                     </button>
 
@@ -393,10 +393,10 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                             placeholder="Thank you for shopping with us!"
                             className="block"
                         />
-                        <div className="text-[8px] text-slate-300">Generated free at venqore.com/tools</div>
+                        <div className="text-[8px] text-slate-600 dark:text-slate-300">Generated free at venqore.com/tools</div>
                     </div>
 
-                    <div className="flex justify-between text-[9px] text-slate-400 mt-3 gap-2">
+                    <div className="flex justify-between text-[9px] text-slate-500 dark:text-slate-400 mt-3 gap-2">
                         <button type="button" onClick={() => logoInputRef.current?.click()} className="hover:text-indigo-500 transition-colors">
                             {isThermal ? '80mm Thermal Roll' : 'Standard Letter / A4'}
                         </button>
@@ -404,7 +404,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                 </div>
             </div>
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 This preview matches your downloaded PDF exactly — click anything above to edit it.
             </p>
         </ToolShell>

@@ -253,7 +253,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 <div key={i} className="flex gap-2">
                                     <input value={c.name} onChange={(e) => updateMap(setCategories, i, 'name', e.target.value)} placeholder="Shoes" className={`${inputCls} flex-1`} />
                                     <input value={c.code} onChange={(e) => updateMap(setCategories, i, 'code', e.target.value)} placeholder="SH" className={`${inputCls} w-24 font-mono uppercase`} maxLength={8} />
-                                    <button onClick={() => removeMapRow(setCategories, i)} className="text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
+                                    <button onClick={() => removeMapRow(setCategories, i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
                                 </div>
                             ))}
                         </div>
@@ -269,7 +269,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 <div key={i} className="flex gap-2">
                                     <input value={v.name} onChange={(e) => updateMap(setVariants, i, 'name', e.target.value)} placeholder="Black" className={`${inputCls} flex-1`} />
                                     <input value={v.code} onChange={(e) => updateMap(setVariants, i, 'code', e.target.value)} placeholder="BLK" className={`${inputCls} w-24 font-mono uppercase`} maxLength={8} />
-                                    <button onClick={() => removeMapRow(setVariants, i)} className="text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
+                                    <button onClick={() => removeMapRow(setVariants, i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors shrink-0"><Trash2 size={15} /></button>
                                 </div>
                             ))}
                         </div>
@@ -301,7 +301,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     {segments.map((seg, i) => (
                         <div key={seg.id} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-900/[0.06] dark:border-white/10">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <GripVertical size={15} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                                <GripVertical size={15} className="text-slate-600 dark:text-slate-600 shrink-0" />
                                 <div className="w-full sm:w-48">
                                     <Select value={seg.type} onChange={(v) => updateSegment(seg.id, 'type', v)} options={segmentTypeOptions} />
                                 </div>
@@ -321,17 +321,17 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                     <>
                                         <label className="text-xs text-slate-500 dark:text-slate-400">Length</label>
                                         <input type="number" min="1" max="16" value={seg.length} onChange={(e) => updateSegment(seg.id, 'length', e.target.value)} className={`${inputCls} w-20`} />
-                                        <span className="text-[11px] text-slate-400 dark:text-slate-600">no O/0 or I/1 ambiguity</span>
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-600">no O/0 or I/1 ambiguity</span>
                                     </>
                                 )}
                                 {(seg.type === 'category' || seg.type === 'variant') && (
-                                    <span className="text-xs text-slate-400 dark:text-slate-600">Looked up per-row from the {seg.type} map above.</span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-600">Looked up per-row from the {seg.type} map above.</span>
                                 )}
 
                                 <div className="ml-auto flex items-center gap-1 shrink-0">
-                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
-                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
-                                    <button type="button" onClick={() => removeSegment(seg.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
+                                    <button type="button" onClick={() => removeSegment(seg.id)} className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                                 </div>
                             </div>
                         </div>
@@ -418,7 +418,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                         {duplicateSkus.has(r.sku) && <AlertTriangle size={13} className="inline-block ml-1.5 text-amber-500 dark:text-amber-400" />}
                                     </td>
                                     <td className="px-3 py-2">
-                                        <button onClick={() => removeRow(i)} className="text-slate-400 hover:text-red-500 transition-colors">
+                                        <button onClick={() => removeRow(i)} className="text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                                             <Trash2 size={15} />
                                         </button>
                                     </td>
@@ -458,7 +458,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     >
                         <Download size={14} /> Export CSV
                     </button>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-600">Downloads directly from your browser — nothing is sent to a server.</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-600">Downloads directly from your browser — nothing is sent to a server.</p>
                 </div>
             </div>
 

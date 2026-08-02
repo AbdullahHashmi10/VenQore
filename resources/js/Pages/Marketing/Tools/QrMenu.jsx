@@ -296,7 +296,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                                 <button
                                                     type="button"
                                                     onClick={() => removeMenuItem(idx)}
-                                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -349,7 +349,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                             >
                                 {tableNumber && (
                                     <span
-                                        className="text-[10px] font-black uppercase px-3 py-1 rounded-full mb-3 tracking-wider text-white"
+                                        className="text-[10px] font-black uppercase px-3 py-1 rounded-full mb-3 tracking-wider text-slate-900 dark:text-white"
                                         style={{ backgroundColor: activeTheme.accent_color }}
                                     >
                                         Table {tableNumber}
@@ -390,7 +390,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                     </div>
                                 )}
                             </div>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-3">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-500 text-center mt-3">
                                 PDF generates high-resolution vectors formatted to exact physical paper dimensions ({preset}).
                             </p>
                         </div>

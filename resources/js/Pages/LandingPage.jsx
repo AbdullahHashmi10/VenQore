@@ -2,14 +2,17 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, BadgeCheck, Banknote,
-    BarChart3, Bot, Boxes, Building2, Calculator, Check, CheckCircle2, ChevronDown,
-    CreditCard, Cpu, Factory, Fingerprint, Gauge, Globe, Layers, Lock,
-    Mail, Menu, MessageCircle, MoreHorizontal, Network, Package, Play, Plus, Quote,
+    BarChart3, Bot, Boxes, Building2, Check, CheckCircle2, ChevronDown,
+    CreditCard, Cpu, Factory, Gauge, Globe, Layers, Lock,
+    Mail, MoreHorizontal, Network, Package, Play, Plus, Quote,
     Receipt, RefreshCw, Repeat, ScanBarcode, ShieldCheck, ShoppingCart, Sparkles,
     TrendingUp, Truck, Users, Wallet, Warehouse, X
 } from 'lucide-react';
 import axios from 'axios';
 
+import { vq } from '@/theme/runtime';
+import MarketingLayout from './Marketing/Shared/MarketingLayout';
+import QoreCore3D from '@/Components/QoreCore3D';
 /* ═══════════════════════════════════════════════════════════════════════════
    VENQORE — "The Books Are Always Right."
    ──────────────────────────────────────────────────────────────────────────
@@ -144,10 +147,13 @@ const MagBtn = ({ children, href, variant = 'primary', className = '', onClick }
     }, [reduced]);
     const onLeave = useCallback(() => { if (r.current) r.current.style.transform = ''; }, []);
 
+    /* These live in a plain object rather than a className attribute, so they
+       need their light/dark pairs written by hand. `glow` and `accent` sit on
+       saturated backgrounds and stay white in both themes. */
     const variants = {
-        primary: 'px-9 py-4 bg-white text-[#05030f] font-black text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]',
+        primary: 'px-9 py-4 bg-slate-900 dark:bg-white text-white dark:text-void-900 font-black text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgba(99,102,241,0.45)] dark:hover:shadow-[0_0_70px_-6px_rgba(165,180,252,0.55)]',
         glow: 'px-9 py-4 text-white font-black text-[15px] rounded-full vq-cta-glow',
-        ghost: 'px-8 py-4 bg-white/[0.04] border border-white/12 text-white font-bold text-[15px] rounded-full hover:bg-white/[0.08] hover:border-white/25 backdrop-blur-md',
+        ghost: 'px-8 py-4 bg-slate-900/[0.04] dark:bg-white/[0.04] border border-slate-900/10 dark:border-white/12 text-slate-900 dark:text-white font-bold text-[15px] rounded-full hover:bg-slate-900/[0.08] dark:hover:bg-white/[0.08] hover:border-slate-900/25 dark:hover:border-white/25 backdrop-blur-md',
         accent: 'px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-full shadow-xl shadow-indigo-600/25',
     };
     return (
@@ -169,7 +175,7 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
         violet: 'bg-violet-500/10 border-violet-400/20 text-violet-300',
     };
     return (
-        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-[10px] font-black tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
+        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-2xs font-black tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
             {Ic && <Ic size={13} />}
             {children}
         </div>
@@ -178,11 +184,359 @@ const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
 
 /* ── Glass surface ───────────────────────────────────────────────────────── */
 const Glass = ({ children, className = '', glow = false }) => (
-    <div className={`relative rounded-[2rem] border border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgba(99,102,241,0.45)]' : ''} ${className}`}>
+    <div className={`relative rounded-[2rem] border border-slate-900/[0.10] dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgba(99,102,241,0.45)]' : ''} ${className}`}>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-[2rem]" />
         {children}
     </div>
 );
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 2 · "WHAT WRONG NUMBERS COST YOU" — three-part sequence
+   ──────────────────────────────────────────────────────────────────────────
+   Replaces the old static "Most business software quietly lies to you" block.
+   The old section asserted a claim in big type; these three prove it:
+
+     1. TrueCostCalculator — the reader's OWN numbers, so the problem stops
+        being abstract. Nothing is sent anywhere; it is pure client-side math.
+     2. SameSaleSplit     — one transaction running down two systems at once,
+        so the *mechanism* is visible rather than described.
+     3. LedgerTape        — an endless stream of balanced entries, debits and
+        credits always equal, as ambient proof the engine holds.
+
+   All three are theme-aware and fully disabled under prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
+
+/* ── 2a · What wrong numbers actually cost ───────────────────────────────── */
+const TrueCostCalculator = () => {
+    const reduced = usePrefersReducedMotion();
+    const [revenue, setRevenue] = useState(80000);   // monthly, incl. tax
+    const [margin, setMargin] = useState(32);        // reported gross margin %
+    const [taxRate, setTaxRate] = useState(15);      // sales tax / VAT / GST %
+
+    /*
+     * Three costs, each traceable to a specific accounting mistake:
+     *
+     * 1. Tax booked as revenue. If a system records the gross till total as
+     *    revenue, the overstatement is revenue x rate/(1+rate) — the tax
+     *    portion that was never yours.
+     * 2. Averaged cost drift. When purchase costs overwrite each other, COGS
+     *    is stated at the wrong basis. 3% of COGS is a deliberately
+     *    conservative figure for a business with moving supplier prices.
+     * 3. Margin decisions made on the above. Pricing off an overstated margin
+     *    quietly gives away roughly a quarter of the drift again.
+     */
+    const { taxInflation, costDrift, decisionCost, annual, realMargin } = useMemo(() => {
+        const taxInflation = revenue * (taxRate / 100) / (1 + taxRate / 100);
+        const netRevenue = revenue - taxInflation;
+        const cogs = netRevenue * (1 - margin / 100);
+        const costDrift = cogs * 0.03;
+        const decisionCost = costDrift * 0.25;
+        const monthly = taxInflation === 0 ? costDrift + decisionCost : costDrift + decisionCost;
+        const realGross = netRevenue - (cogs + costDrift);
+        return {
+            taxInflation,
+            costDrift,
+            decisionCost,
+            annual: monthly * 12,
+            realMargin: netRevenue > 0 ? (realGross / netRevenue) * 100 : 0,
+        };
+    }, [revenue, margin, taxRate]);
+
+    const Slider = ({ label, value, onChange, min, max, step, format }) => (
+        <div>
+            <div className="flex items-baseline justify-between mb-2">
+                <label className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{label}</label>
+                <span className="text-lg font-black text-slate-900 dark:text-white tabular-nums" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                    {format(value)}
+                </span>
+            </div>
+            <input
+                type="range" min={min} max={max} step={step} value={value}
+                onChange={(e) => onChange(Number(e.target.value))}
+                aria-label={label}
+                className="vq-range w-full"
+            />
+        </div>
+    );
+
+    return (
+        <Glass className="p-7 md:p-10" glow>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                {/* Inputs */}
+                <div className="lg:col-span-5 space-y-7">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            Your numbers.
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Move the sliders. Everything is calculated in your browser — nothing is sent anywhere.
+                        </p>
+                    </div>
+                    <Slider label="Monthly revenue" value={revenue} onChange={setRevenue}
+                        min={5000} max={500000} step={5000} format={money} />
+                    <Slider label="Reported gross margin" value={margin} onChange={setMargin}
+                        min={5} max={70} step={1} format={(v) => `${v}%`} />
+                    <Slider label="Sales tax / VAT rate" value={taxRate} onChange={setTaxRate}
+                        min={0} max={30} step={1} format={(v) => `${v}%`} />
+                </div>
+
+                {/* Output */}
+                <div className="lg:col-span-7">
+                    <div className="rounded-[1.5rem] border border-rose-500/20 bg-rose-500/[0.06] p-7 md:p-8 mb-4">
+                        <p className="text-2xs font-black uppercase tracking-[0.28em] text-rose-500 dark:text-rose-400 mb-3">
+                            Cost of wrong numbers · per year
+                        </p>
+                        <div
+                            className={`text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white tabular-nums ${reduced ? '' : 'transition-all duration-500'}`}
+                            style={{ fontFamily: "'Space Grotesk',sans-serif" }}
+                        >
+                            {money(annual)}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+                            Not a fee anyone charges you. It is margin that leaks because the books were
+                            approximately right instead of exactly right.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[
+                            {
+                                v: money(taxInflation), l: 'Tax counted as revenue', m: 'per month',
+                                note: 'Money you owe the government, sitting in your top line.',
+                                tone: 'border-amber-500/20 bg-amber-500/[0.05]', accent: 'text-amber-600 dark:text-amber-400',
+                            },
+                            {
+                                v: money(costDrift), l: 'Cost basis drift', m: 'per month',
+                                note: 'COGS stated from averaged costs that overwrote the real ones.',
+                                tone: 'border-rose-500/20 bg-rose-500/[0.05]', accent: 'text-rose-600 dark:text-rose-400',
+                            },
+                            {
+                                v: `${realMargin.toFixed(1)}%`, l: 'Your actual margin', m: `reported as ${margin}%`,
+                                note: 'The gap between these two is where pricing decisions go wrong.',
+                                tone: 'border-indigo-500/20 bg-indigo-500/[0.05]', accent: 'text-indigo-600 dark:text-indigo-400',
+                            },
+                        ].map((c, i) => (
+                            <div key={i} className={`p-5 rounded-2xl border ${c.tone}`}>
+                                <div className={`text-2xl font-black tracking-tight tabular-nums ${c.accent}`} style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    {c.v}
+                                </div>
+                                <div className="text-2xs font-black uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300 mt-1.5">{c.l}</div>
+                                <div className="text-3xs uppercase tracking-widest text-slate-500 dark:text-slate-500 mt-0.5">{c.m}</div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">{c.note}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </Glass>
+    );
+};
+
+/* ── 2b · The same sale, two systems ─────────────────────────────────────── */
+const SALE_STEPS = [
+    {
+        t: 'Customer pays $115',
+        typical: { line: 'Revenue +$115', ok: false, note: 'Tax folded into the top line' },
+        venqore: { line: 'Revenue +$100 · Tax payable +$15', ok: true, note: 'Split at the ledger' },
+    },
+    {
+        t: 'Stock leaves the shelf',
+        typical: { line: 'COGS −$62 (average cost)', ok: false, note: 'Basis overwritten 3 purchases ago' },
+        venqore: { line: 'COGS −$58 (batch #2941, FIFO)', ok: true, note: 'The cost you actually paid' },
+    },
+    {
+        t: 'Profit is calculated',
+        typical: { line: 'Gross profit $53', ok: false, note: 'Off by $11 — and nothing flags it' },
+        venqore: { line: 'Gross profit $42', ok: true, note: 'Reconciles to the general ledger' },
+    },
+    {
+        t: 'Someone edits the sale',
+        typical: { line: 'Row overwritten silently', ok: false, note: 'No trail, no reversal' },
+        venqore: { line: 'Reversing entry + new entry', ok: true, note: 'Both immutable, both visible' },
+    },
+];
+
+const SameSaleSplit = () => {
+    const reduced = usePrefersReducedMotion();
+    const [ref, inView] = useInView(0.3);
+    const [step, setStep] = useState(reduced ? SALE_STEPS.length - 1 : -1);
+
+    useEffect(() => {
+        if (reduced) { setStep(SALE_STEPS.length - 1); return; }
+        if (!inView) return;
+        // Restart the walkthrough each time the section scrolls back in.
+        setStep(-1);
+        let i = -1;
+        const id = setInterval(() => {
+            i += 1;
+            setStep(i);
+            if (i >= SALE_STEPS.length - 1) clearInterval(id);
+        }, 1100);
+        return () => clearInterval(id);
+    }, [inView, reduced]);
+
+    const Column = ({ side, title, subtitle }) => {
+        const isVq = side === 'venqore';
+        return (
+            <div className={`rounded-[1.5rem] border p-6 ${isVq
+                ? 'border-emerald-500/25 bg-emerald-500/[0.04]'
+                : 'border-slate-900/10 dark:border-white/[0.08] bg-slate-900/[0.02] dark:bg-white/[0.02]'}`}>
+                <div className="mb-5">
+                    <h4 className={`text-base font-black tracking-tight ${isVq ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}
+                        style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                        {title}
+                    </h4>
+                    <p className="text-2xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 mt-1">{subtitle}</p>
+                </div>
+                <div className="space-y-2.5">
+                    {SALE_STEPS.map((s, i) => {
+                        const cell = s[side];
+                        const shown = i <= step;
+                        return (
+                            <div
+                                key={i}
+                                className={`p-3.5 rounded-xl border transition-all duration-500 ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${
+                                    cell.ok
+                                        ? 'border-emerald-500/20 bg-emerald-500/[0.06]'
+                                        : 'border-rose-500/20 bg-rose-500/[0.05]'
+                                }`}
+                            >
+                                <div className="flex items-start gap-2.5">
+                                    {cell.ok
+                                        ? <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
+                                        : <AlertTriangle size={15} className="text-rose-500 shrink-0 mt-0.5" />}
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums">{cell.line}</div>
+                                        <div className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">{cell.note}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div ref={ref}>
+            {/* Step rail */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-7">
+                {SALE_STEPS.map((s, i) => (
+                    <div
+                        key={i}
+                        className={`px-3.5 py-1.5 rounded-full text-2xs font-black uppercase tracking-[0.15em] border transition-all duration-500 ${
+                            i <= step
+                                ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
+                                : 'border-slate-900/10 dark:border-white/[0.08] text-slate-500 dark:text-slate-600'
+                        }`}
+                    >
+                        {s.t}
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Column side="typical" title="A typical POS" subtitle="Numbers that drift" />
+                <Column side="venqore" title="VenQore" subtitle="Numbers that reconcile" />
+            </div>
+
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-7 max-w-2xl mx-auto leading-relaxed">
+                Same customer. Same $115. One system ends the day $11 wrong on a single sale and cannot tell you why —
+                the other can show you the journal entry.
+            </p>
+        </div>
+    );
+};
+
+/* ── 2c · The ledger tape ────────────────────────────────────────────────── */
+const TAPE_ROWS = [
+    { ref: 'SL-4471', d: 'Cash', c: 'Sales revenue', amt: 1240.00 },
+    { ref: 'SL-4471', d: 'Cost of goods sold', c: 'Inventory', amt: 742.16 },
+    { ref: 'PU-1188', d: 'Inventory', c: 'Accounts payable', amt: 8600.00 },
+    { ref: 'SL-4472', d: 'Accounts receivable', c: 'Sales revenue', amt: 3175.50 },
+    { ref: 'SL-4472', d: 'Cost of goods sold', c: 'Inventory', amt: 1904.30 },
+    { ref: 'EX-0913', d: 'Rent expense', c: 'Bank', amt: 2400.00 },
+    { ref: 'RT-0221', d: 'Sales returns', c: 'Cash', amt: 318.75 },
+    { ref: 'RT-0221', d: 'Inventory', c: 'Cost of goods sold', amt: 191.25 },
+    { ref: 'SL-4473', d: 'Cash', c: 'Sales revenue', amt: 96.40 },
+    { ref: 'SL-4473', d: 'Cash', c: 'Tax payable', amt: 14.46 },
+    { ref: 'TF-0044', d: 'Inventory · Branch 2', c: 'Inventory · Branch 1', amt: 5120.00 },
+    { ref: 'PY-2210', d: 'Accounts payable', c: 'Bank', amt: 8600.00 },
+];
+
+const LedgerTape = () => {
+    const reduced = usePrefersReducedMotion();
+    const [ref, inView] = useInView(0.25);
+    const [head, setHead] = useState(0);
+
+    useEffect(() => {
+        if (reduced || !inView) return;
+        const id = setInterval(() => setHead((h) => (h + 1) % TAPE_ROWS.length), 1400);
+        return () => clearInterval(id);
+    }, [inView, reduced]);
+
+    // Six rows visible at a time, newest on top.
+    const visible = Array.from({ length: 6 }, (_, i) => {
+        const row = TAPE_ROWS[(head + i) % TAPE_ROWS.length];
+        return { ...row, key: `${head}-${i}`, fade: i / 6 };
+    });
+    const totalDr = visible.reduce((s, r) => s + r.amt, 0);
+
+    return (
+        <div ref={ref} className="rounded-[1.5rem] border border-slate-900/10 dark:border-white/[0.08] bg-slate-950/[0.03] dark:bg-slate-950/60 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-900/[0.07] dark:border-white/[0.06]">
+                <div className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
+                    <span className="text-2xs font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                        General ledger · posting live
+                    </span>
+                </div>
+                <span className="hidden sm:block text-2xs font-mono text-slate-500 dark:text-slate-600">double-entry · DECIMAL(20,4)</span>
+            </div>
+
+            <div className="divide-y divide-slate-900/[0.05] dark:divide-white/[0.04]">
+                {visible.map((r, i) => (
+                    <div
+                        key={r.key}
+                        className={`grid grid-cols-12 gap-2 px-5 py-3 text-xs ${i === 0 && !reduced ? 'vq-row-in' : ''}`}
+                        style={{ opacity: 1 - r.fade * 0.75 }}
+                    >
+                        <span className="col-span-2 font-mono text-slate-500 dark:text-slate-600">{r.ref}</span>
+                        <span className="col-span-4 font-semibold text-slate-700 dark:text-slate-200 truncate">{r.d}</span>
+                        <span className="col-span-4 text-slate-500 dark:text-slate-400 truncate">{r.c}</span>
+                        <span className="col-span-2 text-right font-bold tabular-nums text-slate-800 dark:text-slate-100">
+                            {r.amt.toFixed(2)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-2 border-t border-slate-900/[0.07] dark:border-white/[0.06]">
+                {[
+                    { l: 'Total debits', v: totalDr },
+                    { l: 'Total credits', v: totalDr },
+                ].map((t, i) => (
+                    <div key={i} className={`px-5 py-4 ${i === 0 ? 'border-r border-slate-900/[0.07] dark:border-white/[0.06]' : ''}`}>
+                        <div className="text-3xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">{t.l}</div>
+                        <div className="text-lg font-black tabular-nums text-slate-900 dark:text-white mt-0.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            {t.v.toFixed(2)}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500/[0.07] border-t border-emerald-500/15">
+                <CheckCircle2 size={14} className="text-emerald-500" />
+                <span className="text-2xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
+                    Balanced — every entry, every time
+                </span>
+            </div>
+        </div>
+    );
+};
 
 /* ── Scroll progress bar ─────────────────────────────────────────────────── */
 const ScrollProgressBar = () => {
@@ -330,12 +684,12 @@ const RevenueChart = ({ height = 210, tab = 'Month', reduced = false }) => {
             <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} preserveAspectRatio="none" className="overflow-visible">
                 <defs>
                     <linearGradient id="vqSales" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity="0.34" />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity="0" />
+                        <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity="0.34" />
+                        <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity="0" />
                     </linearGradient>
                     <linearGradient id="vqProfit" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity="0.40" />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity="0.04" />
+                        <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity="0.40" />
+                        <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity="0.04" />
                     </linearGradient>
                 </defs>
                 {[60, 120, 180].map(y => (
@@ -343,13 +697,13 @@ const RevenueChart = ({ height = 210, tab = 'Month', reduced = false }) => {
                 ))}
                 <path key={`pa-${tab}`} d={areaP} fill="url(#vqProfit)" style={{ opacity: drawn ? 1 : 0, transition: 'opacity 1s ease 0.5s' }} />
                 <path key={`sa-${tab}`} d={areaS} fill="url(#vqSales)" style={{ opacity: drawn ? 1 : 0, transition: 'opacity 1s ease 0.6s' }} />
-                <path key={`pl-${tab}`} d={lineP} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" pathLength="1"
+                <path key={`pl-${tab}`} d={lineP} fill="none" stroke={vq.emerald[500]} strokeWidth="2.5" strokeLinecap="round" pathLength="1"
                     style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1) 0.15s' }} />
-                <path key={`sl-${tab}`} d={lineS} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" pathLength="1"
+                <path key={`sl-${tab}`} d={lineS} fill="none" stroke={vq.indigo[500]} strokeWidth="3" strokeLinecap="round" pathLength="1"
                     style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1)', filter: 'drop-shadow(0 6px 16px rgba(99,102,241,0.45))' }} />
                 <g style={{ opacity: drawn ? 1 : 0, transition: 'opacity 0.6s ease 1.5s' }}>
                     <circle cx={last[0]} cy={last[1]} r="9" fill="rgba(99,102,241,0.2)" className={reduced ? '' : 'vq-ping'} />
-                    <circle cx={last[0]} cy={last[1]} r="4" fill="#818cf8" />
+                    <circle cx={last[0]} cy={last[1]} r="4" fill={vq.indigo[400]} />
                 </g>
             </svg>
         </div>
@@ -373,17 +727,17 @@ const ACT_TONE = {
 };
 const TIMES = ['just now', '2m ago', '6m ago', '11m ago', '18m ago', '25m ago'];
 const ActivityRow = ({ a, fresh, t }) => (
-    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors ${fresh ? 'vq-row-in' : ''}`}>
+    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-900/[0.04] dark:hover:bg-white/5 transition-colors ${fresh ? 'vq-row-in' : ''}`}>
         <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${ACT_TONE[a.tone]}`}>
                 {a.dir === 'in' ? <ArrowDownRight size={12} /> : a.dir === 'move' ? <RefreshCw size={12} /> : <ArrowUpRight size={12} />}
             </div>
             <div className="leading-tight min-w-0">
-                <div className="text-[11px] font-semibold text-white/90 truncate">{a.type} <span className="text-slate-500 font-mono">· {a.ref}</span></div>
-                <div className="text-[9px] text-slate-500">{t}</div>
+                <div className="text-1xs font-semibold text-slate-800 dark:text-white/90 truncate">{a.type} <span className="text-slate-500 font-mono">· {a.ref}</span></div>
+                <div className="text-3xs text-slate-500">{t}</div>
             </div>
         </div>
-        <span className={`text-[11px] font-bold tabular-nums shrink-0 ${a.dir === 'in' ? 'text-emerald-400' : a.dir === 'move' ? 'text-orange-300' : 'text-slate-300'}`}>{a.amt}</span>
+        <span className={`text-1xs font-bold tabular-nums shrink-0 ${a.dir === 'in' ? 'text-emerald-600 dark:text-emerald-400' : a.dir === 'move' ? 'text-orange-300' : 'text-slate-600 dark:text-slate-300'}`}>{a.amt}</span>
     </div>
 );
 const ActivityFeed = () => {
@@ -443,45 +797,45 @@ const HeroDashboard = () => {
         <div ref={wrapRef} onMouseMove={onMove} onMouseLeave={onLeave} className="relative mx-auto w-full max-w-5xl">
             {/* Floating chips */}
             <div ref={setChip(0)} className="hidden md:flex absolute -left-6 top-16 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-400/20 backdrop-blur-xl shadow-2xl vq-float">
-                <CheckCircle2 size={16} className="text-emerald-400" />
-                <span className="text-[11px] font-bold text-emerald-200">Balanced to the cent</span>
+                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
+                <span className="text-1xs font-bold text-emerald-200">Balanced to the cent</span>
             </div>
             <div ref={setChip(1)} className="hidden md:flex absolute -right-4 top-32 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-400/20 backdrop-blur-xl shadow-2xl vq-float-2">
                 <ScanBarcode size={16} className="text-indigo-300" />
-                <span className="text-[11px] font-bold text-indigo-100">Scan → Journal · 1.2s</span>
+                <span className="text-1xs font-bold text-indigo-100">Scan → Journal · 1.2s</span>
             </div>
             <div ref={setChip(2)} className="hidden lg:flex absolute -left-10 bottom-24 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 backdrop-blur-xl shadow-2xl vq-float-3">
                 <Layers size={16} className="text-cyan-300" />
-                <span className="text-[11px] font-bold text-cyan-100">FIFO COGS per batch</span>
+                <span className="text-1xs font-bold text-cyan-100">FIFO COGS per batch</span>
             </div>
             <div ref={setChip(3)} className="hidden md:flex absolute -right-8 bottom-16 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-400/20 backdrop-blur-xl shadow-2xl vq-float">
                 <TrendingUp size={16} className="text-amber-300" />
-                <span className="text-[11px] font-bold text-amber-100">+18.4% MoM</span>
+                <span className="text-1xs font-bold text-amber-100">+18.4% MoM</span>
             </div>
 
             {/* Glass window */}
-            <div ref={cardRef} className="relative z-10 rounded-[1.75rem] border border-white/[0.08] bg-[#0a0820]/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgba(99,102,241,0.6)] overflow-hidden transition-transform duration-300 ease-out">
+            <div ref={cardRef} className="relative z-10 rounded-[1.75rem] border border-slate-900/[0.10] dark:border-white/[0.08] bg-slate-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgba(99,102,241,0.6)] overflow-hidden transition-transform duration-300 ease-out">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 {/* window bar */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-900/[0.08] dark:border-white/[0.06]">
                     <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-full bg-rose-400/70" />
                         <span className="w-3 h-3 rounded-full bg-amber-400/70" />
                         <span className="w-3 h-3 rounded-full bg-emerald-400/70" />
                     </div>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06]">
                         <Lock size={10} className="text-slate-500" />
-                        <span className="text-[10px] font-mono text-slate-400">app.venqore.com/dashboard</span>
+                        <span className="text-2xs font-mono text-slate-500 dark:text-slate-400">app.venqore.com/dashboard</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Live Sync</span>
+                        <span className="text-3xs font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Live Sync</span>
                     </div>
                 </div>
                 {/* body */}
                 <div className="flex">
                     {/* rail */}
-                    <div className="hidden sm:flex flex-col items-center gap-4 py-5 px-3 border-r border-white/[0.06] bg-white/[0.015]">
+                    <div className="hidden sm:flex flex-col items-center gap-4 py-5 px-3 border-r border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015]">
                         {railIcons.map((Ic, i) => (
                             <div key={i} className={`w-9 h-9 rounded-xl flex items-center justify-center ${i === 0 ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-600'}`}>
                                 <Ic size={16} />
@@ -492,72 +846,72 @@ const HeroDashboard = () => {
                     <div className="flex-1 p-4 sm:p-5 min-w-0">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <div className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">VenQore</div>
-                                <div className="text-lg font-black text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
+                                <div className="text-2xs font-black uppercase tracking-[0.25em] text-slate-500">VenQore</div>
+                                <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
                             </div>
                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20">
                                 <Sparkles size={12} className="text-violet-300" />
-                                <span className="text-[10px] font-bold text-violet-200">AI Insight</span>
+                                <span className="text-2xs font-bold text-violet-200">AI Insight</span>
                             </div>
                         </div>
 
                         {/* KPI row — real dashboard cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                             {/* Performance */}
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
+                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3">
                                 <div className="flex items-center gap-2 mb-2.5">
                                     <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-300"><TrendingUp size={14} /></div>
-                                    <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Performance</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Performance</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Sales</div>
-                                        <div className="text-sm font-black text-white tabular-nums">$<AnimCounter end={1245670} group duration={2200} /></div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Sales</div>
+                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={1245670} group duration={2200} /></div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Gross Profit</div>
-                                        <div className="text-sm font-black text-emerald-400 tabular-nums">$<AnimCounter end={772315} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Gross Profit</div>
+                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums">$<AnimCounter end={772315} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
                             {/* Outstanding */}
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
+                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3">
                                 <div className="flex items-center gap-2 mb-2.5">
                                     <div className="p-1.5 rounded-lg bg-orange-500/15 text-orange-300"><CreditCard size={14} /></div>
-                                    <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Outstanding</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Outstanding</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Receive</div>
-                                        <div className="text-sm font-black text-white tabular-nums">$<AnimCounter end={84200} group duration={2200} /></div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Receive</div>
+                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={84200} group duration={2200} /></div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Pay</div>
-                                        <div className="text-sm font-black text-white tabular-nums">$<AnimCounter end={51940} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">To Pay</div>
+                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={51940} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
                             {/* Net Profit */}
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 relative overflow-hidden">
+                            <div className="rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] p-3 relative overflow-hidden">
                                 <div className="absolute -right-3 -top-3 w-16 h-16 bg-emerald-500/10 rounded-full blur-2xl" />
                                 <div className="flex items-center gap-2 mb-2.5 relative">
                                     <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-300"><Wallet size={14} /></div>
-                                    <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Net Profit</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-[9px] font-bold text-slate-500">Month <ChevronDown size={10} /></span>
+                                    <span className="text-2xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Net Profit</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-slate-500">Month <ChevronDown size={10} /></span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/[0.06]" />
+                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-900/[0.08] dark:bg-white/[0.06]" />
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Status</div>
-                                        <div className="text-sm font-black text-emerald-400">Healthy</div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Status</div>
+                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">Healthy</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-[9px] uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Net</div>
-                                        <div className="text-sm font-black text-white tabular-nums">$<AnimCounter end={184920} group duration={2400} /></div>
+                                        <div className="text-3xs uppercase font-bold text-slate-500 mb-0.5 tracking-wider">Net</div>
+                                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={184920} group duration={2400} /></div>
                                     </div>
                                 </div>
                             </div>
@@ -565,56 +919,56 @@ const HeroDashboard = () => {
 
                         {/* Revenue Analytics + Right panel */}
                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                            <div className="lg:col-span-3 rounded-2xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="lg:col-span-3 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                     <div className="flex items-center gap-2">
                                         <div className="p-1.5 rounded-lg bg-indigo-500/15 text-indigo-300"><TrendingUp size={14} /></div>
-                                        <span className="text-[13px] font-bold text-white">Revenue Analytics</span>
+                                        <span className="text-[13px] font-bold text-slate-900 dark:text-white">Revenue Analytics</span>
                                     </div>
-                                    <div className="flex bg-white/[0.04] p-0.5 rounded-lg">
+                                    <div className="flex bg-slate-900/[0.035] dark:bg-white/[0.04] p-0.5 rounded-lg">
                                         {['Today', 'Month', 'Year'].map(t => (
-                                            <button key={t} onClick={() => setRevTab(t)} className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md transition-all ${revTab === t ? 'bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>{t}</button>
+                                            <button key={t} onClick={() => setRevTab(t)} className={`px-2.5 py-0.5 text-2xs font-bold rounded-md transition-all ${revTab === t ? 'bg-slate-900/[0.05] dark:bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>{t}</button>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 mb-1">
-                                    <span className="flex items-center gap-1.5 text-[11px]"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /><span className="font-semibold text-slate-400">Sales</span></span>
-                                    <span className="flex items-center gap-1.5 text-[11px]"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="font-semibold text-slate-400">Gross Profit</span></span>
+                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /><span className="font-semibold text-slate-500 dark:text-slate-400">Sales</span></span>
+                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="font-semibold text-slate-500 dark:text-slate-400">Gross Profit</span></span>
                                 </div>
                                 <RevenueChart height={168} tab={revTab} reduced={reduced} />
                             </div>
 
-                            <div className="lg:col-span-2 rounded-2xl border border-white/[0.06] bg-[#0b0a1c] p-3.5 relative overflow-hidden">
+                            <div className="lg:col-span-2 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-void-800 p-3.5 relative overflow-hidden">
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
                                 <div className="relative flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><Wallet size={15} className="text-white" /></div>
+                                        <div className="w-8 h-8 rounded-full bg-slate-900/[0.05] dark:bg-white/10 flex items-center justify-center"><Wallet size={15} className="text-slate-900 dark:text-white" /></div>
                                         <div>
-                                            <div className="text-[9px] text-slate-400 font-medium">Total Balance</div>
-                                            <div className="text-sm font-black text-white tabular-nums">$<AnimCounter end={328400} group duration={2400} /></div>
+                                            <div className="text-3xs text-slate-500 dark:text-slate-400 font-medium">Total Balance</div>
+                                            <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={328400} group duration={2400} /></div>
                                         </div>
                                     </div>
                                     <MoreHorizontal size={16} className="text-slate-500" />
                                 </div>
                                 <div className="relative grid grid-cols-3 gap-1.5 mb-3">
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"><ArrowDownRight size={14} /><span className="text-[8px] font-black tracking-wider">SALE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-300"><ArrowUpRight size={14} /><span className="text-[8px] font-black tracking-wider">PURCHASE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/40 text-indigo-300"><Plus size={14} /><span className="text-[8px] font-black tracking-wider">ACTIONS</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"><ArrowDownRight size={14} /><span className="text-4xs font-black tracking-wider">SALE</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-300"><ArrowUpRight size={14} /><span className="text-4xs font-black tracking-wider">PURCHASE</span></div>
+                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/40 text-indigo-300"><Plus size={14} /><span className="text-4xs font-black tracking-wider">ACTIONS</span></div>
                                 </div>
                                 <div className="relative grid grid-cols-2 gap-1.5 mb-3">
-                                    <div className="rounded-xl bg-white/[0.04] border border-white/10 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-[9px] font-bold text-slate-300">Cash</span></div>
-                                        <div className="text-[12px] font-black text-white tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
+                                    <div className="rounded-xl bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 p-2.5">
+                                        <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-3xs font-bold text-slate-600 dark:text-slate-300">Cash</span></div>
+                                        <div className="text-[12px] font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
                                     </div>
                                     <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-indigo-300" /><span className="text-[9px] font-bold text-slate-300">Stock Value</span></div>
-                                        <div className="text-[12px] font-black text-white tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
+                                        <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-indigo-300" /><span className="text-3xs font-bold text-slate-600 dark:text-slate-300">Stock Value</span></div>
+                                        <div className="text-[12px] font-black text-slate-900 dark:text-white tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
                                     </div>
                                 </div>
-                                <div className="relative rounded-xl bg-black/30 border border-white/5 p-2.5">
+                                <div className="relative rounded-xl bg-black/30 border border-slate-900/[0.06] dark:border-white/5 p-2.5">
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Activity</span>
-                                        <span className="flex items-center gap-2 text-[8px] text-slate-500">
+                                        <span className="text-3xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Activity</span>
+                                        <span className="flex items-center gap-2 text-4xs text-slate-500">
                                             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Sale</span>
                                             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />Buy</span>
                                         </span>
@@ -626,36 +980,36 @@ const HeroDashboard = () => {
 
                         {/* Bottom tables (lg+) */}
                         <div className="hidden lg:grid grid-cols-5 gap-3 mt-3">
-                            <div className="col-span-3 rounded-2xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="col-span-3 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-                                    <span className="text-[13px] font-bold text-white">Top Products</span>
+                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white">Top Products</span>
                                 </div>
                                 <div className="space-y-1">
                                     {[['🥤', 'Cola 500ml', 'Beverages', '312', '$1,840'], ['🍫', 'Dark Choco', 'Snacks', '268', '$1,210'], ['🧴', 'Hand Wash', 'Care', '190', '$980']].map((r, i) => (
                                         <div key={i} className="flex items-center justify-between py-1.5">
                                             <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-sm">{r[0]}</div>
-                                                <div className="min-w-0"><div className="text-[12px] font-bold text-slate-200 truncate">{r[1]}</div><div className="text-[9px] text-slate-500">{r[2]}</div></div>
+                                                <div className="w-7 h-7 rounded-lg bg-slate-900/[0.03] dark:bg-white/5 border border-slate-900/[0.08] dark:border-white/10 flex items-center justify-center text-sm">{r[0]}</div>
+                                                <div className="min-w-0"><div className="text-[12px] font-bold text-slate-200 truncate">{r[1]}</div><div className="text-3xs text-slate-500">{r[2]}</div></div>
                                             </div>
                                             <div className="flex items-center gap-3 shrink-0">
-                                                <span className="text-[10px] font-semibold text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">{r[3]}</span>
-                                                <span className="text-[12px] font-bold text-emerald-400 tabular-nums w-14 text-right">{r[4]}</span>
+                                                <span className="text-2xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-900/[0.03] dark:bg-white/5 px-1.5 py-0.5 rounded">{r[3]}</span>
+                                                <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums w-14 text-right">{r[4]}</span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="col-span-2 rounded-2xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                            <div className="col-span-2 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.015] p-3.5">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="w-1.5 h-4 rounded-full bg-red-500" />
-                                    <span className="text-[13px] font-bold text-white">Low Stock Alerts</span>
+                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white">Low Stock Alerts</span>
                                 </div>
                                 <div className="space-y-2">
                                     {[['SKU-492 · Alpha 12', '5', '20'], ['SKU-781 · Beta 4', '8', '25']].map((r, i) => (
                                         <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-red-500/[0.06] border border-red-500/15">
-                                            <div className="min-w-0"><div className="text-[11px] font-bold text-slate-200 truncate">{r[0]}</div><div className="text-[9px] text-red-400 font-bold">Stock: {r[1]} / {r[2]}</div></div>
-                                            <span className="text-[9px] font-black text-slate-400 bg-white/5 px-2 py-1 rounded-lg">Order</span>
+                                            <div className="min-w-0"><div className="text-1xs font-bold text-slate-200 truncate">{r[0]}</div><div className="text-3xs text-red-400 font-bold">Stock: {r[1]} / {r[2]}</div></div>
+                                            <span className="text-3xs font-black text-slate-500 dark:text-slate-400 bg-slate-900/[0.03] dark:bg-white/5 px-2 py-1 rounded-lg">Order</span>
                                         </div>
                                     ))}
                                 </div>
@@ -683,42 +1037,42 @@ const ScanToJournal = () => {
         <div ref={ref} className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 lg:gap-10 items-center">
             {/* Scan side */}
             <div className="flex flex-col items-center gap-4">
-                <div className={`relative w-40 h-28 rounded-2xl border flex items-center justify-center transition-all duration-500 ${active(0) ? 'border-indigo-400/40 bg-indigo-500/10' : 'border-white/10 bg-white/[0.02]'}`}>
+                <div className={`relative w-40 h-28 rounded-2xl border flex items-center justify-center transition-all duration-500 ${active(0) ? 'border-indigo-400/40 bg-indigo-500/10' : 'border-slate-900/[0.08] dark:border-white/10 bg-slate-900/[0.02] dark:bg-white/[0.02]'}`}>
                     <svg viewBox="0 0 120 60" className="w-28 h-14">
                         {[4, 10, 13, 20, 26, 30, 38, 44, 48, 56, 62, 66, 74, 80, 86, 94, 100, 106, 112].map((x, i) => (
                             <rect key={i} x={x} y="8" width={i % 3 === 0 ? 3.5 : 1.8} height="44"
-                                fill={active(0) ? '#c7d2fe' : '#475569'} className="transition-colors duration-500" />
+                                fill={active(0) ? vq.indigo[200] : vq.slate[600]} className="transition-colors duration-500" />
                         ))}
                     </svg>
                     {!reduced && active(0) && <div className="absolute left-2 right-2 h-0.5 bg-rose-400 shadow-[0_0_12px_2px_rgba(251,113,133,0.8)] vq-scanline" />}
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Barcode Scan</span>
+                <span className="text-2xs font-black uppercase tracking-[0.25em] text-slate-500">Barcode Scan</span>
             </div>
             {/* Flow → ledger */}
             <div className="relative">
                 <div className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 text-slate-600">
-                    <ArrowRight size={22} className={`transition-all duration-500 ${active(1) ? 'text-indigo-400 translate-x-1' : ''}`} />
+                    <ArrowRight size={22} className={`transition-all duration-500 ${active(1) ? 'text-indigo-600 dark:text-indigo-400 translate-x-1' : ''}`} />
                 </div>
                 <Glass className={`p-5 transition-all duration-700 ${active(2) ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-2'}`}>
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Journal Entry · Auto-posted</span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-500 ${active(3) ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/5 text-slate-600'}`}>
+                        <span className="text-2xs font-black uppercase tracking-[0.22em] text-slate-500">Journal Entry · Auto-posted</span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-3xs font-black uppercase tracking-wider transition-all duration-500 ${active(3) ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-900/[0.03] dark:bg-white/5 text-slate-600'}`}>
                             <CheckCircle2 size={11} /> {active(3) ? 'Balanced' : 'Posting…'}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-3 font-mono text-sm">
                         <div className="space-y-2">
-                            <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Debit</div>
+                            <div className="text-3xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Debit</div>
                             <div className="flex justify-between text-slate-200"><span>Cash</span><span className="tabular-nums">1,250.00</span></div>
                             <div className="flex justify-between text-slate-200"><span>COGS</span><span className="tabular-nums">742.50</span></div>
                         </div>
                         <div className="space-y-2">
-                            <div className="text-[9px] font-black uppercase tracking-widest text-emerald-400">Credit</div>
+                            <div className="text-3xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Credit</div>
                             <div className="flex justify-between text-slate-200"><span>Revenue + VAT</span><span className="tabular-nums">1,250.00</span></div>
                             <div className="flex justify-between text-slate-200"><span>Inventory (FIFO)</span><span className="tabular-nums">742.50</span></div>
                         </div>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                    <div className="mt-4 pt-3 border-t border-slate-900/[0.08] dark:border-white/[0.06] flex items-center justify-between text-xs">
                         <span className="text-slate-500 font-bold uppercase tracking-wider">Σ Debits = Σ Credits</span>
                         <span className="font-mono text-emerald-300 tabular-nums">1,992.50 = 1,992.50</span>
                     </div>
@@ -741,7 +1095,7 @@ const IntegrityPipeline = () => {
     const [ref, inView] = useInView(0.3);
     return (
         <div ref={ref} className="relative">
-            <div className="absolute left-0 right-0 top-7 h-0.5 bg-white/[0.06] hidden md:block">
+            <div className="absolute left-0 right-0 top-7 h-0.5 bg-slate-900/[0.08] dark:bg-white/[0.06] hidden md:block">
                 <div className="h-full bg-gradient-to-r from-indigo-500 via-violet-400 to-cyan-400 origin-left transition-transform duration-[2200ms] ease-out"
                     style={{ transform: `scaleX(${reduced ? 1 : (inView ? 1 : 0)})` }} />
             </div>
@@ -749,17 +1103,17 @@ const IntegrityPipeline = () => {
                 {INTEGRITY.map((n, i) => (
                     <div key={i} className="relative">
                         <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-0">
-                            <div className={`relative z-10 w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 md:mb-5 transition-all duration-700 ${(reduced || inView) ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200' : 'bg-white/[0.02] border-white/10 text-slate-600'}`}
+                            <div className={`relative z-10 w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 md:mb-5 transition-all duration-700 ${(reduced || inView) ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200' : 'bg-slate-900/[0.02] dark:bg-white/[0.02] border-slate-900/[0.08] dark:border-white/10 text-slate-600'}`}
                                 style={{ transitionDelay: reduced ? '0s' : `${i * 0.28}s` }}>
                                 <span className="text-lg font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{i + 1}</span>
                                 <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center transition-all duration-500 ${(reduced || inView) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
                                     style={{ transitionDelay: reduced ? '0s' : `${i * 0.28 + 0.4}s` }}>
-                                    <Check size={11} className="text-[#05030f]" strokeWidth={4} />
+                                    <Check size={11} className="text-void-900" strokeWidth={4} />
                                 </span>
                             </div>
                             <div>
-                                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 mb-1">Layer {i + 1}</div>
-                                <h4 className="text-white font-bold text-[15px] tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{n.t}</h4>
+                                <div className="text-2xs font-black uppercase tracking-[0.18em] text-slate-500 mb-1">Layer {i + 1}</div>
+                                <h4 className="text-slate-900 dark:text-white font-bold text-[15px] tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{n.t}</h4>
                                 <p className="text-slate-500 text-[12.5px] leading-relaxed">{n.d}</p>
                             </div>
                         </div>
@@ -813,11 +1167,11 @@ const AIChatDemo = () => {
     return (
         <div ref={ref}>
             <Glass className="p-5 sm:p-6" glow>
-                <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-900/[0.08] dark:border-white/[0.06]">
                     <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center"><Bot size={16} className="text-violet-300" /></div>
                     <div>
-                        <div className="text-sm font-black text-white tracking-tight">VenQore Assistant</div>
-                        <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" /> Reading your ledger</div>
+                        <div className="text-sm font-black text-slate-900 dark:text-white tracking-tight">VenQore Assistant</div>
+                        <div className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" /> Reading your ledger</div>
                     </div>
                 </div>
                 {/* user bubble */}
@@ -829,35 +1183,35 @@ const AIChatDemo = () => {
                 {/* assistant */}
                 <div className="flex justify-start">
                     {phase === 'typing' && !reduced ? (
-                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/[0.04] border border-white/[0.06] flex items-center gap-1.5">
+                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06] flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" />
                             <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" style={{ animationDelay: '0.15s' }} />
                             <span className="w-2 h-2 rounded-full bg-slate-400 vq-dot" style={{ animationDelay: '0.3s' }} />
                         </div>
                     ) : (
-                        <div key={`a${idx}`} className="vq-row-in max-w-[92%] w-full px-4 py-3.5 rounded-2xl rounded-tl-sm bg-white/[0.04] border border-white/[0.06]">
+                        <div key={`a${idx}`} className="vq-row-in max-w-[92%] w-full px-4 py-3.5 rounded-2xl rounded-tl-sm bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/[0.06]">
                             <p className="text-slate-200 text-sm font-medium mb-3">{cur.head}</p>
                             {cur.type === 'bars' && (
                                 <div className="space-y-2.5">
                                     {cur.rows.map(([name, val], i) => (
                                         <div key={i}>
-                                            <div className="flex justify-between text-[11px] mb-1">
-                                                <span className="text-slate-400 font-semibold">{name}</span>
+                                            <div className="flex justify-between text-1xs mb-1">
+                                                <span className="text-slate-500 dark:text-slate-400 font-semibold">{name}</span>
                                                 <span className="text-slate-500 tabular-nums">{val}{cur.unit.includes('%') ? '%' : 'd'}</span>
                                             </div>
-                                            <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                                            <div className="h-1.5 rounded-full bg-slate-900/[0.08] dark:bg-white/[0.06] overflow-hidden">
                                                 <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-rose-400 origin-left"
                                                     style={{ transform: `scaleX(${reduced ? 1 : (phase === 'answer' ? Math.min(1, val / 100 + 0.12) : 0)})`, transition: 'transform 1s cubic-bezier(0.22,1,0.36,1)', transitionDelay: `${i * 0.12}s` }} />
                                             </div>
                                         </div>
                                     ))}
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-600 pt-1">{cur.unit}</div>
+                                    <div className="text-2xs font-black uppercase tracking-widest text-slate-600 pt-1">{cur.unit}</div>
                                 </div>
                             )}
                             {cur.type === 'stat' && (
                                 <div className="flex items-end gap-3">
-                                    <span className="text-3xl font-black text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{cur.stat[0]}</span>
-                                    <span className="text-xs font-bold text-emerald-400 mb-1">{cur.stat[1]}</span>
+                                    <span className="text-3xl font-black text-slate-900 dark:text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{cur.stat[0]}</span>
+                                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">{cur.stat[1]}</span>
                                 </div>
                             )}
                         </div>
@@ -885,114 +1239,36 @@ const MODULES = [
 ];
 const ModuleCard = ({ m, delay }) => (
     <Reveal delay={delay}>
-        <div className="group relative h-full p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
+        <div className="group relative h-full p-5 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all duration-500 hover:-translate-y-1 overflow-hidden">
             <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{ background: 'radial-gradient(220px circle at var(--mx,50%) var(--my,0%), rgba(129,140,248,0.12), transparent 70%)' }} />
             <div className="relative z-10">
                 <div className="w-11 h-11 rounded-xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
                     <m.ic size={20} />
                 </div>
-                <h4 className="text-white font-bold text-[15px] tracking-tight mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m.n}</h4>
+                <h4 className="text-slate-900 dark:text-white font-bold text-[15px] tracking-tight mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m.n}</h4>
                 <p className="text-slate-500 text-[12.5px] leading-snug">{m.d}</p>
             </div>
         </div>
     </Reveal>
 );
 
-/* ── Qore — The Intelligence Core (real modules orbit the engine) ─────────── */
-const QORE_MODULES = (() => {
-    const defs = [
-        ['Dashboard', Gauge], ['Reports', BarChart3], ['Sales', ShoppingCart], ['POS', ScanBarcode],
-        ['Purchases', Truck], ['Inventory', Boxes], ['Warehouses', Warehouse], ['Manufacturing', Factory],
-        ['CRM', Users], ['Accounting', Calculator], ['AI Assistant', Bot], ['Multi-Store', Network],
-    ];
-    const cx = 400, cy = 300, Rx = 300, Ry = 232;
-    return defs.map(([n, ic], i) => {
-        const ang = (-90 + i * (360 / defs.length)) * Math.PI / 180;
-        const rf = i % 2 === 0 ? 1 : 0.82;
-        const x = cx + Rx * rf * Math.cos(ang);
-        const y = cy + Ry * rf * Math.sin(ang);
-        return { n, ic, x, y, lx: (x / 800) * 100, ty: (y / 600) * 100 };
-    });
-})();
-const QoreCore = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.25);
-    return (
-        <div ref={ref} className="relative w-full max-w-4xl mx-auto aspect-[4/3]">
-            <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full overflow-visible">
-                <defs>
-                    <radialGradient id="qcore-glow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="rgba(139,92,246,0.35)" />
-                        <stop offset="60%" stopColor="rgba(99,102,241,0.08)" />
-                        <stop offset="100%" stopColor="transparent" />
-                    </radialGradient>
-                    <linearGradient id="qline" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#8b5cf6" /><stop offset="100%" stopColor="#22d3ee" />
-                    </linearGradient>
-                </defs>
-                <circle cx="400" cy="300" r="150" fill="url(#qcore-glow)" />
-                {QORE_MODULES.map((m, i) => {
-                    const d = `M 400,300 L ${m.x.toFixed(1)},${m.y.toFixed(1)}`;
-                    const rev = `M ${m.x.toFixed(1)},${m.y.toFixed(1)} L 400,300`;
-                    return (
-                        <g key={m.n}>
-                            <path d={d} stroke="url(#qline)" strokeWidth="1.3" fill="none" opacity="0.3" />
-                            <circle cx={m.x} cy={m.y} r="4" fill="#818cf8" />
-                            {!reduced && inView && (
-                                <>
-                                    <circle r="3.4" fill="#22d3ee" opacity="0.9">
-                                        <animateMotion dur={`${2.6 + (i % 5) * 0.45}s`} repeatCount="indefinite" path={i % 2 ? rev : d} />
-                                    </circle>
-                                    <circle r="2.2" fill="#a78bfa" opacity="0.8">
-                                        <animateMotion dur={`${3.6 + (i % 4) * 0.5}s`} begin={`${i * 0.22}s`} repeatCount="indefinite" path={i % 2 ? d : rev} />
-                                    </circle>
-                                </>
-                            )}
-                        </g>
-                    );
-                })}
-            </svg>
-
-            {/* Core orb */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                <div className="relative w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center">
-                    <div className="absolute -inset-6 rounded-full border border-dashed border-white/10" style={reduced ? {} : { animation: 'vq-spin-rev 38s linear infinite' }} />
-                    <div className="absolute -inset-2 rounded-full border border-indigo-400/20" style={reduced ? {} : { animation: 'vq-spin-slow 26s linear infinite' }} />
-                    <div className="absolute inset-0 rounded-full blur-2xl" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.75), rgba(99,102,241,0.2) 60%, transparent 72%)' }} />
-                    <div className={`absolute inset-3 rounded-full ${reduced ? '' : 'vq-pulse-node'}`} style={{ background: 'radial-gradient(circle at 35% 30%, #c4b5fd, #8b5cf6 45%, #4f46e5 100%)', boxShadow: '0 0 60px rgba(139,92,246,0.55)' }} />
-                    <div className="relative z-10 text-center">
-                        <div className="text-white font-black tracking-tight text-lg sm:text-2xl" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>QORE</div>
-                        <div className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.3em] text-indigo-200/80">Intelligence Core</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Module chips */}
-            {QORE_MODULES.map((m, i) => (
-                <div key={m.n} className={`absolute z-20 -translate-x-1/2 -translate-y-1/2 ${reduced ? '' : 'vq-float'}`}
-                    style={{ left: `${m.lx}%`, top: `${m.ty}%`, animationDelay: `${(i % 6) * 0.4}s` }}>
-                    <div className="group flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl bg-[#0c0a20]/85 border border-white/10 backdrop-blur-md shadow-lg hover:border-indigo-400/40 hover:scale-105 transition-all duration-300">
-                        <m.ic size={13} className="text-indigo-300 shrink-0" />
-                        <span className="hidden sm:inline text-[10px] font-bold text-slate-200 whitespace-nowrap">{m.n}</span>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-};
+/* ── Qore — The Intelligence Core ─────────────────────────────────────────
+   Now a real 3D scene (perspective projection, depth sorting, directional
+   lighting) rendered on a canvas with no added dependencies. Lives in
+   Components/QoreCore3D.jsx. */
 
 /* ── FAQ accordion ───────────────────────────────────────────────────────── */
 const FaqItem = ({ q, a, open, onClick }) => (
-    <div className="border-b border-white/[0.07]">
+    <div className="border-b border-slate-900/[0.08] dark:border-white/[0.07]">
         <button onClick={onClick} className="w-full py-6 flex items-center justify-between text-left group gap-6">
-            <span className="text-[17px] font-bold text-white tracking-tight group-hover:text-indigo-300 transition-colors">{q}</span>
-            <span className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500 ${open ? 'rotate-180 border-indigo-400/40 bg-indigo-500/10 text-indigo-300' : 'border-white/10 text-slate-600'}`}>
+            <span className="text-[17px] font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-300 transition-colors">{q}</span>
+            <span className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-500 ${open ? 'rotate-180 border-indigo-400/40 bg-indigo-500/10 text-indigo-300' : 'border-slate-900/[0.08] dark:border-white/10 text-slate-600'}`}>
                 <ChevronDown size={16} />
             </span>
         </button>
         <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-72 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <p className="text-slate-400 leading-relaxed text-[15px] max-w-3xl">{a}</p>
+            <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[15px] max-w-3xl">{a}</p>
         </div>
     </div>
 );
@@ -1004,11 +1280,8 @@ export default function LandingPage() {
     const { props } = usePage();
     const settings = props.settings || {};
     const appName = settings.app_name || 'VenQore';
-    const logo = settings.logo_url || '/images/logo-32x32.png';
 
-    const [scrolled, setScrolled] = useState(false);
     const [heroLoaded, setHeroLoaded] = useState(false);
-    const [mobileMenu, setMobileMenu] = useState(false);
     const [openFaq, setOpenFaq] = useState(0);
 
     /* Newsletter — preserved contract */
@@ -1030,22 +1303,9 @@ export default function LandingPage() {
         }
     };
 
-    useEffect(() => {
-        setHeroLoaded(true);
-        const h = () => setScrolled(window.scrollY > 40);
-        h();
-        window.addEventListener('scroll', h, { passive: true });
-        return () => window.removeEventListener('scroll', h);
-    }, []);
+    useEffect(() => { setHeroLoaded(true); }, []);
 
-    const navLinks = [
-        { label: 'Features', href: '/features' },
-        { label: 'Pricing', href: '/pricing' },
-        { label: 'Blog', href: '/blog' },
-        { label: 'About', href: '/about' },
-    ];
-
-    const marquee = ['Retail', 'Grocery', 'Food & Beverage', 'Fashion', 'Electronics', 'Wholesale', 'Pharmacy', 'Hardware'];
+    const marquee =['Retail', 'Grocery', 'Food & Beverage', 'Fashion', 'Electronics', 'Wholesale', 'Pharmacy', 'Hardware'];
 
     const aiBrains = [
         { ic: Repeat, t: 'Return Predictor', d: 'Forecasts when each customer is due back — so promos land before they lapse.', tone: 'indigo' },
@@ -1063,84 +1323,42 @@ export default function LandingPage() {
         { q: 'Do I need an accountant to use it?', a: 'No. VenQore handles the double-entry mechanics automatically. Every sale, purchase, return, transfer and adjustment writes the correct balanced entry. Your accountant can verify the output — they just won’t need to create it by hand.' },
         { q: 'How long does setup take?', a: 'The Instant Store Creator needs only your store name, then seeds units, taxes and categories for your industry. Most businesses are live in 10–15 minutes, and full historical data can be imported the same day.' },
         { q: 'Will it work across multiple stores?', a: 'Yes. The Multi-Store Hub switches between branches in one click, and granular roles let you be Owner in one store, Manager in another and read-only Viewer in a third — all from a single account.' },
-        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by 665+ automated tests, 4,000+ integrity checks and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
+        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by 1,500+ automated tests, 4,000+ integrity checks and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
         { q: 'What happens to my data if I cancel?', a: 'It’s yours. Export it at any time via the import/export tools. We never hold your data hostage.' },
     ];
 
     return (
-        <div className="min-h-screen bg-[#04020c] text-white overflow-x-hidden selection:bg-indigo-500/40 antialiased">
-            <Head>
-                <title>{`${appName} — The Books Are Always Right.`}</title>
-                <meta name="description" content="VenQore is the all-in-one POS & ERP built on a real double-entry engine. Every sale, purchase, return and transfer posts a correct journal entry — automatically. 226+ features, 40+ reports, AI growth engine." />
-                <meta name="theme-color" content="#04020c" />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-            </Head>
-
-            <ScrollProgressBar />
-            <Ambient />
-            <ParticleField />
-            <Spotlight />
-
-            {/* ── NAV ─────────────────────────────────────────── */}
-            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#04020c]/80 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'py-5'}`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
-                    <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
-                        <img src={logo} alt={appName} width="144" height="36" className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
-                        <span className="font-black text-white text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
-                    </Link>
-                    <div className="hidden lg:flex items-center gap-1">
-                        {navLinks.map(l => (
-                            <Link key={l.href} href={l.href} className="px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:bg-white/[0.04] rounded-full transition-all duration-300">
-                                {l.label}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
-                            Start Free
-                        </Link>
-                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-300 hover:text-white" aria-label="Menu" aria-expanded={mobileMenu}>
-                            {mobileMenu ? <X size={22} /> : <Menu size={22} />}
-                        </button>
-                    </div>
-                </div>
-                <div className={`lg:hidden overflow-hidden transition-all duration-500 ${mobileMenu ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 py-5 space-y-1 bg-[#04020c]/95 backdrop-blur-2xl border-t border-white/[0.06]">
-                        {navLinks.map(l => (
-                            <Link key={l.href} href={l.href} onClick={() => setMobileMenu(false)}
-                                className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors">
-                                {l.label}
-                            </Link>
-                        ))}
-                        <Link href="/login" onClick={() => setMobileMenu(false)} className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.04]">Sign In</Link>
-                    </div>
-                </div>
-            </nav>
-
-            <main className="relative z-10">
+        /* The landing page now wears the same shell as every other public
+           page — same minimal header, same dropdowns, same footer sitemap.
+           MarketingLayout also supplies the scroll progress bar, ambient
+           gradient, particle field and spotlight, so the local copies of
+           those are no longer rendered here. */
+        <MarketingLayout
+            title={`${appName} — The Books Are Always Right.`}
+            description="VenQore is the all-in-one POS & ERP built on a real double-entry engine. Every sale, purchase, return and transfer posts a correct journal entry — automatically. 226+ features, 40+ reports, AI growth engine."
+        >
+            {/* ── REMOVED: bespoke nav ─────────────────────────── */}
+            <>
 
                 {/* ══ 1 · HERO ══ */}
                 <section className="relative px-6 pt-32 md:pt-40 pb-20">
                     <div className="max-w-7xl mx-auto text-center">
                         <div className={`transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md text-[10px] font-black tracking-[0.3em] uppercase mb-10">
+                            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.08] dark:border-white/10 backdrop-blur-md text-2xs font-black tracking-[0.3em] uppercase mb-10">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                                <span className="text-slate-300">226+ Features · One Source of Truth</span>
+                                <span className="text-slate-600 dark:text-slate-300">226+ Features · One Source of Truth</span>
                             </div>
 
                             <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-white hero-rise">
-                                    You Run the Store.
+                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-slate-900 dark:text-white hero-rise">
+                                    The last software
                                 </span>
                                 <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
-                                    <span className="vq-headline-grad vq-text-glow">We'll Handle the Numbers.</span>
+                                    <span className="vq-headline-grad vq-text-glow">your business will need.</span>
                                 </span>
                             </h1>
 
-                            <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed mb-10 font-medium hero-fade">
+                            <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed mb-10 font-medium hero-fade">
                                 Ring up sales, track stock, and see exact profits in real time, all without touching a spreadsheet or opening a ledger.
                             </p>
 
@@ -1152,7 +1370,7 @@ export default function LandingPage() {
                                     <Play size={15} fill="currentColor" /> Launch Live Demo
                                 </MagBtn>
                             </div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-16 hero-fade-2">14-day free trial · No credit card · Live in 15 minutes</p>
+                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-slate-600 mb-16 hero-fade-2">14-day free trial · No credit card · Live in 15 minutes</p>
                         </div>
 
                         {/* Living command center */}
@@ -1162,7 +1380,7 @@ export default function LandingPage() {
 
                         {/* Trust marquee */}
                         <div className="mt-20 max-w-5xl mx-auto">
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-6">Built for real businesses</p>
+                            <p className="text-2xs font-black uppercase tracking-[0.3em] text-slate-600 mb-6">Built for real businesses</p>
                             <div className="relative overflow-hidden vq-marquee-mask">
                                 <div className="flex gap-10 vq-marquee whitespace-nowrap">
                                     {[...marquee, ...marquee].map((m, i) => (
@@ -1175,39 +1393,70 @@ export default function LandingPage() {
                 </section>
 
                 {/* ══ 2 · THE UNCOMFORTABLE TRUTH ══ */}
+                {/* ══ 2 · WHAT WRONG NUMBERS COST YOU ══
+                    Calculator (their numbers) → split-screen (the mechanism)
+                    → ledger tape (the proof). One argument, three registers. */}
                 <section className="py-24 md:py-32 px-6">
                     <div className="max-w-7xl mx-auto">
                         <Reveal>
-                            <Glass className="p-8 md:p-16 overflow-hidden">
-                                <div className="absolute top-0 right-0 p-10 text-white/[0.025] pointer-events-none"><Calculator size={240} strokeWidth={0.3} /></div>
-                                <div className="relative z-10 max-w-4xl">
-                                    <Eyebrow icon={AlertTriangle} tone="rose">The Uncomfortable Truth</Eyebrow>
-                                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white mb-8 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                        Most business software<br />
-                                        <span className="bg-gradient-to-r from-rose-400 to-amber-400 bg-clip-text text-transparent italic">quietly lies to you.</span>
-                                    </h2>
-                                    <div className="space-y-5 text-lg md:text-xl text-slate-400 leading-relaxed font-medium max-w-3xl">
-                                        <p>Not maliciously — structurally. Your “revenue” includes tax you owe the government. Your profit uses a cost that was silently overwritten three purchases ago. Your inventory value is an approximation no one can trace.</p>
-                                        <p className="text-white font-semibold">You’ve been deciding on fabricated numbers. VenQore was built to end that.</p>
-                                    </div>
-                                    <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-5">
-                                        {[
-                                            { ic: AlertTriangle, t: 'Tax-as-Revenue', b: 'Most systems inflate the top line by folding VAT/GST into revenue. VenQore separates them at the ledger level.', cls: 'bg-rose-500/[0.05] border-rose-500/15', ico: 'text-rose-400' },
-                                            { ic: Calculator, t: 'The FIFO Lie', b: 'Profit from overwritten average costs is permanently wrong. VenQore tracks real cost per batch, per variant.', cls: 'bg-amber-500/[0.05] border-amber-500/15', ico: 'text-amber-400' },
-                                            { ic: Fingerprint, t: 'Editable Ledgers', b: 'Edits with no reversal trail aren’t accounting — they’re guessing. Posted entries are immutable by design.', cls: 'bg-indigo-500/[0.05] border-indigo-500/15', ico: 'text-indigo-400' },
-                                        ].map((c, i) => (
-                                            <Reveal key={i} delay={0.1 + i * 0.1}>
-                                                <div className={`h-full p-7 rounded-3xl border ${c.cls} transition-all duration-500 hover:-translate-y-1`}>
-                                                    <c.ic className={`${c.ico} mb-5`} size={26} />
-                                                    <h3 className="text-white font-bold mb-2.5 tracking-tight text-lg" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{c.t}</h3>
-                                                    <p className="text-slate-400 text-sm leading-relaxed">{c.b}</p>
-                                                </div>
-                                            </Reveal>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Glass>
+                            <div className="text-center max-w-3xl mx-auto mb-14">
+                                <Eyebrow icon={AlertTriangle} tone="rose">The Uncomfortable Truth</Eyebrow>
+                                <h2 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-slate-900 dark:text-white mb-7 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    Wrong numbers<br />
+                                    <span className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-rose-400 dark:to-amber-400 bg-clip-text text-transparent italic">have a price.</span>
+                                </h2>
+                                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                    Your revenue includes tax you owe the government. Your profit uses a cost that was
+                                    overwritten three purchases ago. Nobody sends you an invoice for that —
+                                    <span className="text-slate-900 dark:text-white font-semibold"> so here is what it actually costs.</span>
+                                </p>
+                            </div>
                         </Reveal>
+
+                        {/* 2a — their own numbers */}
+                        <Reveal delay={0.08}><TrueCostCalculator /></Reveal>
+
+                        {/* 2b — the mechanism, side by side */}
+                        <div className="mt-24 md:mt-32">
+                            <Reveal>
+                                <div className="text-center max-w-2xl mx-auto mb-12">
+                                    <Eyebrow icon={Repeat} tone="amber">Watch it happen</Eyebrow>
+                                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.95]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                        One sale.<br /><span className="text-amber-500 dark:text-amber-400">Two very different stories.</span>
+                                    </h3>
+                                    <p className="text-slate-500 dark:text-slate-400 mt-5 leading-relaxed">
+                                        A single $115 transaction, posted by both systems at the same time.
+                                    </p>
+                                </div>
+                            </Reveal>
+                            <Reveal delay={0.08}><SameSaleSplit /></Reveal>
+                        </div>
+
+                        {/* 2c — ambient proof */}
+                        <div className="mt-24 md:mt-32 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                            <Reveal direction="right" className="lg:col-span-5">
+                                <Eyebrow icon={ShieldCheck} tone="emerald">The engine underneath</Eyebrow>
+                                <h3 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.95] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    Debits equal credits.<br /><span className="text-emerald-500 dark:text-emerald-400">Always.</span>
+                                </h3>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                                    Every sale, purchase, return, transfer and payment writes a balanced journal entry the
+                                    instant it happens. Not at month end. Not after an export. Immediately — and the entry
+                                    is immutable, so a correction posts a reversal instead of quietly rewriting history.
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    <Link href="/features/accounting" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/[0.05] dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-2xs font-black uppercase tracking-[0.15em] text-slate-700 dark:text-slate-200 hover:bg-slate-900/[0.09] dark:hover:bg-white/[0.1] transition-colors">
+                                        How the ledger works <ArrowRight size={12} />
+                                    </Link>
+                                    <Link href="/features/inventory-management" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/[0.05] dark:bg-white/[0.06] border border-slate-900/10 dark:border-white/10 text-2xs font-black uppercase tracking-[0.15em] text-slate-700 dark:text-slate-200 hover:bg-slate-900/[0.09] dark:hover:bg-white/[0.1] transition-colors">
+                                        FIFO costing <ArrowRight size={12} />
+                                    </Link>
+                                </div>
+                            </Reveal>
+                            <Reveal direction="left" delay={0.1} className="lg:col-span-7">
+                                <LedgerTape />
+                            </Reveal>
+                        </div>
                     </div>
                 </section>
 
@@ -1217,8 +1466,8 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-14">
                                 <Eyebrow icon={ScanBarcode}>How it works</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    One scan becomes<br /><span className="text-indigo-400">balanced accounting.</span>
+                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    One scan becomes<br /><span className="text-indigo-600 dark:text-indigo-400">balanced accounting.</span>
                                 </h2>
                                 <p className="text-slate-500 text-lg max-w-2xl mx-auto mt-6">No exports. No month-end reconstruction. The instant an item is scanned, a correct double-entry posts — and your statements update live.</p>
                             </div>
@@ -1235,7 +1484,7 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-16">
                                 <Eyebrow icon={ShieldCheck} tone="emerald">Financial Verification</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     Five layers between you<br />and a wrong number.
                                 </h2>
                             </div>
@@ -1243,17 +1492,17 @@ export default function LandingPage() {
                         <Reveal delay={0.1}><IntegrityPipeline /></Reveal>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-5xl mx-auto">
                             {[
-                                { e: 665, s: '+', l: 'Tests Passed' },
+                                { e: 1500, s: '+', l: 'Automated Tests', g: true },
                                 { e: 4000, s: '+', l: 'Integrity Checks', g: true },
                                 { e: 13, s: '', l: 'E2E Scenarios' },
                                 { e: 4, s: '', l: 'Decimal Precision', disp: 'DECIMAL(20,4)' },
                             ].map((s, i) => (
                                 <Reveal key={i} delay={0.08 * i}>
-                                    <div className="text-center p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-                                        <div className="text-2xl md:text-3xl font-black text-white mb-1 tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <div className="text-center p-6 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02]">
+                                        <div className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-1 tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                             {s.disp ? <span className="text-base md:text-lg">{s.disp}</span> : <><AnimCounter end={s.e} group={s.g} />{s.s}</>}
                                         </div>
-                                        <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.18em]">{s.l}</div>
+                                        <div className="text-2xs text-slate-600 font-black uppercase tracking-[0.18em]">{s.l}</div>
                                     </div>
                                 </Reveal>
                             ))}
@@ -1266,22 +1515,22 @@ export default function LandingPage() {
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                         <Reveal direction="right">
                             <Eyebrow icon={Cpu} tone="violet">AI Growth Engine</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 Ask your business<br /><span className="text-violet-400">anything.</span>
                             </h2>
-                            <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-xl">
+                            <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed mb-8 max-w-xl">
                                 A context-aware assistant reads your live ledger and answers in plain English — no spreadsheets, no SQL. Behind it, three models work continuously so you act before problems do.
                             </p>
                             <div className="space-y-3">
                                 {aiBrains.map((b, i) => (
                                     <Reveal key={i} delay={0.08 * i} direction="right">
-                                        <div className="flex items-start gap-4 p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                                        <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${b.tone === 'indigo' ? 'bg-indigo-500/15 text-indigo-300' : b.tone === 'cyan' ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
                                                 <b.ic size={18} />
                                             </div>
                                             <div>
-                                                <h3 className="text-white font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
-                                                <p className="text-slate-400 text-sm leading-snug">{b.d}</p>
+                                                <h3 className="text-slate-900 dark:text-white font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
+                                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-snug">{b.d}</p>
                                             </div>
                                         </div>
                                     </Reveal>
@@ -1298,8 +1547,8 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-14">
                                 <Eyebrow icon={Layers}>One platform, twelve engines</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Every part of the business,<br /><span className="text-indigo-400">one connected system.</span>
+                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    Every part of the business,<br /><span className="text-indigo-600 dark:text-indigo-400">one connected system.</span>
                                 </h2>
                                 <p className="text-slate-500 text-lg max-w-2xl mx-auto mt-6">From the counter to the godown to the general ledger — twelve modules, no integrations, nothing to sync.</p>
                             </div>
@@ -1321,16 +1570,16 @@ export default function LandingPage() {
                         <Reveal>
                             <div className="text-center mb-12 max-w-3xl mx-auto">
                                 <Eyebrow icon={Cpu} tone="violet">Qore — The Intelligence Core</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                     One core.<br /><span className="vq-headline-grad">Every module, in sync.</span>
                                 </h2>
-                                <p className="text-slate-400 text-lg mt-6">
+                                <p className="text-slate-500 dark:text-slate-400 text-lg mt-6">
                                     Qore is the engine at the centre of VenQore — continuously coordinating Sales, Inventory, Accounting, AI and every other module so your whole business runs on one live set of numbers.
                                 </p>
                             </div>
                         </Reveal>
                         <Reveal delay={0.12}>
-                            <Glass className="p-6 md:p-10 overflow-hidden" glow><QoreCore /></Glass>
+                            <Glass className="p-6 md:p-10 overflow-hidden" glow><QoreCore3D /></Glass>
                         </Reveal>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-4xl mx-auto">
                             {[
@@ -1340,10 +1589,10 @@ export default function LandingPage() {
                                 { ic: Building2, t: 'Multi-Store', d: 'All branches, one view' },
                             ].map((c, i) => (
                                 <Reveal key={i} delay={0.06 * i}>
-                                    <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center hover:border-indigo-400/25 hover:bg-white/[0.04] transition-all duration-500">
+                                    <div className="p-4 rounded-2xl border border-slate-900/[0.08] dark:border-white/[0.06] bg-slate-900/[0.02] dark:bg-white/[0.02] text-center hover:border-indigo-400/25 hover:bg-white/[0.04] transition-all duration-500">
                                         <c.ic size={20} className="text-indigo-300 mb-2 mx-auto" />
-                                        <h3 className="text-white font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
-                                        <p className="text-slate-400 text-[11px] leading-snug">{c.d}</p>
+                                        <h3 className="text-slate-900 dark:text-white font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 text-1xs leading-snug">{c.d}</p>
                                     </div>
                                 </Reveal>
                             ))}
@@ -1356,15 +1605,15 @@ export default function LandingPage() {
                     <div className="max-w-6xl mx-auto text-center">
                         <Reveal>
                             <Eyebrow icon={BarChart3} tone="amber">Report Factory</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                40+ reports.<br /><span className="text-amber-400">One source of truth.</span>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                40+ reports.<br /><span className="text-amber-600 dark:text-amber-400">One source of truth.</span>
                             </h2>
                             <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-12">P&amp;L, balance sheet and cash flow don’t come from separate calculators — they read the same verified ledger, so they always agree.</p>
                         </Reveal>
                         <Reveal delay={0.1}>
                             <div className="flex flex-wrap justify-center gap-3">
                                 {reports.map((r, i) => (
-                                    <span key={r} className="px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.025] text-sm font-bold text-slate-300 hover:border-amber-400/30 hover:text-white transition-colors">
+                                    <span key={r} className="px-5 py-2.5 rounded-full border border-slate-900/[0.10] dark:border-white/[0.08] bg-slate-900/[0.02] dark:bg-white/[0.025] text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-amber-400/30 hover:text-slate-900 dark:hover:text-white transition-colors">
                                         {r}
                                     </span>
                                 ))}
@@ -1375,20 +1624,20 @@ export default function LandingPage() {
                 </section>
 
                 {/* ══ 9 · STAT BAND ══ */}
-                <section className="py-20 px-6 border-y border-white/[0.06] bg-white/[0.012]">
+                <section className="py-20 px-6 border-y border-slate-900/[0.08] dark:border-white/[0.06] bg-white/[0.012]">
                     <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
                         {[
                             { e: 226, s: '+', l: 'Platform Features' },
                             { e: 40, s: '+', l: 'Business Reports' },
-                            { e: 665, s: '+', l: 'Tests Passed' },
+                            { e: 1500, s: '+', l: 'Automated Tests', g: true },
                             { e: 5, s: '', l: 'Audit Layers' },
                         ].map((s, i) => (
                             <Reveal key={i} delay={0.07 * i}>
                                 <div className="text-center">
-                                    <div className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-2 vq-headline-grad" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <div className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-2 vq-headline-grad" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                         <AnimCounter end={s.e} />{s.s}
                                     </div>
-                                    <div className="text-[10px] md:text-[11px] text-slate-500 font-black uppercase tracking-[0.22em]">{s.l}</div>
+                                    <div className="text-2xs md:text-1xs text-slate-500 font-black uppercase tracking-[0.22em]">{s.l}</div>
                                 </div>
                             </Reveal>
                         ))}
@@ -1400,8 +1649,8 @@ export default function LandingPage() {
                     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                         <Reveal direction="right">
                             <Eyebrow icon={Users}>Built for operators</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Real results.<br /><span className="text-indigo-400">Real operators.</span>
+                            <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-6 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Real results.<br /><span className="text-indigo-600 dark:text-indigo-400">Real operators.</span>
                             </h2>
                             <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-md">We built VenQore for the operator who is done guessing. Here’s what changes when the numbers are finally right.</p>
                             <MagBtn href="/about" variant="ghost">Read our story <ArrowRight size={15} /></MagBtn>
@@ -1415,8 +1664,8 @@ export default function LandingPage() {
                                     <Glass className="p-7">
                                         <Quote size={26} className="text-indigo-400/50 mb-4" />
                                         <p className="text-lg text-slate-200 leading-relaxed mb-5">{q.t}</p>
-                                        <div className="flex items-center gap-1 mb-3">{[...Array(5)].map((_, k) => <span key={k} className="text-amber-400">★</span>)}</div>
-                                        <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em]">{q.a}</div>
+                                        <div className="flex items-center gap-1 mb-3">{[...Array(5)].map((_, k) => <span key={k} className="text-amber-600 dark:text-amber-400">★</span>)}</div>
+                                        <div className="text-1xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em]">{q.a}</div>
                                     </Glass>
                                 </Reveal>
                             ))}
@@ -1432,17 +1681,17 @@ export default function LandingPage() {
                                 <div className="absolute inset-0 vq-grid opacity-30 pointer-events-none" />
                                 <div className="relative z-10">
                                     <Eyebrow icon={BadgeCheck} tone="emerald">Risk-free to start</Eyebrow>
-                                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                        Try the whole platform.<br /><span className="text-emerald-400">Free for 14 days.</span>
+                                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                        Try the whole platform.<br /><span className="text-emerald-600 dark:text-emerald-400">Free for 14 days.</span>
                                     </h2>
-                                    <p className="text-slate-400 text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
+                                    <p className="text-slate-500 dark:text-slate-400 text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
                                         <MagBtn href="/register" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
                                         <MagBtn href="/pricing" variant="ghost">See pricing</MagBtn>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-slate-500">
                                         {['No credit card', 'Cancel anytime', 'Export your data', 'Free demo store'].map(x => (
-                                            <span key={x} className="inline-flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> {x}</span>
+                                            <span key={x} className="inline-flex items-center gap-1.5"><Check size={13} className="text-emerald-600 dark:text-emerald-400" /> {x}</span>
                                         ))}
                                     </div>
                                 </div>
@@ -1455,8 +1704,8 @@ export default function LandingPage() {
                 <section className="py-24 md:py-32 px-6">
                     <div className="max-w-3xl mx-auto">
                         <Reveal>
-                            <h2 className="text-3xl md:text-5xl font-black text-white text-center mb-14 tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Common <span className="text-indigo-400">questions</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white text-center mb-14 tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Common <span className="text-indigo-600 dark:text-indigo-400">questions</span>
                             </h2>
                         </Reveal>
                         <Reveal delay={0.1}>
@@ -1470,15 +1719,15 @@ export default function LandingPage() {
                 </section>
 
                 {/* ══ 13 · NEWSLETTER (preserved) ══ */}
-                <section className="py-24 px-6 border-t border-white/[0.06] relative">
+                <section className="py-24 px-6 border-t border-slate-900/[0.08] dark:border-white/[0.06] relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/[0.06] to-transparent pointer-events-none" />
                     <div className="max-w-4xl mx-auto relative z-10 text-center">
                         <Reveal>
                             <Eyebrow icon={Mail}>Stay updated</Eyebrow>
-                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Subscribe to <span className="text-indigo-400">VenQore Insights</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                Subscribe to <span className="text-indigo-600 dark:text-indigo-400">VenQore Insights</span>
                             </h2>
-                            <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
                                 Direct news on system upgrades, cloud accounting releases, and platform enhancements.
                             </p>
                         </Reveal>
@@ -1490,7 +1739,7 @@ export default function LandingPage() {
                                     value={newsletterEmail}
                                     onChange={e => setNewsletterEmail(e.target.value)}
                                     placeholder="Enter your email address"
-                                    className="w-full px-5 py-3.5 bg-white/[0.04] border border-white/[0.08] hover:border-white/15 focus:border-indigo-500/50 rounded-xl text-white text-sm outline-none transition-all duration-300"
+                                    className="w-full px-5 py-3.5 bg-slate-900/[0.035] dark:bg-white/[0.04] border border-slate-900/[0.10] dark:border-white/[0.08] hover:border-white/15 focus:border-indigo-500/50 rounded-xl text-slate-900 dark:text-white text-sm outline-none transition-all duration-300"
                                 />
                                 <button
                                     type="submit"
@@ -1502,7 +1751,7 @@ export default function LandingPage() {
                                 </button>
                             </form>
                             {newsletterMsg && (
-                                <p className={`text-xs mt-4 font-semibold ${newsletterStatus === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                <p className={`text-xs mt-4 font-semibold ${newsletterStatus === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-400'}`}>
                                     {newsletterMsg}
                                 </p>
                             )}
@@ -1515,7 +1764,7 @@ export default function LandingPage() {
                     <div className="max-w-4xl mx-auto relative">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[150px] pointer-events-none" />
                         <Reveal>
-                            <h2 className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9] relative z-10" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                            <h2 className="text-5xl md:text-8xl font-black text-slate-900 dark:text-white mb-8 tracking-tighter leading-[0.9] relative z-10" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 You already suspect<br />your <span className="vq-headline-grad">numbers are wrong.</span>
                             </h2>
                             <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
@@ -1528,68 +1777,15 @@ export default function LandingPage() {
                         </Reveal>
                     </div>
                 </section>
-            </main>
+            </>
 
-            {/* ══ FOOTER ══ */}
-            <footer className="border-t border-white/[0.06] pt-20 pb-12 px-6 relative z-10 bg-[#04020c]">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
-                    <div className="md:col-span-5">
-                        <Link href="/" className="flex items-center gap-3 mb-7">
-                            <img src={logo} alt={appName} width="160" height="40" className="h-10 w-auto" />
-                            <span className="font-black text-white text-xl uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
-                        </Link>
-                        <p className="text-slate-400 max-w-sm leading-relaxed text-sm">
-                            The all-in-one POS &amp; ERP built on financial truth. Every sale, purchase and transfer writes a correct journal entry — automatically.
-                        </p>
-                    </div>
-                    <div className="md:col-span-2">
-                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Platform</h3>
-                        <ul className="space-y-3">
-                            {[{ l: 'Features', h: '/features' }, { l: 'Pricing', h: '/pricing' }, { l: 'Blog', h: '/blog' }, { l: 'About', h: '/about' }].map(i => (
-                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-400 hover:text-white transition-colors font-medium">{i.l}</Link></li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="md:col-span-2">
-                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Resources</h3>
-                        <ul className="space-y-3">
-                            {[{ l: 'Contact', h: '/contact' }, { l: 'Live Demo', h: '/demo' }, { l: 'Terms', h: '/terms' }, { l: 'Privacy', h: '/privacy' }].map(i => (
-                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-400 hover:text-white transition-colors font-medium">{i.l}</Link></li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="md:col-span-3">
-                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Connect</h3>
-                        <div className="space-y-3">
-                            <a href="https://wa.me/923091999489" className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-600/[0.06] border border-emerald-500/10 text-emerald-400 hover:bg-emerald-600/[0.1] transition-all duration-300">
-                                <MessageCircle size={20} />
-                                <div>
-                                    <div className="text-xs font-black uppercase tracking-widest">WhatsApp Sales</div>
-                                    <div className="text-[10px] opacity-60">Immediate Response</div>
-                                </div>
-                            </a>
-                            <Link href="/contact" className="flex items-center gap-3 p-4 rounded-2xl bg-indigo-600/[0.06] border border-indigo-500/10 text-indigo-400 hover:bg-indigo-600/[0.1] transition-all duration-300">
-                                <Lock size={20} />
-                                <div>
-                                    <div className="text-xs font-black uppercase tracking-widest">Book a Demo</div>
-                                    <div className="text-[10px] opacity-60">1-on-1 Walkthrough</div>
-                                </div>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06]">
-                    <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved. The Books Are Always Right.</span>
-                    <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                        <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
-                        <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
-                    </div>
-                </div>
-            </footer>
+            {/* ── REMOVED: bespoke footer — MarketingLayout renders the
+                   shared footer sitemap used by every other page ── */}
+
 
             {/* ══ STYLES ══ */}
             <style>{VQ_CSS}</style>
-        </div>
+        </MarketingLayout>
     );
 }
 
@@ -1658,6 +1854,18 @@ html { scroll-behavior: smooth; }
 .vq-pulse-node { animation: vq-pulsenode 2.8s ease-in-out infinite; }
 
 .vq-cta-glow { background: linear-gradient(100deg,#6366f1,#8b5cf6,#22d3ee); background-size:200% auto; box-shadow:0 10px 50px -12px rgba(99,102,241,0.6); animation: vq-shimmer 5s linear infinite; }
+
+/* Range sliders in the cost calculator — native inputs look wrong in both
+   themes, so the track and thumb are drawn explicitly. */
+.vq-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: rgba(15,23,42,0.10); outline: none; cursor: pointer; }
+.dark .vq-range { background: rgba(255,255,255,0.10); }
+.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: #6366f1; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; transition: transform .15s ease; }
+.dark .vq-range::-webkit-slider-thumb { border-color: #0c0922; }
+.vq-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.vq-range::-webkit-slider-thumb:active { cursor: grabbing; }
+.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: #6366f1; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.45); cursor: grab; }
+.dark .vq-range::-moz-range-thumb { border-color: #0c0922; }
+.vq-range:focus-visible::-webkit-slider-thumb { outline: 2px solid #818cf8; outline-offset: 2px; }
 
 @keyframes vq-marq { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
 .vq-marquee { animation: vq-marq 30s linear infinite; }

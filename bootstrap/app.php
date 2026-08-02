@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\GeoPricingMiddleware::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\DemoBannerMiddleware::class,
+            \App\Http\Middleware\LastModifiedMiddleware::class,
         ]);
 
         $middleware->api(prepend: [

@@ -195,7 +195,7 @@ export default function DashboardTourGuide({ store }) {
                             <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                                 Dashboard Overview
                             </h4>
-                            <span className="text-[10px] font-semibold text-indigo-400">
+                            <span className="text-2xs font-semibold text-indigo-400">
                                 Step {currentStep + 1} of 6
                             </span>
                         </div>

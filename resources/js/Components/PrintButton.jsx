@@ -181,7 +181,7 @@ export default function PrintButton({
 
                     {/* Settings Hint */}
                     <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-2xs text-slate-400">
                             Configure paper size in Settings → Print
                         </p>
                     </div>

@@ -15,7 +15,7 @@ export default function TwoFactorVerify() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#020010] font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center bg-void-950 font-sans selection:bg-indigo-500/40 p-4 sm:p-6 relative overflow-hidden">
             <Head title="Two-Factor Authentication Verify" />
 
             {/* Ambient */}

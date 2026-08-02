@@ -228,7 +228,7 @@ function InnerGlobalLayout({ children, settings }) {
                                     </p>
                                     
                                     <div className="pt-3 border-t border-slate-800/60 max-w-[280px] mx-auto">
-                                        <p className="text-[11px] font-medium text-amber-400/90 bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2 leading-relaxed">
+                                        <p className="text-1xs font-medium text-amber-400/90 bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2 leading-relaxed">
                                             ⚠️ Warning: Any transactions or changes made during this brief period will not be saved.
                                         </p>
                                     </div>
@@ -249,7 +249,7 @@ function InnerGlobalLayout({ children, settings }) {
                             className="hidden lg:block fixed bottom-1 left-1 z-[9999] opacity-40 hover:opacity-100 transition-opacity cursor-pointer group"
                             title="View Keyboard Shortcuts"
                         >
-                            <div className="bg-black/80 text-white px-2 py-1 rounded text-[10px] font-mono flex items-center gap-1 shadow-lg backdrop-blur-sm border border-white/10">
+                            <div className="bg-black/80 text-white px-2 py-1 rounded text-2xs font-mono flex items-center gap-1 shadow-lg backdrop-blur-sm border border-white/10">
                                 <span>⌨</span>
                                 <span className="hidden group-hover:inline">Shortcuts</span>
                             </div>

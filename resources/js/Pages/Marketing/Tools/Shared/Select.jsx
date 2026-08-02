@@ -72,7 +72,7 @@ export default function Select({ value, onChange, options = [], className = '' }
                         </span>
                     )}
                 </span>
-                <ChevronDown size={16} className={`shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
@@ -83,7 +83,7 @@ export default function Select({ value, onChange, options = [], className = '' }
                     {grouped.map((group, gi) => (
                         <div key={gi}>
                             {group.key && (
-                                <p className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-600">
+                                <p className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-600">
                                     {group.key}
                                 </p>
                             )}
@@ -108,7 +108,7 @@ export default function Select({ value, onChange, options = [], className = '' }
                                                 {opt.label}
                                             </span>
                                             {opt.hint && (
-                                                <span className="block text-[11px] text-slate-400 dark:text-slate-500 truncate">{opt.hint}</span>
+                                                <span className="block text-[11px] text-slate-500 dark:text-slate-500 truncate">{opt.hint}</span>
                                             )}
                                         </span>
                                         <span className="flex items-center gap-2 shrink-0">

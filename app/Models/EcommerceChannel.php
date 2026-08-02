@@ -18,7 +18,22 @@ class EcommerceChannel extends Model
         'access_token_expires_at'   => 'datetime',
         'refresh_token_expires_at'  => 'datetime',
         'fee_percentage'            => 'decimal:4',
+        // T16 — health/observability columns used by IntegrationHealthService.
+        'last_error_at'             => 'datetime',
+        'consecutive_failures'      => 'integer',
+        'last_sync_duration_ms'     => 'integer',
     ];
+
+    /**
+     * T16 — appended so the dashboard can render "Last synced 2 minutes ago"
+     * without shipping raw timestamps and re-deriving the phrasing in JS.
+     */
+    protected $appends = ['last_synced_human'];
+
+    public function getLastSyncedHumanAttribute(): ?string
+    {
+        return $this->last_synced_at?->diffForHumans();
+    }
 
     // Never expose tokens in API responses or logs
     protected $hidden = [

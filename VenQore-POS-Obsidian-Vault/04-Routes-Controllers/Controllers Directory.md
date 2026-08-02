@@ -36,8 +36,8 @@ Part of [[VenQore POS - Home]] · [[Route Map Overview]]
 ## `Admin/` — store-admin-adjacent + platform tooling
 `AdminDashboardController` (superadmin.* routes), `DemoStoreController`, `DigitalHubController`, `HealthCheckController`, `ImpersonationController`, `JobsController`, `NewsletterHubController`, `PkVerificationController`, `SmokeTestController`, `SuperAdminController` (largest — stores/users mgmt, AppSumo, partners/drawings, settings), `SupportController`, `SystemResetController`, `VenaTicketsController`.
 
-## `SuperAdmin/` — platform monetization CRUD
-`AccessGrantController`, `CouponController`, `PlanController`, `PlatformController`, `TenantOverrideController`.
+## `SuperAdmin/` — platform monetization & marketing CRUD
+`AccessGrantController`, `BlogPostAdminController`, `CouponController`, `PlanController`, `PlatformController`, `TenantOverrideController`.
 
 ## `Api/`
 `BankAccountController` (invokable), `ErrorReporterController`, `HeartbeatController`, `ManufacturingRuleController`, `PlanUsageController`, `PosSearchController`, `SyncController`, `TerminalActivityController`.
@@ -46,7 +46,7 @@ Part of [[VenQore POS - Home]] · [[Route Map Overview]]
 `AuthenticatedSessionController`, `ConfirmablePasswordController`, `EmailVerification*Controller`, `GoogleAuthController`, `NewPasswordController`, `PasswordController`, `PasswordResetLinkController`, `PlatformOwnerAuthController`, `RegisteredUserController`, `StaffAuthController`, `TwoFactorController`, `VerifyEmailController`.
 
 ## `Marketing/`
-`BlogController`, `ContactController`, `DigitalProductsPublicController`, `NewsletterController`, `PartnerSupportController`, `SitemapController`.
+`BlogController`, `CompareController`, `ContactController`, `DigitalProductsPublicController`, `NewsletterController`, `PartnerSupportController`, `RoadmapController`, `SitemapController`, `SolutionsController`.
 
 ## `V3/` (36 controllers)
 One per domain concept — see [[V3 ERP Routes]] for the full list.

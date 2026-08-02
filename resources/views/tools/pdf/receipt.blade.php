@@ -142,7 +142,7 @@
             @else
                 <div style="margin-bottom: 1.5mm;">Thank you for your business!</div>
             @endif
-            <div class="muted" style="font-size: 7.5px;">Generated free at venqore.com/tools</div>
+            <div class="muted" style="font-size: 7.5px;">Powered by <a href="https://venqore.com?utm_source=invoice_footer" target="_blank" rel="noopener" style="color: #4f46e5; text-decoration: none; font-weight: bold;">VenQore</a></div>
         </div>
     </div>
 </body>

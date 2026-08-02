@@ -99,4 +99,14 @@ class PosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    // NOTE: openSession()/closeSession() were removed 2026-08-02. They were stub
+    // methods added only to satisfy a route-existence sweep — no cash-drawer /
+    // opening-float data model exists yet, and no frontend page calls the
+    // pos.open / pos.close routes that used to point here. Returning a fake
+    // 'success: true' with no side effect is worse than a 404: it tells a
+    // cashier their drawer was opened/closed when nothing happened. If a real
+    // POS cash-session feature is built, it needs its own migration
+    // (opening float, expected vs counted cash, variance) before these routes
+    // come back. See LAUNCH_VERIFICATION_AUDIT_2026-08-02.md, item A3b.
 }

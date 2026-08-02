@@ -247,8 +247,26 @@ class PaymentController extends Controller
     {
         $payment = Payment::with('party', 'bankAccount')->findOrFail($id);
 
+        // Allocations are linked via payment_allocations.payment_journal_entry_id,
+        // which stores the JournalEntry ID (NOT the Payment ID) that was created for
+        // this payment (see AccountingService::createEntry() call in store(), which
+        // posts reference_type = 'payment', reference = $payment->id). Find that
+        // journal entry, then load its allocations against sales/purchases.
+        $journalEntry = \App\Models\JournalEntry::where('reference_type', 'payment')
+            ->where('reference', $payment->id)
+            ->first();
+
+        $allocations = collect();
+        if ($journalEntry) {
+            $allocations = \App\Models\PaymentAllocation::with(['sale', 'purchase'])
+                ->where('payment_journal_entry_id', $journalEntry->id)
+                ->where('status', 'active')
+                ->get();
+        }
+
         return Inertia::render('Payments/Show', [
-            'payment' => $payment
+            'payment' => $payment,
+            'allocations' => $allocations,
         ]);
     }
 }

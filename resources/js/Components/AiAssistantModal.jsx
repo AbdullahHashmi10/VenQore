@@ -329,7 +329,7 @@ export default function AiAssistantModal({
                             {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                         </button>
                     </div>
-                    <p className="text-center text-[10px] text-slate-600 mt-3">
+                    <p className="text-center text-2xs text-slate-600 mt-3">
                         Powered by {settings?.ai_provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini'} • Your data stays private
                     </p>
                 </div>

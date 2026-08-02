@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function BillWiseProfit({ invoices = [], filters = {} }) {
     const {
         store
@@ -90,10 +91,10 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
             else high++;
         });
         return [
-            { name: 'High Margin (>25%)', value: high, color: '#10b981' }, // Emerald
-            { name: 'Healthy (10-25%)', value: medium, color: '#3b82f6' }, // Blue
-            { name: 'Low Margin (<10%)', value: low, color: '#f59e0b' },   // Amber
-            { name: 'Loss Making', value: loss, color: '#ef4444' }          // Red
+            { name: 'High Margin (>25%)', value: high, color: vq.emerald[500] }, // Emerald
+            { name: 'Healthy (10-25%)', value: medium, color: vq.blue[500] }, // Blue
+            { name: 'Low Margin (<10%)', value: low, color: vq.amber[500] },   // Amber
+            { name: 'Loss Making', value: loss, color: vq.red[500] }          // Red
         ].filter(d => d.value > 0);
     }, [processedInvoices]);
 
@@ -198,14 +199,14 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                             type="date"
                                             value={customStart}
                                             onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
                                         />
                                         <span className="text-slate-400">-</span>
                                         <input
                                             type="date"
                                             value={customEnd}
                                             onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-[10px] rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
+                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-slate-200 dark:bg-slate-700 dark:text-white focus:ring-1 focus:ring-indigo-500"
                                         />
                                         <button onClick={applyCustomRange} className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                                             <ArrowLeft size={10} className="rotate-180" />
@@ -341,7 +342,7 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                                 </Pie>
                                                 <RechartsTooltip
                                                     formatter={(val) => [val + ' Invoices', 'Count']}
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                     itemStyle={{ color: '#fff' }}
                                                 />
                                                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
@@ -349,7 +350,7 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                         </ResponsiveContainer>
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                             <div className="text-center">
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Avg</p>
+                                                <p className="text-2xs text-slate-400 font-bold uppercase">Avg</p>
                                                 <p className="text-xl font-black text-slate-700 dark:text-white">{stats.margin.toFixed(1)}%</p>
                                             </div>
                                         </div>
@@ -369,13 +370,13 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                         <BarChart data={topBills} layout="vertical" margin={{ left: 0, right: 10, top: 0, bottom: 0 }}>
                                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
                                             <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={60} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <YAxis dataKey="name" type="category" width={60} tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
                                             <RechartsTooltip
-                                                cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
+                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                                 formatter={(value) => formatCurrency(value, store)}
                                             />
-                                            <Bar dataKey="profit" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} background={{ fill: 'transparent' }} />
+                                            <Bar dataKey="profit" fill={vq.emerald[500]} radius={[0, 4, 4, 0]} barSize={20} background={{ fill: 'transparent' }} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -415,10 +416,10 @@ function StatCard({ title, value, icon, color, footer }) {
                 <div className={`p-2 rounded-lg ${colors[color]} shrink-0`}>
                     {icon}
                 </div>
-                {footer && <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">{footer}</span>}
+                {footer && <span className="text-2xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">{footer}</span>}
             </div>
             <div className="relative z-10">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
                 <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-0.5">{value}</h3>
             </div>
             {/* Decoration Bubble - Faint */}
@@ -437,7 +438,7 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
         >
             <div className={`flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
                 {label}
-                <div className={`flex flex-col text-[8px] leading-none ${isActive ? 'text-indigo-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-indigo-500' : 'text-slate-300 group-hover:text-slate-400'}`}>
                     <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
                     <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
                 </div>
@@ -448,13 +449,13 @@ function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) 
 
 function MarginBadge({ margin }) {
     if (margin < 0) {
-        return <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-bold">Loss</span>;
+        return <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-2xs font-bold">Loss</span>;
     }
     if (margin < 10) {
-        return <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold">{margin.toFixed(1)}%</span>;
+        return <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-2xs font-bold">{margin.toFixed(1)}%</span>;
     }
     if (margin > 25) {
-        return <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">High {margin.toFixed(1)}%</span>;
+        return <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-2xs font-bold">High {margin.toFixed(1)}%</span>;
     }
-    return <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold">{margin.toFixed(1)}%</span>;
+    return <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-2xs font-bold">{margin.toFixed(1)}%</span>;
 }

@@ -54,7 +54,7 @@ export default function SuperAdminLayout({ children, title }) {
                     {!collapsed && (
                         <div className="flex flex-col overflow-hidden whitespace-nowrap">
                             <span className="font-black text-xl tracking-tight text-white">VENQORE</span>
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest leading-none">Command Center</span>
+                            <span className="text-2xs font-bold text-indigo-400 uppercase tracking-widest leading-none">Command Center</span>
                         </div>
                     )}
                 </div>
@@ -117,7 +117,7 @@ export default function SuperAdminLayout({ children, title }) {
                     <div className="flex items-center gap-6">
                         <div className="hidden sm:flex flex-col text-right">
                             <span className="text-sm font-bold text-slate-100">{auth?.user?.name}</span>
-                            <span className="text-[10px] text-indigo-400 font-black uppercase tracking-tighter">Super Administrator</span>
+                            <span className="text-2xs text-indigo-400 font-black uppercase tracking-tighter">Super Administrator</span>
                         </div>
                         <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-indigo-500 flex items-center justify-center font-bold text-xs">
                            {auth?.user?.name?.[0]?.toUpperCase() || 'A'}

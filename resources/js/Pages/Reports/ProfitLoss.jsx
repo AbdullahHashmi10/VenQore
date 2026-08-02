@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function ProfitLoss({ stats = {}, filters = {} }) {
     const {
         store
@@ -40,9 +41,9 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
     // --- Chart Data ---
     const breakdownData = [
-        { name: 'COGS', value: cogs, color: '#f59e0b' },     // Amber
-        { name: 'Expenses', value: expenses, color: '#ef4444' }, // Red
-        { name: 'Net Profit', value: Math.max(0, netProfit), color: '#10b981' } // Emerald
+        { name: 'COGS', value: cogs, color: vq.amber[500] },     // Amber
+        { name: 'Expenses', value: expenses, color: vq.red[500] }, // Red
+        { name: 'Net Profit', value: Math.max(0, netProfit), color: vq.emerald[500] } // Emerald
     ].filter(d => d.value > 0);
 
     // --- formatters ---
@@ -205,14 +206,14 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                     <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
                         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
                             <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Income Statement</h2>
-                            <button className="text-[10px] sm:text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors">
+                            <button className="text-2xs sm:text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors">
                                 Download PDF
                             </button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-1 sm:p-2">
                             <table className="w-full text-xs sm:text-sm text-left">
-                                <thead className="text-[10px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
+                                <thead className="text-2xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
                                     <tr>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 rounded-l-lg">Description</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-right">Amount</th>
@@ -293,7 +294,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                         </Pie>
                                         <RechartsTooltip
                                             formatter={(val) => formatCurrency(val, store)}
-                                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                            contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
                                             itemStyle={{ color: '#fff' }}
                                         />
                                         <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
@@ -301,7 +302,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                                     <div className="text-center">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Net Margin</p>
+                                        <p className="text-2xs text-slate-400 font-bold uppercase">Net Margin</p>
                                         <p className={`text-xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                             {netMargin}%
                                         </p>
@@ -354,7 +355,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2">
                                         <Target size={12} /> Profit Optimization
                                     </h4>
-                                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                                    <p className="text-1xs text-slate-300 leading-relaxed">
                                         {netMargin < 10
                                             ? "Your margin is tight. Focus on high-margin items and reduce 'Loss Leaders' this week."
                                             : "Strong margins! Reinvest surplus into marketing best-sellers to scale volume."}
@@ -365,7 +366,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2">
                                         <Lightbulb size={12} /> Smart Insight
                                     </h4>
-                                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                                    <p className="text-1xs text-slate-300 leading-relaxed">
                                         Increasing your average ticket size by just <strong>10%</strong> would add
                                         <strong className="text-white ml-1">{formatCurrency(revenue * 0.1, store)}</strong> to your revenue without new customers.
                                     </p>
@@ -375,7 +376,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <h4 className="text-xs font-bold text-indigo-300 mb-1 flex items-center gap-2">
                                         <ArrowUpRight size={12} /> Action Plan
                                     </h4>
-                                    <ul className="text-[10px] text-slate-300 space-y-1.5 mt-2">
+                                    <ul className="text-2xs text-slate-300 space-y-1.5 mt-2">
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                             Review Supplier Costs
@@ -483,9 +484,9 @@ function RatioCard({ title, value, subtitle, color, icon }) {
                 </div>
             </div>
             <div>
-                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">{title}</p>
+                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase">{title}</p>
                 <h3 className="text-lg sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight my-0.5 sm:my-1">{value}</h3>
-                <p className={`text-[10px] sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-slate-400'}`}>{subtitle}</p>
+                <p className={`text-2xs sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-slate-400'}`}>{subtitle}</p>
             </div>
         </div>
     );
@@ -502,20 +503,20 @@ function StatementRow({ label, amount, percent, info, isHeader, isNegative, acti
                     </span>
                     <div className="group/tooltip relative">
                         <Info size={13} className="text-slate-300 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-[9px] sm:text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>
                     </div>
                 </div>
-                {action && <p className="text-[9px] sm:text-[10px] text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
+                {action && <p className="text-3xs sm:text-2xs text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
             </td>
             <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right font-bold text-xs sm:text-sm ${isNegative ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
                 {formatCurrency(amount, store)}
             </td>
             <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
                 <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-                    <span className="text-[10px] sm:text-xs text-slate-400 font-medium">{percent}%</span>
+                    <span className="text-2xs sm:text-xs text-slate-400 font-medium">{percent}%</span>
                     <div className="w-12 sm:w-16 h-1 sm:h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
                         <div className="h-full bg-slate-300 dark:bg-slate-600 rounded-full" style={{ width: `${Math.min(percent, 100)}%` }}></div>
                     </div>
@@ -538,7 +539,7 @@ function SummaryRow({ label, amount, type, info, store }) {
                     </span>
                     <div className="group/tooltip relative">
                         <Info size={13} className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-[9px] sm:text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>

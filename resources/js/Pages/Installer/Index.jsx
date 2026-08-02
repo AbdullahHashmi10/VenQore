@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { vq } from '@/theme/runtime';
 import {
     Terminal, Database, Shield, Rocket, Check, X,
     Cpu, Server, HardDrive, Lock, ChevronRight,
@@ -164,8 +165,8 @@ const GlobalStyles = () => (
 );
 
 const Background = ({ isWarping }) => (
-    <div className={`fixed inset-0 overflow-hidden bg-[#050508] z-0 transition-all duration-1000 ${isWarping ? 'warp-active' : ''}`}>
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a0f] via-[#050508] to-[#0f172a]" />
+    <div className={`fixed inset-0 overflow-hidden bg-zinc-950 z-0 transition-all duration-1000 ${isWarping ? 'warp-active' : ''}`}>
+        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-950 to-slate-900" />
 
         {/* The Grid Floor */}
         <div className="absolute inset-0 tech-grid opacity-30 w-[200%] -ml-[50%] h-[200%] -mt-[20%]" />
@@ -749,7 +750,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
             </div>
 
             {/* Help Drawer (Same as before) */}
-            <div className={`fixed inset-y-0 right-0 w-96 bg-[#0c0c12]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-transform duration-300 ease-out p-8 ${showHelp ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`fixed inset-y-0 right-0 w-96 bg-zinc-950/95 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 transform transition-transform duration-300 ease-out p-8 ${showHelp ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="flex items-center justify-between mb-8 mt-12">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2"><HelpCircle size={20} className="text-indigo-400" /> Help</h3>
                     <button onClick={() => setShowHelp(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
@@ -776,7 +777,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                             <span className="text-xs font-mono text-slate-400 tracking-wider">INSTALLER_V2.5</span>
                         </div>
                         {step > 1 && step < 6 && (
-                            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded">
+                            <div className="text-2xs font-mono text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded">
                                 {step === 2 ? 'License Check' : step === 3 ? 'Config Protocol' : step === 4 ? 'Deploy Sequence' : 'Admin Init'}
                             </div>
                         )}
@@ -790,7 +791,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     const isActive = step >= num;
                                     return (
                                         <div key={num} className="relative flex flex-col items-center gap-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-500 ${isActive ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-[#0f1016] border-slate-700 text-slate-500'}`}>
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-500 ${isActive ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-void-800 border-slate-700 text-slate-500'}`}>
                                                 {isActive ? <Check size={14} /> : num}
                                             </div>
                                         </div>
@@ -807,13 +808,13 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     {/* Server Info Card */}
                                     <div className="mb-6 relative group">
                                         <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-lg group-hover:bg-indigo-500/20 transition-all" />
-                                        <div className="relative bg-[#0a0a10]/90 border border-indigo-500/30 rounded-lg p-5 overflow-hidden">
+                                        <div className="relative bg-zinc-950/90 border border-indigo-500/30 rounded-lg p-5 overflow-hidden">
                                             {!scanned && <div className="hologram-line" />}
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm tracking-widest uppercase">
                                                     <Server size={16} /> Server Environment
                                                 </div>
-                                                <div className="text-[10px] font-mono text-slate-500">
+                                                <div className="text-2xs font-mono text-slate-500">
                                                     {scanned ? "SCAN_COMPLETE" : "ANALYZING..."}
                                                 </div>
                                             </div>
@@ -874,7 +875,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                         <div className={`w-2 h-2 rounded-full ${req.passed ? 'bg-emerald-500' : req.critical ? 'bg-rose-500' : 'bg-amber-500'}`} />
                                                         <div>
                                                             <div className="text-xs font-semibold text-slate-200">{req.label}</div>
-                                                            <div className="text-[10px] text-slate-500">{req.value}</div>
+                                                            <div className="text-2xs text-slate-500">{req.value}</div>
                                                         </div>
                                                     </div>
                                                     {req.passed ? (
@@ -890,7 +891,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     {/* Fix Instructions Modal */}
                                     {selectedFailedCheck && (
                                         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedFailedCheck(null)}>
-                                            <div className="bg-[#0c0c12] border border-indigo-500/30 rounded-xl p-6 max-w-2xl w-full animate-in zoom-in-95 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                                            <div className="bg-zinc-950 border border-indigo-500/30 rounded-xl p-6 max-w-2xl w-full animate-in zoom-in-95 max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center">
@@ -906,7 +907,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                     </button>
                                                 </div>
                                                 <div className="bg-black/40 rounded-lg p-4 mb-4 flex-1 overflow-y-auto custom-scrollbar">
-                                                    <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold mb-3">📖 Step-by-Step Guide</div>
+                                                    <div className="text-2xs uppercase tracking-wider text-emerald-400 font-bold mb-3">📖 Step-by-Step Guide</div>
                                                     <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{selectedFailedCheck[1]?.fix}</div>
                                                 </div>
                                                 <div className="flex items-center justify-between text-xs pt-2 border-t border-white/5">
@@ -940,13 +941,13 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                                     <div className="space-y-6">
                                         <div className="tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">License Key / Purchase Code</label>
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">License Key / Purchase Code</label>
                                             <input
                                                 type="text"
                                                 placeholder="XXXX-XXXX-XXXX-XXXX"
                                                 value={licenseKey}
                                                 onChange={(e) => { setLicenseKey(e.target.value); setLicenseStatus('idle'); }}
-                                                className={`w-full bg-[#0a0a10] border rounded p-4 text-center text-lg font-mono tracking-widest outline-none transition-colors ${licenseStatus === 'error' ? 'border-rose-500 text-rose-400' : licenseStatus === 'success' ? 'border-emerald-500 text-emerald-400' : 'border-slate-700 text-white focus:border-indigo-500'}`}
+                                                className={`w-full bg-zinc-950 border rounded p-4 text-center text-lg font-mono tracking-widest outline-none transition-colors ${licenseStatus === 'error' ? 'border-rose-500 text-rose-400' : licenseStatus === 'success' ? 'border-emerald-500 text-emerald-400' : 'border-slate-700 text-white focus:border-indigo-500'}`}
                                             />
                                         </div>
 
@@ -965,7 +966,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                         </button>
 
                                         <div className="text-center">
-                                            <a href="#" className="text-[10px] text-slate-500 hover:text-white transition-colors">Where do I find my purchase code?</a>
+                                            <a href="#" className="text-2xs text-slate-500 hover:text-white transition-colors">Where do I find my purchase code?</a>
                                         </div>
                                     </div>
                                 </div>
@@ -978,7 +979,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                     {/* Quick Tips Panel */}
                                     {dbRecommendations.length > 0 && (
                                         <div className="mb-6 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-lg">
-                                            <div className="text-[10px] uppercase tracking-wider text-indigo-400 font-bold mb-3 flex items-center gap-2">
+                                            <div className="text-2xs uppercase tracking-wider text-indigo-400 font-bold mb-3 flex items-center gap-2">
                                                 <HelpCircle size={12} /> Quick Setup Tips
                                             </div>
                                             <div className="grid grid-cols-3 gap-3">
@@ -1006,28 +1007,28 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                                     <div className="grid grid-cols-2 gap-4 mb-6">
                                         <div className="tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Host</label>
-                                            <input type="text" value={dbConfig.host} onChange={(e) => { setDbConfig({ ...dbConfig, host: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="127.0.0.1 or localhost" className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-[9px] text-slate-600 mt-1">Usually 127.0.0.1 or localhost</div>
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Host</label>
+                                            <input type="text" value={dbConfig.host} onChange={(e) => { setDbConfig({ ...dbConfig, host: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="127.0.0.1 or localhost" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
+                                            <div className="text-3xs text-slate-600 mt-1">Usually 127.0.0.1 or localhost</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Port</label>
-                                            <input type="text" value={dbConfig.port} onChange={(e) => { setDbConfig({ ...dbConfig, port: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="3306" className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-[9px] text-slate-600 mt-1">Default MySQL port is 3306</div>
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Port</label>
+                                            <input type="text" value={dbConfig.port} onChange={(e) => { setDbConfig({ ...dbConfig, port: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="3306" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
+                                            <div className="text-3xs text-slate-600 mt-1">Default MySQL port is 3306</div>
                                         </div>
                                         <div className="col-span-2 tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Database Name</label>
-                                            <input type="text" value={dbConfig.name} onChange={(e) => { setDbConfig({ ...dbConfig, name: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="venqore" className={`w-full bg-[#0a0a10] border rounded p-3 text-sm text-white font-mono outline-none transition-colors ${dbError ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'}`} />
-                                            <div className="text-[9px] text-slate-600 mt-1">On shared hosting: usually prefixed like username_dbname</div>
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Database Name</label>
+                                            <input type="text" value={dbConfig.name} onChange={(e) => { setDbConfig({ ...dbConfig, name: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="venqore" className={`w-full bg-zinc-950 border rounded p-3 text-sm text-white font-mono outline-none transition-colors ${dbError ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'}`} />
+                                            <div className="text-3xs text-slate-600 mt-1">On shared hosting: usually prefixed like username_dbname</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Username</label>
-                                            <input type="text" value={dbConfig.user} onChange={(e) => { setDbConfig({ ...dbConfig, user: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="root" className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
-                                            <div className="text-[9px] text-slate-600 mt-1">Same prefix as database name</div>
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Username</label>
+                                            <input type="text" value={dbConfig.user} onChange={(e) => { setDbConfig({ ...dbConfig, user: e.target.value }); setDbStatus('idle'); setDbError(null); }} placeholder="root" className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
+                                            <div className="text-3xs text-slate-600 mt-1">Same prefix as database name</div>
                                         </div>
                                         <div className="tech-input-group">
-                                            <label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Password</label>
-                                            <input type="password" placeholder="••••••••" onChange={(e) => { setDbConfig({ ...dbConfig, pass: e.target.value }); setDbStatus('idle'); setDbError(null); }} className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
+                                            <label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Password</label>
+                                            <input type="password" placeholder="••••••••" onChange={(e) => { setDbConfig({ ...dbConfig, pass: e.target.value }); setDbStatus('idle'); setDbError(null); }} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" />
                                         </div>
                                     </div>
 
@@ -1039,7 +1040,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                 <div>
                                                     <div className="text-sm text-rose-300 font-bold mb-1">Connection Failed</div>
                                                     <div className="text-xs text-slate-400 mb-2">{dbError}</div>
-                                                    <div className="text-[10px] text-slate-500">
+                                                    <div className="text-2xs text-slate-500">
                                                         <strong className="text-indigo-400">How to fix:</strong> Double-check your credentials in cPanel {'>'} MySQL Databases. Make sure the user is added to the database with ALL PRIVILEGES.
                                                     </div>
                                                 </div>
@@ -1081,7 +1082,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                     />
                                                     <div className={`mb-3 ${installOptions.demo ? 'text-indigo-400' : 'text-slate-500'}`}><Database size={24} /></div>
                                                     <h3 className="text-sm font-bold text-white mb-1">Restore Backup / Vyapar</h3>
-                                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                                    <p className="text-2xs text-slate-400 leading-relaxed">
                                                         {backupFile ? `Selected: ${backupFile.name}` : 'Restore from VenQore (.sql) or Vyapar Backup (.vyb). Unlimited (2GB+)'}
                                                     </p>
                                                     {isAnalyzing && (
@@ -1092,13 +1093,13 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                             />
                                                         </div>
                                                     )}
-                                                    {isAnalyzing && <p className="text-[9px] text-indigo-400 mt-1 text-right">{uploadProgress}% Uploaded</p>}
+                                                    {isAnalyzing && <p className="text-3xs text-indigo-400 mt-1 text-right">{uploadProgress}% Uploaded</p>}
 
                                                     <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.demo ? 'bg-indigo-500 border-indigo-400 shadow-[0_0_8px_#6366f1]' : 'border-slate-600'}`} />
                                                     {backupFile && installOptions.demo && !isAnalyzing && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setBackupFile(null); }}
-                                                            className="absolute bottom-3 right-3 text-[10px] text-rose-400 hover:text-rose-300 underline"
+                                                            className="absolute bottom-3 right-3 text-2xs text-rose-400 hover:text-rose-300 underline"
                                                         >
                                                             Remove File
                                                         </button>
@@ -1107,7 +1108,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                 <div onClick={() => setInstallOptions({ ...installOptions, clean: !installOptions.clean })} className={`cursor-pointer p-6 rounded-lg border transition-all duration-300 relative group overflow-hidden ${installOptions.clean ? 'bg-rose-600/10 border-rose-500/50' : 'bg-slate-900/40 border-slate-700 hover:border-slate-500'}`}>
                                                     <div className={`mb-3 ${installOptions.clean ? 'text-rose-400' : 'text-slate-500'}`}><Shield size={24} /></div>
                                                     <h3 className="text-sm font-bold text-white mb-1">Start Fresh</h3>
-                                                    <p className="text-[10px] text-slate-400 leading-relaxed">Wipe existing data and start zero (Recommended).</p>
+                                                    <p className="text-2xs text-slate-400 leading-relaxed">Wipe existing data and start zero (Recommended).</p>
                                                     <div className={`absolute top-3 right-3 w-3 h-3 rounded-full border ${installOptions.clean ? 'bg-rose-500 border-rose-400 shadow-[0_0_8px_#f43f5e]' : 'border-slate-600'}`} />
                                                 </div>
                                             </div>
@@ -1123,7 +1124,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                         <div className="max-w-3xl mx-auto">
                                             {/* Pro Tips Section */}
                                             <div className="mb-6 text-center animate-in fade-in slide-in-from-top-4 duration-700 min-h-[60px]">
-                                                <div className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2">Pro Tip</div>
+                                                <div className="text-2xs uppercase tracking-widest text-indigo-400 font-bold mb-2">Pro Tip</div>
                                                 <p key={currentTip} className="text-sm text-white font-light animate-in fade-in duration-500">
                                                     "{tips[currentTip]}"
                                                 </p>
@@ -1132,8 +1133,8 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative w-10 h-10 flex items-center justify-center">
-                                                        <svg className="w-full h-full -rotate-90"><circle cx="20" cy="20" r="18" stroke="#334155" strokeWidth="3" fill="none" /><circle cx="20" cy="20" r="18" stroke={installError ? "#f43f5e" : "#6366f1"} strokeWidth="3" fill="none" strokeDasharray="113" strokeDashoffset={113 - (113 * installProgress) / 100} className="transition-all duration-300 ease-out" /></svg>
-                                                        <span className="absolute text-[10px] font-mono font-bold">{installProgress}%</span>
+                                                        <svg className="w-full h-full -rotate-90"><circle cx="20" cy="20" r="18" stroke={vq.slate[700]} strokeWidth="3" fill="none" /><circle cx="20" cy="20" r="18" stroke={installError ? vq.rose[500] : vq.indigo[500]} strokeWidth="3" fill="none" strokeDasharray="113" strokeDashoffset={113 - (113 * installProgress) / 100} className="transition-all duration-300 ease-out" /></svg>
+                                                        <span className="absolute text-2xs font-mono font-bold">{installProgress}%</span>
                                                     </div>
                                                     <div>
                                                         <div className="text-sm font-bold text-white">{installError ? "Installation Paused" : "Installing Core Systems..."}</div>
@@ -1158,8 +1159,8 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                                 )}
                                             </div>
 
-                                            <div className="bg-[#050508]/80 backdrop-blur rounded-lg border border-slate-800 relative overflow-hidden font-mono text-xs">
-                                                <div className="h-8 bg-[#15151a] flex items-center px-4 border-b border-slate-800 justify-between">
+                                            <div className="bg-zinc-950/80 backdrop-blur rounded-lg border border-slate-800 relative overflow-hidden font-mono text-xs">
+                                                <div className="h-8 bg-zinc-900 flex items-center px-4 border-b border-slate-800 justify-between">
                                                     <span className="text-slate-500">root@venqore-installer:~$ ./install.sh --verbose</span>
                                                     <div className="flex gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-700" /><div className="w-2 h-2 rounded-full bg-slate-700" /></div>
                                                 </div>
@@ -1185,10 +1186,10 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto w-full">
                                     <div className="space-y-6">
                                         <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest mb-6">Administrator Profile</h3>
-                                        <div className="tech-input-group"><label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Full Name</label><input type="text" placeholder="Abdullah Hashmi" value={admin.name} onChange={e => setAdmin({ ...admin, name: e.target.value })} className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
-                                        <div className="tech-input-group"><label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Email Address</label><input type="email" placeholder="admin@venqore.com" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
-                                        <div className="tech-input-group"><label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Secure Password</label><div className="relative"><input type={admin.showPass ? "text" : "password"} value={admin.password} onChange={(e) => setAdmin({ ...admin, password: e.target.value })} className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500 pr-10" /><button onClick={() => setAdmin({ ...admin, showPass: !admin.showPass })} className="absolute right-3 top-3 text-slate-500 hover:text-white">{admin.showPass ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>{admin.password && (<div className={`mt-2 grid grid-cols-3 gap-1 strength-${strength}`}><div className="strength-seg seg-1" /><div className="strength-seg seg-2" /><div className="strength-seg seg-3" /></div>)}</div>
-                                        <div className="tech-input-group"><label className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 block">Quick PIN / Passcode (Optional)</label><div className="relative"><input type={admin.showPass ? "text" : "password"} maxLength={6} placeholder="1234" value={admin.passcode} onChange={(e) => setAdmin({ ...admin, passcode: e.target.value })} className="w-full bg-[#0a0a10] border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div></div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Full Name</label><input type="text" placeholder="Abdullah Hashmi" value={admin.name} onChange={e => setAdmin({ ...admin, name: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Email Address</label><input type="email" placeholder="admin@venqore.com" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Secure Password</label><div className="relative"><input type={admin.showPass ? "text" : "password"} value={admin.password} onChange={(e) => setAdmin({ ...admin, password: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500 pr-10" /><button onClick={() => setAdmin({ ...admin, showPass: !admin.showPass })} className="absolute right-3 top-3 text-slate-500 hover:text-white">{admin.showPass ? <EyeOff size={16} /> : <Eye size={16} />}</button></div>{admin.password && (<div className={`mt-2 grid grid-cols-3 gap-1 strength-${strength}`}><div className="strength-seg seg-1" /><div className="strength-seg seg-2" /><div className="strength-seg seg-3" /></div>)}</div>
+                                        <div className="tech-input-group"><label className="text-2xs uppercase tracking-wider text-slate-500 font-bold mb-2 block">Quick PIN / Passcode (Optional)</label><div className="relative"><input type={admin.showPass ? "text" : "password"} maxLength={6} placeholder="1234" value={admin.passcode} onChange={(e) => setAdmin({ ...admin, passcode: e.target.value })} className="w-full bg-zinc-950 border border-slate-700 rounded p-3 text-sm text-white font-mono outline-none focus:border-indigo-500" /></div></div>
                                     </div>
                                     <div className="mt-8"><button onClick={handleFinalize} className="w-full py-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all">Create Profile & Launch</button></div>
                                 </div>
@@ -1199,7 +1200,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                 <div className="text-center animate-in zoom-in-95 duration-700 flex flex-col items-center justify-center h-full">
                                     <div className="relative mb-8 group cursor-pointer">
                                         <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-[50px] animate-pulse-glow" />
-                                        <div className="relative w-28 h-28 bg-[#0a0a10] border border-emerald-500/30 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                                        <div className="relative w-28 h-28 bg-zinc-950 border border-emerald-500/30 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform duration-500">
                                             <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-[spin_10s_linear_infinite]" />
                                             <div className="absolute inset-2 rounded-full border border-emerald-500/20 animate-[spin_7s_linear_infinite_reverse]" />
                                             <Zap size={40} className="text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
@@ -1213,9 +1214,9 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
 
                                     {/* Deployment Report */}
                                     <div className="grid grid-cols-3 gap-px bg-slate-800/50 border border-slate-700/50 rounded-lg overflow-hidden mb-8 max-w-md w-full">
-                                        <div className="bg-[#0c0c12] p-4 flex flex-col gap-1"><span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Time</span><span className="text-emerald-400 font-mono text-sm">4.2s</span></div>
-                                        <div className="bg-[#0c0c12] p-4 flex flex-col gap-1"><span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Memory</span><span className="text-indigo-400 font-mono text-sm">12MB</span></div>
-                                        <div className="bg-[#0c0c12] p-4 flex flex-col gap-1"><span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Status</span><span className="text-white font-mono text-sm">OK</span></div>
+                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Time</span><span className="text-emerald-400 font-mono text-sm">4.2s</span></div>
+                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Memory</span><span className="text-indigo-400 font-mono text-sm">12MB</span></div>
+                                        <div className="bg-zinc-950 p-4 flex flex-col gap-1"><span className="text-2xs text-slate-500 uppercase tracking-wider font-bold">Status</span><span className="text-white font-mono text-sm">OK</span></div>
                                     </div>
 
                                     {/* Mission Briefing Button */}
@@ -1245,7 +1246,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                     </div>
 
                     {/* Footer Status Bar */}
-                    <div className="absolute bottom-0 left-0 w-full h-10 border-t border-white/5 bg-black/40 flex items-center justify-between px-8 text-[10px] font-mono text-slate-500 uppercase tracking-wider backdrop-blur-sm">
+                    <div className="absolute bottom-0 left-0 w-full h-10 border-t border-white/5 bg-black/40 flex items-center justify-between px-8 text-2xs font-mono text-slate-500 uppercase tracking-wider backdrop-blur-sm">
                         <div className="flex gap-6">
                             <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Active</span>
                             <span className="flex items-center gap-1.5"><Gauge size={10} /> CPU: 12%</span>

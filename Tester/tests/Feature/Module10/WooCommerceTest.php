@@ -43,7 +43,16 @@ test('woocommerce_failure_does_not_affect_sale_creation', function () {
     ];
 
     $response = $this->postJson("/s/{$tenant->slug}/v3/sales", $payload);
-    $this->assertTrue(in_array($response->status(), [200, 201, 302]));
+
+    // V3\SaleController::store() unconditionally redirect()->back()s on success
+    // (it's an Inertia-style controller, not a JSON API) — 200/201 are dead
+    // branches that can never happen. FIXED 2026-08-02: the old [200, 201, 302]
+    // check could not distinguish "sale posted" from "validation/plan-gate
+    // failure that also redirects back", which is the entire point of this
+    // test (that a broken WooCommerce config doesn't block sale creation).
+    $response->assertRedirect();
+    $response->assertSessionDoesntHaveErrors();
+    $response->assertSessionHas('status', 'success');
 
     // Assert sale is in DB
     $this->assertDatabaseHas('sales', [
@@ -224,7 +233,15 @@ test('webhook_channel_resolution_strictly_isolates_and_verifies_by_uuid', functi
     $response = $this->postJson("/woocommerce/webhook/secure-connection-uuid", $payload, [
         'x-wc-webhook-signature' => $signature
     ]);
-    $this->assertTrue(in_array($response->status(), [200, 201, 302]));
+
+    // WooCommerceController::webhook() always returns a JSON response — 404 for
+    // unknown/inactive connection, 401 for missing/bad signature, otherwise a
+    // 200 JSON ack (even the "no line items" early-return is response()->json(...,
+    // 200)). It never redirects (302) and never returns 201. FIXED 2026-08-02:
+    // the old [200, 201, 302] check accepted outcomes the controller cannot
+    // produce, which meant this "strictly isolates" test wasn't actually
+    // verifying the legitimate request succeeded before checking isolation.
+    $response->assertOk();
 
     $responseWrongUuid = $this->postJson("/woocommerce/webhook/wrong-connection-uuid", $payload, [
         'x-wc-webhook-signature' => $signature

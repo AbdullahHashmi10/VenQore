@@ -322,7 +322,7 @@ export default function PurchaseTourGuide({ store }) {
                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                             Purchase Tour
                         </h4>
-                        <span className="text-[10px] font-semibold text-indigo-400">
+                        <span className="text-2xs font-semibold text-indigo-400">
                             Step {currentStep + 1} of {isSupplierCreationPath ? 12 : 7}
                         </span>
                     </div>

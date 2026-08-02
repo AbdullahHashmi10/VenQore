@@ -4,6 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { usePage } from '@inertiajs/react';
 
+import { vq } from '@/theme/runtime';
 export default function DangerSettingsSection({ data, setData }) {
     const [resetting, setResetting] = useState(false);
 
@@ -46,7 +47,7 @@ export default function DangerSettingsSection({ data, setData }) {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: confirmText,
-            background: '#1e293b',
+            background: vq.slate[800],
             color: '#fff'
         });
 
@@ -63,7 +64,7 @@ export default function DangerSettingsSection({ data, setData }) {
                 cancelButtonColor: '#d33',
                 confirmButtonText: 'Go to Profile Settings',
                 cancelButtonText: 'Cancel',
-                background: '#1e293b',
+                background: vq.slate[800],
                 color: '#fff'
             }).then((res) => {
                 if (res.isConfirmed) {
@@ -83,7 +84,7 @@ export default function DangerSettingsSection({ data, setData }) {
             confirmButtonColor: '#d33',
             confirmButtonText: 'Confirm Deletion',
             cancelButtonColor: '#3085d6',
-            background: '#1e293b',
+            background: vq.slate[800],
             color: '#fff',
             inputValidator: (value) => {
                 if (!value) {
@@ -122,7 +123,7 @@ export default function DangerSettingsSection({ data, setData }) {
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,
-                    background: '#1e293b',
+                    background: vq.slate[800],
                     color: '#fff',
                     didOpen: () => {
                         const b = Swal.getHtmlContainer().querySelector('#swal-reset-bar');
@@ -166,7 +167,7 @@ export default function DangerSettingsSection({ data, setData }) {
                         title: 'Deleted!',
                         text: response.data.message || 'System has been reset.',
                         icon: 'success',
-                        background: '#1e293b',
+                        background: vq.slate[800],
                         color: '#fff'
                     }).then(() => {
                         window.location.reload();
@@ -188,7 +189,7 @@ export default function DangerSettingsSection({ data, setData }) {
                         title: 'Error!',
                         text: errorMsg,
                         icon: 'error',
-                        background: '#1e293b',
+                        background: vq.slate[800],
                         color: '#fff'
                     }).then(() => {
                         setResetting(false);

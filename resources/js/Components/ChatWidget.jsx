@@ -415,7 +415,7 @@ export default function ChatWidget() {
                             <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-2 opacity-60">
                                 <Sparkles size={24} className="text-indigo-500 animate-pulse" />
                                 <h5 className="text-xs font-black text-slate-700 dark:text-slate-200">Start a Conversation</h5>
-                                <p className="text-[10px] text-slate-400 max-w-[200px]">Send a message and our support team will reply instantly.</p>
+                                <p className="text-2xs text-slate-400 max-w-[200px]">Send a message and our support team will reply instantly.</p>
                             </div>
                         )}
                         {messages.map((m, i) => {
@@ -434,7 +434,7 @@ export default function ChatWidget() {
                                                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none leading-relaxed'
                                                 : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-950 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 rounded-tl-none leading-relaxed'
                                     }`}>
-                                        <div className="text-[9px] font-black uppercase tracking-wider mb-1 opacity-70">
+                                        <div className="text-3xs font-black uppercase tracking-wider mb-1 opacity-70">
                                             {isVisitor ? 'You' : 'Support'}
                                         </div>
                                         <p className="whitespace-pre-line leading-relaxed">{renderMessageBody(m.body)}</p>
@@ -444,7 +444,7 @@ export default function ChatWidget() {
                         })}
 
                         {typing && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium py-1.5 animate-pulse">
+                            <div className="flex items-center gap-1.5 text-2xs text-slate-400 font-medium py-1.5 animate-pulse">
                                 <Loader2 size={10} className="animate-spin text-slate-300" />
                                 <span>Support is typing...</span>
                             </div>
@@ -458,7 +458,7 @@ export default function ChatWidget() {
                             <div className="grid grid-cols-3 gap-2">
                                 {[['🛒 POS','pos'],['📄 Invoice','create_invoice'],['💸 Expenses','expenses']].map(([label, action]) => (
                                     <button key={action} onClick={() => executeAction(action)}
-                                        className="p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-800 dark:text-slate-100 flex items-center justify-center gap-1 shadow-sm transition-all duration-200 active:scale-95 rounded-xl">
+                                        className="p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xs font-bold text-slate-800 dark:text-slate-100 flex items-center justify-center gap-1 shadow-sm transition-all duration-200 active:scale-95 rounded-xl">
                                         {label}
                                     </button>
                                 ))}
@@ -503,7 +503,7 @@ export default function ChatWidget() {
                         Support
                         {sessionStatus === 'agent_active' && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping ml-1" />}
                     </h4>
-                    <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider mt-0.5">Online</p>
+                    <p className="text-2xs text-indigo-300 font-bold uppercase tracking-wider mt-0.5">Online</p>
                 </div>
             </div>
 
@@ -513,13 +513,13 @@ export default function ChatWidget() {
                 {started && (
                     confirmNewChat ? (
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-slate-400 font-medium mr-1">Start over?</span>
+                            <span className="text-2xs text-slate-400 font-medium mr-1">Start over?</span>
                             <button onClick={handleNewChat}
-                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-black transition-all active:scale-90">
+                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-2xs font-black transition-all active:scale-90">
                                 Yes
                             </button>
                             <button onClick={() => setConfirmNewChat(false)}
-                                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-[10px] font-black transition-all active:scale-90">
+                                className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-2xs font-black transition-all active:scale-90">
                                 No
                             </button>
                         </div>

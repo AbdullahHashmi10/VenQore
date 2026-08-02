@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 export default function SupplierInsights({ data = [], stats = [], filters = {} }) {
     const { store } = usePage().props;
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -56,7 +57,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
 
     // Top 5 Highest Variance Pairs for Bar Chart
     const chartData = useMemo(() => {
-        const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16'];
+        const COLORS = [vq.red[500], vq.orange[500], vq.amber[500], vq.yellow[500], vq.lime[500]];
         return [...data]
             .sort((a, b) => (b.cost_variance_pct || 0) - (a.cost_variance_pct || 0))
             .slice(0, 5)
@@ -121,13 +122,13 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
 
                     <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 p-1.5 rounded-xl flex-wrap w-full lg:w-auto">
                         <Calendar size={15} className="text-slate-400 ml-1.5" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Period:</span>
+                        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wide">Period:</span>
                         <div className="flex bg-slate-100 dark:bg-slate-900/50 p-0.5 rounded-lg">
                             {[{ id: 'today', label: 'Today' }, { id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-rose-600 dark:text-rose-450' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    className={`px-2.5 py-1 rounded text-2xs font-black uppercase tracking-wider transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-rose-600 dark:text-rose-450' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
                                     {opt.label}
                                 </button>
@@ -157,7 +158,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                         return (
                             <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+                                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
                                     <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">{s.value}</h3>
                                 </div>
                                 <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
@@ -208,17 +209,17 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                         >
                                             <td className="px-6 py-3.5">
                                                 <div className="font-bold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{row.supplier_name}</div>
-                                                <div className="text-[10px] text-indigo-500 font-bold mt-0.5">{row.product_name}</div>
+                                                <div className="text-2xs text-indigo-500 font-bold mt-0.5">{row.product_name}</div>
                                             </td>
                                             <td className="px-4 py-3.5 text-right font-mono font-semibold text-slate-500">
                                                 {row.purchase_count}
-                                                <span className="block text-[10px] text-slate-400 font-sans font-medium">Qty: {row.total_qty_purchased}</span>
+                                                <span className="block text-2xs text-slate-400 font-sans font-medium">Qty: {row.total_qty_purchased}</span>
                                             </td>
                                             <td className="px-4 py-3.5 text-right">
-                                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-black tracking-wide ${row.cost_variance_pct > 10 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/20' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20'}`}>
+                                                <span className={`inline-block px-1.5 py-0.5 rounded text-2xs font-black tracking-wide ${row.cost_variance_pct > 10 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/20' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20'}`}>
                                                     {row.cost_variance_pct}%
                                                 </span>
-                                                <span className="block text-[10px] text-slate-400 font-mono mt-0.5">Avg: {formatCurrency(row.avg_unit_cost, store)}</span>
+                                                <span className="block text-2xs text-slate-400 font-mono mt-0.5">Avg: {formatCurrency(row.avg_unit_cost, store)}</span>
                                             </td>
                                             <td className="px-4 py-3.5 text-right font-mono font-medium text-slate-500">
                                                 <div className="text-emerald-500 font-bold">{formatCurrency(row.min_unit_cost, store)}</div>
@@ -240,10 +241,10 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                             <div className="flex-1 relative">
                                 <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
                                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} className="dark:stroke-slate-800" />
                                         <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} />
                                         <YAxis tick={{ fontSize: 9 }} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                                        <RechartsTooltip formatter={(val) => `${val}% Cost Spread`} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => `${val}% Cost Spread`} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                             {chartData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -282,22 +283,22 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
 
                                 <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 space-y-2">
                                     <h4 className="text-xs font-bold text-rose-350 mb-0.5 flex items-center gap-2"><AlertTriangle size={12} /> High Price Fluctuation</h4>
-                                    <p className="text-[11px] text-slate-300">
+                                    <p className="text-1xs text-slate-300">
                                         Pricing for <strong className="text-white">{highRiskPairs[0]?.product_name || 'N/A'}</strong> from <strong className="text-white">{highRiskPairs[0]?.supplier_name || 'N/A'}</strong> shifted by <strong className="text-rose-400">{highRiskPairs[0]?.cost_variance_pct || 0}%</strong>.
                                     </p>
                                 </div>
 
                                 <div className="space-y-2 pt-2 border-t border-white/10">
-                                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Top Variance (Pricing Risks)</h4>
+                                    <h4 className="text-2xs font-black uppercase text-slate-400 tracking-wider">Top Variance (Pricing Risks)</h4>
                                     {highRiskPairs.map((p, idx) => (
                                         <div 
                                             key={idx} 
                                             onClick={() => handleSelectPair(p)}
-                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-[11px] transition-all cursor-pointer group"
+                                            className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-1xs transition-all cursor-pointer group"
                                         >
                                             <div className="truncate w-32 group-hover:text-rose-400">
                                                 <span className="text-slate-300 font-medium block">{p.supplier_name}</span>
-                                                <span className="text-[9px] text-slate-400">{p.product_name}</span>
+                                                <span className="text-3xs text-slate-400">{p.product_name}</span>
                                             </div>
                                             <span className="font-mono text-rose-450 font-bold">{p.cost_variance_pct}%</span>
                                         </div>
@@ -305,7 +306,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-[10px] text-slate-400">
+                            <div className="bg-white/5 p-3 rounded-xl border border-white/10 shrink-0 text-2xs text-slate-400">
                                 Shows real-time incoming PO ledger points. Click on any record to inspect cost movements and bills.
                             </div>
                         </div>
@@ -322,7 +323,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                                 <div className="relative z-10 flex justify-between items-center">
                                     <div className="space-y-1">
-                                        <span className="bg-rose-500/50 text-white border border-rose-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                        <span className="bg-rose-500/50 text-white border border-rose-400/30 px-3 py-1 rounded-full text-2xs font-black uppercase tracking-wider">
                                             Supplier Sourcing Analysis
                                         </span>
                                         <h2 className="text-2xl font-black tracking-tight mt-1">{selectedPair.supplier_name}</h2>
@@ -387,7 +388,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                                                     <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-250">
                                                                         {pur.invoice_no}
                                                                     </td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600">{formatCurrency(pur.unit_cost, store)} <span className="text-[10px] text-slate-400 font-normal">x{pur.quantity}</span></td>
+                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600">{formatCurrency(pur.unit_cost, store)} <span className="text-2xs text-slate-400 font-normal">x{pur.quantity}</span></td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(pur.total, store)}</td>
                                                                 </tr>
                                                             ))}
@@ -419,7 +420,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                                                 <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
                                                                     <td className="py-2.5 px-3">
                                                                         <span className="font-bold text-slate-700 dark:text-slate-250 block">{item.name}</span>
-                                                                        <span className="text-[9px] text-slate-400 font-mono">{item.sku}</span>
+                                                                        <span className="text-3xs text-slate-400 font-mono">{item.sku}</span>
                                                                     </td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-500">{item.quantity}</td>
                                                                     <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">{formatCurrency(item.avg_cost, store)}</td>

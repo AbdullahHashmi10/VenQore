@@ -6,7 +6,8 @@
 2. **Every new public route MUST get:** an entry in `App\Support\MarketingSeo` (title ≤60 chars, description ≤155, canonical, JSON-LD, `static_html` fallback) · a row in `SitemapController` · internal links from at least 3 existing pages · addition to llms.txt "Core pages" if user-facing.
 3. All copy/facts from `SEO/EXECUTION-PLAN/04-COPY-AND-MESSAGING.md`. Pricing USD only: $36/$63/$129 monthly, $360/$630/$1,290 annual. Tests = "1,000+". Shipped/Building/Planned rule applies to page copy; mission first, features second, jargon only for technical audiences.
 4. Marketing pages must not require auth, must render meaningful content without JS (until T1 lands, extend the `static_html` fallback), and must pass `php artisan test` before done.
-
+5. **Unified Verification Center (Test Scaling):** Every single time you create a new test (like `MarketingSsrTest`, `CrawlHygieneTest`, or `ComparePagesTest`), you MUST ensure it is registered and successfully runs in the unified verification suite. Our goal is 1,200+ passing tests. Never leave a test orphaned; verify it runs in the global suite.
+6. **Obsidian Vault Sync:** After completing any ticket or significant architecture update, you MUST update the corresponding documentation files in the Obsidian vault so our internal knowledge base remains perfectly synced with the live codebase.
 ---
 
 ## T1 — Full-Body SSR for Marketing Pages 🔴 (Week 1–2)

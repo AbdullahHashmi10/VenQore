@@ -22,7 +22,13 @@ use Tests\TestCase;
 
 // ─── Feature Tests ────────────────────────────────────────────────────────────
 // Directories that declare uses() in their own files (run in isolation on server)
-$standaloneDirectories = ['Smoke', 'DemoStore'];
+// Golden/Module07 added 2026-08-02: Golden/DatePeriodConsistencyTest.php,
+// Golden/LedgerTruthSweepTest.php, and Module07/ProcurementTest.php each
+// declare their own uses(VenQoreTestCase::class) at file scope. Without this
+// exclusion the global ->in() loop below double-registers them and Pest aborts
+// with "already uses" the moment this suite (the LIVE one — Tester/phpunit.xml
+// points here) is run in full.
+$standaloneDirectories = ['Smoke', 'DemoStore', 'Golden', 'Module07'];
 
 // Apply VenQoreTestCase to every Feature subdirectory EXCEPT the standalone ones
 foreach (glob(__DIR__ . '/Feature/*', GLOB_ONLYDIR) as $dir) {

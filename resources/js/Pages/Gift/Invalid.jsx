@@ -30,7 +30,7 @@ export default function GiftInvalid({ reason }) {
     const Icon = copy.icon;
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white font-sans flex items-center justify-center p-8">
+        <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-8">
             <Head><title>Gift Link Unavailable — VenQore</title></Head>
 
             <div className="fixed inset-0 pointer-events-none">

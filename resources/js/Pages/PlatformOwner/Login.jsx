@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Lock, Mail, ArrowRight, Shield, Eye, EyeOff, AlertCircle, Delete, Hash } from 'lucide-react';
 
+import { vq } from '@/theme/runtime';
 // ─── CSS ───────────────────────────────────────────────────────────────────
 const css = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -200,7 +201,7 @@ function PinDots({ value, maxLen = 8, hasError }) {
                 <div key={i} style={{
                     width: 14, height: 14, borderRadius: '50%',
                     background: i < filled
-                        ? (hasError ? '#ef4444' : '#6366f1')
+                        ? (hasError ? vq.red[500] : vq.indigo[500])
                         : 'rgba(255,255,255,0.1)',
                     border: i < filled
                         ? (hasError ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(99,102,241,0.5)')
@@ -382,7 +383,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                                 style={{ width: 32, height: 32, objectFit: 'contain' }}
                                 onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
                             <div style={{ display: 'none', alignItems: 'center', justifyContent: 'center' }}>
-                                <Shield size={22} color="#6366f1" />
+                                <Shield size={22} color={vq.indigo[500]} />
                             </div>
                         </div>
 
@@ -392,7 +393,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                             marginBottom: 9,
                         }}>VenQore Platform HQ</div>
 
-                        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.02em', marginBottom: 6 }}>
+                        <h1 style={{ fontSize: 24, fontWeight: 800, color: vq.slate[100], letterSpacing: '-0.02em', marginBottom: 6 }}>
                             Welcome back, Abdullah
                         </h1>
                         <p style={{ fontSize: 13, color: 'rgba(148,163,184,0.65)', lineHeight: 1.5 }}>
@@ -420,7 +421,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                         <div style={{
                             background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
                             borderRadius: 12, padding: '11px 16px', marginBottom: 20,
-                            fontSize: 13, color: '#34d399', display: 'flex', alignItems: 'center', gap: 8,
+                            fontSize: 13, color: vq.emerald[400], display: 'flex', alignItems: 'center', gap: 8,
                         }}>
                             {status}
                         </div>
@@ -431,7 +432,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                         <div style={{
                             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.22)',
                             borderRadius: 12, padding: '11px 16px', marginBottom: 20,
-                            fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8,
+                            fontSize: 13, color: vq.red[400], display: 'flex', alignItems: 'center', gap: 8,
                             animation: 'fade-in 0.3s ease',
                         }}>
                             <AlertCircle size={15} style={{ flexShrink: 0 }} />
@@ -444,7 +445,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                         <div style={{
                             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.22)',
                             borderRadius: 12, padding: '11px 16px', marginBottom: 20,
-                            fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8,
+                            fontSize: 13, color: vq.red[400], display: 'flex', alignItems: 'center', gap: 8,
                             animation: 'fade-in 0.3s ease',
                         }}>
                             <AlertCircle size={15} style={{ flexShrink: 0 }} />
@@ -456,7 +457,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                     {mode === 'pin' && (
                         <div style={{ animation: 'fade-in 0.3s ease' }}>
                             <div style={{ marginBottom: 24, textAlign: 'center' }}>
-                                <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
+                                <p style={{ fontSize: 12, color: vq.slate[400], marginBottom: 16, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
                                     Enter your PIN
                                 </p>
                                 <PinDots value={pinForm.data.pin} hasError={!!pinForm.errors.pin} />
@@ -532,7 +533,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                                 <div style={{ position: 'relative' }}>
                                     <div style={{
                                         position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)',
-                                        color: focused === 'email' ? '#6366f1' : 'rgba(100,116,139,0.7)',
+                                        color: focused === 'email' ? vq.indigo[500] : 'rgba(100,116,139,0.7)',
                                         transition: 'color 0.2s', pointerEvents: 'none',
                                     }}>
                                         <Mail size={17} />
@@ -555,7 +556,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                                 <div style={{ position: 'relative' }}>
                                     <div style={{
                                         position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)',
-                                        color: focused === 'password' ? '#6366f1' : 'rgba(100,116,139,0.7)',
+                                        color: focused === 'password' ? vq.indigo[500] : 'rgba(100,116,139,0.7)',
                                         transition: 'color 0.2s', pointerEvents: 'none',
                                     }}>
                                         <Lock size={17} />
@@ -608,8 +609,8 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                         borderTop: '1px solid rgba(255,255,255,0.05)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
-                        <Shield size={12} color="#64748b" />
-                        <span style={{ fontSize: 11, color: '#64748b', letterSpacing: '0.02em' }}>
+                        <Shield size={12} color={vq.slate[500]} />
+                        <span style={{ fontSize: 11, color: vq.slate[500], letterSpacing: '0.02em' }}>
                             Rate-limited · Session-encrypted · Platform-restricted
                         </span>
                     </div>

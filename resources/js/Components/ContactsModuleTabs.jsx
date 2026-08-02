@@ -85,7 +85,7 @@ export default function ContactsModuleTabs({ activeTab }) {
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700"
                 >
-                    <span className="text-[9px] font-bold uppercase tracking-wider">{isExpanded ? 'Collapse' : 'Expand'}</span>
+                    <span className="text-3xs font-bold uppercase tracking-wider">{isExpanded ? 'Collapse' : 'Expand'}</span>
                     <ChevronRight size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                 </button>
             </div>

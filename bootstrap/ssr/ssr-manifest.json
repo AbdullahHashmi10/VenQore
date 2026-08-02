@@ -1,129 +1,120 @@
 {
   "node_modules/driver.js/dist/driver.css": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/vendor-core-4m-Uvb-d.js",
+    "/build/assets/vendor-core-DB0Q8XAf.css"
   ],
-  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [
+    "/build/assets/vendor-core-4m-Uvb-d.js",
+    "/build/assets/vendor-core-DB0Q8XAf.css"
+  ],
   "resources/js/Components/AiAssistantModal.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/AiSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/AlertModal.jsx": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Components/AsyncPartyCombobox.jsx": [
-    "/build/assets/AsyncPartyCombobox-ByeG86uG.js"
+    "/build/assets/AsyncPartyCombobox-DMTeGwCg.js"
   ],
   "resources/js/Components/AsyncProductCombobox.jsx": [
-    "/build/assets/AsyncProductCombobox-C-Y4x1DU.js"
+    "/build/assets/AsyncProductCombobox-ulkv479L.js"
   ],
   "resources/js/Components/BusinessSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/CharityButton.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/ChartSection.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/ChatWidget.jsx": [],
   "resources/js/Components/CommandPalette.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/ConfirmModal.jsx": [
-    "/build/assets/ConfirmModal-DmA0ajk4.js"
+    "/build/assets/ConfirmModal-BhPRFIAG.js"
   ],
   "resources/js/Components/ContactsModuleTabs.jsx": [
-    "/build/assets/ContactsModuleTabs-DNI7vPXW.js"
+    "/build/assets/ContactsModuleTabs-Xp8OjljE.js"
   ],
   "resources/js/Components/DangerSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/DashboardTourGuide.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/DataTable.jsx": [
-    "/build/assets/StatCard-BYl0cT52.js"
+    "/build/assets/StatCard-BMS2IePX.js"
   ],
   "resources/js/Components/DemoBanner.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/Dropdown.jsx": [
     "/build/assets/Dropdown-BR6h6OS4.js"
   ],
   "resources/js/Components/DualStatCard.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/ElevatedPinModal.jsx": [
-    "/build/assets/FundManagement-w5JWeEMe.js"
+    "/build/assets/FundManagement-CTfdjh5m.js"
   ],
   "resources/js/Components/ExpenseTourGuide.jsx": [
-    "/build/assets/ExpensesList-DiUPJ-6A.js"
+    "/build/assets/ExpensesList-D2lfSyBG.js"
   ],
   "resources/js/Components/FeatureLockBadge.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/FilterPanel.jsx": [
-    "/build/assets/FilterPanel-BxGIbnsP.js"
+    "/build/assets/FilterPanel-CJpcDBXD.js"
   ],
   "resources/js/Components/FloatingAiBubble.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/FormModal.jsx": [],
   "resources/js/Components/GeneralSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/GlobalOnboardingWidget.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/ImpersonationBanner.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/InputError.jsx": [
     "/build/assets/InputError-2JjWc6nJ.js"
   ],
   "resources/js/Components/InputModal.jsx": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Components/InvoiceTourGuide.jsx": [
-    "/build/assets/InvoiceTourGuide-DbpHUph1.js"
+    "/build/assets/InvoiceTourGuide-BiZqqHu-.js"
   ],
   "resources/js/Components/KeyboardShortcutsModal.jsx": [],
   "resources/js/Components/LimitGraceBanner.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/MidnightNebula.jsx": [
     "/build/assets/MidnightNebula-BEpU-4M8.js"
   ],
-  "resources/js/Components/Modal.jsx": [],
+  "resources/js/Components/Modal.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
   "resources/js/Components/MoneyModuleTabs.jsx": [
     "/build/assets/MoneyModuleTabs-Bn5c0gSZ.js"
   ],
   "resources/js/Components/OfflineLockScreen.jsx": [],
   "resources/js/Components/OfflineWarningBanner.jsx": [
-    "/build/assets/StockSummaryByCategory-B_nuawfs.js"
+    "/build/assets/StockSummaryByCategory-DvXHI52q.js"
   ],
   "resources/js/Components/OmniSearch.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/OnboardingDriver.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
-  ],
-  "resources/js/Components/OpportunityIntelligencePanel.jsx": [
-    "/build/assets/GrowthDashboard-DO1W5-Vr.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/PageHeader.jsx": [
     "/build/assets/PageHeader-CyOCUwIe.js"
@@ -133,920 +124,978 @@
   ],
   "resources/js/Components/PasscodeModal.jsx": [],
   "resources/js/Components/PaymentModal.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
+  ],
+  "resources/js/Components/PlanNotificationBell.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/PlanUsageBanner.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/Pos/PaymentModal.jsx": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Components/PosTourGuide.jsx": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Components/PremiumButton.jsx": [
     "/build/assets/PremiumButton-BcHxfadR.js"
   ],
   "resources/js/Components/PremiumDropdown.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/PremiumSelect.jsx": [
     "/build/assets/PremiumSelect-BdCYeyr5.js"
   ],
   "resources/js/Components/PrintButton.jsx": [
-    "/build/assets/PrintButton-D3YxgcnK.js"
+    "/build/assets/PrintButton-BUFh9uH-.js"
   ],
   "resources/js/Components/PrintPreview.jsx": [
-    "/build/assets/PrintPreview--U6vwnpl.js"
+    "/build/assets/PrintPreview-DUtO9WXW.js"
   ],
   "resources/js/Components/PrintSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/ProductModal.jsx": [
-    "/build/assets/ProductModal-ChKYFNm4.js"
+    "/build/assets/ProductModal-Cky6mbRZ.js"
   ],
   "resources/js/Components/ProductTourGuide.jsx": [
-    "/build/assets/InventoryList-CI3tpG7t.js"
+    "/build/assets/InventoryList-D_HNBVbX.js"
   ],
   "resources/js/Components/PurchaseModuleTabs.jsx": [
     "/build/assets/PurchaseModuleTabs-CoD4w7PX.js"
   ],
   "resources/js/Components/PurchaseTourGuide.jsx": [
-    "/build/assets/Create-C5yQNmYO.js"
+    "/build/assets/Create-DYd2v1pJ.js"
   ],
   "resources/js/Components/PwaInstallPrompt.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Components/QoreCore3D.jsx": [
+    "/build/assets/LandingPage-JwoOSqSV.js"
   ],
   "resources/js/Components/QuickPartyModal.jsx": [
     "/build/assets/QuickPartyModal-fEhN51o-.js"
   ],
   "resources/js/Components/Reports/MasterReport.jsx": [
-    "/build/assets/MasterReport-CaoE_ZJR.js"
+    "/build/assets/MasterReport-DIa1NNvN.js"
   ],
   "resources/js/Components/RightPanel.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/SecondaryButton.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/SectionHeader.jsx": [
     "/build/assets/SectionHeader-CQ5Hn4MY.js"
   ],
   "resources/js/Components/SellModuleTabs.jsx": [
-    "/build/assets/SellModuleTabs-Uyl5BGtI.js"
+    "/build/assets/SellModuleTabs-tFeLhiIQ.js"
   ],
   "resources/js/Components/SidebarItem.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/SmartCapturePanel.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/SmartCombobox.jsx": [
-    "/build/assets/SmartCombobox-D6m7UWTk.js"
+    "/build/assets/SmartCombobox-D_cdCy9L.js"
   ],
   "resources/js/Components/StatCard.jsx": [
-    "/build/assets/StatCard-BYl0cT52.js"
+    "/build/assets/StatCard-BMS2IePX.js"
   ],
   "resources/js/Components/StockModuleTabs.jsx": [
-    "/build/assets/StockModuleTabs-CzdhnRlp.js"
+    "/build/assets/StockModuleTabs-CUSiTj2Q.js"
   ],
   "resources/js/Components/StoreSwitcher.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/SubscriptionExpiryBanner.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/SuperAdmin/DemoStoreTab.jsx": [
-    "/build/assets/Views-Bpyd5sQL.js"
+    "/build/assets/Views-B7fJgSEB.js"
   ],
   "resources/js/Components/SuperAdmin/SmokeTestRunner.jsx": [
-    "/build/assets/Views-Bpyd5sQL.js"
+    "/build/assets/Views-B7fJgSEB.js"
   ],
   "resources/js/Components/SystemSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/TaxSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
+  ],
+  "resources/js/Components/TerminalStatusBadge.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/Toast.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/TodaysOpportunities.jsx": [
-    "/build/assets/TodaysOpportunities-B1Ak229A.js"
+    "/build/assets/TodaysOpportunities-DWOMQx9Y.js"
   ],
   "resources/js/Components/Toggle.jsx": [
-    "/build/assets/Toggle-DaKypUcO.js"
+    "/build/assets/Toggle-DVyg61h2.js"
   ],
   "resources/js/Components/TransactionSettingsSection.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Components/UpgradeModal.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/VersionChecker.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Components/WelcomeTourModal.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Components/WheelInput.jsx": [
     "/build/assets/WheelInput-Xb-5dVTx.js"
   ],
   "resources/js/Contexts/AlertContext.jsx": [],
   "resources/js/Contexts/AttendanceContext.jsx": [],
-  "resources/js/Contexts/ThemeContext.jsx": [],
-  "resources/js/Contexts/WorkspaceContext.jsx": [],
+  "resources/js/Contexts/ThemeContext.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Contexts/WorkspaceContext.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
   "resources/js/DB/LocalDB.js": [],
   "resources/js/Data/AppRegistry.js": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Data/competitors.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Data/featurePages.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Data/solutions.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Hooks/useGlobalShortcuts.js": [],
   "resources/js/Hooks/useOfflineSync.js": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Hooks/useStoreRoute.js": [
     "/build/assets/PurchaseModuleTabs-CoD4w7PX.js"
   ],
   "resources/js/Layouts/GlobalProviderLayout.jsx": [],
   "resources/js/Layouts/OneGlanceLayout.jsx": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Layouts/PlatformLayout.jsx": [
-    "/build/assets/PlatformLayout-CV-DtcbF.js"
+    "/build/assets/PlatformLayout-Bffb0vmW.js"
   ],
   "resources/js/Layouts/PlatformShell.jsx": [
-    "/build/assets/PlatformShell-a5p7K_Zs.js"
+    "/build/assets/PlatformShell-VlY6tyr6.js"
   ],
   "resources/js/Layouts/ReportsLayout.jsx": [
-    "/build/assets/ReportsLayout-DYtHXvvS.js"
+    "/build/assets/ReportsLayout-Dg4OWYWu.js"
   ],
   "resources/js/Pages/Accounting/BalanceSheet.jsx": [
-    "/build/assets/BalanceSheet-Bu0rXvad.js"
+    "/build/assets/BalanceSheet-X-6AD6J8.js"
   ],
   "resources/js/Pages/Accounting/ChartOfAccounts.jsx": [
-    "/build/assets/ChartOfAccounts-C-Aqh9zg.js"
+    "/build/assets/ChartOfAccounts-C1EMtcl_.js"
   ],
   "resources/js/Pages/Accounting/Dashboard.jsx": [
-    "/build/assets/Dashboard-Cp9A-SG8.js"
+    "/build/assets/Dashboard-CnJNxp3q.js"
   ],
   "resources/js/Pages/Accounting/ProfitLoss.jsx": [
-    "/build/assets/ProfitLoss-xdtMD7m-.js"
+    "/build/assets/ProfitLoss-DQobbDv2.js"
   ],
   "resources/js/Pages/ActivityLog.jsx": [
-    "/build/assets/ActivityLog-D8Drf0-h.js"
+    "/build/assets/ActivityLog-CzYow3Ar.js"
   ],
   "resources/js/Pages/Admin/AgentInbox.jsx": [
-    "/build/assets/AgentInbox-D3bwVNj8.js"
+    "/build/assets/AgentInbox-CAt93T5b.js"
   ],
   "resources/js/Pages/Admin/Backups.jsx": [
-    "/build/assets/Backups-BN72G-PR.js"
+    "/build/assets/Backups-2xgx1DJm.js"
   ],
   "resources/js/Pages/Admin/Dashboard.jsx": [
-    "/build/assets/Dashboard-my4ea8fs.js"
+    "/build/assets/Dashboard-C-yNxS4f.js"
   ],
   "resources/js/Pages/Admin/DataManagement.jsx": [
-    "/build/assets/DataManagement-BVwF9odU.js"
+    "/build/assets/DataManagement-C-Va7aYA.js"
   ],
   "resources/js/Pages/Admin/DataMapping.jsx": [
-    "/build/assets/DataMapping-8ixc3kRx.js"
+    "/build/assets/DataMapping-C_ltDSrQ.js"
   ],
   "resources/js/Pages/Admin/Database.jsx": [
-    "/build/assets/Database-BGPml8am.js"
+    "/build/assets/Database-GazlP_R8.js"
   ],
   "resources/js/Pages/Admin/ExecutiveDashboard.jsx": [
-    "/build/assets/ExecutiveDashboard-Bce6xamZ.js"
+    "/build/assets/ExecutiveDashboard-UIkGkVfJ.js"
   ],
   "resources/js/Pages/Admin/Logs.jsx": [
-    "/build/assets/Logs-DsUxvCq5.js"
+    "/build/assets/Logs-X354kC6H.js"
   ],
   "resources/js/Pages/Admin/Migration.jsx": [
-    "/build/assets/Migration-D3ce7-Gf.js"
+    "/build/assets/Migration-DNuQOfxf.js"
   ],
   "resources/js/Pages/Admin/Settings.jsx": [
-    "/build/assets/Settings-BVwUfmGq.js"
+    "/build/assets/Settings-B32n8F7g.js"
   ],
   "resources/js/Pages/Admin/Users.jsx": [
-    "/build/assets/Users-CNvOio3E.js"
+    "/build/assets/Users-CW9Bd22u.js"
   ],
   "resources/js/Pages/Admin/VenaTicketDetail.jsx": [
-    "/build/assets/VenaTicketDetail-j-O9NJqm.js"
+    "/build/assets/VenaTicketDetail-5aZ7Ckei.js"
   ],
   "resources/js/Pages/Admin/VenaTickets.jsx": [
-    "/build/assets/VenaTickets-BwrbHDXV.js"
+    "/build/assets/VenaTickets-B5UXdTyx.js"
   ],
   "resources/js/Pages/Auth/AcceptInvite.jsx": [
-    "/build/assets/AcceptInvite-n7L7UpE0.js"
+    "/build/assets/AcceptInvite-Bo5_91Ea.js"
   ],
   "resources/js/Pages/Auth/ConfirmPassword.jsx": [
-    "/build/assets/ConfirmPassword-BDi6Tc1N.js"
+    "/build/assets/ConfirmPassword-BJbasMJD.js"
   ],
   "resources/js/Pages/Auth/ForgotPassword.jsx": [
-    "/build/assets/ForgotPassword-BB5avwvK.js"
+    "/build/assets/ForgotPassword-Bk4CnT25.js"
   ],
   "resources/js/Pages/Auth/Login.jsx": [
-    "/build/assets/Login-XzTn0h2j.js"
+    "/build/assets/Login-qRkxtjtx.js"
   ],
   "resources/js/Pages/Auth/Register.jsx": [
-    "/build/assets/Register-BAjTjpqr.js"
+    "/build/assets/Register-DOITJBO9.js"
   ],
   "resources/js/Pages/Auth/ResetPassword.jsx": [
-    "/build/assets/ResetPassword-CQqUabB_.js"
+    "/build/assets/ResetPassword-DtSPk9a6.js"
   ],
   "resources/js/Pages/Auth/StaffLogin.jsx": [
-    "/build/assets/StaffLogin-6c8A1Q1x.js"
+    "/build/assets/StaffLogin-Dy0H3KOE.js"
   ],
   "resources/js/Pages/Auth/TwoFactorSetup.jsx": [
-    "/build/assets/TwoFactorSetup-Dun8ojwr.js"
+    "/build/assets/TwoFactorSetup-D9RBIKdw.js"
   ],
   "resources/js/Pages/Auth/TwoFactorVerify.jsx": [
-    "/build/assets/TwoFactorVerify-XtRdsieB.js"
+    "/build/assets/TwoFactorVerify-Z39mLu4M.js"
   ],
   "resources/js/Pages/Auth/VerifyEmail.jsx": [
-    "/build/assets/VerifyEmail-DxmKjDIm.js"
+    "/build/assets/VerifyEmail-CMGynZOs.js"
   ],
   "resources/js/Pages/BankAccounts/BankAccountsList.jsx": [
-    "/build/assets/BankAccountsList-BqqEO9m8.js"
+    "/build/assets/BankAccountsList-BJMftuf2.js"
   ],
   "resources/js/Pages/BankAccounts/Transactions.jsx": [
-    "/build/assets/Transactions-OovgwhdA.js"
+    "/build/assets/Transactions-B9PsuNZR.js"
   ],
   "resources/js/Pages/BankReconciliation/BankReconciliation.jsx": [
-    "/build/assets/BankReconciliation-CHQJBqLc.js"
+    "/build/assets/BankReconciliation-CLvCHTrW.js"
   ],
   "resources/js/Pages/BatchTracking/BatchTracking.jsx": [
-    "/build/assets/BatchTracking-DHHlCTwu.js"
+    "/build/assets/BatchTracking-B4eugHcr.js"
   ],
   "resources/js/Pages/Billing/Index.jsx": [
-    "/build/assets/Index-DTC4a5Ae.js"
+    "/build/assets/Index-BeSJEeff.js"
   ],
   "resources/js/Pages/Cookbook/Create.jsx": [
-    "/build/assets/Create-D1wLA91G.js"
+    "/build/assets/Create-mwpRsNrM.js"
   ],
   "resources/js/Pages/Cookbook/RecipesList.jsx": [
-    "/build/assets/RecipesList-BH5YxmCk.js"
+    "/build/assets/RecipesList-CWkt0CZM.js"
   ],
   "resources/js/Pages/Dashboard.jsx": [
-    "/build/assets/Dashboard-B6_D-aLE.js"
+    "/build/assets/Dashboard-BEW_AfGr.js"
   ],
   "resources/js/Pages/Dashboards/AccountantDashboard.jsx": [
-    "/build/assets/AccountantDashboard-rJzKzxnA.js"
+    "/build/assets/AccountantDashboard-BWRNQE5x.js"
   ],
   "resources/js/Pages/Dashboards/CashierDashboard.jsx": [
-    "/build/assets/CashierDashboard-CsuMEaMI.js"
+    "/build/assets/CashierDashboard-DI-XuQz3.js"
   ],
   "resources/js/Pages/Dashboards/PurchasingDashboard.jsx": [
-    "/build/assets/PurchasingDashboard-CocFEkJ0.js"
+    "/build/assets/PurchasingDashboard-Bxb8rdhe.js"
   ],
   "resources/js/Pages/Dashboards/ViewerDashboard.jsx": [
-    "/build/assets/ViewerDashboard-DHzRzFgB.js"
+    "/build/assets/ViewerDashboard-eOpZiJDK.js"
   ],
   "resources/js/Pages/DebitNotes/Create.jsx": [
-    "/build/assets/Create-BmrEuTrF.js"
+    "/build/assets/Create-DbWbgne9.js"
   ],
   "resources/js/Pages/DebitNotes/DebitNotes.jsx": [
-    "/build/assets/DebitNotes-DC8XSu2_.js"
+    "/build/assets/DebitNotes-DQshJKgF.js"
+  ],
+  "resources/js/Pages/DebitNotes/Show.jsx": [
+    "/build/assets/Show-kCR3yhBU.js"
   ],
   "resources/js/Pages/Demo/Landing.jsx": [
-    "/build/assets/Landing-DqYJWTqx.js"
+    "/build/assets/Landing-BSBJkNf2.js"
   ],
   "resources/js/Pages/DemoExpired.jsx": [
     "/build/assets/DemoExpired-CqTxVXrq.js"
   ],
   "resources/js/Pages/EInvoicing/EInvoicing.jsx": [
-    "/build/assets/EInvoicing-CFM64t7r.js"
+    "/build/assets/EInvoicing-BCTnXvh5.js"
   ],
   "resources/js/Pages/Error.jsx": [
-    "/build/assets/Error-D_OGOBR4.js"
+    "/build/assets/Error-DnoH944T.js"
   ],
   "resources/js/Pages/Errors/StoreSuspended.jsx": [
-    "/build/assets/StoreSuspended-DiIchkmb.js"
+    "/build/assets/StoreSuspended-WFMSayGn.js"
   ],
   "resources/js/Pages/Errors/TrialExpired.jsx": [
-    "/build/assets/TrialExpired-oiYo0FVk.js"
+    "/build/assets/TrialExpired-O0T2MuTy.js"
   ],
   "resources/js/Pages/Expenses/ExpensesList.jsx": [
-    "/build/assets/ExpensesList-DiUPJ-6A.js"
+    "/build/assets/ExpensesList-D2lfSyBG.js"
   ],
   "resources/js/Pages/Finance/FinanceDashboard.jsx": [
-    "/build/assets/FinanceDashboard-p1KIT1aS.js"
+    "/build/assets/FinanceDashboard-w8KgHog0.js"
   ],
   "resources/js/Pages/Finance/Payables.jsx": [
-    "/build/assets/Payables-BUe-lPv1.js"
+    "/build/assets/Payables-BqsryweG.js"
   ],
   "resources/js/Pages/Finance/Receivables.jsx": [
-    "/build/assets/Receivables-Du8RErR9.js"
+    "/build/assets/Receivables-BxVh7fnk.js"
   ],
   "resources/js/Pages/Funds/CashHistory.jsx": [
-    "/build/assets/CashHistory-CJlJpjjx.js"
+    "/build/assets/CashHistory-BbF5QsGh.js"
   ],
   "resources/js/Pages/Funds/FundManagement.jsx": [
-    "/build/assets/FundManagement-w5JWeEMe.js"
+    "/build/assets/FundManagement-CTfdjh5m.js"
   ],
   "resources/js/Pages/Gift/Invalid.jsx": [
-    "/build/assets/Invalid-DejMmPIV.js"
+    "/build/assets/Invalid-Cu12xLrJ.js"
   ],
   "resources/js/Pages/Gift/Show.jsx": [
-    "/build/assets/Show-Bwwh2NAQ.js"
+    "/build/assets/Show-DQGNhM7A.js"
   ],
   "resources/js/Pages/GrowthEngine/GrowthDashboard.jsx": [
-    "/build/assets/GrowthDashboard-DO1W5-Vr.js"
+    "/build/assets/GrowthDashboard-C7g0x7o5.js"
+  ],
+  "resources/js/Pages/GrowthEngine/Settings.jsx": [
+    "/build/assets/Settings-C5WR0rXX.js"
   ],
   "resources/js/Pages/Home.jsx": [
-    "/build/assets/Home-DBUs93oS.js"
+    "/build/assets/Home-D4ulkhZk.js"
   ],
   "resources/js/Pages/Hub/Index.jsx": [
-    "/build/assets/Index-DJ-OWkXc.js"
+    "/build/assets/Index-6csMEToE.js"
   ],
   "resources/js/Pages/Installer/Index.jsx": [
-    "/build/assets/Index-CylAOt_n.js"
+    "/build/assets/Index-hbcuOrQM.js"
   ],
   "resources/js/Pages/Inventory/Attributes/AttributesList.jsx": [
-    "/build/assets/AttributesList-Cv8zPrvO.js"
+    "/build/assets/AttributesList-YVaFa7dV.js"
   ],
   "resources/js/Pages/Inventory/Categories.jsx": [
-    "/build/assets/Categories-DRHUbcwY.js"
+    "/build/assets/Categories-B2LC5qcz.js"
   ],
   "resources/js/Pages/Inventory/Dashboard.jsx": [
-    "/build/assets/Dashboard-DpfsqUui.js"
+    "/build/assets/Dashboard-CYVWfqRP.js"
   ],
   "resources/js/Pages/Inventory/InventoryList.jsx": [
-    "/build/assets/InventoryList-CI3tpG7t.js"
+    "/build/assets/InventoryList-D_HNBVbX.js"
   ],
   "resources/js/Pages/Inventory/Production/Create.jsx": [
-    "/build/assets/Create-CyNhE9jK.js"
+    "/build/assets/Create-DwLs0U8t.js"
   ],
   "resources/js/Pages/Inventory/Production/ProductionRuns.jsx": [
-    "/build/assets/ProductionRuns-C3AoFtu9.js"
+    "/build/assets/ProductionRuns-Ckaoiwgv.js"
+  ],
+  "resources/js/Pages/Inventory/Production/Show.jsx": [
+    "/build/assets/Show-CTyHsBpJ.js"
   ],
   "resources/js/Pages/Inventory/StockLevels.jsx": [
-    "/build/assets/StockLevels--X8xXAqX.js"
+    "/build/assets/StockLevels-CLccTsMv.js"
   ],
   "resources/js/Pages/Inventory/Variants/VariantsList.jsx": [
-    "/build/assets/VariantsList-vD2xD4Nr.js"
+    "/build/assets/VariantsList-363Z4ilI.js"
   ],
   "resources/js/Pages/Invite/Accept.jsx": [
-    "/build/assets/Accept-CLzPJAFV.js"
+    "/build/assets/Accept-CBjW8CfK.js"
   ],
   "resources/js/Pages/Invite/Invalid.jsx": [
     "/build/assets/Invalid-D1As10eU.js"
   ],
   "resources/js/Pages/Labels/LabelPrinter.jsx": [
-    "/build/assets/LabelPrinter-BjnMFm7J.js"
+    "/build/assets/LabelPrinter-BchLnbdm.js"
   ],
   "resources/js/Pages/LandingPage.jsx": [
-    "/build/assets/LandingPage-g7ElV_FK.js"
+    "/build/assets/LandingPage-JwoOSqSV.js"
   ],
   "resources/js/Pages/Manufacturing/Rules.jsx": [
-    "/build/assets/Rules-o_KqIFKE.js"
+    "/build/assets/Rules-CTkeOnnA.js"
   ],
   "resources/js/Pages/Marketing/About.jsx": [
-    "/build/assets/About-DyrEgbNp.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Blog/Index.jsx": [
-    "/build/assets/Index-DamvbsT3.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Blog/Show.jsx": [
-    "/build/assets/Show-D0Tgh9AL.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Campaigns.jsx": [
-    "/build/assets/Campaigns-Cmn3RTny.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Compare/Index.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Compare/Show.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Contact.jsx": [
-    "/build/assets/Contact-DiqKQb-J.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/DigitalProducts.jsx": [
-    "/build/assets/DigitalProducts-2tQhZSQD.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Docs/Show.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Features.jsx": [
-    "/build/assets/Features-D52hwpDc.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Features/Show.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Newsletter.jsx": [
-    "/build/assets/Newsletter-CrEPFtOE.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/PartnerSupport.jsx": [
-    "/build/assets/PartnerSupport-C5tpDafO.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Partners.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Pricing.jsx": [
-    "/build/assets/Pricing-DroftiUZ.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Roadmap.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Shared/FeatureDemos.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Shared/MarketingLayout.jsx": [
-    "/build/assets/MarketingLayout-CMiC1Bik.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/SmartCapture.jsx": [
-    "/build/assets/SmartCapture-CH04fx27.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Solutions/Index.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/Pages/Marketing/Solutions/Show.jsx": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Barcode.jsx": [
-    "/build/assets/Barcode-B6t-Qeii.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/BarcodeLabelSheet.jsx": [
-    "/build/assets/BarcodeLabelSheet-D8zJyGkB.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/BarcodeValidator.jsx": [
-    "/build/assets/BarcodeValidator-ClUGnUa8.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/CashDrawer.jsx": [
-    "/build/assets/CashDrawer-REu2XWYT.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/CashDrawerCountSheet.jsx": [
-    "/build/assets/CashDrawerCountSheet-DK-julVn.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/CreditNote.jsx": [
-    "/build/assets/CreditNote-CFDnccOi.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/FoodCostCalculator.jsx": [
-    "/build/assets/FoodCostCalculator-ChYG4HEw.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Index.jsx": [
-    "/build/assets/Index-CvvxWkjo.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/InventoryHealth.jsx": [
-    "/build/assets/InventoryHealth-DzbkJCsB.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Invoice.jsx": [
-    "/build/assets/Invoice-C4DHtrkk.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/LabelSheet.jsx": [
-    "/build/assets/LabelSheet-_5N3ueg6.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/LeadConfirm.jsx": [
-    "/build/assets/LeadConfirm-k0waXdee.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/LeadUnsubscribe.jsx": [
-    "/build/assets/LeadUnsubscribe-CtOTOXnd.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/MarginCalculator.jsx": [
-    "/build/assets/MarginCalculator-DFjM65OD.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/PackingSlip.jsx": [
-    "/build/assets/PackingSlip-ClJiqjIa.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/PaymentFeeCalculator.jsx": [
-    "/build/assets/PaymentFeeCalculator-BVML338Y.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/PosRoiCalculator.jsx": [
-    "/build/assets/PosRoiCalculator-BXtwzexI.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/PriceTag.jsx": [
-    "/build/assets/PriceTag-BFrlBeEt.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/ProductCsvCleaner.jsx": [
-    "/build/assets/ProductCsvCleaner-C8pf9yxW.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/PurchaseOrder.jsx": [
-    "/build/assets/PurchaseOrder-DHgB_Rnu.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/QrCode.jsx": [
-    "/build/assets/QrCode-8z-_btz0.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/QrMenu.jsx": [
-    "/build/assets/QrMenu-sZgEP6Ux.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/QrMenuPublic.jsx": [
-    "/build/assets/QrMenuPublic-BX6jkpil.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Quote.jsx": [
-    "/build/assets/Quote-0EJNhpiL.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Receipt.jsx": [
-    "/build/assets/Receipt-DJWZhIFm.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/EditableText.jsx": [
-    "/build/assets/EditableText-nKR5JR6h.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/EmailGate.jsx": [
-    "/build/assets/EmailGate-BDlzlLhb.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/HousePromo.jsx": [
-    "/build/assets/HousePromo-CAVKWeBy.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/Select.jsx": [
-    "/build/assets/Select-BFX9Hz_h.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/ToolShell.jsx": [
-    "/build/assets/ToolShell-BDFk9CqZ.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/Shared/ToolsSidebar.jsx": [
-    "/build/assets/ToolsSidebar-BvvbAU_Q.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/SkuGenerator.jsx": [
-    "/build/assets/SkuGenerator-DKATXuDq.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/Tools/StockCountSheet.jsx": [
-    "/build/assets/StockCountSheet-B2PwW-Qu.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Marketing/VenSynQ.jsx": [
-    "/build/assets/VenSynQ-yTqgr7wi.js"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/Pages/Notifications/NotificationCenter.jsx": [
-    "/build/assets/NotificationCenter-BTXEEg45.js"
+    "/build/assets/NotificationCenter-Cnv2E5kO.js"
   ],
   "resources/js/Pages/OnlineStore/OnlineStore.jsx": [
-    "/build/assets/OnlineStore-B_yjIBvu.js"
+    "/build/assets/OnlineStore-DMQM376e.js"
   ],
   "resources/js/Pages/Parties/Ledger.jsx": [
-    "/build/assets/Ledger-CWz-k5M3.js"
+    "/build/assets/Ledger-DAARfnMa.js"
   ],
   "resources/js/Pages/Parties/PartiesList.jsx": [
-    "/build/assets/PartiesList-6qUKGpQw.js"
+    "/build/assets/PartiesList-By1I3goq.js"
   ],
   "resources/js/Pages/Payments/In.jsx": [
-    "/build/assets/In-Bmpfj1Zi.js"
+    "/build/assets/In-D4q1xIc1.js"
   ],
   "resources/js/Pages/Payments/Out.jsx": [
-    "/build/assets/Out-M7jsHBMd.js"
+    "/build/assets/Out-CZARlOgm.js"
   ],
   "resources/js/Pages/Payments/PaymentsList.jsx": [
-    "/build/assets/PaymentsList-BUYxvWGZ.js"
+    "/build/assets/PaymentsList-DTHF8YkS.js"
+  ],
+  "resources/js/Pages/Payments/Show.jsx": [
+    "/build/assets/Show-DmG7Eft6.js"
+  ],
+  "resources/js/Pages/Platform/BlogPosts/Index.jsx": [
+    "/build/assets/Index-BwLiVd69.js"
   ],
   "resources/js/Pages/Platform/Overview.jsx": [
-    "/build/assets/Overview-Oou0ea1N.js"
+    "/build/assets/Overview-DAwrwPqe.js"
   ],
   "resources/js/Pages/Platform/Views.jsx": [
-    "/build/assets/Views-Bpyd5sQL.js"
+    "/build/assets/Views-B7fJgSEB.js"
   ],
   "resources/js/Pages/PlatformOwner/Login.jsx": [
-    "/build/assets/Login-DCF6eLif.js"
+    "/build/assets/Login-dSRWmowH.js"
   ],
   "resources/js/Pages/Pos.jsx": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Pages/PreSales/BestPreSales.jsx": [
-    "/build/assets/BestPreSales-D5aWAtre.js"
+    "/build/assets/BestPreSales-RbchwMSY.js"
   ],
   "resources/js/Pages/PrivacyPolicy.jsx": [
-    "/build/assets/PrivacyPolicy-GmbpCsc8.js"
+    "/build/assets/PrivacyPolicy-DemyZmLb.js"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
-    "/build/assets/Edit-CYtngfs4.js"
+    "/build/assets/Edit-vqJD5Q4x.js"
   ],
   "resources/js/Pages/Proposals/Create.jsx": [
-    "/build/assets/Create-Bkw0vrkL.js"
+    "/build/assets/Create-CCHaDjSv.js"
   ],
   "resources/js/Pages/Proposals/ProposalsList.jsx": [
-    "/build/assets/ProposalsList-DRpgsyRO.js"
+    "/build/assets/ProposalsList-DjRbNBgd.js"
   ],
   "resources/js/Pages/Proposals/Show.jsx": [
-    "/build/assets/Show-C3y5Ckfx.js"
+    "/build/assets/Show-DTEvOwCx.js"
   ],
   "resources/js/Pages/PurchaseOrders/Create.jsx": [
-    "/build/assets/Create-DYmq4dSb.js"
+    "/build/assets/Create-C5n-Wgwd.js"
   ],
   "resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx": [
-    "/build/assets/PurchaseOrdersList-D_TTx3_7.js"
+    "/build/assets/PurchaseOrdersList-4gwmPA1w.js"
   ],
   "resources/js/Pages/PurchaseOrders/Show.jsx": [
-    "/build/assets/Show-CwA_8I5f.js"
+    "/build/assets/Show-DpQ5Wz3V.js"
   ],
   "resources/js/Pages/Purchases/Create.jsx": [
-    "/build/assets/Create-C5yQNmYO.js"
+    "/build/assets/Create-DYd2v1pJ.js"
   ],
   "resources/js/Pages/Purchases/PurchasesList.jsx": [
-    "/build/assets/PurchasesList-DZJeD9ve.js"
+    "/build/assets/PurchasesList-B2pEJNbx.js"
   ],
   "resources/js/Pages/Purchases/Receive.jsx": [
-    "/build/assets/Receive-Bkb5vCl6.js"
+    "/build/assets/Receive-JO4EkW-F.js"
   ],
   "resources/js/Pages/Purchases/Show.jsx": [
-    "/build/assets/Show-dCyAzDs9.js"
+    "/build/assets/Show-g9f8hsDt.js"
   ],
   "resources/js/Pages/RecurringInvoices/Create.jsx": [
-    "/build/assets/Create-Nllj7Iyd.js"
+    "/build/assets/Create-BaADRKIM.js"
   ],
   "resources/js/Pages/RecurringInvoices/Edit.jsx": [
-    "/build/assets/Edit-Bg-FZl_d.js"
+    "/build/assets/Edit-Dtn_KkVe.js"
   ],
   "resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx": [
-    "/build/assets/RecurringInvoices-u1cxgCDQ.js"
+    "/build/assets/RecurringInvoices-GlXfDHVF.js"
   ],
   "resources/js/Pages/RecycleBin.jsx": [
-    "/build/assets/RecycleBin-CqYHHnOQ.js"
+    "/build/assets/RecycleBin-C9FaGs68.js"
   ],
   "resources/js/Pages/Redeem.jsx": [
-    "/build/assets/Redeem-CzTESss9.js"
+    "/build/assets/Redeem-CJedJhIw.js"
   ],
   "resources/js/Pages/RedeemSuccess.jsx": [
-    "/build/assets/RedeemSuccess-BVQoyJWK.js"
+    "/build/assets/RedeemSuccess-CKpsP6nD.js"
   ],
   "resources/js/Pages/RefundPolicy.jsx": [
-    "/build/assets/RefundPolicy-CpuKKHIo.js"
+    "/build/assets/RefundPolicy-81rh3psp.js"
   ],
   "resources/js/Pages/Reminders/Create.jsx": [
-    "/build/assets/Create-BpBNV-M9.js"
+    "/build/assets/Create-_ms-cZgX.js"
   ],
   "resources/js/Pages/Reminders/InvoiceReminders.jsx": [
-    "/build/assets/InvoiceReminders-Bm9K9y6S.js"
+    "/build/assets/InvoiceReminders-z_7rADGs.js"
   ],
   "resources/js/Pages/Reports/AccountLedger.jsx": [
-    "/build/assets/AccountLedger-C3HF_9dx.js"
+    "/build/assets/AccountLedger-2Vjc2rOc.js"
   ],
   "resources/js/Pages/Reports/AllParties.jsx": [
-    "/build/assets/AllParties-CDRqdSIU.js"
+    "/build/assets/AllParties-CVSwq9vW.js"
   ],
   "resources/js/Pages/Reports/BankStatement.jsx": [
-    "/build/assets/BankStatement-D39Egm4o.js"
+    "/build/assets/BankStatement-CXMljz35.js"
   ],
   "resources/js/Pages/Reports/BillWiseProfit.jsx": [
-    "/build/assets/BillWiseProfit-CHXAedIr.js"
+    "/build/assets/BillWiseProfit-B0s-PhCX.js"
   ],
   "resources/js/Pages/Reports/CashFlow.jsx": [
-    "/build/assets/CashFlow-CB91h6mn.js"
+    "/build/assets/CashFlow-CBS899BJ.js"
   ],
   "resources/js/Pages/Reports/CategoryProfitability.jsx": [
-    "/build/assets/CategoryProfitability-1KdxJDm8.js"
+    "/build/assets/CategoryProfitability-DaemUfyN.js"
   ],
   "resources/js/Pages/Reports/Components/ReportPage.jsx": [
-    "/build/assets/ReportPage-DFePHpaS.js"
+    "/build/assets/ReportPage-DIT-Hv4K.js"
   ],
   "resources/js/Pages/Reports/CustomerInsights.jsx": [
-    "/build/assets/CustomerInsights-4U2YEZxU.js"
+    "/build/assets/CustomerInsights-DEcNQmST.js"
   ],
   "resources/js/Pages/Reports/Dashboard.jsx": [
-    "/build/assets/Dashboard-BmakaO4C.js"
+    "/build/assets/Dashboard-CTBFuMBW.js"
   ],
   "resources/js/Pages/Reports/DayBook.jsx": [
-    "/build/assets/DayBook-DLhfjOJQ.js"
+    "/build/assets/DayBook-CWrmlO2P.js"
   ],
   "resources/js/Pages/Reports/DiscountReport.jsx": [
-    "/build/assets/DiscountReport-Dtzl884R.js"
+    "/build/assets/DiscountReport-pmOM6Q6o.js"
   ],
   "resources/js/Pages/Reports/ExpenseByCategory.jsx": [
-    "/build/assets/ExpenseByCategory-D5ChPeiM.js"
+    "/build/assets/ExpenseByCategory-YmFkTBfv.js"
   ],
   "resources/js/Pages/Reports/ExpenseByItem.jsx": [
-    "/build/assets/ExpenseByItem-CNp9qcWK.js"
+    "/build/assets/ExpenseByItem-o_glm6Zf.js"
   ],
   "resources/js/Pages/Reports/Expenses.jsx": [
-    "/build/assets/Expenses-YXCvhTfp.js"
+    "/build/assets/Expenses-DYiiIy_H.js"
   ],
   "resources/js/Pages/Reports/ExpiryReport.jsx": [
-    "/build/assets/ExpiryReport-BrD-Y2OP.js"
+    "/build/assets/ExpiryReport-DqPbNk4y.js"
   ],
   "resources/js/Pages/Reports/GenericReport.jsx": [
-    "/build/assets/GenericReport-DOPmrKYG.js"
+    "/build/assets/GenericReport-BdgVfjc8.js"
   ],
   "resources/js/Pages/Reports/GraphAnalytics.jsx": [
-    "/build/assets/GraphAnalytics-BhVJRN6d.js"
+    "/build/assets/GraphAnalytics-Aq_aUJb6.js"
   ],
   "resources/js/Pages/Reports/ItemCategoryWiseProfitLoss.jsx": [
-    "/build/assets/ItemCategoryWiseProfitLoss-CSgFVDzP.js"
+    "/build/assets/ItemCategoryWiseProfitLoss-ClfUXBW8.js"
   ],
   "resources/js/Pages/Reports/ItemDetail.jsx": [
-    "/build/assets/ItemDetail-j6FPixST.js"
+    "/build/assets/ItemDetail-BZUQeQON.js"
   ],
   "resources/js/Pages/Reports/ItemReportByParty.jsx": [
-    "/build/assets/ItemReportByParty-B95spL6f.js"
+    "/build/assets/ItemReportByParty-DlboPKpy.js"
   ],
   "resources/js/Pages/Reports/ItemWiseDiscount.jsx": [
-    "/build/assets/ItemWiseDiscount-C7lB3pZm.js"
+    "/build/assets/ItemWiseDiscount-jbY5Y34L.js"
   ],
   "resources/js/Pages/Reports/ItemWiseProfit.jsx": [
-    "/build/assets/ItemWiseProfit-D8llCWRN.js"
+    "/build/assets/ItemWiseProfit-ZKN1-5ev.js"
   ],
   "resources/js/Pages/Reports/LoanStatement.jsx": [
-    "/build/assets/LoanStatement-D4jJghE-.js"
+    "/build/assets/LoanStatement-6M-jy1LJ.js"
   ],
   "resources/js/Pages/Reports/LowStock.jsx": [
-    "/build/assets/LowStock-DNaKH6gl.js"
+    "/build/assets/LowStock-DN9TH_CR.js"
   ],
   "resources/js/Pages/Reports/MovementHistory.jsx": [
-    "/build/assets/MovementHistory-B7pyWOlV.js"
+    "/build/assets/MovementHistory-BTfvJ0xF.js"
   ],
   "resources/js/Pages/Reports/OwnersDailyPulse.jsx": [
-    "/build/assets/OwnersDailyPulse-CP7QTetL.js"
+    "/build/assets/OwnersDailyPulse-rD9jVEmI.js"
   ],
   "resources/js/Pages/Reports/PartyReportByItem.jsx": [
-    "/build/assets/PartyReportByItem-BHzCV0qq.js"
+    "/build/assets/PartyReportByItem-D9FmZ3UW.js"
   ],
   "resources/js/Pages/Reports/PartyStatement.jsx": [
-    "/build/assets/PartyStatement-C3h5kReY.js"
+    "/build/assets/PartyStatement-BTEYosnE.js"
   ],
   "resources/js/Pages/Reports/PartyWiseProfitLoss.jsx": [
-    "/build/assets/PartyWiseProfitLoss-DnAmJK_e.js"
+    "/build/assets/PartyWiseProfitLoss-DYXgq62p.js"
   ],
   "resources/js/Pages/Reports/PointInTimeInventory.jsx": [
-    "/build/assets/PointInTimeInventory-BhLkGI3O.js"
+    "/build/assets/PointInTimeInventory-DjnImmSe.js"
   ],
   "resources/js/Pages/Reports/ProfitLoss.jsx": [
-    "/build/assets/ProfitLoss-ghdn22eG.js"
+    "/build/assets/ProfitLoss-ikT5EASt.js"
   ],
   "resources/js/Pages/Reports/Purchases.jsx": [
-    "/build/assets/Purchases-B6NFaiAa.js"
+    "/build/assets/Purchases-BPVcP92U.js"
   ],
   "resources/js/Pages/Reports/ReportsHub.jsx": [
-    "/build/assets/ReportsHub-nPPUzATF.js"
+    "/build/assets/ReportsHub-Bx3dS2-o.js"
   ],
   "resources/js/Pages/Reports/SaleAging.jsx": [
-    "/build/assets/SaleAging-DycjTAdo.js"
+    "/build/assets/SaleAging-D4w0KNof.js"
   ],
   "resources/js/Pages/Reports/SaleOrderItems.jsx": [
-    "/build/assets/SaleOrderItems-z71z0xrR.js"
+    "/build/assets/SaleOrderItems-DQFPmLHq.js"
   ],
   "resources/js/Pages/Reports/SaleOrders.jsx": [
-    "/build/assets/SaleOrders-Ir_wm0Ch.js"
+    "/build/assets/SaleOrders-DuWDlzoO.js"
   ],
   "resources/js/Pages/Reports/SalePurchaseByItemCategory.jsx": [
-    "/build/assets/SalePurchaseByItemCategory-vJhdxIDo.js"
+    "/build/assets/SalePurchaseByItemCategory-Bsnq5XKQ.js"
   ],
   "resources/js/Pages/Reports/SalePurchaseByParty.jsx": [
-    "/build/assets/SalePurchaseByParty-BfHt8JtR.js"
+    "/build/assets/SalePurchaseByParty--Y27iLQU.js"
   ],
   "resources/js/Pages/Reports/SalePurchaseByPartyGroup.jsx": [
-    "/build/assets/SalePurchaseByPartyGroup-CXII-BoE.js"
+    "/build/assets/SalePurchaseByPartyGroup-BhhCIjGH.js"
   ],
   "resources/js/Pages/Reports/Sales.jsx": [
-    "/build/assets/Sales-BXw7Qg_A.js"
+    "/build/assets/Sales-RGJ3DEM8.js"
   ],
   "resources/js/Pages/Reports/StockAging.jsx": [
-    "/build/assets/StockAging-CKtK3tyk.js"
+    "/build/assets/StockAging-CEI9FsGH.js"
   ],
   "resources/js/Pages/Reports/StockSummaryByCategory.jsx": [
-    "/build/assets/StockSummaryByCategory-B_nuawfs.js"
+    "/build/assets/StockSummaryByCategory-DvXHI52q.js"
   ],
   "resources/js/Pages/Reports/StockValuation.jsx": [
-    "/build/assets/StockValuation-CwGa6qv7.js"
+    "/build/assets/StockValuation-DXBEpVN_.js"
   ],
   "resources/js/Pages/Reports/SupplierInsights.jsx": [
-    "/build/assets/SupplierInsights-DpG9lfVU.js"
+    "/build/assets/SupplierInsights-BTkoEWiw.js"
   ],
   "resources/js/Pages/Reports/Tax.jsx": [
-    "/build/assets/Tax-BN59ZvZU.js"
+    "/build/assets/Tax-BvUHHoE0.js"
   ],
   "resources/js/Pages/Reports/TaxRateReport.jsx": [
-    "/build/assets/TaxRateReport-DyZkFbob.js"
+    "/build/assets/TaxRateReport-CaCgwgqF.js"
   ],
   "resources/js/Pages/Reports/Transactions.jsx": [
-    "/build/assets/Transactions-DosKVQzp.js"
+    "/build/assets/Transactions-Ch8OzAfj.js"
   ],
   "resources/js/Pages/Reports/TrialBalance.jsx": [
-    "/build/assets/TrialBalance-wTiXG4RU.js"
+    "/build/assets/TrialBalance-DZFVWGUQ.js"
   ],
   "resources/js/Pages/Returns/Create.jsx": [
-    "/build/assets/Create-BO8Sam6V.js"
+    "/build/assets/Create-B6cWEgVA.js"
   ],
   "resources/js/Pages/Returns/ReturnsHistory.jsx": [
-    "/build/assets/ReturnsHistory-BBe0yt6i.js"
+    "/build/assets/ReturnsHistory-4FHM_d7Q.js"
+  ],
+  "resources/js/Pages/Returns/Show.jsx": [
+    "/build/assets/Show-CQxoS5DH.js"
   ],
   "resources/js/Pages/Sales/Analytics.jsx": [
-    "/build/assets/Analytics-oYnN_3K7.js"
+    "/build/assets/Analytics-C1tGjI_e.js"
   ],
   "resources/js/Pages/Sales/CreateInvoice.jsx": [
-    "/build/assets/CreateInvoice-B0pZd-0E.js"
+    "/build/assets/CreateInvoice-DOdJFWoo.js"
   ],
   "resources/js/Pages/Sales/CreatePreSale.jsx": [
-    "/build/assets/CreatePreSale-V9BmS-P4.js"
+    "/build/assets/CreatePreSale-fUg3vLD3.js"
   ],
   "resources/js/Pages/Sales/Customers/CustomersList.jsx": [
-    "/build/assets/CustomersList-LKGHtszO.js"
+    "/build/assets/CustomersList-C7nU99BN.js"
   ],
   "resources/js/Pages/Sales/Dashboard.jsx": [
-    "/build/assets/Dashboard-BX7SS8On.js"
+    "/build/assets/Dashboard-DGjsdcTx.js"
   ],
   "resources/js/Pages/Sales/MasterSales.jsx": [
-    "/build/assets/MasterSales-DhYaizVB.js"
+    "/build/assets/MasterSales-BGI7ul2i.js"
   ],
   "resources/js/Pages/Sales/Orders/SalesOrdersList.jsx": [
-    "/build/assets/SalesOrdersList-BuZFFNrj.js"
+    "/build/assets/SalesOrdersList-BDVe68OG.js"
   ],
   "resources/js/Pages/Sales/ParkedSales.jsx": [
-    "/build/assets/ParkedSales-CDmd6Orf.js"
+    "/build/assets/ParkedSales-BNaF3b-1.js"
   ],
   "resources/js/Pages/Sales/SalesHistory.jsx": [
-    "/build/assets/SalesHistory-CkbXBRiw.js"
+    "/build/assets/SalesHistory-ubRicy04.js"
   ],
   "resources/js/Pages/Sales/Show.jsx": [
-    "/build/assets/Show-BRVV_Rkl.js"
+    "/build/assets/Show-B7JTM0Lb.js"
   ],
   "resources/js/Pages/SalesOrders/CreatePreSale.jsx": [
-    "/build/assets/CreatePreSale-Dl7ku9Wg.js"
+    "/build/assets/CreatePreSale-BVnbgYBt.js"
   ],
   "resources/js/Pages/SalesOrders/PreSales.jsx": [
-    "/build/assets/PreSales-IYW5vazj.js"
+    "/build/assets/PreSales-B2IkI-Jo.js"
   ],
   "resources/js/Pages/SerialTracking/SerialTracking.jsx": [
-    "/build/assets/SerialTracking-Bwq0bb0Z.js"
+    "/build/assets/SerialTracking-ueZLrnNU.js"
+  ],
+  "resources/js/Pages/SerialTracking/Show.jsx": [
+    "/build/assets/Show-91bebfIv.js"
   ],
   "resources/js/Pages/Settings/ChatbotSettings.jsx": [
-    "/build/assets/ChatbotSettings-CuVo8aml.js"
+    "/build/assets/ChatbotSettings-wPyPjw0z.js"
   ],
   "resources/js/Pages/Settings/SettingsPanel.jsx": [
-    "/build/assets/SettingsPanel-BQbvtIEH.js"
+    "/build/assets/SettingsPanel-CzEc3FJv.js"
   ],
   "resources/js/Pages/SetupWizard.jsx": [
     "/build/assets/SetupWizard-DD3erZf2.js"
   ],
   "resources/js/Pages/Staff/Hub.jsx": [
-    "/build/assets/Hub-Rrbai2Oi.js"
+    "/build/assets/Hub-BVO9Tzh7.js"
   ],
   "resources/js/Pages/StaffAttendance/Show.jsx": [
-    "/build/assets/Show-R8KGhC_y.js"
+    "/build/assets/Show-DqbOj7UD.js"
   ],
   "resources/js/Pages/StaffAttendance/StaffAttendance.jsx": [
-    "/build/assets/StaffAttendance-DwhIG0zj.js"
+    "/build/assets/StaffAttendance-Ci2p-LhH.js"
   ],
   "resources/js/Pages/StockOperations.jsx": [
-    "/build/assets/StockOperations-BDG6gSnF.js"
+    "/build/assets/StockOperations-B8aHf2LR.js"
   ],
   "resources/js/Pages/StockTake/Create.jsx": [
-    "/build/assets/Create-Bv4y9zKD.js"
+    "/build/assets/Create-DrXgmsDV.js"
   ],
   "resources/js/Pages/StockTake/Show.jsx": [
-    "/build/assets/Show-BoHUAHF7.js"
+    "/build/assets/Show-CE_8_FZ7.js"
   ],
   "resources/js/Pages/StockTake/StockTake.jsx": [
-    "/build/assets/StockTake-uPp2Vxpd.js"
+    "/build/assets/StockTake-D-4Ou4HX.js"
   ],
   "resources/js/Pages/StockTransfers/Create.jsx": [
-    "/build/assets/Create-BAgkMLfk.js"
+    "/build/assets/Create-B-kUTzRK.js"
   ],
   "resources/js/Pages/StockTransfers/Show.jsx": [
-    "/build/assets/Show-QU4iBoYd.js"
+    "/build/assets/Show-CpxyIuUP.js"
   ],
   "resources/js/Pages/StockTransfers/StockTransfers.jsx": [
-    "/build/assets/StockTransfers-Bob6JnwM.js"
+    "/build/assets/StockTransfers-BZ0py8A1.js"
   ],
   "resources/js/Pages/Store/Create.jsx": [
-    "/build/assets/Create-CWI7Czw8.js"
+    "/build/assets/Create-chlPyio7.js"
   ],
   "resources/js/Pages/Store/CreateOrJoin.jsx": [
-    "/build/assets/CreateOrJoin-CYNCeVJF.js"
+    "/build/assets/CreateOrJoin-DDc4ddeE.js"
   ],
   "resources/js/Pages/Store/Join.jsx": [
-    "/build/assets/Join-DM0R2z-T.js"
+    "/build/assets/Join-Cdj3MLVS.js"
   ],
   "resources/js/Pages/Store/SelectPlan.jsx": [
-    "/build/assets/SelectPlan-BS6ZzZXz.js"
+    "/build/assets/SelectPlan-BBJbDCgg.js"
   ],
   "resources/js/Pages/Store/Staff/Index.jsx": [
-    "/build/assets/Index-CyAYPq6c.js"
+    "/build/assets/Index-YRbKDs5j.js"
   ],
   "resources/js/Pages/SuperAdmin/AccessGrants/Index.jsx": [
-    "/build/assets/Index-Dft2m5s1.js"
+    "/build/assets/Index-coSqxnyd.js"
   ],
   "resources/js/Pages/SuperAdmin/AppSumo/Index.jsx": [
-    "/build/assets/Index-D3p3gLQ1.js"
+    "/build/assets/Index-DvXvxePx.js"
   ],
   "resources/js/Pages/SuperAdmin/Coupons/Index.jsx": [
-    "/build/assets/Index-Cn56jFol.js"
+    "/build/assets/Index-B0McIpPv.js"
   ],
   "resources/js/Pages/SuperAdmin/Dashboard.jsx": [
-    "/build/assets/Dashboard-BkFZodtZ.js"
+    "/build/assets/Dashboard-Bo2wr6mI.js"
   ],
   "resources/js/Pages/SuperAdmin/DigitalHub/Index.jsx": [
-    "/build/assets/Index-D96JNlmd.js"
+    "/build/assets/Index-Cuks35sa.js"
   ],
   "resources/js/Pages/SuperAdmin/Health/Contacts.jsx": [
-    "/build/assets/Contacts-CddRLEDG.js"
+    "/build/assets/Contacts-CCyswlMt.js"
   ],
   "resources/js/Pages/SuperAdmin/Health/Errors.jsx": [
-    "/build/assets/Errors-BnZ9n4-d.js"
+    "/build/assets/Errors-B1ZH2jBa.js"
   ],
   "resources/js/Pages/SuperAdmin/NewsletterHub/Index.jsx": [
-    "/build/assets/Index-B1aIa13u.js"
+    "/build/assets/Index-DdZnIQE2.js"
   ],
   "resources/js/Pages/SuperAdmin/Plans/Index.jsx": [
-    "/build/assets/Index-D3qPNIyL.js"
+    "/build/assets/Index-BKQV6qcS.js"
   ],
   "resources/js/Pages/SuperAdmin/Plans/featureGroups.js": [
-    "/build/assets/Index-D3qPNIyL.js"
+    "/build/assets/Index-BKQV6qcS.js"
   ],
   "resources/js/Pages/SuperAdmin/Platforms/Index.jsx": [
-    "/build/assets/Index-DrNuiVLz.js"
+    "/build/assets/Index-CZlpagnz.js"
   ],
   "resources/js/Pages/SuperAdmin/Stores.jsx": [
-    "/build/assets/Stores-CSIo7gKL.js"
+    "/build/assets/Stores-B3rFCEO7.js"
   ],
   "resources/js/Pages/SuperAdmin/Tenants/OverrideDetail.jsx": [
-    "/build/assets/OverrideDetail-BU9VlpEI.js"
+    "/build/assets/OverrideDetail-CrHGBHCb.js"
   ],
   "resources/js/Pages/SuperAdmin/Tenants/Overrides.jsx": [
-    "/build/assets/Overrides-D03Oid9O.js"
+    "/build/assets/Overrides-BvYxKdFt.js"
   ],
   "resources/js/Pages/SuperAdmin/Users.jsx": [
-    "/build/assets/Users-Chwe9LBt.js"
+    "/build/assets/Users-Cxh-mOke.js"
   ],
   "resources/js/Pages/Suppliers/SuppliersList.jsx": [
-    "/build/assets/SuppliersList-BEMQXmfb.js"
+    "/build/assets/SuppliersList-5Jnhe4d2.js"
   ],
   "resources/js/Pages/TermsOfService.jsx": [
-    "/build/assets/TermsOfService-BdX9DpQ9.js"
+    "/build/assets/TermsOfService-C15nXwED.js"
   ],
   "resources/js/Pages/Transactions/TransactionsList.jsx": [
-    "/build/assets/TransactionsList-dRomh0j_.js"
+    "/build/assets/TransactionsList-CiKitRqf.js"
   ],
   "resources/js/Pages/Updater/Index.jsx": [
-    "/build/assets/Index-Bkkkgybm.js"
+    "/build/assets/Index-BcfCelNf.js"
   ],
   "resources/js/Pages/V3/Products/Create.jsx": [
     "/build/assets/Create-DEYIvBfd.js"
@@ -1064,7 +1113,7 @@
     "/build/assets/UomConversions-Cl6KoSlP.js"
   ],
   "resources/js/Pages/V3/Purchases/Create.jsx": [
-    "/build/assets/Create-CG5YW_67.js"
+    "/build/assets/Create-gHTTTXBq.js"
   ],
   "resources/js/Pages/V3/Purchases/Index.jsx": [
     "/build/assets/Index-DrJwrW_3.js"
@@ -1084,49 +1133,61 @@
   "resources/js/Pages/V3/Warehouses/Index.jsx": [
     "/build/assets/Index-B7UCsXK2.js"
   ],
+  "resources/js/Pages/VenSynQ/Components/AmazonSetupWizard.jsx": [
+    "/build/assets/AmazonSetupWizard-C_3s5r4n.js"
+  ],
+  "resources/js/Pages/VenSynQ/Components/MoneyPipeline.jsx": [
+    "/build/assets/MoneyPipeline-DIXi91MV.js"
+  ],
+  "resources/js/Pages/VenSynQ/Components/SyncHealthPanel.jsx": [
+    "/build/assets/SyncHealthPanel-CXISaore.js"
+  ],
   "resources/js/Pages/VenSynQ/Dashboard.jsx": [
-    "/build/assets/Dashboard-a3yQcmgo.js"
+    "/build/assets/Dashboard-CsRjyLZk.js"
+  ],
+  "resources/js/Pages/VenSynQ/Payouts.jsx": [
+    "/build/assets/Payouts-sInO2eB5.js"
   ],
   "resources/js/Pages/VenSynQ/Settings.jsx": [
-    "/build/assets/Settings-B0R-dZ6i.js"
+    "/build/assets/Settings-Bmu886BB.js"
   ],
   "resources/js/Pages/Welcome.jsx": [
-    "/build/assets/Welcome-B2UwTGr1.js"
+    "/build/assets/Welcome-azVdJkmH.js"
   ],
   "resources/js/Pages/WhatIsIncluded.jsx": [
-    "/build/assets/WhatIsIncluded-BRatoZ0X.js"
+    "/build/assets/WhatIsIncluded-DtllnIkW.js"
   ],
   "resources/js/Pages/WooCommerce/ConnectionSetup.jsx": [
-    "/build/assets/ConnectionSetup-B4axp8yS.js"
+    "/build/assets/ConnectionSetup-ecrxLgIf.js"
   ],
   "resources/js/Pages/WooCommerce/Connections.jsx": [
-    "/build/assets/Connections-BpolBrzV.js"
+    "/build/assets/Connections-Cuzaap9w.js"
   ],
   "resources/js/Pages/WooCommerce/SyncPage.jsx": [
-    "/build/assets/SyncPage-5kKhOLyE.js"
+    "/build/assets/SyncPage-C723v2KV.js"
   ],
   "resources/js/Pages/WooCommerce/WooCommerce.jsx": [
-    "/build/assets/WooCommerce-D0rqy-_D.js"
+    "/build/assets/WooCommerce-sbicW37x.js"
   ],
   "resources/js/Platform/nav.js": [
-    "/build/assets/PlatformLayout-CV-DtcbF.js"
+    "/build/assets/PlatformLayout-Bffb0vmW.js"
   ],
   "resources/js/Platform/theme.js": [
-    "/build/assets/ui-Dd6dJcJr.js"
+    "/build/assets/ui-Bi1AXgyR.js"
   ],
   "resources/js/Platform/ui.jsx": [
-    "/build/assets/ui-Dd6dJcJr.js"
+    "/build/assets/ui-Bi1AXgyR.js"
   ],
   "resources/js/Services/SyncService.js": [],
   "resources/js/Utils/AMDStation.js": [
-    "/build/assets/PrintService-B05R75aO.js"
+    "/build/assets/PrintService-CcoxuDF9.js"
   ],
   "resources/js/Utils/GlobalDialogOverride.jsx": [],
   "resources/js/Utils/PrintService.jsx": [
-    "/build/assets/PrintService-B05R75aO.js"
+    "/build/assets/PrintService-CcoxuDF9.js"
   ],
   "resources/js/Utils/db.js": [
-    "/build/assets/Pos-Ck5ADFKz.js"
+    "/build/assets/Pos-CwP9mCoI.js"
   ],
   "resources/js/Utils/format.js": [
     "/build/assets/format-B_ph0Qec.js"
@@ -1135,10 +1196,27 @@
     "/build/assets/settings-DUqQ1JdE.js"
   ],
   "resources/js/lib/lemonCheckout.js": [
-    "/build/assets/OneGlanceLayout-KMWHwZqK.js",
-    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+    "/build/assets/marketing-pages-DYgr6x02.js"
   ],
   "resources/js/ssr.jsx": [],
+  "resources/js/theme/active.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/theme/color.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/theme/contract.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/theme/runtime.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/theme/themes/daylight-calm.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
+  "resources/js/theme/themes/midnight-nebula.js": [
+    "/build/assets/marketing-pages-DYgr6x02.js"
+  ],
   "resources/js/ziggy.js": [],
   "vendor/tightenco/ziggy/dist/index.esm.js": []
 }

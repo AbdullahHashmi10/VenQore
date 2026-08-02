@@ -30,7 +30,7 @@ export default function AllParties({ parties }) {
                                     <div className="font-bold text-slate-800 dark:text-white">{party.name}</div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${party.type === 'customer'
+                                    <span className={`px-2 py-1 rounded-full text-2xs font-bold uppercase ${party.type === 'customer'
                                             ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                                             : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
                                         }`}>

@@ -30,6 +30,7 @@ import {
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
+import { vq } from '@/theme/runtime';
 /**
  * MASTER REPORT COMPONENT (The "Report Factory")
  * 
@@ -45,7 +46,7 @@ const MasterReport = ({
     title,
     stats = [], // [{ label, value, subValue, type: 'up'|'down'|'neutral', icon: Node }]
     chartData = [],
-    chartConfig = { type: 'area', dataKey: 'value', xAxisKey: 'name', color: '#6366f1' },
+    chartConfig = { type: 'area', dataKey: 'value', xAxisKey: 'name', color: vq.indigo[500] },
     columns = [], // [{ key, label, sortable: bool, align: 'left'|'right'|'center', render: fn, width }]
     data = [], // Table Rows
     filters = [], // Definition of filters
@@ -337,7 +338,7 @@ const MasterReport = ({
                                     onChange={(e) => onFilterChange({ ...filterValues, start_date: e.target.value })}
                                     className="w-28 px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none text-slate-600 dark:text-slate-200"
                                 />
-                                <span className="text-slate-400 text-[10px] font-bold">TO</span>
+                                <span className="text-slate-400 text-2xs font-bold">TO</span>
                                 <input
                                     type="date"
                                     value={filterValues.end_date || ''}
@@ -372,7 +373,7 @@ const MasterReport = ({
                                         <ArrowUpRight size={16} />
                                     )}
                                 </div>
-                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{stat.label}</p>
+                                <p className="text-1xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{stat.label}</p>
                             </div>
 
                             {/* Right: Value */}
@@ -380,7 +381,7 @@ const MasterReport = ({
                                 <div className="flex items-center gap-2 justify-end">
                                     <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">{stat.value}</h3>
                                     {stat.subValue && (
-                                        <span className={`text-[10px] font-bold ${stat.type === 'up' ? 'text-emerald-500' : 'text-amber-500'
+                                        <span className={`text-2xs font-bold ${stat.type === 'up' ? 'text-emerald-500' : 'text-amber-500'
                                             }`}>
                                             {stat.subValue}
                                         </span>
@@ -400,15 +401,15 @@ const MasterReport = ({
                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             {chartConfig.type === 'bar' ? (
                                 <BarChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                                    <XAxis dataKey={chartConfig.xAxisKey} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.5} />
+                                    <XAxis dataKey={chartConfig.xAxisKey} axisLine={false} tickLine={false} tick={{ fill: vq.slate[400], fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: vq.slate[400], fontSize: 12 }} />
                                     <Tooltip
                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                        cursor={{ fill: '#f1f5f9' }}
+                                        cursor={{ fill: vq.slate[100] }}
                                     />
                                     {Array.isArray(chartConfig.dataKey) ? chartConfig.dataKey.map((key, i) => (
-                                        <Bar key={key} dataKey={key} fill={['#6366f1', '#a855f7', '#ec4899'][i % 3]} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                        <Bar key={key} dataKey={key} fill={[vq.indigo[500], vq.purple[500], vq.pink[500]][i % 3]} radius={[4, 4, 0, 0]} maxBarSize={40} />
                                     )) : (
                                         <Bar dataKey={chartConfig.dataKey} fill={chartConfig.color} radius={[4, 4, 0, 0]} maxBarSize={40} />
                                     )}
@@ -422,9 +423,9 @@ const MasterReport = ({
                                             <stop offset="95%" stopColor={chartConfig.color} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                                    <XAxis dataKey={chartConfig.xAxisKey} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.5} />
+                                    <XAxis dataKey={chartConfig.xAxisKey} axisLine={false} tickLine={false} tick={{ fill: vq.slate[400], fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: vq.slate[400], fontSize: 12 }} />
                                     <Tooltip
                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />

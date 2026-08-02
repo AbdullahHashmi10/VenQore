@@ -41,7 +41,7 @@ const DualStatCard = ({
                         </div>
                         <div>
                             <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">{title}</h3>
-                            {subValue && <p className="text-[10px] font-medium text-slate-400">{subValue}</p>}
+                            {subValue && <p className="text-2xs font-medium text-slate-400">{subValue}</p>}
                         </div>
                     </div>
 
@@ -100,11 +100,11 @@ const DualStatCard = ({
                 <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
 
                 <div className={`text-center ${onLeftClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={onLeftClick}>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">{leftLabel}</p>
+                    <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider">{leftLabel}</p>
                     <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{leftValue}</p>
                 </div>
                 <div className={`text-center ${onRightClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={onRightClick}>
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">{rightLabel}</p>
+                    <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider">{rightLabel}</p>
                     <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{rightValue}</p>
                 </div>
             </div>

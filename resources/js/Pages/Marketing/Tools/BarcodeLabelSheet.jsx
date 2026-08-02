@@ -193,7 +193,7 @@ export default function BarcodeLabelSheetTool({
 
                 <div className="w-44">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
                 </div>
                 <div className="w-40">
                     <Select value={currency} onChange={setCurrency} options={currencyOptions} />
@@ -204,7 +204,7 @@ export default function BarcodeLabelSheetTool({
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden lg:inline">{rows.length} label{rows.length === 1 ? '' : 's'} · real barcodes generated in your PDF</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-600 hidden lg:inline">{rows.length} label{rows.length === 1 ? '' : 's'} · real barcodes generated in your PDF</span>
                     <button
                         type="button"
                         onClick={generate}
@@ -235,7 +235,7 @@ export default function BarcodeLabelSheetTool({
                                     type="button"
                                     onClick={() => removeRow(row.id)}
                                     disabled={rows.length === 1}
-                                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg flex items-center justify-center bg-white/90 text-slate-300 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity z-10"
+                                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg flex items-center justify-center bg-white/90 text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 disabled:opacity-0 transition-opacity z-10"
                                 >
                                     <Trash2 size={13} />
                                 </button>
@@ -285,14 +285,14 @@ export default function BarcodeLabelSheetTool({
                             type="button"
                             onClick={addRow}
                             disabled={rows.length >= maxRows}
-                            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-slate-900/15 dark:border-white/15 text-slate-400 dark:text-slate-500 hover:border-indigo-400/50 hover:text-indigo-500 disabled:opacity-40 transition-colors min-h-[150px]"
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-slate-900/15 dark:border-white/15 text-slate-500 dark:text-slate-500 hover:border-indigo-400/50 hover:text-indigo-500 disabled:opacity-40 transition-colors min-h-[150px]"
                         >
                             <Plus size={20} />
                             <span className="text-xs font-bold">Add label</span>
                         </button>
                     </div>
 
-                    <p className="text-center text-[11px] text-slate-400 dark:text-slate-600 mt-2 mb-8">
+                    <p className="text-center text-[11px] text-slate-500 dark:text-slate-600 mt-2 mb-8">
                         The striped bars are a visual placeholder for where each barcode sits — the real, scannable barcode is generated in your downloaded PDF.
                     </p>
                 </>

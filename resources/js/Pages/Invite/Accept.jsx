@@ -41,7 +41,7 @@ export default function InviteAccept({ invitation, store, admin_name, token }) {
                             <Building2 className="text-indigo-400 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                         </div>
                         <div>
-                            <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider">Store</p>
+                            <p className="text-2xs sm:text-xs text-slate-400 uppercase tracking-wider">Store</p>
                             <p className="text-sm sm:text-base font-bold text-white leading-tight">{store?.name}</p>
                         </div>
                     </div>
@@ -52,7 +52,7 @@ export default function InviteAccept({ invitation, store, admin_name, token }) {
                             <User className="text-emerald-400 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                         </div>
                         <div>
-                            <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider">Invited As</p>
+                            <p className="text-2xs sm:text-xs text-slate-400 uppercase tracking-wider">Invited As</p>
                             <p className="text-sm sm:text-base font-bold text-white leading-tight">{invitation?.invitee_name}</p>
                             <p className="text-xs text-slate-400/90 leading-tight mt-0.5">{invitation?.invitee_email}</p>
                         </div>
@@ -64,10 +64,10 @@ export default function InviteAccept({ invitation, store, admin_name, token }) {
                             <Briefcase className="text-violet-400 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                         </div>
                         <div>
-                            <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider mb-2">Your Role(s)</p>
+                            <p className="text-2xs sm:text-xs text-slate-400 uppercase tracking-wider mb-2">Your Role(s)</p>
                             <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                 {roles.map(r => (
-                                    <span key={r} className="px-2.5 py-0.5 sm:px-3 sm:py-1 bg-indigo-600/40 text-indigo-200 rounded-full text-[10px] sm:text-xs font-bold border border-indigo-500/30">
+                                    <span key={r} className="px-2.5 py-0.5 sm:px-3 sm:py-1 bg-indigo-600/40 text-indigo-200 rounded-full text-2xs sm:text-xs font-bold border border-indigo-500/30">
                                         {roleLabels[r] || r}
                                     </span>
                                 ))}

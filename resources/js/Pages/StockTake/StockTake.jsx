@@ -119,7 +119,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 <ClipboardCheck size={16} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Audits</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">Total Audits</p>
                                 <p className="text-sm font-black text-slate-900 dark:text-white">{stats.total}</p>
                             </div>
                         </div>
@@ -129,7 +129,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 <ArrowUpDown size={16} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">In Progress</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">In Progress</p>
                                 <p className="text-sm font-black text-blue-600">{stats.inProgress}</p>
                             </div>
                         </div>
@@ -139,7 +139,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 <CheckCircle size={16} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Completed</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">Completed</p>
                                 <p className="text-sm font-black text-emerald-600">{stats.completed}</p>
                             </div>
                         </div>
@@ -149,7 +149,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 <AlertTriangle size={16} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">With Variance</p>
+                                <p className="text-2xs font-bold text-slate-400 uppercase">With Variance</p>
                                 <p className="text-sm font-black text-amber-600">{stats.withVariance}</p>
                             </div>
                         </div>
@@ -175,35 +175,35 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                         <button
                             onClick={() => setStatusFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
                                     ? 'bg-emerald-600 text-white'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >All</button>
                         <button
                             onClick={() => setStatusFilter('draft')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'draft'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'draft'
                                     ? 'bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Draft</button>
                         <button
                             onClick={() => setStatusFilter('in_progress')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'in_progress'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'in_progress'
                                     ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >In Progress</button>
                         <button
                             onClick={() => setStatusFilter('completed')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'completed'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'completed'
                                     ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
                         >Completed</button>
                         <button
                             onClick={() => setStatusFilter('cancelled')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${statusFilter === 'cancelled'
+                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'cancelled'
                                     ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
                                 }`}
@@ -257,18 +257,18 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th
                                     onClick={() => handleSort('reference')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Reference # <SortIcon columnKey="reference" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Warehouse
                                 </th>
                                 <th
                                     onClick={() => handleSort('date')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-1">
                                         Date <SortIcon columnKey="date" />
@@ -276,22 +276,22 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                 </th>
                                 <th
                                     onClick={() => handleSort('items')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center justify-center gap-1">
                                         Items <SortIcon columnKey="items" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                     Variance
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     Counted By
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                     Status
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
                                     Actions
                                 </th>
                             </tr>
@@ -362,12 +362,12 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                             </td>
                                             <td className="p-3 text-center">
                                                 {hasVariance ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-[10px] font-bold">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-2xs font-bold">
                                                         <AlertTriangle size={10} />
                                                         {stockTake.variance_items || 'Yes'}
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded text-[10px] font-bold">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded text-2xs font-bold">
                                                         <CheckCircle size={10} />
                                                         None
                                                     </span>
@@ -377,7 +377,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                                 {stockTake.user?.name || 'Unknown'}
                                             </td>
                                             <td className="p-3 text-center">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
                                                     {stockTake.status?.replace('_', ' ') || 'draft'}
                                                 </span>
                                             </td>

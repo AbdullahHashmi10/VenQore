@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { formatCurrency } from '@/Utils/format';
+import { vq } from '@/theme/runtime';
 import {
     BarChart,
     Bar,
@@ -310,7 +311,7 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                                                 {expense.reference}
                                             </td>
                                             <td className="p-3">
-                                                <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                                <span className="px-2 py-1 rounded-full text-2xs font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                                                     {(typeof expense.category === 'string' ? expense.category : expense.category?.name) || 'Uncategorized'}
                                                 </span>
                                             </td>
@@ -367,14 +368,14 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
                                     <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 30 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.1} />
                                         <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                        <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 10, fill: vq.slate[400] }} />
                                         <Tooltip
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                             formatter={(val) => formatCurrency(val)}
                                         />
                                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                                             {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6'][index % 5]} />
+                                                <Cell key={`cell-${index}`} fill={[vq.rose[500], vq.pink[500], vq.fuchsia[500], vq.purple[500], vq.violet[500]][index % 5]} />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -396,7 +397,7 @@ function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', 
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                     {prefix}{isCurrency ? formatCurrency(value || 0) : (value || 0)}
                 </h3>
-                {subtext && <p className="text-[10px] text-slate-400 mt-1">{subtext}</p>}
+                {subtext && <p className="text-2xs text-slate-400 mt-1">{subtext}</p>}
             </div>
             <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform`}>
                 {icon}

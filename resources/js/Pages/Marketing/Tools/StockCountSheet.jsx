@@ -246,19 +246,19 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
-                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => setStore((s) => ({ ...s, logo_base64: null }))} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors">
                         Remove logo
                     </button>
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
 
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
+                    <span className="text-1xs text-slate-500 dark:text-slate-600 hidden sm:inline">Saved in your browser — nothing sent until you download</span>
                     <button
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-xl text-xs font-black uppercase tracking-wide hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -320,9 +320,9 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                 <div className="text-left sm:text-right">
                                     <div className="text-2xl font-black tracking-tight">STOCK COUNT SHEET</div>
                                     <div className="mt-2 text-xs space-y-1.5">
-                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Ref #</span><EditableText value={store.reference_no} onChange={(v) => setStore((s) => ({ ...s, reference_no: v }))} className="font-bold" /></div>
-                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Audit date</span><EditableText as="date" value={store.audit_date} onChange={(v) => setStore((s) => ({ ...s, audit_date: v }))} /></div>
-                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-400">Auditor</span><EditableText value={store.auditor_name} onChange={(v) => setStore((s) => ({ ...s, auditor_name: v }))} placeholder="Auditor name" /></div>
+                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Ref #</span><EditableText value={store.reference_no} onChange={(v) => setStore((s) => ({ ...s, reference_no: v }))} className="font-bold" /></div>
+                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Audit date</span><EditableText as="date" value={store.audit_date} onChange={(v) => setStore((s) => ({ ...s, audit_date: v }))} /></div>
+                                        <div className="flex sm:justify-end gap-2"><span className="text-slate-500 dark:text-slate-400">Auditor</span><EditableText value={store.auditor_name} onChange={(v) => setStore((s) => ({ ...s, auditor_name: v }))} placeholder="Auditor name" /></div>
                                     </div>
                                 </div>
                             </div>
@@ -330,7 +330,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                             {/* Items table, grouped by category */}
                             <table className="w-full mb-2 border-collapse">
                                 <thead>
-                                    <tr className="text-left text-[10px] font-bold uppercase tracking-wide text-slate-500 border-b-2 border-slate-900">
+                                    <tr className="text-left text-2xs font-bold uppercase tracking-wide text-slate-500 border-b-2 border-slate-900">
                                         <th className="pb-2 pr-2 w-8">#</th>
                                         {meta.show_sku && (
                                             <th className="pb-2 px-2 w-32">
@@ -360,7 +360,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                                 {group.name && (
                                                     <tr>
                                                         <td colSpan={meta.show_sku ? 7 : 6} className="bg-slate-100 font-bold text-xs py-1.5 px-2 border border-slate-200">
-                                                            {group.name} <span className="text-slate-400 font-normal">({group.rows.length} items)</span>
+                                                            {group.name} <span className="text-slate-500 dark:text-slate-400 font-normal">({group.rows.length} items)</span>
                                                         </td>
                                                     </tr>
                                                 )}
@@ -369,7 +369,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                                     const idx = item.idx;
                                                     return (
                                                         <tr key={idx} className="border-b border-slate-100 group">
-                                                            <td className="py-2 pr-2 text-slate-400 text-xs">{counter}</td>
+                                                            <td className="py-2 pr-2 text-slate-500 dark:text-slate-400 text-xs">{counter}</td>
                                                             {meta.show_sku && (
                                                                 <td className="py-2 px-2">
                                                                     <EditableText value={item.sku} onChange={(v) => updateItem(idx, 'sku', v)} placeholder="SKU-100" className="block font-mono text-xs" />
@@ -378,8 +378,8 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                                             <td className="py-2 px-2">
                                                                 <EditableText value={item.name} onChange={(v) => updateItem(idx, 'name', v)} placeholder="Product name" className="block" />
                                                                 {meta.group_by === 'category' && (
-                                                                    <div className="text-[10px] text-slate-400 mt-0.5">
-                                                                        Category: <EditableText value={item.category} onChange={(v) => updateItem(idx, 'category', v)} placeholder="Uncategorized" className="text-[10px]" />
+                                                                    <div className="text-2xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                                        Category: <EditableText value={item.category} onChange={(v) => updateItem(idx, 'category', v)} placeholder="Uncategorized" className="text-2xs" />
                                                                     </div>
                                                                 )}
                                                             </td>
@@ -396,7 +396,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                                                 <span className="inline-block w-full border-b border-dotted border-slate-300 h-4" aria-hidden="true" />
                                                             </td>
                                                             <td className="py-2 pl-1 text-right">
-                                                                <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
+                                                                <button type="button" onClick={() => removeItem(idx)} disabled={items.length === 1} className="opacity-0 group-hover:opacity-100 text-slate-600 dark:text-slate-300 hover:text-red-500 disabled:opacity-0 transition-opacity">
                                                                     <Trash2 size={13} />
                                                                 </button>
                                                             </td>
@@ -408,7 +408,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                                     })()}
                                 </tbody>
                             </table>
-                            <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-6">
+                            <button type="button" onClick={addItem} disabled={items.length >= maxItems} className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 disabled:opacity-40 transition-colors mb-6">
                                 <Plus size={12} /> Add product
                             </button>
 
@@ -421,26 +421,26 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                             {/* Sign-off block, mirrors blade template */}
                             <div className="flex flex-col sm:flex-row justify-between gap-8 mt-4">
                                 <div className="w-full sm:w-56">
-                                    <div className="border-t border-slate-900 pt-1.5 text-[11px] text-slate-500">
+                                    <div className="border-t border-slate-900 pt-1.5 text-1xs text-slate-500">
                                         Auditor Signature
-                                        <div className="text-slate-400">Date: ____________________</div>
+                                        <div className="text-slate-500 dark:text-slate-400">Date: ____________________</div>
                                     </div>
                                 </div>
                                 <div className="w-full sm:w-56">
-                                    <div className="border-t border-slate-900 pt-1.5 text-[11px] text-slate-500">
+                                    <div className="border-t border-slate-900 pt-1.5 text-1xs text-slate-500">
                                         Manager Sign-off / Verification
-                                        <div className="text-slate-400">Date: ____________________</div>
+                                        <div className="text-slate-500 dark:text-slate-400">Date: ____________________</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="text-center text-[10px] text-slate-300 mt-10">Generated free at venqore.com/tools — Stock Count Sheet ({items.length} items).</p>
+                            <p className="text-center text-2xs text-slate-600 dark:text-slate-300 mt-10">Generated free at venqore.com/tools — Stock Count Sheet ({items.length} items).</p>
                         </div>
                     </div>
                 </div>
             )}
 
-            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-4">
+            <p className="text-center text-xs text-slate-500 dark:text-slate-600 mt-4">
                 Counted Qty and Variance stay blank on purpose — they're filled in by hand during the physical count, just like on the printed sheet.
             </p>
         </ToolShell>

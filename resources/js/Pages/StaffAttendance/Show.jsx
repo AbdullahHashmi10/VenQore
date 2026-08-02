@@ -69,7 +69,7 @@ export default function Show({ staffMember, attendanceHistory }) {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 {/* Status Badge Logic */}
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase
                                                     ${record.status === 'present' ? 'bg-emerald-100 text-emerald-700' :
                                                         record.status === 'absent' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}>
                                                     {record.status || 'Unknown'}

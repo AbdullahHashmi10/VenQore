@@ -254,11 +254,11 @@ export default function Index({ stats }) {
                     </div>
                     <div className="flex gap-4 self-stretch md:self-auto">
                         <div className="px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl flex-1 md:flex-none text-center">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Chats</span>
+                            <span className="block text-2xs font-bold text-slate-500 uppercase tracking-widest mb-1">Active Chats</span>
                             <span className="text-xl font-black text-indigo-400">{stats.open_chats}</span>
                         </div>
                         <div className="px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl flex-1 md:flex-none text-center">
-                            <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Products</span>
+                            <span className="block text-2xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Products</span>
                             <span className="text-xl font-black text-emerald-400">{products.length}</span>
                         </div>
                     </div>
@@ -332,7 +332,7 @@ export default function Index({ stats }) {
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <span className="font-bold text-sm text-slate-200">{chat.requester_name}</span>
-                                                    <span className={`text-[9px] px-2 py-0.5 rounded-full border font-black uppercase tracking-wider ${
+                                                    <span className={`text-3xs px-2 py-0.5 rounded-full border font-black uppercase tracking-wider ${
                                                         chat.status === 'open'
                                                             ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
                                                             : chat.status === 'in_progress'
@@ -343,7 +343,7 @@ export default function Index({ stats }) {
                                                     </span>
                                                 </div>
                                                 <div className="text-slate-400 text-xs truncate">{chat.message}</div>
-                                                <div className="flex items-center text-[10px] text-slate-500 gap-1.5 mt-1">
+                                                <div className="flex items-center text-2xs text-slate-500 gap-1.5 mt-1">
                                                     <Clock size={10} />
                                                     <span>Updated {new Date(chat.updated_at).toLocaleString()}</span>
                                                 </div>
@@ -387,12 +387,12 @@ export default function Index({ stats }) {
                                         <div className="px-6 py-4 bg-slate-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
                                             <div className="flex flex-wrap gap-6">
                                                 <div>
-                                                    <span className="text-slate-500 block text-[9px] font-bold uppercase tracking-wider mb-0.5">Purchase Platform Source</span>
+                                                    <span className="text-slate-500 block text-3xs font-bold uppercase tracking-wider mb-0.5">Purchase Platform Source</span>
                                                     <span className="text-white font-bold">{selectedChat.purchase_source || 'Unknown / General'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-slate-500 block text-[9px] font-bold uppercase tracking-wider mb-0.5">Trial Selection Preference</span>
-                                                    <span className={`font-bold uppercase text-[10px] ${selectedChat.trial_status === 'started' ? 'text-indigo-400' : 'text-emerald-400'}`}>
+                                                    <span className="text-slate-500 block text-3xs font-bold uppercase tracking-wider mb-0.5">Trial Selection Preference</span>
+                                                    <span className={`font-bold uppercase text-2xs ${selectedChat.trial_status === 'started' ? 'text-indigo-400' : 'text-emerald-400'}`}>
                                                         {selectedChat.trial_status === 'started' ? 'Already Started Trial (+30 days credit)' : 'Not Started Trial (Full 45 days store)'}
                                                     </span>
                                                 </div>
@@ -421,13 +421,13 @@ export default function Index({ stats }) {
                                                             ? 'bg-indigo-600/10 border-indigo-500/20 text-indigo-200 rounded-tr-none'
                                                             : 'bg-slate-800/60 border-slate-700/50 text-slate-300 rounded-tl-none'
                                                     }`}>
-                                                        <div className="flex items-center gap-1.5 mb-1 text-[10px]">
+                                                        <div className="flex items-center gap-1.5 mb-1 text-2xs">
                                                             {reply.is_platform_owner ? (
                                                                 <span className="font-black text-indigo-400 uppercase tracking-widest">Hashmi Dashboard</span>
                                                             ) : (
                                                                 <span className="font-bold text-slate-400">Partner Operator</span>
                                                             )}
-                                                            <span className="text-[9px] text-slate-500 ml-auto">
+                                                            <span className="text-3xs text-slate-500 ml-auto">
                                                                 {new Date(reply.created_at).toLocaleTimeString()}
                                                             </span>
                                                         </div>
@@ -483,7 +483,7 @@ export default function Index({ stats }) {
                                     {editingProduct && (
                                         <button
                                             onClick={resetForm}
-                                            className="text-[10px] text-slate-500 hover:text-white uppercase tracking-wider font-bold"
+                                            className="text-2xs text-slate-500 hover:text-white uppercase tracking-wider font-bold"
                                         >
                                             Cancel Edit
                                         </button>
@@ -547,7 +547,7 @@ export default function Index({ stats }) {
                                             <button
                                                 type="button"
                                                 onClick={addPlatformField}
-                                                className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-wider"
+                                                className="text-2xs text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-wider"
                                             >
                                                 + Add Platform
                                             </button>
@@ -628,11 +628,11 @@ export default function Index({ stats }) {
                                                             {prod.name}
                                                             <Edit2 size={12} className="text-slate-500" />
                                                         </h4>
-                                                        <span className="text-[10px] font-mono text-slate-500">{prod.version}</span>
+                                                        <span className="text-2xs font-mono text-slate-500">{prod.version}</span>
                                                     </div>
                                                     <p className="text-slate-400 line-clamp-2 leading-relaxed">{prod.description}</p>
                                                     <div className="flex flex-wrap gap-1.5 pt-1.5">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                                                        <span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider border ${
                                                             prod.status === 'active' 
                                                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                                                                 : prod.status === 'dev'
@@ -642,7 +642,7 @@ export default function Index({ stats }) {
                                                             {prod.status === 'active' ? 'Operational' : prod.status === 'dev' ? 'In Dev' : 'Coming Soon'}
                                                         </span>
                                                         {prod.platforms && prod.platforms.map((plat, i) => (
-                                                            <span key={i} className="px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[9px]">
+                                                            <span key={i} className="px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-3xs">
                                                                 {plat.name}
                                                             </span>
                                                         ))}

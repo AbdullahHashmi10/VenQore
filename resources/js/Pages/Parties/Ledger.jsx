@@ -73,13 +73,13 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                 <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <button
                         onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2"
+                        className="flex items-center gap-1 text-2xs font-bold text-slate-500 uppercase shrink-0 mr-2"
                     >
                         <span>Stats Summary</span>
                         <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
                     </button>
                     {!isStatsExpanded && (
-                        <div className="text-[10px] font-bold text-slate-500 truncate">
+                        <div className="text-2xs font-bold text-slate-500 truncate">
                             <span className="text-emerald-600">Net: {formatCurrency(stats.final_balance || 0, store)}</span>
                         </div>
                     )}
@@ -92,7 +92,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             <div className="p-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg shrink-0">
                                 <Wallet size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Opening</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Opening</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-slate-700 dark:text-slate-300 leading-none mt-1 sm:mt-0">{formatCurrency(stats.opening_balance, store)}</p>
                     </div>
@@ -101,7 +101,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
                                 <ArrowDownCircle size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Credits</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Credits</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit, store)}</p>
                     </div>
@@ -110,7 +110,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             <div className="p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0">
                                 <ArrowUpCircle size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Debits</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Debits</p>
                         </div>
                         <p className="text-sm sm:text-base md:text-lg font-black text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit, store)}</p>
                     </div>
@@ -119,7 +119,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
                                 <TrendingUp size={14} />
                             </div>
-                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Net Balance</p>
+                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Net Balance</p>
                         </div>
                         <div className="text-left mt-1 sm:mt-0">
                             <p className={`text-sm sm:text-base md:text-lg font-black leading-none ${stats.final_balance > 0 ? 'text-emerald-600' : (stats.final_balance < 0 ? 'text-red-600' : 'text-slate-500')}`}>
@@ -137,14 +137,14 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 <h1 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[120px]">
                                     {party.name}
                                 </h1>
-                                <span className={`px-1.5 py-0.5 text-[8px] font-bold uppercase rounded-full ${party.type === 'customer'
+                                <span className={`px-1.5 py-0.5 text-4xs font-bold uppercase rounded-full ${party.type === 'customer'
                                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                                     }`}>
                                     {party.type}
                                 </span>
                             </div>
-                            <p className="text-[9px] text-slate-400 font-mono mt-0.5">{party.phone || 'No Phone'}</p>
+                            <p className="text-3xs text-slate-400 font-mono mt-0.5">{party.phone || 'No Phone'}</p>
                         </div>
                         <div className="flex items-center gap-1">
                             <button
@@ -193,7 +193,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                     {showMobileFilters && (
                         <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
+                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
                                 <select
                                     value={transactionType}
                                     onChange={(e) => { setTransactionType(e.target.value); setShowMobileFilters(false); }}
@@ -219,14 +219,14 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 <h1 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">
                                     {party.name} <span className="text-indigo-600">Ledger</span>
                                 </h1>
-                                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${party.type === 'customer'
+                                <span className={`px-2 py-0.5 text-2xs font-bold uppercase rounded-full ${party.type === 'customer'
                                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                                     }`}>
                                     {party.type}
                                 </span>
                             </div>
-                            <p className="text-[10px] text-slate-500 font-medium">
+                            <p className="text-2xs text-slate-500 font-medium">
                                 {party.phone || 'No Phone'} • {party.email || 'No Email'}
                             </p>
                         </div>
@@ -276,12 +276,12 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Type</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reference</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">You Gave</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">You Received</th>
-                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Balance</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Type</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reference</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">You Gave</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">You Received</th>
+                                    <th className="p-3 text-2xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Balance</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -296,14 +296,14 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                                     {new Date(t.date).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                 </td>
                                                 <td className="p-3 text-center">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${typeStyle.color}`}>
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${typeStyle.color}`}>
                                                         <TypeIcon size={10} />
                                                         {typeStyle.label}
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
                                                     <p className="text-xs font-bold text-slate-800 dark:text-white hover:text-indigo-600 transition-colors cursor-pointer">{t.reference || '-'}</p>
-                                                    {t.description && <p className="text-[10px] text-slate-400 truncate max-w-[200px]">{t.description}</p>}
+                                                    {t.description && <p className="text-2xs text-slate-400 truncate max-w-[200px]">{t.description}</p>}
                                                 </td>
                                                 <td className="p-3 text-right">
                                                     {t.debit > 0 ? (
@@ -320,7 +320,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                                         {formatCurrency(Math.abs(t.balance), store)}
                                                     </span>
                                                     {t.balance !== 0 && (
-                                                        <span className={`text-[9px] font-bold ml-1 uppercase ${t.balance > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                        <span className={`text-3xs font-bold ml-1 uppercase ${t.balance > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                             {t.balance > 0 ? 'To Receive' : 'To Pay'}
                                                         </span>
                                                     )}
@@ -352,25 +352,25 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 return (
                                     <div key={index} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/10 flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[10px] text-slate-500 font-medium font-mono">
+                                            <span className="text-2xs text-slate-500 font-medium font-mono">
                                                 {new Date(t.date).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${typeStyle.color}`}>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${typeStyle.color}`}>
                                                 <TypeIcon size={8} />
                                                 {typeStyle.label}
                                             </span>
                                         </div>
                                         <div className="flex flex-col">
                                             <p className="text-xs font-bold text-slate-800 dark:text-white break-all">{t.reference || '-'}</p>
-                                            {t.description && <p className="text-[10px] text-slate-400 mt-0.5">{t.description}</p>}
+                                            {t.description && <p className="text-2xs text-slate-400 mt-0.5">{t.description}</p>}
                                         </div>
-                                        <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-dashed border-slate-100 dark:border-slate-800/60 mt-1">
+                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-slate-100 dark:border-slate-800/60 mt-1">
                                             <div className="flex gap-2">
                                                 {t.debit > 0 && (
-                                                    <span className="text-red-650 dark:text-red-400 font-mono font-bold">Gave: {formatCurrency(t.debit, store)}</span>
+                                                    <span className="text-red-600 dark:text-red-400 font-mono font-bold">Gave: {formatCurrency(t.debit, store)}</span>
                                                 )}
                                                 {t.credit > 0 && (
-                                                    <span className="text-emerald-650 dark:text-emerald-400 font-mono font-bold">Rec: {formatCurrency(t.credit, store)}</span>
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">Rec: {formatCurrency(t.credit, store)}</span>
                                                 )}
                                             </div>
                                             <div className="text-right">
@@ -378,7 +378,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                                     {formatCurrency(Math.abs(t.balance), store)}
                                                 </span>
                                                 {t.balance !== 0 && (
-                                                    <span className={`text-[8px] font-bold ml-0.5 uppercase ${t.balance > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                    <span className={`text-4xs font-bold ml-0.5 uppercase ${t.balance > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                                                         {t.balance > 0 ? 'Rec' : 'Pay'}
                                                     </span>
                                                 )}

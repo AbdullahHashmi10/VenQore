@@ -174,9 +174,14 @@ class BarcodeToolController extends Controller
 
         $filename = 'barcode-labels-' . $validated['value'] . '-' . $validated['preset'] . '.pdf';
 
-        return response($pdf, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        // Streamed rather than a plain response(): sheets can run to hundreds of
+        // labels, so this avoids holding the full PDF in memory twice (once in
+        // $pdf, once again while Laravel buffers the response body) and gets the
+        // first byte to the browser sooner.
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf;
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
         ]);
     }
 

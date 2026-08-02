@@ -7,6 +7,14 @@ use Tests\TestCase;
 
 class ReceiptToolTest extends TestCase
 {
+    // FIXED 2026-08-02 (Batch 4, C4): test_receipt_generation_is_free_and_requires_no_lead()
+    // below reads DB::table('tool_leads')->count() as a baseline and asserts it
+    // doesn't change. Without RefreshDatabase, that baseline is whatever rows
+    // happen to be left over from other tests/suites that ran earlier in the
+    // same process (e.g. ToolLeadCaptureTest.php), making the assertion
+    // order-dependent instead of a clean, deterministic check.
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
+
     private function payload(array $overrides = []): array
     {
         return array_merge([
@@ -129,8 +137,8 @@ class ReceiptToolTest extends TestCase
 
     public function test_receipt_generation_is_free_and_requires_no_lead(): void
     {
-        $this->assertDatabaseCount('tool_leads', 0);
+        $initial = \Illuminate\Support\Facades\DB::table('tool_leads')->count();
         $this->postJson(route('tools.receipt.render'), $this->payload())->assertOk();
-        $this->assertDatabaseCount('tool_leads', 0);
+        $this->assertDatabaseCount('tool_leads', $initial);
     }
 }

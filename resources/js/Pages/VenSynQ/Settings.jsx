@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Head, usePage, useForm, router, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import AmazonSetupWizard from './Components/AmazonSetupWizard';
+import { vq } from '@/theme/runtime';
 import {
     Zap, Plus, Link2, Unlink, Check, Clock, AlertTriangle,
     BarChart2, RefreshCw, Edit2, Trash2, ChevronLeft,
@@ -32,14 +34,31 @@ const EbayLogo = () => (
     </svg>
 );
 
+const WooLogo = () => (
+    <svg viewBox="0 0 24 24" style={{ width: 28, height: 28, display: 'block' }}>
+        <path fill="#7F54B3" d="M2.2 4.6h19.6c1.2 0 2.2 1 2.2 2.2v7.3c0 1.2-1 2.2-2.2 2.2H14.8l1 2.4-4.3-2.4H2.2c-1.2 0-2.2-1-2.2-2.2V6.8c0-1.2 1-2.2 2.2-2.2z"/>
+        <path fill="#fff" d="M3.1 7.3c.2-.3.5-.4.8-.4.6 0 .9.3 1 .8l.6 4.1 1.5-2.9c.2-.3.4-.5.7-.5.4 0 .7.3.8.8.2 1.2.4 2.2.7 3.1l1.2-3.5c.1-.3.3-.5.6-.5.2 0 .4.1.5.2.2.1.2.3.2.5l-.1.4-1.8 5c-.1.3-.4.5-.7.5-.4 0-.7-.3-.9-.8-.3-.9-.6-2-.9-3.3l-1.4 2.7c-.3.5-.6.8-.9.8-.4 0-.7-.3-.8-.9L2.9 8.1c-.1-.3 0-.6.2-.8z"/>
+    </svg>
+);
+
 const PLATFORM_THEMES = {
-    amazon: { 
-        label: 'Amazon SP-API', 
+    amazon: {
+        label: 'Amazon SP-API',
         logoText: 'Amazon',
-        color: '#FF9900', 
-        bg: '#1a1200', 
+        color: '#FF9900',
+        bg: '#1a1200',
         border: '#4a2d00',
         gradient: 'linear-gradient(135deg, #FF9900 0%, #cc7a00 100%)'
+    },
+    // T16 — WooCommerce is now a first-class VenSynQ channel rather than a
+    // separate, disconnected module screen.
+    woocommerce: {
+        label: 'WooCommerce REST API',
+        logoText: 'WooCommerce',
+        color: '#9B6FD4',
+        bg: '#150d20',
+        border: '#3d2a5c',
+        gradient: 'linear-gradient(135deg, #9B6FD4 0%, #7F54B3 100%)'
     },
     tiktok: { 
         label: 'TikTok Shop Partner', 
@@ -71,6 +90,10 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
     const store = props.store;
 
     const [editingChannel, setEditingChannel] = useState(null);
+
+    // T16 — the 3-step SP-API credential wizard, offered alongside (not instead
+    // of) the OAuth redirect. Self-authorized sellers never see a consent screen.
+    const [showAmazonWizard, setShowAmazonWizard] = useState(false);
 
     // Form for editing connected channel settings
     const editForm = useForm({
@@ -126,31 +149,31 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
         <OneGlanceLayout>
             <Head title="VenSynQ Settings — Integrations Center" />
 
-            <div className="vensynq-root" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1421 100%)', color: '#e2e8f0', fontFamily: "'Inter', sans-serif", padding: '0 0 80px' }}>
+            <div className="vensynq-root" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1421 100%)', color: vq.slate[200], fontFamily: "'Inter', sans-serif", padding: '0 0 80px' }}>
 
                 {/* ── Header ─────────────────────────────────────────────── */}
                 <div style={{ background: 'linear-gradient(90deg, #0a0f1a, #111827)', borderBottom: '1px solid #1e3a5f', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <Link href={route('store.vensynq.index', { store_slug: store?.slug })} style={{ width: 36, height: 36, borderRadius: 10, background: '#1e293b', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', transition: 'color 0.2s' }} className="hover:text-white">
+                        <Link href={route('store.vensynq.index', { store_slug: store?.slug })} style={{ width: 36, height: 36, borderRadius: 10, background: vq.slate[800], border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: vq.slate[400], transition: 'color 0.2s' }} className="hover:text-white">
                             <ChevronLeft size={20} />
                         </Link>
                         <div>
                             <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 VenSynQ Integrations
                             </h1>
-                            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>OAuth Connection Center & Fulfillment Defaults</p>
+                            <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>OAuth Connection Center & Fulfillment Defaults</p>
                         </div>
                     </div>
                 </div>
 
                 {/* ── Flash Messages ──────────────────────────────────────── */}
                 {flash.success && (
-                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#052e16', border: '1px solid #166534', color: '#4ade80', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: vq.green[950], border: '1px solid #166534', color: vq.green[400], fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <CheckCircle2 size={15} /> {flash.success}
                     </div>
                 )}
                 {flash.error && (
-                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#2d0000', border: '1px solid #7f1d1d', color: '#f87171', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ margin: '16px 32px 0', padding: '12px 16px', borderRadius: 8, background: '#2d0000', border: '1px solid #7f1d1d', color: vq.red[400], fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <AlertCircle size={15} /> {flash.error}
                     </div>
                 )}
@@ -159,12 +182,12 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
 
                     {/* ── Marketplace Grid ─────────────────────────────────── */}
                     <section>
-                        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>
+                        <h2 style={{ fontSize: 14, fontWeight: 600, color: vq.slate[400], textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>
                             Marketplace Connect Center
                         </h2>
-                        
+
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 24 }}>
-                            {['amazon', 'tiktok', 'ebay'].map(platform => {
+                            {['amazon', 'woocommerce', 'tiktok', 'ebay'].map(platform => {
                                 const theme = PLATFORM_THEMES[platform];
                                 const connectedList = getConnectedChannels(platform);
                                 const isConnected = connectedList.length > 0;
@@ -173,7 +196,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                     <div 
                                         key={platform} 
                                         style={{ 
-                                            background: '#0d1421', 
+                                            background: vq.void[800], 
                                             border: isConnected ? `1px solid ${theme.color}40` : '1px solid #1e3a5f', 
                                             borderRadius: 14, 
                                             overflow: 'hidden',
@@ -186,12 +209,13 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                         {/* Platform Title Banner */}
                                         <div style={{ background: theme.bg, borderBottom: `1px solid ${theme.border}`, padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                <div style={{ width: 44, height: 44, borderRadius: 8, background: '#0a0f1a', border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <div style={{ width: 44, height: 44, borderRadius: 8, background: vq.void[800], border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                     {platform === 'amazon' && <AmazonLogo />}
+                                                    {platform === 'woocommerce' && <WooLogo />}
                                                     {platform === 'tiktok' && <TikTokLogo />}
                                                     {platform === 'ebay' && <EbayLogo />}
                                                 </div>
-                                                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#f8fafc' }}>
+                                                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: vq.slate[50] }}>
                                                     {theme.logoText}
                                                 </h3>
                                             </div>
@@ -201,8 +225,8 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                 padding: '2px 8px', 
                                                 borderRadius: 20, 
                                                 textTransform: 'uppercase',
-                                                background: isConnected ? '#062f17' : '#1e293b',
-                                                color: isConnected ? '#4ade80' : '#64748b',
+                                                background: isConnected ? vq.green[950] : vq.slate[800],
+                                                color: isConnected ? vq.green[400] : vq.slate[500],
                                                 border: isConnected ? '1px solid #166534' : '1px solid #334155'
                                             }}>
                                                 {isConnected ? `${connectedList.length} Connected` : 'disconnected'}
@@ -217,56 +241,56 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                         <div key={connected.id} style={{ borderBottom: idx < connectedList.length - 1 ? '1px solid #1e3a5f' : 'none', paddingBottom: idx < connectedList.length - 1 ? 24 : 0 }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                                    <span style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0' }}>{connected.name}</span>
+                                                                    <span style={{ fontSize: 14, fontWeight: 700, color: vq.slate[200] }}>{connected.name}</span>
                                                                     {connected.external_seller_id && (
-                                                                        <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>Seller ID: {connected.external_seller_id}</span>
+                                                                        <span style={{ fontSize: 11, color: vq.slate[500], fontFamily: 'monospace' }}>Seller ID: {connected.external_seller_id}</span>
                                                                     )}
                                                                 </div>
                                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                                     <button 
                                                                         onClick={() => startEdit(connected)}
-                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: '#1e293b', border: '1px solid #334155', color: '#60a5fa', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: vq.slate[800], border: '1px solid #334155', color: vq.blue[400], fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                                                                     >
                                                                         <Edit2 size={11} /> Tune
                                                                     </button>
                                                                     <button 
                                                                         onClick={() => handleDisconnect(connected)}
-                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: '#2d1a1a', border: '1px solid #5f1e1e', color: '#f87171', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, background: '#2d1a1a', border: '1px solid #5f1e1e', color: vq.red[400], fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                                                                     >
                                                                         <Unlink size={11} /> Unlink
                                                                     </button>
                                                                 </div>
                                                             </div>
 
-                                                            <div style={{ background: '#0a0f1a', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                            <div style={{ background: vq.void[800], borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                                                    <span style={{ color: '#64748b' }}>Default Fulfillment</span>
-                                                                    <span style={{ color: '#cbd5e1', fontWeight: 600 }}>
+                                                                    <span style={{ color: vq.slate[500] }}>Default Fulfillment</span>
+                                                                    <span style={{ color: vq.slate[300], fontWeight: 600 }}>
                                                                         {FULFILLMENT_LABELS[connected.default_fulfillment_type]?.label ?? connected.default_fulfillment_type}
                                                                     </span>
                                                                 </div>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                                                    <span style={{ color: '#64748b' }}>Estimated Platform Fee</span>
-                                                                    <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{connected.fee_percentage}%</span>
+                                                                    <span style={{ color: vq.slate[500] }}>Estimated Platform Fee</span>
+                                                                    <span style={{ color: vq.slate[300], fontWeight: 600 }}>{connected.fee_percentage}%</span>
                                                                 </div>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                                                    <span style={{ color: '#64748b' }}>Default Warehouse</span>
-                                                                    <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{connected.warehouse?.name ?? 'Not set'}</span>
+                                                                    <span style={{ color: vq.slate[500] }}>Default Warehouse</span>
+                                                                    <span style={{ color: vq.slate[300], fontWeight: 600 }}>{connected.warehouse?.name ?? 'Not set'}</span>
                                                                 </div>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                                                    <span style={{ color: '#64748b' }}>Currency Mapping</span>
-                                                                    <span style={{ color: '#cbd5e1', fontWeight: 600 }}>{connected.currency}</span>
+                                                                    <span style={{ color: vq.slate[500] }}>Currency Mapping</span>
+                                                                    <span style={{ color: vq.slate[300], fontWeight: 600 }}>{connected.currency}</span>
                                                                 </div>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                                                    <span style={{ color: '#64748b' }}>Last Synced At</span>
-                                                                    <span style={{ color: '#94a3b8', fontWeight: 500 }}>
+                                                                    <span style={{ color: vq.slate[500] }}>Last Synced At</span>
+                                                                    <span style={{ color: vq.slate[400], fontWeight: 500 }}>
                                                                         {connected.last_synced_at ? new Date(connected.last_synced_at).toLocaleString('en-GB', { hour: '2-digit', minute:'2-digit', day:'numeric', month:'short' }) : 'Never synced'}
                                                                     </span>
                                                                 </div>
                                                             </div>
 
                                                             {connected.sync_status === 'error' && (
-                                                                <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 6, background: '#2d0000', border: '1px solid #7f1d1d', color: '#f87171', fontSize: 11 }}>
+                                                                <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 6, background: '#2d0000', border: '1px solid #7f1d1d', color: vq.red[400], fontSize: 11 }}>
                                                                     <AlertTriangle size={12} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
                                                                     {connected.sync_error_message ?? 'Connection error. Please re-authenticate.'}
                                                                 </div>
@@ -284,9 +308,9 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                                 gap: 6, 
                                                                 padding: '8px 16px', 
                                                                 borderRadius: 8, 
-                                                                background: '#1e293b', 
+                                                                background: vq.slate[800], 
                                                                 border: '1px solid #334155', 
-                                                                color: '#cbd5e1', 
+                                                                color: vq.slate[300], 
                                                                 fontSize: 12, 
                                                                 fontWeight: 600, 
                                                                 textDecoration: 'none', 
@@ -300,7 +324,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                 </div>
                                             ) : (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                                                    <div style={{ color: '#64748b', fontSize: 13, lineHeight: '1.5' }}>
+                                                    <div style={{ color: vq.slate[500], fontSize: 13, lineHeight: '1.5' }}>
                                                         {platform === 'amazon' && 'Fetch shipped and unshipped customer order payloads securely using the official Amazon Seller Partner API.'}
                                                         {platform === 'tiktok' && 'Quietly fetch active TikTok Shop order states. Processes shortfalls instantly as JIT drafts.'}
                                                         {platform === 'ebay' && 'Integrates eBay seller order notifications into the unified VenQore command center.'}
@@ -317,7 +341,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                             padding: '10px', 
                                                             borderRadius: 8, 
                                                             background: theme.gradient, 
-                                                            color: '#0a0f1a', 
+                                                            color: vq.void[800], 
                                                             fontSize: 13, 
                                                             fontWeight: 700, 
                                                             textDecoration: 'none', 
@@ -347,7 +371,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                             </Field>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                                 <Field label="Platform Source">
-                                    <input value={editingChannel.platform.toUpperCase()} style={{ ...inputStyle, background: '#1e293b', color: '#64748b', cursor: 'not-allowed' }} disabled />
+                                    <input value={editingChannel.platform.toUpperCase()} style={{ ...inputStyle, background: vq.slate[800], color: vq.slate[500], cursor: 'not-allowed' }} disabled />
                                 </Field>
                                 <Field label="Default Fulfillment Type" error={editForm.errors.default_fulfillment_type}>
                                     <select value={editForm.data.default_fulfillment_type} onChange={e => editForm.setData('default_fulfillment_type', e.target.value)} style={inputStyle}>
@@ -388,7 +412,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                             </div>
 
                             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
-                                <button type="button" onClick={() => setEditingChannel(null)} style={{ ...btnBase, background: '#1e293b', color: '#94a3b8' }}>Cancel</button>
+                                <button type="button" onClick={() => setEditingChannel(null)} style={{ ...btnBase, background: vq.slate[800], color: vq.slate[400] }}>Cancel</button>
                                 <button type="submit" disabled={editForm.processing} style={{ ...btnBase, background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff' }}>
                                     {editForm.processing ? 'Saving Defaults…' : 'Save Defaults'}
                                 </button>
@@ -408,10 +432,10 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
 function Modal({ title, onClose, children }) {
     return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-            <div style={{ background: '#0d1421', border: '1px solid #1e3a5f', borderRadius: 14, padding: 28, width: 520, maxWidth: '90vw', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 14, padding: 28, width: 520, maxWidth: '90vw', maxHeight: '90vh', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#e2e8f0' }}>{title}</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}><X size={18} /></button>
+                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: vq.slate[200] }}>{title}</h3>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: vq.slate[500], cursor: 'pointer', padding: 4 }}><X size={18} /></button>
                 </div>
                 {children}
             </div>
@@ -422,16 +446,16 @@ function Modal({ title, onClose, children }) {
 function Field({ label, error, children }) {
     return (
         <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>{label}</label>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: vq.slate[400], marginBottom: 6 }}>{label}</label>
             {children}
-            {error && <span style={{ fontSize: 11, color: '#f87171', marginTop: 3, display: 'block' }}>{error}</span>}
+            {error && <span style={{ fontSize: 11, color: vq.red[400], marginTop: 3, display: 'block' }}>{error}</span>}
         </div>
     );
 }
 
 const inputStyle = {
-    width: '100%', background: '#0a0f1a', border: '1px solid #1e3a5f', borderRadius: 8,
-    padding: '9px 12px', color: '#e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    width: '100%', background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 8,
+    padding: '9px 12px', color: vq.slate[200], fontSize: 13, outline: 'none', boxSizing: 'border-box',
 };
 
 const btnBase = {

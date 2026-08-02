@@ -214,10 +214,11 @@ class TransactionBuilderService
                 // a surprise discovered later in the catalogue.
                 if (!$existing) {
                     $this->createdProducts[] = [
-                        'id'       => $product->id,
-                        'name'     => $product->name,
-                        'sku'      => $product->sku,
-                        'raw_name' => $item['raw_name'] ?? $item['name'] ?? $name,
+                        'id'          => $product->id,
+                        'name'        => $product->name,
+                        'sku'         => $product->sku,
+                        'raw_name'    => $item['raw_name'] ?? $item['name'] ?? $name,
+                        'created_via' => 'ai_scan',
                     ];
                 }
             } elseif ($action !== 'expense') {

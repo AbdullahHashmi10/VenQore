@@ -407,7 +407,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                 step="0.01"
                                             />
                                             {selectedProduct && (
-                                                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">
+                                                <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xs text-slate-400 font-medium pointer-events-none">
                                                     {selectedProduct.base_unit}
                                                 </span>
                                             )}
@@ -514,7 +514,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             </div>
 
                             {/* Table Header */}
-                            <div className="hidden lg:flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="hidden lg:flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 text-2xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 shrink-0">
                                 <div className="flex-1 pl-1">Item</div>
                                 <div className="w-16 text-center">Gross</div>
                                 <div className="w-14 text-center">Waste %</div>
@@ -557,8 +557,8 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                 />
                                                 {product && (
                                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                                                        <span className="text-[10px] bg-slate-100 dark:bg-slate-700 px-1.5 rounded text-slate-500 dark:text-slate-400 font-medium">{product.base_unit}</span>
-                                                        <span className="text-[10px] text-slate-400 font-bold">{getCurrencySymbol()} {parseFloat(product.cost_price).toLocaleString()}</span>
+                                                        <span className="text-2xs bg-slate-100 dark:bg-slate-700 px-1.5 rounded text-slate-500 dark:text-slate-400 font-medium">{product.base_unit}</span>
+                                                        <span className="text-2xs text-slate-400 font-bold">{getCurrencySymbol()} {parseFloat(product.cost_price).toLocaleString()}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -567,7 +567,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                             <div className="w-full lg:w-auto grid grid-cols-4 lg:flex lg:items-center gap-2">
                                                 {/* Gross Quantity */}
                                                 <div className="col-span-2 lg:w-16">
-                                                    <label className="lg:hidden text-[10px] text-slate-400 font-bold uppercase mb-1 block">Gross</label>
+                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Gross</label>
                                                     <input
                                                         type="number"
                                                         value={ingredient.quantity}
@@ -580,7 +580,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                                 {/* Wastage % */}
                                                 <div className="col-span-2 lg:w-14 px-0.5">
-                                                    <label className="lg:hidden text-[10px] text-slate-400 font-bold uppercase mb-1 block">Waste</label>
+                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Waste</label>
                                                     <div className="relative">
                                                         <input
                                                             type="number"
@@ -595,7 +595,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
 
                                                 {/* Net Quantity */}
                                                 <div className="col-span-2 lg:w-14 text-right flex flex-col justify-center pr-1">
-                                                    <label className="lg:hidden text-[10px] text-slate-400 font-bold uppercase mb-1 block">Net</label>
+                                                    <label className="lg:hidden text-2xs text-slate-400 font-bold uppercase mb-1 block">Net</label>
                                                     <div className="flex flex-col items-end justify-center w-full">
                                                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1 py-1 rounded-md min-w-[50px] text-center">
                                                             {detail ? detail.formattedNet : '-'}
@@ -631,7 +631,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                         <span>Check ingredient quality.</span>
                                     </div>
                                 ) : (
-                                    <div className="flex justify-between text-[10px] text-slate-400 px-2">
+                                    <div className="flex justify-between text-2xs text-slate-400 px-2">
                                         <span>Total Items: {data.ingredients.length}</span>
                                         <span>Gross Weight: {calculations.yieldSummaryGross}</span>
                                     </div>
@@ -796,7 +796,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                     newMedia[index].url = e.target.value;
                                                     setData('media', newMedia);
                                                 }}
-                                                className="w-full bg-transparent border-none p-0 text-[10px] text-blue-500 focus:ring-0 placeholder-slate-300"
+                                                className="w-full bg-transparent border-none p-0 text-2xs text-blue-500 focus:ring-0 placeholder-slate-300"
                                             />
                                             <button
                                                 type="button"

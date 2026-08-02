@@ -155,9 +155,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $cashId   = $this->getAccountId('1000');
         $incomeId = $this->getAccountId('4000');
 
-        if (!$cashId || !$incomeId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // Insert a transaction on Feb 29, 2024 (valid leap day)
         $leapAmount = 12345.00;
@@ -186,9 +185,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $cashId   = $this->getAccountId('1000');
         $incomeId = $this->getAccountId('4000');
 
-        if (!$cashId || !$incomeId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $leapAmount = 7777.77;
         $this->insertBalancedJE('2024-02-29', $cashId, $incomeId, $leapAmount, 'LEAP-BOUNDARY-001');
@@ -216,9 +214,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $cashId   = $this->getAccountId('1000');
         $incomeId = $this->getAccountId('4000');
 
-        if (!$cashId || !$incomeId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $yearEndAmount = 99.99;
         $this->insertBalancedJE('2025-12-31', $cashId, $incomeId, $yearEndAmount, 'YEAR-END-EDGE-001');
@@ -253,9 +250,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $cashId   = $this->getAccountId('1000');
         $incomeId = $this->getAccountId('4000');
 
-        if (!$cashId || !$incomeId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // Insert a balanced entry on Feb 29, 2024
         $this->insertBalancedJE('2024-02-29', $cashId, $incomeId, 5000.00, 'LEAP-BS-001');
@@ -360,9 +356,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $cashId   = $this->getAccountId('1000');
         $incomeId = $this->getAccountId('4000');
 
-        if (!$cashId || !$incomeId) {
-            $this->markTestSkipped('Required accounts not found');
-        }
+        $this->assertNotNull($cashId, 'Required account (cash 1000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($incomeId, 'Required account (income 4000) not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         // Use a large but reasonable amount (1 billion rupees) with 4 dp
         $largeAmount = 1000000000.0100; // 1 billion + 0.01
@@ -501,9 +496,7 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
             ->whereRaw('remaining_qty >= 2')
             ->first();
 
-        if (!$batch) {
-            $this->markTestSkipped('No batch with remaining_qty >= 2 found');
-        }
+        $this->assertNotNull($batch, 'No batch with remaining_qty >= 2 found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $qtyBefore = (float)$batch->remaining_qty;
 
@@ -551,9 +544,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $productId   = DB::table('products')->where('tenant_id', self::TENANT_ID)->value('id');
         $warehouseId = DB::table('warehouses')->where('tenant_id', self::TENANT_ID)->value('id');
 
-        if (!$productId || !$warehouseId) {
-            $this->markTestSkipped('No product or warehouse found for Golden Company');
-        }
+        $this->assertNotNull($productId, 'No product found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($warehouseId, 'No warehouse found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $batchId = \Illuminate\Support\Str::uuid()->toString();
         DB::table('inventory_batches')->insert([
@@ -615,9 +607,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $productId   = DB::table('products')->where('tenant_id', self::TENANT_ID)->value('id');
         $warehouseId = DB::table('warehouses')->where('tenant_id', self::TENANT_ID)->value('id');
 
-        if (!$productId || !$warehouseId) {
-            $this->markTestSkipped('No product or warehouse found');
-        }
+        $this->assertNotNull($productId, 'No product found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($warehouseId, 'No warehouse found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $batchId = \Illuminate\Support\Str::uuid()->toString();
         DB::table('inventory_batches')->insert([
@@ -689,9 +680,8 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
         $productId   = DB::table('products')->where('tenant_id', self::TENANT_ID)->value('id');
         $warehouseId = DB::table('warehouses')->where('tenant_id', self::TENANT_ID)->value('id');
 
-        if (!$productId || !$warehouseId) {
-            $this->markTestSkipped('No product or warehouse found');
-        }
+        $this->assertNotNull($productId, 'No product found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
+        $this->assertNotNull($warehouseId, 'No warehouse found for Golden Company — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $batchId = \Illuminate\Support\Str::uuid()->toString();
         DB::table('inventory_batches')->insert([
@@ -778,7 +768,7 @@ class EdgeCasesTimeConcurrencyTest extends VenQoreTestCase implements RequiresGo
     public function test_E15_zero_value_journal_entry_has_no_financial_impact(): void
     {
         $cashId = $this->getAccountId('1000');
-        if (!$cashId) $this->markTestSkipped('Cash account not found');
+        $this->assertNotNull($cashId, 'Cash account not found — GoldenSeedManager guarantees this data exists; a null result here means the seeder or schema drifted.');
 
         $pl_before = (float)$this->reporting->getProfitAndLoss('2025-01-01', '2025-12-31')['revenue'];
 

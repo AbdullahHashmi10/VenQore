@@ -10,6 +10,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import axios from 'axios';
 
 
+import { vq } from '@/theme/runtime';
 /* ═══════════════════════════════════════════════════════════════════════
    STAFF HUB — Unified Platform Employee Cockpit (Midnight Nebula Theme)
    ═══════════════════════════════════════════════════════════════════════ */
@@ -91,7 +92,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
     const hasSupportAccess = ['platform_owner', 'platform_manager', 'support_director', 'support_dept_manager', 'support_agent', 'support', 'owner'].includes(employee.role);
 
     return (
-        <div className="min-h-screen bg-[#02000f] text-white font-sans selection:bg-violet-500/40 selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-void-950 text-white font-sans selection:bg-violet-500/40 selection:text-white relative overflow-hidden">
             <Head title="Platform Employee Cockpit" />
 
             {/* Ambient Background Glows */}
@@ -107,7 +108,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                         <Sparkles size={18} className="text-violet-400" />
                     </div>
                     <div>
-                        <span className="text-[10px] font-black text-violet-400 uppercase tracking-widest block">VenQore Internal</span>
+                        <span className="text-2xs font-black text-violet-400 uppercase tracking-widest block">VenQore Internal</span>
                         <span className="text-sm font-bold text-white tracking-tight">Team Command Cockpit</span>
                     </div>
                 </div>
@@ -133,7 +134,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                     <div className="relative rounded-[2rem] bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-8 overflow-hidden shadow-2xl">
                         <div className="absolute top-0 right-0 p-8 w-48 h-48 bg-violet-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
                         
-                        <span className="text-[9px] font-black text-violet-400 uppercase tracking-[0.2em] block mb-2">VenQore Platform Staff</span>
+                        <span className="text-3xs font-black text-violet-400 uppercase tracking-[0.2em] block mb-2">VenQore Platform Staff</span>
                         <h1 className="text-3xl font-black tracking-tight text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                             {employee.name}
                         </h1>
@@ -160,7 +161,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                         <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-sm font-black text-indigo-400">
                                             <MessageSquare size={18} />
                                         </div>
-                                        <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        <span className="text-2xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                             Active
                                         </span>
                                     </div>
@@ -170,15 +171,15 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                     {/* Real-time support cockpit stats */}
                                     <div className="grid grid-cols-3 gap-2 mb-6">
                                         <div className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-center">
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Unassigned</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase tracking-wider block">Unassigned</span>
                                             <span className="text-sm font-black text-rose-400 block mt-0.5">{stats.unassigned}</span>
                                         </div>
                                         <div className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-center">
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Active</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase tracking-wider block">Active</span>
                                             <span className="text-sm font-black text-indigo-400 block mt-0.5">{stats.active}</span>
                                         </div>
                                         <div className="bg-white/5 border border-white/[0.04] p-2.5 rounded-xl text-center">
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Resolved</span>
+                                            <span className="text-3xs text-slate-400 font-bold uppercase tracking-wider block">Resolved</span>
                                             <span className="text-sm font-black text-emerald-400 block mt-0.5">{stats.resolved}</span>
                                         </div>
                                     </div>
@@ -203,7 +204,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                         <div className="w-10 h-10 rounded-lg bg-teal-500/5 flex items-center justify-center text-sm font-black text-teal-500">
                                             <BookOpen size={18} />
                                         </div>
-                                        <span className="text-[8px] bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        <span className="text-4xs bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                             Locked
                                         </span>
                                     </div>
@@ -222,7 +223,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                         <div className="w-10 h-10 rounded-lg bg-pink-500/5 flex items-center justify-center text-sm font-black text-pink-500">
                                             <Megaphone size={18} />
                                         </div>
-                                        <span className="text-[8px] bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        <span className="text-4xs bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                             Locked
                                         </span>
                                     </div>
@@ -241,7 +242,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                         <div className="w-10 h-10 rounded-lg bg-emerald-500/5 flex items-center justify-center text-sm font-black text-emerald-500">
                                             <LineChart size={18} />
                                         </div>
-                                        <span className="text-[8px] bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                        <span className="text-4xs bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                             Locked
                                         </span>
                                     </div>
@@ -279,11 +280,11 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2 flex-wrap mb-1">
                                                         <span className="font-bold text-white text-sm">{chat.visitor_name}</span>
-                                                        <span className="text-[9px] bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                                        <span className="text-3xs bg-slate-800 border border-slate-700 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                                             {chat.tenant_name}
                                                         </span>
                                                         {chat.sub_status && (
-                                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                            <span className={`text-4xs font-black uppercase px-2 py-0.5 rounded-full ${
                                                                 chat.sub_status === 'fixed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                                             }`}>
                                                                 {chat.sub_status}
@@ -291,7 +292,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                         )}
                                                     </div>
                                                     <p className="text-xs text-slate-500 truncate">{chat.visitor_email}</p>
-                                                    <p className="text-[10px] text-slate-600 mt-1 flex items-center gap-1">
+                                                    <p className="text-2xs text-slate-600 mt-1 flex items-center gap-1">
                                                         <Clock size={10} /> Active: {new Date(chat.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                 </div>
@@ -317,7 +318,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             <h2 className="font-black text-white text-base tracking-tight flex items-center gap-2">
                                 <ListTodo size={18} className="text-violet-400" /> Platform Duties
                             </h2>
-                            <span className="text-[10px] bg-slate-800 text-slate-400 font-bold px-2 py-0.5 rounded-full">
+                            <span className="text-2xs bg-slate-800 text-slate-400 font-bold px-2 py-0.5 rounded-full">
                                 {activeTasks.filter(t => t.completed).length}/{activeTasks.length} Completed
                             </span>
                         </div>
@@ -342,7 +343,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-xs leading-relaxed font-medium">{task.text}</p>
-                                        <span className={`text-[8px] font-black uppercase tracking-widest mt-1.5 inline-block ${
+                                        <span className={`text-4xs font-black uppercase tracking-widest mt-1.5 inline-block ${
                                             task.priority === 'high' ? 'text-red-400' : task.priority === 'medium' ? 'text-violet-400' : 'text-slate-500'
                                         }`}>
                                             {task.priority} Priority
@@ -380,7 +381,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                 <p className="text-slate-400 text-xs mt-1">Monitor autonomous resolve rates and manage self-improving escalation boundaries</p>
                             </div>
                             <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.05] p-3 rounded-2xl shrink-0">
-                                <span className="text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                <span className="text-2xs bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                     Learning Active
                                 </span>
                             </div>
@@ -391,7 +392,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             <div className="lg:col-span-2 rounded-[2rem] bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-6 shadow-2xl flex flex-col justify-between h-[360px]">
                                 <div className="mb-4">
                                     <h3 className="font-bold text-white text-sm">Resolution Over Time</h3>
-                                    <p className="text-slate-500 text-[10px]">AI vs Human ticket closures</p>
+                                    <p className="text-slate-500 text-2xs">AI vs Human ticket closures</p>
                                 </div>
                                 <div className="flex-1 min-h-0 w-full">
                                     {loadingStats ? (
@@ -409,13 +410,13 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
                                                 <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
                                                 <Tooltip 
-                                                    contentStyle={{ backgroundColor: '#09071c', borderColor: 'rgba(255,255,255,0.08)', borderRadius: '1rem', color: '#fff' }} 
+                                                    contentStyle={{ backgroundColor: vq.slate[950], borderColor: 'rgba(255,255,255,0.08)', borderRadius: '1rem', color: '#fff' }} 
                                                     itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
-                                                    labelStyle={{ fontSize: '10px', color: '#a855f7', fontWeight: 'black', textTransform: 'uppercase' }}
+                                                    labelStyle={{ fontSize: '10px', color: vq.purple[500], fontWeight: 'black', textTransform: 'uppercase' }}
                                                 />
-                                                <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', color: '#94a3b8' }} />
-                                                <Bar dataKey="AI" name="Vena AI" stackId="a" fill="#8b5cf6" radius={[0, 0, 0, 0]} />
-                                                <Bar dataKey="Human" name="Human Support" stackId="a" fill="#475569" radius={[4, 4, 0, 0]} />
+                                                <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', color: vq.slate[400] }} />
+                                                <Bar dataKey="AI" name="Vena AI" stackId="a" fill={vq.violet[500]} radius={[0, 0, 0, 0]} />
+                                                <Bar dataKey="Human" name="Human Support" stackId="a" fill={vq.slate[600]} radius={[4, 4, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     )}
@@ -426,7 +427,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             <div className="rounded-[2rem] bg-gradient-to-b from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-6 shadow-2xl flex flex-col justify-between">
                                 <div className="mb-6">
                                     <h3 className="font-bold text-white text-sm">Escalation Controls</h3>
-                                    <p className="text-slate-500 text-[10px]">Define boundaries where Vena answers autonomously</p>
+                                    <p className="text-slate-500 text-2xs">Define boundaries where Vena answers autonomously</p>
                                 </div>
 
                                 <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-1">
@@ -440,7 +441,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                                 <span className="text-xs font-black uppercase text-slate-200 tracking-wide block">
                                                     {cat.category}
                                                 </span>
-                                                <span className="text-[10px] text-slate-500 block mt-0.5">
+                                                <span className="text-2xs text-slate-500 block mt-0.5">
                                                     {cat.ai_handled_rate}% autonomous handle rate ({cat.total_chats} chats)
                                                 </span>
                                             </div>
@@ -448,7 +449,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                             <button
                                                 type="button"
                                                 onClick={() => handleToggleAutonomy(cat.category, cat.ai_autonomous)}
-                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border shrink-0 ${
+                                                className={`px-3 py-1.5 rounded-xl text-3xs font-black uppercase tracking-wider transition-all border shrink-0 ${
                                                     cat.ai_autonomous
                                                         ? 'bg-purple-600/10 border-purple-500/30 text-purple-400 shadow-lg shadow-purple-500/5'
                                                         : 'bg-slate-900 border-white/5 text-slate-400 hover:text-white hover:border-white/10'

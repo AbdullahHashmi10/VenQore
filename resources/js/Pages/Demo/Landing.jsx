@@ -19,7 +19,7 @@ export default function DemoLanding() {
     };
 
     return (
-        <div className="min-h-screen bg-[#020010] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-screen bg-void-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
             <Head title="VenQore Live Demo" />
 
             <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />

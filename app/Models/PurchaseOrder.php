@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasTenant;
+use App\Traits\HasActivityLog;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class PurchaseOrder extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes, HasTenant;
+    use HasUuids, HasFactory, SoftDeletes, HasTenant, HasActivityLog;
 
     protected $guarded = [];
 
