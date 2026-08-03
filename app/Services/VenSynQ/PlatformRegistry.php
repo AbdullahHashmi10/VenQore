@@ -83,6 +83,18 @@ class PlatformRegistry
         return array_keys(self::MAP);
     }
 
+    /** @return array<int, string> */
+    public function enabled(): array
+    {
+        $allow = array_map('strtolower', (array) config('vensynq.enabled_platforms', ['amazon', 'woocommerce']));
+        return array_values(array_intersect(array_keys(self::MAP), $allow));
+    }
+
+    public function isEnabled(string $platform): bool
+    {
+        return in_array($this->normalize($platform), $this->enabled(), true);
+    }
+
     public function label(string $platform): string
     {
         return self::LABELS[$this->normalize($platform)] ?? ucfirst($platform);
@@ -95,6 +107,14 @@ class PlatformRegistry
     public function validationRule(): string
     {
         return 'in:' . implode(',', $this->supported());
+    }
+
+    /**
+     * Validation rule restricted strictly to active/enabled platforms.
+     */
+    public function enabledValidationRule(): string
+    {
+        return 'in:' . implode(',', $this->enabled());
     }
 
     /**

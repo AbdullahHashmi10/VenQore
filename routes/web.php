@@ -402,7 +402,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // NOTE: /extract costs exactly one upstream AI request per call. The
         // throttle here is a blunt safety net; the real protection is the
         // per-store single-flight lock inside the controller.
-        Route::prefix('smart-capture')->group(function () {
+        Route::prefix('smart-capture')
+            ->middleware(\App\Http\Middleware\EnsureSmartCaptureAccess::class)
+            ->group(function () {
             Route::get('/context',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'context'])->name('smart-capture.context');
             Route::post('/extract',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->middleware('throttle:20,1')->name('smart-capture.extract');
             Route::post('/confirm',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->middleware('throttle:30,1')->name('smart-capture.confirm');
@@ -1227,7 +1229,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     // ─── VenSynQ — Multi-Channel Fulfillment Engine ───────────────────────────
-    Route::prefix('vensynq')->name('vensynq.')->group(function () {
+    Route::prefix('vensynq')->name('vensynq.')
+        ->middleware(\App\Http\Middleware\EnsureVenSynQAccess::class)
+        ->group(function () {
         // Command Center Dashboard
         Route::get('/', [\App\Http\Controllers\VenSynQController::class, 'index'])->name('index');
 

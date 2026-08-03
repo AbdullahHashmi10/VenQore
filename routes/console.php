@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -283,3 +283,11 @@ Artisan::command('inspire', function () {
     ->onOneServer()
     ->name('vensynq-order-sync')
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+// ── SmartCapture Monthly Usage Reset ────────────────────────────────────────
+// Resets ai_scans_used and ai_queries_used to 0 for managed AI tenants on the 1st of every month at 00:05.
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\ResetAiUsageJob())
+    ->monthlyOn(1, '00:05')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('smartcapture-monthly-usage-reset');

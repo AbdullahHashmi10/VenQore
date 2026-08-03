@@ -14,9 +14,12 @@ return [
     |
     */
 
+    // Enabled platforms allowlist — Amazon and WooCommerce live by default
+    'enabled_platforms' => explode(',', env('VENSYNQ_ENABLED_PLATFORMS', 'amazon,woocommerce')),
+
     // Developer Simulation Mode
-    // If true, redirects bypass official API handshakes and simulate connection details and sync lists.
-    'simulation_mode' => env('VENSYNQ_SIMULATION_MODE', true),
+    // Default to false so missing prod env var never returns mock data.
+    'simulation_mode' => env('VENSYNQ_SIMULATION_MODE', false),
 
     // Sandbox Mode — Uses Amazon sandbox endpoints instead of production.
     // Enable this when testing with sandbox credentials from Amazon Developer Console.
@@ -27,7 +30,7 @@ return [
         'amazon' => [
             'client_id'      => env('VENSYNQ_AMAZON_CLIENT_ID', 'amzn1.application-oa2-client.mock_id'),
             'client_secret'  => env('VENSYNQ_AMAZON_CLIENT_SECRET', 'mock_amazon_secret_key_12345'),
-            'redirect_uri'   => env('VENSYNQ_AMAZON_REDIRECT_URI', '/vensynq/callback/amazon'),
+            'redirect_uri'   => env('VENSYNQ_AMAZON_REDIRECT_URI', '/amazon/callback'),
             'marketplace_id' => env('VENSYNQ_AMAZON_MARKETPLACE_ID', 'A1F83G8C2ARO7P'), // Amazon UK Default
             'refresh_token'  => env('VENSYNQ_AMAZON_REFRESH_TOKEN', null), // Platform-level sandbox/dev token
             'base_url'       => env('VENSYNQ_AMAZON_BASE_URL', 'https://sellingpartnerapi-eu.amazon.com'), // Production EU

@@ -1033,6 +1033,7 @@ export function SettingsView({ stats = {}, settings = {} }) {
     const [maintenanceMode, setMaintenanceMode] = useState(settings.maintenance_mode_enabled === '1');
     const [appsumoEnabled, setAppsumoEnabled] = useState(settings.appsumo_enabled === '1');
     const [vensynqEnabled, setVensynqEnabled] = useState(settings.vensynq_enabled === '1');
+    const [smartcaptureEnabled, setSmartcaptureEnabled] = useState(settings.smartcapture_enabled !== '0');
 
     const handleSaveFinancials = (e) => {
         e.preventDefault();
@@ -1101,6 +1102,13 @@ export function SettingsView({ stats = {}, settings = {} }) {
                             sub="Persists to global settings (survives updates)"
                             active={vensynqEnabled}
                             onChange={handleToggleVensynq}
+                        />
+                        <ToggleRow
+                            t={t}
+                            label="SmartCapture AI Scan"
+                            sub="Master switch for AI document extraction & scan routes"
+                            active={smartcaptureEnabled}
+                            onChange={(val) => handleToggleSetting('smartcapture_enabled', val, setSmartcaptureEnabled)}
                         />
                         <ToggleRow
                             t={t}

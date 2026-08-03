@@ -1,6 +1,11 @@
 <?php
 
 return [
+    // Master switch to toggle SmartCapture platform-wide
+    'enabled' => env('SMART_CAPTURE_ENABLED', true),
+
+    // Free tier scan allowance (lifetime scans for unmanaged tenants)
+    'free_scan_allowance' => (int) env('SMART_CAPTURE_FREE_SCAN_ALLOWANCE', 10),
     /*
     |--------------------------------------------------------------------------
     | Platform Default AI Provider (fallback when a store has no own key)

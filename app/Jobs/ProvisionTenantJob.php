@@ -216,6 +216,20 @@ class ProvisionTenantJob implements ShouldQueue
                                 ]
                             );
                         }
+
+                        // Unlock VenSynQ Command Center for any marketplace channel add-on
+                        $marketplaces = array_intersect($addonSyncs, ['amazon', 'woocommerce', 'ebay', 'tiktok']);
+                        if (!empty($marketplaces)) {
+                            \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                                ['tenant_id' => $tenant->id, 'override_key' => 'vensync_command'],
+                                [
+                                    'override_value' => '1',
+                                    'reason'         => 'Purchased sync add-on: ' . implode(', ', $marketplaces),
+                                    'updated_at'     => now(),
+                                    'created_at'     => now(),
+                                ]
+                            );
+                        }
                     }
                     if ($aiStatus !== null) {
                         $tenant->update([

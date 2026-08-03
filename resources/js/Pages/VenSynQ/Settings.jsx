@@ -187,7 +187,7 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                         </h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 24 }}>
-                            {['amazon', 'woocommerce', 'tiktok', 'ebay'].map(platform => {
+                            {(platforms && platforms.length ? platforms.map(p => p.key) : ['amazon', 'woocommerce']).map(platform => {
                                 const theme = PLATFORM_THEMES[platform];
                                 const connectedList = getConnectedChannels(platform);
                                 const isConnected = connectedList.length > 0;

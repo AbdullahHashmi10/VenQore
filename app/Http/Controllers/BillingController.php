@@ -817,20 +817,21 @@ class BillingController extends Controller
         $tenant = app('current.tenant');
 
         $request->validate([
-            'addon_type' => 'required|string|in:ai_byok,ai_starter,ai_lite,ai_pro,ai_ultimate,sync_woocommerce'
+            'addon_type' => 'required|string|in:ai_byok,ai_starter,ai_lite,ai_pro,ai_ultimate,sync_woocommerce,sync_amazon'
         ]);
 
         $addonType = $request->input('addon_type');
 
         // Map addon_type to variant ID from config/services.php
         $variantId = match ($addonType) {
-            'ai_byok'         => config('services.lemon_squeezy.ai_byok_addon_id'),
-            'ai_starter'      => config('services.lemon_squeezy.ai_starter_addon_id'),
-            'ai_lite'         => config('services.lemon_squeezy.ai_lite_addon_id'),
-            'ai_pro'          => config('services.lemon_squeezy.ai_pro_addon_id'),
-            'ai_ultimate'     => config('services.lemon_squeezy.ai_ultimate_addon_id'),
+            'ai_byok'          => config('services.lemon_squeezy.ai_byok_addon_id'),
+            'ai_starter'       => config('services.lemon_squeezy.ai_starter_addon_id'),
+            'ai_lite'          => config('services.lemon_squeezy.ai_lite_addon_id'),
+            'ai_pro'           => config('services.lemon_squeezy.ai_pro_addon_id'),
+            'ai_ultimate'      => config('services.lemon_squeezy.ai_ultimate_addon_id'),
             'sync_woocommerce' => config('services.lemon_squeezy.woocommerce_addon_id'),
-            default           => null
+            'sync_amazon'      => config('services.lemon_squeezy.amazon_addon_id'),
+            default            => null
         };
 
         if (!$variantId) {
@@ -1033,6 +1034,23 @@ class BillingController extends Controller
                     $tenant->update(['sync_channels' => array_values($syncs)]);
                 }
                 $message = 'WooCommerce connection disconnected successfully.';
+                break;
+
+            case 'amazon':
+                \App\Models\EcommerceChannel::where('tenant_id', $tenant->id)->where('platform', 'amazon')->forceDelete();
+                $syncs = $tenant->sync_channels ?? [];
+                if (($key = array_search('amazon', $syncs)) !== false) {
+                    unset($syncs[$key]);
+                    $tenant->update(['sync_channels' => array_values($syncs)]);
+                }
+                $remainingMarketplaces = array_intersect($tenant->sync_channels ?? [], ['amazon', 'woocommerce', 'ebay', 'tiktok']);
+                if (empty($remainingMarketplaces)) {
+                    \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')
+                        ->where('tenant_id', $tenant->id)
+                        ->where('override_key', 'vensync_command')
+                        ->delete();
+                }
+                $message = 'Amazon Marketplace connection disconnected successfully.';
                 break;
 
             case 'growth_engine':

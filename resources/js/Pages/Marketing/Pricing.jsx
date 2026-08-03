@@ -100,7 +100,7 @@ export default function Pricing({ plans = [] }) {
     const isPK = PKR_ENABLED && geo.currency === 'PKR';
 
     const [billingType, setBillingType] = useState('subscription_annual');
-    const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
+    const [currencyDisplay, setCurrencyDisplay] = useState('USD');
     const [selectedPlan, setSelectedPlan] = useState('growth');
     const [selectedAI, setSelectedAI] = useState('none');
     const [currentStep, setCurrentStep] = useState(1); // 1=pricing page, 2=sync, 3=onboarding, 4=checkout, 5=confirmation
@@ -166,12 +166,6 @@ export default function Pricing({ plans = [] }) {
 
     const fmt = (usdAmount, pkrAmount = null, suffix = '', showEstimate = true) => {
         const usdVal = parseFloat(usdAmount) || 0;
-        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-
-        if (isPK && currencyDisplay === 'PKR') {
-            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix}`;
-        }
-
         return `$${usdVal.toLocaleString()}${suffix}`;
     };
     const planPrice = (key) => PRICES_USD[key]?.[billingType] ?? 0;
@@ -406,16 +400,19 @@ export default function Pricing({ plans = [] }) {
     };
 
     const SYNC_CHANNELS = [
-        { key: 'woocommerce', name: 'WooCommerce', icon: Globe, desc: 'Real-time bidirectional stock sync for WordPress/WooCommerce stores.', priceUSD: 10, pricePKR: 2800 },
-        { key: 'amazon', name: 'Amazon Marketplace', icon: ShoppingCart, desc: 'Automate order extraction and live inventory tracking across Amazon.', priceUSD: 10, pricePKR: 2800 },
-        { key: 'ebay', name: 'eBay Integration', icon: Package, desc: 'Sync inventory counts and sales invoices automatically with eBay.', priceUSD: 10, pricePKR: 2800 },
-        { key: 'tiktok', name: 'TikTok Shop', icon: Star, desc: 'Connect catalog attributes and import marketplace sales from TikTok.', priceUSD: 10, pricePKR: 2800 },
+        { key: 'woocommerce', name: 'WooCommerce', icon: Globe, desc: 'Real-time bidirectional stock sync for WordPress/WooCommerce stores.', priceUSD: 10, pricePKR: 2800, comingSoon: false },
+        { key: 'amazon', name: 'Amazon Marketplace', icon: ShoppingCart, desc: 'Automate order extraction and live inventory tracking across Amazon.', priceUSD: 10, pricePKR: 2800, comingSoon: false },
+        { key: 'ebay', name: 'eBay Integration', icon: Package, desc: 'Sync inventory counts and sales invoices automatically with eBay.', priceUSD: 10, pricePKR: 2800, comingSoon: true },
+        { key: 'tiktok', name: 'TikTok Shop', icon: Star, desc: 'Connect catalog attributes and import marketplace sales from TikTok.', priceUSD: 10, pricePKR: 2800, comingSoon: true },
     ];
 
     const FAQS = [
         { id: 'faq-trial', q: 'Do I need a credit card to start my trial?', a: 'No. If you select a base plan without any AI add-on, sync integration, or onboarding service, your 14-day trial starts immediately with zero card details required. A card is only needed if you add an AI plan, connect a sync channel, or select an onboarding service.' },
         { id: 'faq-ai-cost', q: 'What is the $5 one-time BYOK fee for?', a: 'Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $5 platform activation fee to unlock the AI routing layer in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing. This fee does not expire and has no hidden conditions.' },
         { id: 'faq-ai-monthly', q: 'How does managed AI billing work?', a: 'Managed AI plans (AI Core, AI Lite, AI Pro, AI Ultimate) are monthly add-ons. We handle the infrastructure, models, and usage. You pay us a flat monthly fee and we take care of the rest. There is no usage surprise billing — your monthly cap is shown clearly on your plan.' },
+        { id: 'faq-scans-allowance', q: 'How many AI scans do I get, and what happens when I run out?', a: 'Every plan comes with 10 free lifetime scans. Managed AI plans provide monthly quotas: AI Core (90 scans/mo), AI Lite (150 scans/mo), AI Pro (480 scans/mo), and AI Ultimate (850 scans/mo). When you reach your monthly scan limit, AI extraction pauses until your next billing cycle, or you can add your own OpenAI/Gemini API key (BYOK) for unlimited scans billed directly by your provider.' },
+        { id: 'faq-scan-definition', q: 'What counts as one AI scan?', a: 'One document submission (up to 5 images or invoice pages) processed by SmartCapture counts as a single scan. Retrying or reviewing extracted data inside VenQore does not consume additional scans.' },
+        { id: 'faq-vensynq-channels', q: 'Which marketplaces does VenSynQ support?', a: 'VenSynQ currently supports live automated sync for Amazon Marketplace and WooCommerce. eBay and TikTok Shop integrations are currently on our product roadmap.' },
         { id: 'faq-charge', q: 'When will my card actually be charged?', a: 'Your subscription is only charged after your 14-day free trial ends — not on the day you sign up. The only immediate charge possible is the $5 BYOK activation fee (if you select that option). Onboarding services are charged from inside your admin panel when you choose to initiate the service — not at checkout.' },
         { id: 'faq-service', q: 'How do onboarding services work with the trial?', a: 'You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.' },
         { id: 'faq-cancel', q: 'Can I cancel during the trial?', a: 'Yes, at any time. No questions asked. If you cancel before day 14, you owe nothing for your subscription. If you selected a BYOK activation, that $5 one-time fee is non-refundable (it activated your AI routing). If you added an onboarding service and we have already begun work, the service fee applies per our terms.' },
@@ -447,7 +444,7 @@ export default function Pricing({ plans = [] }) {
     };
 
     const handleContinue = () => {
-        setCurrentStep(3);
+        setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -781,7 +778,6 @@ export default function Pricing({ plans = [] }) {
             </section>
 
             {/* ── AI Configuration Panel — always visible, updates when plan changes ── */}
-            {false && (
             <section ref={aiSectionRef} className="px-6 py-6">
                 <div className="max-w-5xl mx-auto">
                     <div className="transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-100 translate-y-0">
@@ -1017,7 +1013,6 @@ export default function Pricing({ plans = [] }) {
                     </div>
                 </div>
             </section>
-            )}
 
             {/* ── Comparison Table ─────────────────────────────────── */}
             <section className="px-6 py-16">
@@ -1070,7 +1065,7 @@ export default function Pricing({ plans = [] }) {
 
                                     {/* POS */}
                                     <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
-                                    {false && <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />}
+                                    <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="WebUSB Thermal Printing" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Multi-Tab Checkout" starter="3 tabs" growth="10 tabs" enterprise="50 tabs" />
                                     <TableRow label="Park & Recall (Hold Bill)" starter={true} growth={true} enterprise={true} />
@@ -1091,6 +1086,15 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="WhatsApp Debt Alerts" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Bank Reconciliation" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Loyalty & Gift Cards" starter={false} growth={false} enterprise={true} highlight />
+
+                                    {/* AI & Automation */}
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-indigo-400 uppercase tracking-widest">SmartCapture AI Scan & VenSynQ Sync</td></tr>
+                                    <TableRow label="Free AI Scan Allowance" starter="10 lifetime" growth="10 lifetime" enterprise="10 lifetime" />
+                                    <TableRow label="Managed AI Add-ons (Core/Lite/Pro/Ultimate)" starter="From $3/mo" growth="From $5/mo" enterprise="From $15/mo" highlight />
+                                    <TableRow label="BYOK AI (Own Key)" starter="$5 one-time" growth="$5 one-time" enterprise="$5 one-time" />
+                                    <TableRow label="Amazon Marketplace Sync" starter="$10/mo" growth="$10/mo" enterprise="$10/mo" />
+                                    <TableRow label="WooCommerce Sync" starter="$10/mo" growth="$10/mo" enterprise="$10/mo" />
+                                    <TableRow label="eBay & TikTok Shop Sync" starter="Coming Soon" growth="Coming Soon" enterprise="Coming Soon" />
 
                                     {/* Reports */}
                                     <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Reports</td></tr>
@@ -1194,29 +1198,41 @@ export default function Pricing({ plans = [] }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {SYNC_CHANNELS.map((ch, idx) => {
-                        const SyncIcon = ch.icon;
+                        const Icon = ch.icon;
                         const isAdded = selectedSyncs.includes(ch.key);
+                        const isComingSoon = ch.comingSoon;
+
                         return (
-                            <RevealOnScroll key={ch.key} delay={idx * 0.05}>
+                            <RevealOnScroll key={ch.key} delay={idx * 60}>
                                 <button
-                                    id={`sync-${ch.key}`}
-                                    onClick={() => setSelectedSyncs(isAdded
+                                    type="button"
+                                    disabled={isComingSoon}
+                                    onClick={() => !isComingSoon && setSelectedSyncs(isAdded
                                         ? selectedSyncs.filter(s => s !== ch.key)
                                         : [...selectedSyncs, ch.key])}
-                                    className={`w-full text-left p-5 rounded-2xl border transition-all duration-300
-                                        ${isAdded
-                                            ? 'bg-indigo-600/8 border-indigo-500/40 shadow-md shadow-indigo-950/10'
-                                            : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10'
-                                        }`}
+                                    className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative ${
+                                        isComingSoon
+                                            ? 'border-white/[0.04] bg-white/[0.01] opacity-50 cursor-not-allowed'
+                                            : isAdded
+                                            ? 'border-indigo-400/40 bg-indigo-500/[0.06] shadow-lg shadow-indigo-500/5'
+                                            : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.035] hover:border-white/10'
+                                    }`}
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-start gap-3">
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isAdded ? 'bg-indigo-500/15' : 'bg-white/[0.04]'}`}>
-                                                <SyncIcon size={16} className={isAdded ? 'text-indigo-400' : 'text-slate-500'} />
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center gap-3.5">
+                                            <div className={`p-2.5 rounded-xl ${isAdded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'}`}>
+                                                <Icon size={18} />
                                             </div>
                                             <div>
-                                                <div className="text-slate-900 dark:text-white text-sm font-bold">{ch.name}</div>
-                                                <div className="text-slate-500 text-xs mt-0.5 leading-relaxed">{ch.desc}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-white">{ch.name}</span>
+                                                    {isComingSoon && (
+                                                        <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                            Coming Soon
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{ch.desc}</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">

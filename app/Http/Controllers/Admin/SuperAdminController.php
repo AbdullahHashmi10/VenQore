@@ -822,6 +822,12 @@ class SuperAdminController extends Controller
             'public_signups_enabled'    => 'nullable|boolean',
             'maintenance_mode_enabled'  => 'nullable|boolean',
             'appsumo_enabled'           => 'nullable|boolean',
+            'smartcapture_enabled'      => 'nullable|boolean',
+            'vensynq_enabled'           => 'nullable|boolean',
+            'vensynq_platform_amazon'   => 'nullable|boolean',
+            'vensynq_platform_woocommerce' => 'nullable|boolean',
+            'vensynq_platform_ebay'     => 'nullable|boolean',
+            'vensynq_platform_tiktok'   => 'nullable|boolean',
         ]);
 
         foreach ($validated as $key => $val) {
@@ -842,6 +848,7 @@ class SuperAdminController extends Controller
         // Flush global settings cache
         \Illuminate\Support\Facades\Cache::forget('settings:global');
         \Illuminate\Support\Facades\Cache::forget('vensynq_enabled_flag');
+        \Illuminate\Support\Facades\Cache::forget('smartcapture_enabled_flag');
         \Illuminate\Support\Facades\Cache::forget('schema_db_ready');
 
         return back()->with('success', 'Platform settings updated successfully.');

@@ -125,8 +125,8 @@ class VenSynQController extends Controller
 
     public function connectChannel(string $platform)
     {
-        if (!$this->registry->supports($platform)) {
-            return back()->with('error', "Unsupported marketplace \"{$platform}\".");
+        if (!$this->registry->isEnabled($platform)) {
+            return back()->with('error', "The {$this->registry->label($platform)} integration is not available right now.");
         }
 
         try {
@@ -148,9 +148,9 @@ class VenSynQController extends Controller
         $tenant     = app('current.tenant');
         $tenantSlug = $tenant->slug;
 
-        if (!$this->registry->supports($platform)) {
+        if (!$this->registry->isEnabled($platform)) {
             return redirect()->route('store.vensynq.settings', ['store_slug' => $tenantSlug])
-                ->with('error', "Unsupported marketplace \"{$platform}\".");
+                ->with('error', "The {$this->registry->label($platform)} integration is not available right now.");
         }
 
         try {
@@ -403,7 +403,7 @@ class VenSynQController extends Controller
 
         $validated = $request->validate([
             'name'                     => 'required|string|max:255',
-            'platform'                 => ['required', $this->registry->validationRule()],
+            'platform'                 => ['required', $this->registry->enabledValidationRule()],
             'default_fulfillment_type' => 'required|in:fbm,fba,jit',
             'fee_percentage'           => 'required|numeric|min:0|max:100',
             'warehouse_id'             => ['nullable', 'uuid', $this->ownedBy('warehouses', $tenantId)],
@@ -741,7 +741,7 @@ class VenSynQController extends Controller
             'warehouses'        => Warehouse::where('tenant_id', $tenantId)->get(),
             'expenseCategories' => ExpenseCategory::where('tenant_id', $tenantId)->get(),
             'health'            => $this->health->summarize($channels),
-            'platforms'         => collect($this->registry->supported())
+            'platforms'         => collect($this->registry->enabled())
                 ->map(fn ($p) => [
                     'key'          => $p,
                     'label'        => $this->registry->label($p),

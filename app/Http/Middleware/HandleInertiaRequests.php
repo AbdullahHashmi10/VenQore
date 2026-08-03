@@ -158,6 +158,20 @@ class HandleInertiaRequests extends Middleware
                 ];
             })(),
             'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
+            'smartcapture_enabled' => (function () use ($dbReady) {
+                if ($dbReady && $this->hasTable('settings')) {
+                    $dbValue = \Illuminate\Support\Facades\Cache::remember('smartcapture_enabled_flag', 60, function () {
+                        return \App\Models\Setting::withoutGlobalScopes()
+                            ->whereNull('tenant_id')
+                            ->where('key', 'smartcapture_enabled')
+                            ->value('value');
+                    });
+                    if ($dbValue !== null) {
+                        return (bool) $dbValue;
+                    }
+                }
+                return (bool) config('smartcapture.enabled', true);
+            })(),
             'vensynq_enabled' => (function () use ($dbReady) {
                 // Priority: DB global setting (set via Platform HQ toggle) > .env config
                 if ($dbReady && $this->hasTable('settings')) {
