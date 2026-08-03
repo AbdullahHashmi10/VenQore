@@ -26,6 +26,11 @@ class AiEntitlementService
 {
     public function __construct(private AiExtractionService $ai) {}
 
+    public static function freeScanAllowance(): int
+    {
+        return (int) config('smartcapture.free_scan_allowance', 10);
+    }
+
     /**
      * Check whether the current tenant may run an AI SCAN (SmartCapture) right now.
      *
