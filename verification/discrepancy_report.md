@@ -1,6 +1,6 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-08-03 15:45:58 PKT  
+> **Generated:** 2026-08-03 15:59:03 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
 > **Audit Date:** 2026-08-03  
 > **Audit Period Seeded:** 2025-01-01 → 2026-08-03  
@@ -10,10 +10,10 @@
 | Status | Count |
 |--------|-------|
 | 🔢 Total Routes Scanned | **248** |
-| ✅ Passed | 191 |
-| ⚠️ All Zeros (Suspicious) | 56 |
+| ✅ Passed | 190 |
+| ⚠️ All Zeros (Suspicious) | 54 |
 | ❌ Mismatched vs Ledger | 0 |
-| 🔴 HTTP Errors / Exceptions | 1 |
+| 🔴 HTTP Errors / Exceptions | 4 |
 | ⏭️ Skipped | 0 |
 
 ## Ledger Control Values (Single Source of Truth)
@@ -77,36 +77,34 @@
 | 24 | `store.growth-engine.dashboard` | `s/{store_slug}/growth-engine/dashboard` |
 | 25 | `store.growth-engine.scorecard` | `s/{store_slug}/growth-engine/scorecard` |
 | 26 | `store.attributes.index` | `s/{store_slug}/attributes` |
-| 27 | `store.vensynq.money-pipeline` | `s/{store_slug}/vensynq/money-pipeline` |
-| 28 | `store.vensynq.payouts` | `s/{store_slug}/vensynq/payouts` |
-| 29 | `store.production.index` | `s/{store_slug}/inventory/production` |
-| 30 | `store.customers.create` | `s/{store_slug}/customers/create` |
-| 31 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
-| 32 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
-| 33 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
-| 34 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
-| 35 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
-| 36 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
-| 37 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
-| 38 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
-| 39 | `store.notifications.index` | `s/{store_slug}/notifications` |
-| 40 | `store.profile.edit` | `s/{store_slug}/profile` |
-| 41 | `store.returns.create` | `s/{store_slug}/returns/create` |
-| 42 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
-| 43 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
-| 44 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
-| 45 | `store.batches.index` | `s/{store_slug}/batches` |
-| 46 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
-| 47 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
-| 48 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
-| 49 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
-| 50 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
-| 51 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
-| 52 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
-| 53 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
-| 54 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
-| 55 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
-| 56 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
+| 27 | `store.production.index` | `s/{store_slug}/inventory/production` |
+| 28 | `store.customers.create` | `s/{store_slug}/customers/create` |
+| 29 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
+| 30 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
+| 31 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
+| 32 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
+| 33 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
+| 34 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
+| 35 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
+| 36 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
+| 37 | `store.notifications.index` | `s/{store_slug}/notifications` |
+| 38 | `store.profile.edit` | `s/{store_slug}/profile` |
+| 39 | `store.returns.create` | `s/{store_slug}/returns/create` |
+| 40 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
+| 41 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
+| 42 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
+| 43 | `store.batches.index` | `s/{store_slug}/batches` |
+| 44 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
+| 45 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
+| 46 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
+| 47 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
+| 48 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
+| 49 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
+| 50 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
+| 51 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
+| 52 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
+| 53 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
+| 54 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
 
 ### Zero-Page Financial Props Detail
 
@@ -256,19 +254,6 @@
 **`store.attributes.index`**
 ```
   settings.tax_rate: 0
-```
-
-**`store.vensynq.money-pipeline`**
-```
-  pipeline.gross_in_pipeline: 0
-  pipeline.awaiting_confirmation.amount: 0
-```
-
-**`store.vensynq.payouts`**
-```
-  settings.tax_rate: 0
-  pipeline.gross_in_pipeline: 0
-  pipeline.awaiting_confirmation.amount: 0
 ```
 
 **`store.production.index`**
@@ -424,6 +409,9 @@
 | Route | Code | Snippet |
 |-------|------|--------|
 | `store.growth-engine.show` | 404 |  |
+| `store.vensynq.health` | 404 |  |
+| `store.vensynq.money-pipeline` | 404 |  |
+| `store.vensynq.payouts` | 404 |  |
 
 ## Full Scan Results (248 routes)
 
@@ -445,7 +433,7 @@
 | `store.smart-capture.aliases` | ⚠️ ALL_ZEROS | 200 | `stats.total`=0.00 |
 | `store.trial.expired` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00 |
 | `store.notifications.plan.unread` | 📄 NON_JSON | 200 | – |
-| `store.admin.home` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.total_users`=2.00 |
+| `store.admin.home` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.total_users`=3.00 |
 | `store.admin.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.net_profit`=0.00, `stats.total_revenue`=0.00 (+17 more) |
 | `store.admin.settings` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00 |
 | `store.admin.users` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `staffData.sum_totalSales`=0.00, `staffData.total_totalSales`=0.00 (+2 more) |
@@ -555,9 +543,9 @@
 | `store.parties.ledger` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `party.opening_balance`=0.00, `party.current_balance`=0.00 (+11 more) |
 | `store.parties.show` | ↩ REDIRECT | 302 | – |
 | `store.expenses.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `expenses.total`=0.00, `stats.total`=0.00 (+5 more) |
-| `store.vensynq.health` | ✅ PASS | 200 | – |
-| `store.vensynq.money-pipeline` | ⚠️ ALL_ZEROS | 200 | `pipeline.gross_in_pipeline`=0.00, `pipeline.awaiting_confirmation.amount`=0.00 |
-| `store.vensynq.payouts` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `pipeline.gross_in_pipeline`=0.00, `pipeline.awaiting_confirmation.amount`=0.00 |
+| `store.vensynq.health` | 🔴 HTTP_ERROR | 404 | – |
+| `store.vensynq.money-pipeline` | 🔴 HTTP_ERROR | 404 | – |
+| `store.vensynq.payouts` | 🔴 HTTP_ERROR | 404 | – |
 | `store.payments.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `payments.data.sum_amount`=789,973.78, `payments.data.total_amount`=789,973.78 (+7 more) |
 | `store.payments.in` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `parties.sum_opening_balance`=0.00, `parties.total_opening_balance`=0.00 (+8 more) |
 | `store.payments.out` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `parties.sum_opening_balance`=0.00, `parties.total_opening_balance`=0.00 (+8 more) |
@@ -595,7 +583,7 @@
 | `store.accounting.pnl` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `incomeAccounts.sum_balance`=3,890,314.51, `incomeAccounts.total_balance`=3,890,314.51 (+7 more) |
 | `store.accounting.balance-sheet` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `assets.accounts.sum_balance`=18,346,966.54, `assets.accounts.total_balance`=18,346,966.54 (+10 more) |
 | `store.reports.dashboard` | ↩ REDIRECT | 302 | – |
-| `store.admin.panel` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.total_users`=2.00 |
+| `store.admin.panel` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.total_users`=3.00 |
 | `store.legacy.admin.data` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00 |
 | `store.legacy.admin.data.template` | ↩ REDIRECT | 302 | – |
 | `store.backups.index` | ↩ REDIRECT | 302 | – |

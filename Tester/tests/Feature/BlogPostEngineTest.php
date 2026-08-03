@@ -126,7 +126,7 @@ class BlogPostEngineTest extends TestCase
         $this->actingAs($admin);
 
         // CREATE
-        $this->post('/platform/blog-posts', [
+        $this->post(route('platform.blog-posts.store'), [
             'slug'         => 'admin-created-post',
             'title'        => 'Admin Created Post',
             'excerpt'      => 'Created through the platform panel.',
@@ -142,7 +142,7 @@ class BlogPostEngineTest extends TestCase
         $post = BlogPost::where('slug', 'admin-created-post')->firstOrFail();
 
         // UPDATE
-        $this->put("/platform/blog-posts/{$post->id}", [
+        $this->put(route('platform.blog-posts.update', $post->id), [
             'slug'         => 'admin-created-post',
             'title'        => 'Admin Updated Post',
             'excerpt'      => 'Updated excerpt.',
@@ -159,7 +159,7 @@ class BlogPostEngineTest extends TestCase
         ]);
 
         // DELETE
-        $this->delete("/platform/blog-posts/{$post->id}")->assertRedirect();
+        $this->delete(route('platform.blog-posts.destroy', $post->id))->assertRedirect();
 
         $this->assertDatabaseMissing('blog_posts', ['id' => $post->id]);
     }

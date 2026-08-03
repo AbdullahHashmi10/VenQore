@@ -33,6 +33,13 @@ class MigrationController extends Controller
         $fullPath = Storage::disk('local')->path($path);
 
         try {
+            if (!extension_loaded('pdo_sqlite') || !in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vyapar backup migration requires the pdo_sqlite PHP extension to be enabled in php.ini.'
+                ], 422);
+            }
+
             // Attempt to open SQLite connection
             // We use standard PDO. If file is encrypted with SQLCipher & header is misleading, this will fail.
             $pdo = new \PDO("sqlite:" . $fullPath);
@@ -106,6 +113,13 @@ class MigrationController extends Controller
 
         if (!file_exists($fullPath)) {
             return back()->withErrors(['error' => 'Migration file expired. Please upload again.']);
+        }
+
+        if (!extension_loaded('pdo_sqlite') || !in_array('sqlite', \PDO::getAvailableDrivers(), true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vyapar backup migration requires the pdo_sqlite PHP extension to be enabled in php.ini.'
+            ], 422);
         }
 
         try {

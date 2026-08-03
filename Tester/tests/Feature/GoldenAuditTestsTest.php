@@ -14,7 +14,7 @@ class GoldenAuditTestsTest extends TestCase
         putenv('APP_ENV=testing');
 
         // Run the seeder first to ensure clean state
-        $this->artisan('db:seed', ['--class' => 'GoldenAuditSeeder'])
+        $this->artisan('db:seed', ['--class' => 'GoldenAuditSeeder', '--force' => true])
             ->assertExitCode(0);
 
         // Run the ledger truth audit
