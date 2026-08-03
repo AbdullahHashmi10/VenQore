@@ -91,12 +91,58 @@ test('a non-owner cannot cancel the subscription', function () {
     $this->createTenantUser($tenant, 'manager');
     $this->actingAsTenantUser($tenant, 'manager');
 
+    // Cancel/resume are now gated TWICE, and the outer gate answers first:
+    //   1. route middleware `permission:admin.billing_store` -> 403
+    //   2. BillingController::cancelSubscription()'s owner-only check
+    //      -> back()->with('error', ...)
+    // A manager holds no billing permission, so the middleware rejects the
+    // request before the controller runs and the response is a hard 403 rather
+    // than the friendly redirect this test used to expect. 403 is the stricter
+    // outcome, so the security property is unchanged — only its shape is.
+    $this->post("/s/{$tenant->slug}/billing/cancel-subscription")
+        ->assertForbidden();
+
+    // Nothing may reach Lemon Squeezy on a rejected attempt.
+    Http::assertNothingSent();
+
+    // And the store must be left exactly as it was. The original test never
+    // checked this, so a rejection that still mutated local state would have
+    // passed.
+    $tenant->refresh();
+    expect($tenant->status)->toBe('active');
+    expect($tenant->lemon_squeezy_subscription_id)->toBe('77001');
+});
+
+test('the controller blocks a non-owner even when the permission gate lets them through', function () {
+    // Defence in depth. The middleware is a COARSE gate over a permission an
+    // admin can hand out from the staff screen, so it is BillingController's
+    // owner-only rule that actually protects the subscription. Without this
+    // test, granting one checkbox to a manager would silently hand them the
+    // cancel button and nothing in the suite would notice — the test above
+    // stops at the middleware and never reaches the controller.
+    Http::fake();
+
+    $tenant  = payingTenant($this);
+    $manager = $this->createTenantUser($tenant, 'manager');
+
+    // Explicitly grant the billing permission this manager would not normally
+    // hold. User::getPermissionsAttribute() prefers a non-empty pivot array
+    // over the config/permissions.php role map, so this clears the middleware.
+    \App\Models\TenantUser::where('tenant_id', $tenant->id)
+        ->where('user_id', $manager->id)
+        ->update(['permissions' => json_encode(['admin.billing_store'])]);
+
+    $this->actingAsTenantUserModel($manager, $tenant);
+
     $this->post("/s/{$tenant->slug}/billing/cancel-subscription")
         ->assertRedirect()
         ->assertSessionHas('error');
 
-    // Nothing may reach Lemon Squeezy on a rejected attempt.
     Http::assertNothingSent();
+
+    $tenant->refresh();
+    expect($tenant->status)->toBe('active');
+    expect($tenant->lemon_squeezy_subscription_id)->toBe('77001');
 });
 
 test('a store with no subscription is told there is nothing to cancel', function () {

@@ -7,6 +7,21 @@ use Tests\TestCase;
 
 class BarcodeSheetTest extends TestCase
 {
+    /**
+     * BarcodeToolController::sheet() returns a StreamedResponse (response()->
+     * streamDownload). Symfony's StreamedResponse holds no body string, so
+     * getContent() returns false — casting to '' — no matter how healthy the
+     * PDF is. Reading it that way asserts nothing about the product and fails
+     * even when the endpoint is perfect.
+     *
+     * streamedContent() runs the send callback and captures the real bytes,
+     * so every assertion below is made against the actual PDF payload.
+     */
+    private function pdfBody($response): string
+    {
+        return (string) ($response->streamedContent() ?: $response->getContent());
+    }
+
     public function test_thermal_preset_produces_a_pdf(): void
     {
         $response = $this->post(route('tools.barcode.sheet'), [
@@ -18,7 +33,7 @@ class BarcodeSheetTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
-        $this->assertStringStartsWith('%PDF', $response->streamedContent() ?: $response->getContent());
+        $this->assertStringStartsWith('%PDF', $this->pdfBody($response));
     }
 
     public function test_a4_sheet_preset_produces_a_pdf(): void
@@ -31,7 +46,7 @@ class BarcodeSheetTest extends TestCase
         ]);
 
         $response->assertOk();
-        $this->assertStringStartsWith('%PDF', $response->getContent());
+        $this->assertStringStartsWith('%PDF', $this->pdfBody($response));
     }
 
     public function test_unknown_preset_is_rejected(): void
@@ -76,7 +91,7 @@ class BarcodeSheetTest extends TestCase
         ]);
 
         $response->assertOk();
-        $this->assertStringStartsWith('%PDF', $response->getContent());
+        $this->assertStringStartsWith('%PDF', $this->pdfBody($response));
     }
 
     public function test_every_preset_builds_without_error(): void
@@ -90,7 +105,7 @@ class BarcodeSheetTest extends TestCase
             ]);
 
             $response->assertOk();
-            $this->assertStringStartsWith('%PDF', $response->getContent(), "Preset {$preset} did not produce a PDF.");
+            $this->assertStringStartsWith('%PDF', $this->pdfBody($response), "Preset {$preset} did not produce a PDF.");
         }
     }
 }

@@ -12,11 +12,11 @@
 #               T2 = consistency (cross-surface / service-backed comparison)
 #               T3 = health/structural (existence, wiring, architecture, docs)
 #
-# phpunit_test_methods_total: 1409
+# phpunit_test_methods_total: 1417
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 1409
+  phpunit_test_methods_total: 1417
   note: total = SUM of member test_methods (testX(), @test, #[Test], pest it/test).
 
 suites:
@@ -181,7 +181,7 @@ suites:
         oracle_tier: T2
   - id: Feature.Billing
     path: tests/Feature/Billing
-    test_methods: 40
+    test_methods: 41
     files: 5
     members:
       - file: tests/Feature/Billing/GeoPricingTest.php
@@ -191,7 +191,7 @@ suites:
         test_methods: 10
         oracle_tier: T2
       - file: tests/Feature/Billing/SubscriptionCancelTest.php
-        test_methods: 6
+        test_methods: 7
         oracle_tier: T2
       - file: tests/Feature/Billing/SubscriptionStatusMappingTest.php
         test_methods: 7
@@ -224,7 +224,7 @@ suites:
         oracle_tier: T2
   - id: Feature.Core
     path: tests/Feature/Core
-    test_methods: 30
+    test_methods: 31
     files: 11
     members:
       - file: tests/Feature/Core/BalanceConsistencyTest.php
@@ -258,7 +258,7 @@ suites:
         test_methods: 1
         oracle_tier: T3
       - file: tests/Feature/Core/SuiteIntegrityTest.php
-        test_methods: 4
+        test_methods: 5
         oracle_tier: T3
   - id: Feature.DemoStore
     path: tests/Feature/DemoStore
@@ -820,6 +820,14 @@ suites:
     members:
       - file: tests/Performance/SnapshotPerformanceTest.php
         test_methods: 1
+        oracle_tier: T2
+  - id: Routes
+    path: tests/Routes
+    test_methods: 6
+    files: 1
+    members:
+      - file: tests/Routes/FullRouteSweepTest.php
+        test_methods: 6
         oracle_tier: T2
   - id: Unit.Tools
     path: tests/Unit/Tools

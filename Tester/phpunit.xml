@@ -68,6 +68,12 @@
         <testsuite name="Performance">
             <directory>tests/Performance</directory>
         </testsuite>
+        <!-- Mirrors the Routes suite in FinalTester/phpunit.xml. Without it,
+             tests/Routes/FullRouteSweepTest.php is a live test file that no
+             testsuite claims, which SuiteIntegrityTest correctly reports. -->
+        <testsuite name="Routes">
+            <directory>tests/Routes</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -111,5 +117,19 @@
              vensynq.health/money-pipeline/payouts routes in the route sweep — not
              a route-ordering or method-name bug. -->
         <env name="VENSYNQ_ENABLED"           value="true"/>
+
+        <!-- Kept in step with FinalTester/phpunit.xml. ProvisionTenantJob::
+             resolvePlan() array_filter()s these before matching, so an unset
+             variant id can never map to a plan — leaving the billing plan tests
+             unable to pass. Fixtures, not secrets. -->
+        <env name="LEMON_SQUEEZY_STARTER_VARIANT_ID"         value="900001"/>
+        <env name="LEMON_SQUEEZY_GROWTH_VARIANT_ID"          value="900002"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_VARIANT_ID"        value="900003"/>
+        <env name="LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID"  value="900011"/>
+        <env name="LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID"   value="900012"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID" value="900013"/>
+        <env name="LEMON_SQUEEZY_STARTER_LTD_VARIANT_ID"     value="900021"/>
+        <env name="LEMON_SQUEEZY_GROWTH_LTD_VARIANT_ID"      value="900022"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_LTD_VARIANT_ID"    value="900023"/>
     </php>
 </phpunit>

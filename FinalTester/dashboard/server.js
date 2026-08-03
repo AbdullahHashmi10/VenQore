@@ -279,6 +279,34 @@ function preflight() {
 }
 
 // ---------------------------------------------------------------------------
+// Source sync
+//
+// FinalTester/tests is a MATERIALISED VIEW of Tester/tests (see
+// FinalTester/Scripts/sync.php and FinalTester/bootstrap.php). Scripts/run.bat
+// has always run the sync as step 2; this dashboard did not, so a run launched
+// from the browser executed whatever happened to be sitting in FinalTester/tests
+// while every edit made to the real source tree was silently ignored.
+//
+// That is how the 2026-08-03 10:07 run reported failures (I-05's TXN- filter,
+// S-054, SuiteIntegrityTest) whose fixes had already been written to
+// Tester/tests, and how 31 recovered marketing tests sat on disk without ever
+// being counted. Both execution paths must sync. Do not remove this.
+// ---------------------------------------------------------------------------
+function syncSources() {
+  try {
+    const out = execFileSync(config.phpBin, [path.join(FINAL_ROOT, 'Scripts', 'sync.php'), '--quiet'], {
+      cwd: PROJECT_ROOT,
+      encoding: 'utf8',
+      timeout: 120000
+    });
+    return { ok: true, output: (out || '').trim() };
+  } catch (e) {
+    const out = [e.stdout, e.stderr].filter(Boolean).join('\n').trim();
+    return { ok: false, output: out || e.message };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Expected-count discovery
 // ---------------------------------------------------------------------------
 function discoverExpected(configFile, testsuite) {
@@ -395,6 +423,18 @@ function runTests(wss, opts) {
     broadcast(wss, { type: 'blocked', report: problems });
     console.log('[preflight] blocked the run:\n' + problems);
     return;                            // nothing executes
+  }
+
+  broadcast(wss, { type: 'phase', phase: 'syncing', message: 'Syncing FinalTester/tests from the source suites...' });
+
+  const sync = syncSources();
+
+  if (!sync.ok) {
+    // A stale copy silently reports results about code that no longer exists,
+    // which is worse than not running at all. Refuse rather than guess.
+    broadcast(wss, { type: 'blocked', report: 'FinalTester/tests could not be synced from Tester/tests, so the run would execute a stale copy.\n\n' + sync.output });
+    console.log('[sync] blocked the run:\n' + sync.output);
+    return;
   }
 
   broadcast(wss, { type: 'phase', phase: 'discovering', message: 'Counting tests (pest --list-tests-xml)...' });

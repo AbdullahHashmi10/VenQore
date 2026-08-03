@@ -80,9 +80,14 @@ $finalTesterOwned = [
     // own uses(). Both produce a hard abort. Never overwrite this.
     'Pest.php',
 
-    // Written for FinalTester. No upstream copy exists.
-    'Routes/FullRouteSweepTest.php',
-
+    // NOTE: 'Routes/FullRouteSweepTest.php' USED to be listed here as
+    // FinalTester-owned. It has been given a proper source at
+    // Tester/tests/Routes/FullRouteSweepTest.php and now syncs like every other
+    // test. Owning it here meant the Phase-B registry generator (which scans
+    // Tester/tests) could never see it, so RegistryDriftTest reported it as
+    // permanent, unfixable drift on every single run. A test with no source is
+    // also uneditable in the normal workflow: edits to it would be silently
+    // discarded on the next sync.
     // FinalTester-specific dashboard support code (not a test, and not a copy
     // of anything upstream) — the ##venqore[...] live metrics stream the run
     // output at the top of this session relies on. Must survive the pass-3

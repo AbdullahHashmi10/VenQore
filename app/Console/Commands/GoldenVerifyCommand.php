@@ -387,6 +387,12 @@ class GoldenVerifyCommand extends Command
         $badReversals = DB::table('journal_entries')
             ->where('tenant_id', $this->tenantId)
             ->where('is_reversed', true)
+            // A mirror-image reversal entry also carries is_reversed=1 (see
+            // AccountingService::reverseEntry) but nothing reversed *it*, so it
+            // legitimately has no reversed_by pointer. Only originals need one.
+            ->where(function ($q) {
+                $q->where('is_reversal', false)->orWhereNull('is_reversal');
+            })
             ->whereNull('reversed_by')
             ->count();
 

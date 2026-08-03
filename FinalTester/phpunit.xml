@@ -111,5 +111,25 @@
              defaults to false. Root cause of t16_universal_callback's 404 and the
              vensynq.health/money-pipeline/payouts 404s in the route sweep. -->
         <env name="VENSYNQ_ENABLED"        value="true"/>
+
+        <!-- Lemon Squeezy variant IDs.
+             ProvisionTenantJob::resolvePlan() maps a webhook's variant_id onto a
+             plan name by comparing it against these config values, and it
+             array_filter()s the list first so that an UNSET variant id can never
+             match (correct: null must not equal null and upgrade everyone).
+             With none of these set, resolvePlan() could never return anything but
+             the fallback, so 'a trialling checkout provisions the store as trial'
+             asserted plan === 'business' against a value that was structurally
+             unreachable — a test that could not pass however healthy the code was.
+             These are fixtures, not secrets; the real IDs live in .env. -->
+        <env name="LEMON_SQUEEZY_STARTER_VARIANT_ID"         value="900001"/>
+        <env name="LEMON_SQUEEZY_GROWTH_VARIANT_ID"          value="900002"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_VARIANT_ID"        value="900003"/>
+        <env name="LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID"  value="900011"/>
+        <env name="LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID"   value="900012"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID" value="900013"/>
+        <env name="LEMON_SQUEEZY_STARTER_LTD_VARIANT_ID"     value="900021"/>
+        <env name="LEMON_SQUEEZY_GROWTH_LTD_VARIANT_ID"      value="900022"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_LTD_VARIANT_ID"    value="900023"/>
     </php>
 </phpunit>

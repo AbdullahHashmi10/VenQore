@@ -31,6 +31,25 @@ class SuiteIntegrityTest extends TestCase
         return dirname(__DIR__, 3);
     }
 
+    /**
+     * The project root, resolved identically from EITHER tree.
+     *
+     * This file lives at <root>/Tester/tests/Feature/Core/ during a Tester run
+     * and at <root>/FinalTester/tests/Feature/Core/ during a FinalTester run
+     * (FinalTester/tests is a synced copy — see FinalTester/Scripts/sync.php),
+     * so dirname(__DIR__, 4) lands on <root> in both cases while
+     * testerRoot() deliberately does not.
+     *
+     * Anything that refers to a location OUTSIDE the current tree must resolve
+     * from here. Resolving it from testerRoot() is what made the archive guard
+     * below look for FinalTester/Golden/tests — a path that has never existed —
+     * and fail for a reason that had nothing to do with what it guards.
+     */
+    private function projectRoot(): string
+    {
+        return dirname(__DIR__, 4);
+    }
+
     /** Recursively collect files matching a glob under a directory. */
     private function rglob(string $pattern, int $flags = 0): array
     {
@@ -132,6 +151,74 @@ class SuiteIntegrityTest extends TestCase
             "Duplicate fully-qualified class names on the test path (fatal 'Cannot redeclare class' risk):\n"
                 . implode("\n", $lines)
         );
+    }
+
+    /**
+     * No test file may sit outside the live tree where PHPUnit cannot see it.
+     *
+     * RESTORED 2026-08-03. This guard was deleted in the previous pass because
+     * it asserted on FinalTester/Golden/tests, which does not exist — but the
+     * path was simply mis-resolved (see projectRoot() above), not the guard's
+     * premise. Deleting it removed the one check that notices a test file
+     * parked somewhere PHPUnit never loads, which is exactly how six marketing
+     * test files sat on disk uncounted. Fix the path, keep the guard.
+     */
+    public function test_no_test_files_hide_outside_the_live_tree(): void
+    {
+        $archive = $this->projectRoot() . '/Tester/Golden/tests';
+
+        $this->assertDirectoryExists(
+            $archive,
+            'Expected ' . $archive . ' to exist as the archived dead-copy location this guard '
+                . 'watches. If it was intentionally removed, delete this test rather than letting '
+                . 'it silently assert nothing.'
+        );
+
+        // Nothing executable may live in the archive. A *Test.php here is
+        // invisible to every phpunit.xml yet looks like real coverage to a human
+        // reading the directory.
+        $stranded = $this->rglob($archive . '/*Test.php');
+
+        $this->assertSame(
+            [],
+            array_map(fn ($f) => str_replace('\\', '/', $f), $stranded),
+            "Test files are parked in the archived tree where no suite can load them.\n"
+                . "Move them into Tester/tests/ (the source suite) or delete them outright."
+        );
+
+        // And the two trees must agree. FinalTester/tests is a materialised view
+        // of Tester/tests; if it has drifted, the dashboard is reporting on code
+        // that is not the code under source control.
+        $source = $this->projectRoot() . '/Tester/tests';
+        $mirror = $this->projectRoot() . '/FinalTester/tests';
+
+        if (is_dir($mirror)) {
+            $rel = function (array $files, string $base): array {
+                $out = [];
+                foreach ($files as $f) {
+                    $out[] = ltrim(str_replace('\\', '/', substr($f, strlen($base))), '/');
+                }
+                sort($out);
+                return $out;
+            };
+
+            // Deliberately one-directional: source MINUS mirror. FinalTester may
+            // legitimately hold extra files it owns outright (see
+            // $finalTesterOwned in sync.php); what must never happen is a source
+            // test the canonical suite cannot see.
+            $missing = array_values(array_diff(
+                $rel($this->rglob($source . '/*Test.php'), $source),
+                $rel($this->rglob($mirror . '/*Test.php'), $mirror)
+            ));
+
+            $this->assertSame(
+                [],
+                $missing,
+                "These test files exist in Tester/tests but NOT in FinalTester/tests, so the "
+                    . "canonical suite never runs them:\n  " . implode("\n  ", $missing)
+                    . "\n\nRun: php FinalTester/Scripts/sync.php"
+            );
+        }
     }
 
     public function test_phpunit_wires_bootstrap_and_run_ledger(): void

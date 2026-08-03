@@ -12,7 +12,7 @@ use Tests\TestCase;
  * snapshot, the stash, or any release zip.
  *
  * It WAS recoverable in one sense: the append-only run ledger under
- * Tester/VerificationCenter/runs/*/tests.jsonl records the name of every test
+ * Tester/VerificationCenter/runs/<run_id>/tests.jsonl records the name of every test
  * that has ever executed. All nine method names below were recovered from
  * there and reimplemented against the current controller.
  *

@@ -220,22 +220,27 @@ class AccountingService
                 ];
             })->toArray();
 
-            // createEntry() handles accounts.balance updates for the reversal lines
+            // createEntry() handles accounts.balance updates for the reversal lines.
             //
-            // NOTE: the NEW reversal entry itself must NOT be flagged is_reversed=1 —
-            // that field means "this entry's effect has been undone", which is false
-            // for the entry doing the undoing. Flagging it that way (the previous
-            // behavior) made getBalance()'s `WHERE is_reversed = 0` filter silently
-            // exclude the reversal's own debit/credit lines from every balance query,
-            // and left reverses_entry_id/is_reversal (added in the audit-columns
-            // migration specifically for this link) permanently null — which is why
-            // F-17's join on reverses_entry_id never found anything.
+            // CONVENTION (do not "fix" this — it is load-bearing across the whole app):
+            // BOTH the original AND its mirror-image reversal carry is_reversed = 1.
+            // Every reporting query in this codebase filters `WHERE is_reversed = 0`
+            // (ReportController, DashboardController, PartyController, LedgerService,
+            // getBalance() below, ~40 call sites), and the semantics that filter relies
+            // on are "this row is part of an undone pair, ignore it" — not "this row was
+            // itself undone". Flagging only the original leaves the mirror image visible,
+            // so every balance nets to MINUS the original instead of zero.
+            // ExpenseController::update() and PurchaseController use the same convention.
+            //
+            // is_reversal / reverses_entry_id are the *audit link* columns and are set in
+            // addition to (never instead of) is_reversed, so the pair can be joined.
             $reversalEntry = $this->createEntry([
                 'date'              => now()->toDateString(),
                 'reference_type'    => 'reversal',
                 'reference'         => $journalEntryId,
                 'description'       => "Reversal of entry {$journalEntryId}: {$reason}",
                 'party_id'          => $original->party_id ?? null,
+                'is_reversed'       => 1,
                 'is_reversal'       => true,
                 'reverses_entry_id' => $journalEntryId,
                 'source_type'       => $original->source_type ?? null,
