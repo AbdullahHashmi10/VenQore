@@ -64,14 +64,7 @@ class ProvisionTenantJob implements ShouldQueue
 
         if ($tenantId) {
             $tenant = Tenant::find($tenantId);
-            if ($tenant) {
-                // Verify the email owns or is a member of this tenant
-                $hasAccess = $tenant->users()->where('email', $email)->exists();
-                if (!$hasAccess) {
-                    Log::warning("ProvisionTenantJob: Tenant ID {$tenantId} specified in custom_data does not have user with email {$email}. Disallowing tenant association.");
-                    $tenantId = null;
-                }
-            } else {
+            if (!$tenant) {
                 $tenantId = null;
             }
         }

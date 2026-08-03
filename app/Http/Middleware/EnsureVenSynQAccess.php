@@ -36,7 +36,7 @@ class EnsureVenSynQAccess
             // Database not ready or migration running
         }
 
-        $enabled = $dbValue !== null ? (bool) $dbValue : (bool) config('vensynq.enabled', false);
+        $enabled = $dbValue !== null ? ((int)$dbValue === 1 || $dbValue === 'true' || $dbValue === true) : (bool) config('vensynq.enabled', false);
 
         if (!$enabled) {
             abort(404);

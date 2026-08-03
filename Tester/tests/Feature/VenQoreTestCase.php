@@ -228,7 +228,7 @@ abstract class VenQoreTestCase extends TestCase
      */
     protected function storeUrl(Tenant $tenant, string $path): string
     {
-        return "/s/{$tenant->slug}/{$path}";
+        return '/s/' . $tenant->slug . '/' . ltrim($path, '/');
     }
 
     // ─── Seeder Helpers ───────────────────────────────────────────────────────
