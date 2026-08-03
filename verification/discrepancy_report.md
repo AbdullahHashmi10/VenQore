@@ -1,6 +1,6 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-08-03 15:59:03 PKT  
+> **Generated:** 2026-08-03 16:32:36 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
 > **Audit Date:** 2026-08-03  
 > **Audit Period Seeded:** 2025-01-01 → 2026-08-03  
@@ -10,7 +10,7 @@
 | Status | Count |
 |--------|-------|
 | 🔢 Total Routes Scanned | **248** |
-| ✅ Passed | 190 |
+| ✅ Passed | 186 |
 | ⚠️ All Zeros (Suspicious) | 54 |
 | ❌ Mismatched vs Ledger | 0 |
 | 🔴 HTTP Errors / Exceptions | 4 |
