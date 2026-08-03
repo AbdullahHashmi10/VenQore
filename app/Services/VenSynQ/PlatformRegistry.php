@@ -86,13 +86,35 @@ class PlatformRegistry
     /** @return array<int, string> */
     public function enabled(): array
     {
-        $allow = array_map('strtolower', (array) config('vensynq.enabled_platforms', ['amazon', 'woocommerce']));
-        return array_values(array_intersect(array_keys(self::MAP), $allow));
+        return array_values(array_filter($this->supported(), fn($p) => $this->isEnabled($p)));
     }
 
     public function isEnabled(string $platform): bool
     {
-        return in_array($this->normalize($platform), $this->enabled(), true);
+        $key = $this->normalize($platform);
+        if (!$this->supports($key)) {
+            return false;
+        }
+
+        $dbFlags = \Illuminate\Support\Facades\Cache::remember('vensynq_platform_flags', 60, function () {
+            try {
+                return \App\Models\Setting::withoutGlobalScopes()
+                    ->whereNull('tenant_id')
+                    ->where('key', 'like', 'vensynq_platform_%')
+                    ->pluck('value', 'key')
+                    ->toArray();
+            } catch (\Throwable $e) {
+                return [];
+            }
+        });
+
+        $dbKey = 'vensynq_platform_' . $key;
+        if (array_key_exists($dbKey, $dbFlags)) {
+            return (int) $dbFlags[$dbKey] === 1 || $dbFlags[$dbKey] === '1' || $dbFlags[$dbKey] === 'true';
+        }
+
+        $allow = array_map('strtolower', (array) config('vensynq.enabled_platforms', ['amazon', 'woocommerce']));
+        return in_array($key, $allow, true);
     }
 
     public function label(string $platform): string
