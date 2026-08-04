@@ -302,7 +302,40 @@ class Phase2MeteringTest extends TestCase
         $this->assertNotNull($response->json('job_id'));
         \Illuminate\Support\Facades\Queue::assertPushed(ProcessSmartCaptureJob::class);
     }
+
+    /** @test */
+    public function it_provisions_topup_pages_on_order_created_webhook()
+    {
+        $topupVariantId = '1740650';
+        config(['services.lemon_squeezy.ai_topup_addon_id' => $topupVariantId]);
+
+        $initialLimit = $this->tenant->ai_pages_limit;
+
+        $payload = [
+            'meta' => [
+                'event_name' => 'order_created',
+                'custom_data' => [
+                    'tenant_id'  => $this->tenant->id,
+                    'variant_id' => $topupVariantId,
+                ],
+            ],
+            'data' => [
+                'attributes' => [
+                    'first_order_item' => [
+                        'variant_id' => (int) $topupVariantId,
+                    ],
+                ],
+            ],
+        ];
+
+        $job = new \App\Jobs\ProvisionTenantJob($payload);
+        $job->handle();
+
+        $this->tenant->refresh();
+        $this->assertEquals($initialLimit + 200, $this->tenant->ai_pages_limit);
+    }
 }
+
 
 
 

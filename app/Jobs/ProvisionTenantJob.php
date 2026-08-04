@@ -47,7 +47,7 @@ class ProvisionTenantJob implements ShouldQueue
     {
         $email          = data_get($this->payload, 'data.attributes.user_email') ?? data_get($this->payload, 'user_email') ?? data_get($this->payload, 'attributes.user_email');
         $name           = data_get($this->payload, 'data.attributes.user_name') ?? data_get($this->payload, 'user_name') ?? data_get($this->payload, 'attributes.user_name') ?? 'Valued Customer';
-        $variantId      = data_get($this->payload, 'data.attributes.variant_id') ?? data_get($this->payload, 'variant_id') ?? data_get($this->payload, 'attributes.variant_id');
+        $variantId      = data_get($this->payload, 'data.attributes.variant_id') ?? data_get($this->payload, 'variant_id') ?? data_get($this->payload, 'attributes.variant_id') ?? data_get($this->payload, 'meta.custom_data.variant_id') ?? data_get($this->payload, 'custom_data.variant_id') ?? data_get($this->payload, 'data.attributes.first_order_item.variant_id');
         $productName    = data_get($this->payload, 'data.attributes.product_name') ?? data_get($this->payload, 'product_name') ?? data_get($this->payload, 'attributes.product_name');
         $orderId        = data_get($this->payload, 'data.attributes.order_id') ?? data_get($this->payload, 'order_id') ?? data_get($this->payload, 'attributes.order_id');
         $customerId     = data_get($this->payload, 'data.attributes.customer_id') ?? data_get($this->payload, 'customer_id') ?? data_get($this->payload, 'attributes.customer_id');
@@ -76,6 +76,7 @@ class ProvisionTenantJob implements ShouldQueue
                     (string) config('services.lemon_squeezy.ai_pro_addon_id'),
                     (string) config('services.lemon_squeezy.ai_ultimate_addon_id'),
                     (string) config('services.lemon_squeezy.ai_byok_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_topup_addon_id'),
                 ]);
 
                 $variantIdStr = $variantId !== null ? (string)$variantId : '';

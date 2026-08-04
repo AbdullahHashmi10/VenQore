@@ -73,6 +73,7 @@ return [
         'ai_pro_addon_id'             => env('LEMON_SQUEEZY_AI_PRO_ADDON_ID'),
         'ai_ultimate_addon_id'        => env('LEMON_SQUEEZY_AI_ULTIMATE_ADDON_ID'),
         'ai_byok_addon_id'            => env('LEMON_SQUEEZY_AI_BYOK_ADDON_ID'),
+        'ai_topup_addon_id'           => env('LEMON_SQUEEZY_AI_TOPUP_ADDON_ID'),
 
         // Onboarding Upload Service
         'upload_service_variant_id'   => env('LEMON_SQUEEZY_UPLOAD_SERVICE_VARIANT_ID'),
