@@ -212,6 +212,7 @@ class HandleInertiaRequests extends Middleware
             })(),
             'report_tiers' => \App\Services\ReportTierGate::allTiers(),
             'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
+            'pricing' => config('pricing'),
         ];
 
         return $shared;

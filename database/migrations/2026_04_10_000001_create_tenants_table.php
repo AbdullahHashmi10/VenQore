@@ -61,8 +61,8 @@ return new class extends Migration
                 $table->string('subdomain')->unique();   // shop-name (without .venqore.com)
 
                 // Subscription
-                $table->enum('plan', ['starter', 'growth', 'business'])->default('starter');
-                $table->enum('status', ['trial', 'active', 'suspended', 'cancelled'])->default('trial');
+                $table->string('plan', 50)->default('trial');
+                $table->string('status', 50)->default('trial');
                 $table->timestamp('trial_ends_at')->nullable();
                 $table->timestamp('subscription_ends_at')->nullable();
 

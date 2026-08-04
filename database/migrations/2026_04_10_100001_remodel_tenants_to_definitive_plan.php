@@ -89,8 +89,8 @@ return new class extends Migration
         });
 
         if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE tenants MODIFY COLUMN `plan` ENUM('trial','starter','growth','business','ltd') NOT NULL DEFAULT 'trial'");
-            DB::statement("ALTER TABLE tenants MODIFY COLUMN `status` ENUM('trial','active','suspended','cancelled') NOT NULL DEFAULT 'trial'");
+            DB::statement("ALTER TABLE tenants MODIFY COLUMN `plan` VARCHAR(100) NOT NULL DEFAULT 'trial'");
+            DB::statement("ALTER TABLE tenants MODIFY COLUMN `status` VARCHAR(50) NOT NULL DEFAULT 'trial'");
         }
 
         Schema::table('tenants', function (Blueprint $table) {

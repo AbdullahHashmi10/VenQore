@@ -10,9 +10,32 @@ class PlanFeatureMatrixSeeder extends Seeder
     public function run(): void
     {
         $planSlugs = ['trial', 'counter', 'starter', 'growth', 'business', 'ltd_1', 'ltd_2', 'ltd_3'];
+        $pricingConfig = config('pricing.plans', []);
         
+        $websiteId = DB::table('platforms')->where('slug', 'website')->value('id') ?? 1;
+        $appsumoId = DB::table('platforms')->where('slug', 'appsumo')->value('id') ?? 2;
+
         $planIds = [];
         foreach ($planSlugs as $slug) {
+            $planInfo = $pricingConfig[$slug] ?? null;
+            $name = $planInfo['name'] ?? ucfirst($slug);
+            $priceMonthly = $planInfo['price_monthly'] ?? 0;
+            $priceAnnual = $planInfo['price_annual'] ?? 0;
+            $isVisible = !str_starts_with($slug, 'ltd_');
+            $platformId = str_starts_with($slug, 'ltd_') ? $appsumoId : $websiteId;
+
+            DB::table('plans')->updateOrInsert(
+                ['slug' => $slug],
+                [
+                    'platform_id'         => $platformId,
+                    'name'                => $name,
+                    'price_monthly'       => $priceMonthly,
+                    'price_annual'        => $priceAnnual,
+                    'is_visible'          => $isVisible,
+                    'updated_at'          => now(),
+                ]
+            );
+
             $planIds[$slug] = DB::table('plans')->where('slug', $slug)->value('id');
         }
 
