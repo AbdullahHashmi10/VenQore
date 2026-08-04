@@ -11,6 +11,7 @@ use App\Services\PlanGate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class Phase6VenSynQTest extends TestCase
@@ -95,8 +96,9 @@ class Phase6VenSynQTest extends TestCase
     /** @test */
     public function it_validates_and_generates_checkout_url_for_amazon_and_woocommerce_addons()
     {
-        \Illuminate\Support\Facades\Http::fake([
-            'https://api.lemonsqueezy.com/v1/checkouts' => \Illuminate\Support\Facades\Http::response([
+        // Production-path HTTP test with NO middleware bypassed
+        Http::fake([
+            'https://api.lemonsqueezy.com/v1/checkouts' => Http::response([
                 'data' => [
                     'attributes' => [
                         'url' => 'https://checkout.lemonsqueezy.com/buy/mock-checkout-url',
@@ -112,9 +114,8 @@ class Phase6VenSynQTest extends TestCase
 
         app()->instance('current.tenant', $this->tenant);
 
-        // Test Amazon Add-on Checkout Validation
-        $responseAmazon = $this->withoutMiddleware()
-            ->actingAs($this->user)
+        // Test Amazon Add-on Checkout via real HTTP stack (no withoutMiddleware)
+        $responseAmazon = $this->actingAs($this->user)
             ->postJson("/s/{$this->tenant->slug}/billing/checkout-addon", [
                 'addon_type' => 'sync_amazon',
             ]);
@@ -122,9 +123,8 @@ class Phase6VenSynQTest extends TestCase
         $responseAmazon->assertStatus(200)
             ->assertJson(['url' => 'https://checkout.lemonsqueezy.com/buy/mock-checkout-url']);
 
-        // Test WooCommerce Add-on Checkout Validation
-        $responseWoo = $this->withoutMiddleware()
-            ->actingAs($this->user)
+        // Test WooCommerce Add-on Checkout via real HTTP stack (no withoutMiddleware)
+        $responseWoo = $this->actingAs($this->user)
             ->postJson("/s/{$this->tenant->slug}/billing/checkout-addon", [
                 'addon_type' => 'sync_woocommerce',
             ]);
@@ -134,22 +134,23 @@ class Phase6VenSynQTest extends TestCase
     }
 
     /** @test */
-    public function it_enforces_vensynq_access_middleware_gate()
+    public function it_blocks_unentitled_tenant_from_accessing_vensynq_dashboard_end_to_end()
     {
+        // True E2E test through the full real middleware stack (no withoutMiddleware)
         Config::set('vensynq.enabled', true);
         app()->instance('current.tenant', $this->tenant);
 
         // Starter plan by default has vensync_command = 0 -> expect 403
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        $middleware = new EnsureVenSynQAccess();
-        $middleware->handle(request(), function () {
-            return response('OK');
-        });
+        $response = $this->actingAs($this->user)
+            ->get("/s/{$this->tenant->slug}/vensynq");
+
+        $response->assertStatus(403);
     }
 
     /** @test */
-    public function it_allows_vensynq_access_when_entitlement_override_exists()
+    public function it_allows_entitled_tenant_to_access_vensynq_dashboard_end_to_end()
     {
+        // True E2E test through the full real middleware stack (no withoutMiddleware)
         Config::set('vensynq.enabled', true);
         app()->instance('current.tenant', $this->tenant);
 
@@ -164,12 +165,10 @@ class Phase6VenSynQTest extends TestCase
 
         \App\Services\PlanRepository::invalidateTenantCache($this->tenant->id);
 
-        $middleware = new EnsureVenSynQAccess();
-        $response = $middleware->handle(request(), function () {
-            return response('OK');
-        });
+        $response = $this->actingAs($this->user)
+            ->get("/s/{$this->tenant->slug}/vensynq");
 
-        $this->assertEquals(200, $response->getStatusCode());
+        $response->assertStatus(200);
     }
 
     /** @test */
