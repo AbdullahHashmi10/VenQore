@@ -385,7 +385,7 @@ class SmartCaptureController extends Controller
                     $unitPrice = round(((float) $item['line_total']) / $qty, 4);
                 }
 
-                $matches = $this->fuzzyMatchService->matchProduct($itemName, $item['matched_sku'] ?? null);
+                $matches = $this->fuzzyMatchService->matchProduct($itemName);
 
                 $bestMatch  = $matches[0] ?? null;
                 $confidence = $bestMatch['confidence'] ?? 0;
@@ -407,7 +407,7 @@ class SmartCaptureController extends Controller
                     // How sure the model was that it READ this line correctly —
                     // distinct from how sure we are which product it maps to.
                     'read_confidence' => isset($item['confidence']) ? (int) $item['confidence'] : null,
-                    'needs_review' => (bool) ($item['needs_review'] ?? false),
+                    'needs_review' => (isset($item['confidence']) && (int) $item['confidence'] < 80),
                     'learned'      => $isLearned,
                     'match_reason' => $bestMatch['reason'] ?? null,
                     'product_id'   => $productId,
@@ -464,6 +464,7 @@ class SmartCaptureController extends Controller
                     'api_requests'  => $this->extractionService->lastRequestCount,
                     'model'         => $this->extractionService->lastModelUsed,
                     'tokens'        => $this->extractionService->lastUsage,
+                    'learned_lines' => $learnedCount,
                 ],
             ];
 

@@ -18,6 +18,7 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\SmartCaptureAlias;
 use App\Models\Warehouse;
+use App\Services\SmartCapture\LearningService;
 use Tests\Feature\VenQoreTestCase;
 
 uses(VenQoreTestCase::class);
@@ -219,7 +220,7 @@ test('a learned wording is pre-selected at full confidence on the next scan', fu
             'action' => 'purchase',
             'party'  => null,
             // Deliberately NOT a catalog name, and no SKU: only the memory can resolve it.
-            'items'  => [['name' => 'col 1.5', 'qty' => 6, 'unit_price' => 180.00, 'matched_sku' => null]],
+            'items'  => [['name' => 'col 1.5', 'qty' => 6, 'unit_price' => 180.00]],
         ]), 200),
     ]);
 

@@ -874,7 +874,37 @@ class AiExtractionService
             throw new \Exception('The AI response could not be read as structured data. Try scanning again with a clearer photo.');
         }
 
-        return $decoded;
+        return $this->normalizeTerseResult($decoded);
+    }
+
+    /**
+     * Map short terse schema keys (a, pt, d, rf, dc, it, n, q, p, t, sc, c)
+     * back to normalized internal shape.
+     */
+    private function normalizeTerseResult(array $data): array
+    {
+        $itemsRaw = $data['it'] ?? $data['items'] ?? [];
+        $items = [];
+
+        foreach ($itemsRaw as $item) {
+            $items[] = [
+                'name'          => $item['n'] ?? $item['name'] ?? '',
+                'qty'           => isset($item['q']) ? (float) $item['q'] : (isset($item['qty']) ? (float) $item['qty'] : 1.0),
+                'unit_price'    => isset($item['p']) ? (float) $item['p'] : (isset($item['unit_price']) ? (float) $item['unit_price'] : null),
+                'line_total'    => isset($item['t']) ? (float) $item['t'] : (isset($item['line_total']) ? (float) $item['line_total'] : null),
+                'supplier_code' => $item['sc'] ?? $item['supplier_code'] ?? null,
+                'confidence'    => (int) ($item['c'] ?? $item['confidence'] ?? 80),
+            ];
+        }
+
+        return [
+            'action'              => $data['a'] ?? $data['action'] ?? 'purchase',
+            'party'               => $data['pt'] ?? $data['party'] ?? null,
+            'date'                => $data['d'] ?? $data['date'] ?? null,
+            'reference'           => $data['rf'] ?? $data['reference'] ?? null,
+            'document_confidence' => (int) ($data['dc'] ?? $data['document_confidence'] ?? 80),
+            'items'               => $items,
+        ];
     }
 
     private function buildPrompt(string $inputType, ?string $targetType, ?string $customCommand, array $context): string
@@ -888,22 +918,21 @@ class AiExtractionService
         $prompt = "You are a precise data extraction engine for a retail POS and ERP system.\n"
             . $sourceDescription . "\n"
             . "Return ONLY a valid JSON object. No explanation. No markdown fences.\n"
-            . "Output structure (use null for anything not present — NEVER invent data):\n"
+            . "Output structure using terse short keys:\n"
             . "{\n"
-            . "  \"action\": \"purchase\" | \"sale\" | \"expense\" | \"return\" | \"proposal\" | \"pre_invoice\" | \"pre_purchase\" | \"recurring_invoice\" | \"purchase_return\",\n"
-            . "  \"party\": \"supplier or customer name, or null\",\n"
-            . "  \"date\": \"YYYY-MM-DD or null\",\n"
-            . "  \"reference\": \"invoice/bill/receipt number or null\",\n"
-            . "  \"expense_category\": \"category name if this is an expense, else null\",\n"
-            . "  \"notes\": \"any other important info (payment terms, discounts mentioned, etc.) or null\",\n"
-            . "  \"document_confidence\": 0-100 — how legible and complete the source was overall,\n"
-            . "  \"items\": [\n"
+            . "  \"a\": \"purchase\" | \"sale\" | \"expense\" | \"return\" | \"proposal\" | \"pre_invoice\" | \"pre_purchase\" | \"recurring_invoice\" | \"purchase_return\",\n"
+            . "  \"pt\": \"supplier or customer name, or null\",\n"
+            . "  \"d\": \"YYYY-MM-DD or null\",\n"
+            . "  \"rf\": \"invoice/bill/receipt number or null\",\n"
+            . "  \"dc\": 0-100 — document confidence,\n"
+            . "  \"it\": [\n"
             . "    {\n"
-            . "      \"name\": \"item name as written/spoken\",\n"
-            . "      \"qty\": number,\n"
-            . "      \"unit_price\": number or null,\n"
-            . "      \"line_total\": number or null,\n"
-            . "      \"confidence\": 0-100 — how sure you are you read THIS line correctly\n"
+            . "      \"n\": \"item name as written\",\n"
+            . "      \"q\": number,\n"
+            . "      \"p\": number or null,\n"
+            . "      \"t\": number or null,\n"
+            . "      \"sc\": supplier item code or null,\n"
+            . "      \"c\": 0-100 — confidence\n"
             . "    }\n"
             . "  ]\n"
             . "}\n\n"
@@ -920,7 +949,7 @@ class AiExtractionService
             . "HANDWRITING PROTOCOL (apply to every handwritten source):\n"
             . "1. Establish the column layout first — most handwritten bills are [item] [qty] [rate] [amount], but some are [item] [amount] only. Decide which before reading values.\n"
             . "2. Read the whole column top-to-bottom before committing to any digit. A writer's '7' is consistent down the page; use their other digits as a key.\n"
-            . "3. Arithmetic is your proof-reader. For each row check qty x unit_price = line_total. If it does not hold, re-read the least legible of the three numbers and correct it so the row balances. Only if it still cannot balance, keep your best reading and set needs_review = true.\n"
+            . "3. Arithmetic is your proof-reader. For each row check qty x unit_price = line_total. If it does not hold, re-read the least legible of the three numbers and correct it so the row balances.\n"
             . "4. Cross-check the column sum against any written subtotal/total. If your extracted lines do not add up to the written total, re-examine the lines rather than inventing an adjustment.\n"
             . "5. Common handwriting confusions to resolve using row arithmetic and the catalog: 1/7, 0/6/8, 3/8, 5/6, 2/7, 4/9, and a trailing '/-' or '=' meaning 'rupees'.\n"
             . "6. Local numeral forms (Urdu/Arabic-Indic ٠١٢٣٤٥٦٧٨٩, Devanagari ०१२३४५६७८९) must be converted to Western digits.\n"
@@ -928,7 +957,7 @@ class AiExtractionService
             . "EXTRACTION ACCURACY RULES (CRITICAL):\n"
             . "- If a line total and quantity are visible but unit price is not, derive unit_price = line_total / qty.\n"
             . "- If quantity is not visible/spoken, use 1. If unit price is truly unknown, use null.\n"
-            . "- Capture EVERY line item. Do not skip small or partially legible lines; extract your best reading and flag it with needs_review.\n"
+            . "- Capture EVERY line item. Do not skip small or partially legible lines; extract your best reading.\n"
             . "- Never invent products, parties, prices or quantities that are not in the source.\n"
             . "- Ignore non-item lines like subtotal, tax, total, discount, thank-you notes and shop slogans — but use them to validate your numbers.\n"
             . "- Dates: interpret ambiguous formats using the day-first convention unless the document clearly shows otherwise, and never return a date in the future.\n"
@@ -948,23 +977,21 @@ class AiExtractionService
             $prompt .= "\n\n[THIS STORE'S CONFIRMED VOCABULARY]\n"
                 . "Staff at this store previously corrected the following readings. These mappings are GROUND TRUTH for this store — they outrank your own guess and the catalog search.\n"
                 . json_encode($learned) . "\n"
-                . "If a source line matches a \"heard\" value (exactly, phonetically, or as an obvious variant/abbreviation), output that entry's \"name\" and \"sku\" verbatim.";
+                . "If a source line matches a \"heard\" value (exactly, phonetically, or as an obvious variant/abbreviation), output that entry's \"name\" verbatim.";
         }
 
         $existingProducts = $context['existing_products'] ?? [];
         if (!empty($existingProducts)) {
             $prompt .= "\n\n[STORE PRODUCT CATALOG]\n"
-                . "This store's catalog (name + SKU):\n"
+                . "This store's catalog:\n"
                 . json_encode($existingProducts) . "\n\n"
                 . "TRANSLATION & CATALOG MAPPING RULES:\n"
                 . "1. The source may be in any language (Urdu, Hindi, Arabic, French, Spanish...) or use local/colloquial words ('pani' = water, 'doodh' = milk, 'aloo' = potato). Translate all item names, party names and descriptions to English.\n"
-                . "2. Before finalizing each item name, cross-reference it against the catalog above (exact, phonetic or semantic match). Abbreviations are common on handwritten bills: 'col 1.5' = 'Coca Cola 1.5L', 'sug 5k' = 'Sugar 5kg'.\n"
-                . "   - If it corresponds to a catalog product, output the EXACT catalog product name as \"name\" AND set \"matched_sku\" to that product's SKU.\n"
-                . "   - Example: source says 'pani' and catalog has 'Water Bottle 500ml' → name = 'Water Bottle 500ml', matched_sku = its SKU.\n"
-                . "3. A catalog match must be a genuine match. If you are guessing, leave matched_sku null and lower the item's confidence — the user will be asked to pick, and their choice teaches the system for next time.\n"
-                . "4. If no catalog product corresponds, translate the name to English, output it as-is and set matched_sku to null.";
+                . "2. Before finalizing each item name, cross-reference it against the catalog above (exact, phonetic or semantic match).\n"
+                . "3. A catalog match must be a genuine match. If guessing, lower item confidence.\n"
+                . "4. If no catalog product corresponds, translate the name to English and output it as-is.";
         } else {
-            $prompt .= "\n\nTRANSLATION RULES:\nThe source may be in any language. Translate all extracted item names, party names and descriptions to English. Set matched_sku to null for every item.";
+            $prompt .= "\n\nTRANSLATION RULES:\nThe source may be in any language. Translate all extracted item names, party names and descriptions to English.";
         }
 
         $parties = $context['parties'] ?? [];
