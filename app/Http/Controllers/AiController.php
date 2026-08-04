@@ -644,7 +644,7 @@ class AiController extends Controller
                 return json_encode(['error' => 'Party not found']);
             }
 
-            return json_encode(['party_name' => $party->name, 'balance' => $party->balance ?? 0, 'type' => $party->type ?? 'customer']);
+            return json_encode(['party_name' => $party->name, 'balance' => $party->current_balance ?? 0, 'type' => $party->type ?? 'customer']);
         }
 
         // Cash Reconciliation Helper - analyzes transactions to find discrepancies

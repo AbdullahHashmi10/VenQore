@@ -288,4 +288,44 @@ class Phase1SmartCaptureTest extends TestCase
         $this->assertEquals('payables', $data['intent']);
         $this->assertStringContainsString('12,500.00', $data['answer']);
     }
+
+    /** @test */
+    public function it_get_party_balance_tool_returns_correct_current_balance()
+    {
+        // is_platform_admin bypasses checkAuthPermission entirely (see User::getRoleAttribute line 320)
+        $user = \App\Models\User::factory()->create(['is_platform_admin' => true]);
+        \App\Models\TenantUser::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+
+        // Seed a party with a known, non-zero current_balance
+        Party::create([
+            'tenant_id'       => $this->tenant->id,
+            'name'            => 'Gamma Traders',
+            'type'            => 'customer',
+            'current_balance' => 7890.25,
+        ]);
+
+        $controller = app(\App\Http\Controllers\AiController::class);
+
+        // Authenticate via actingAs so auth()->user() returns our seeded user
+        $this->actingAs($user);
+
+        // Call the private executeFunction directly via reflection
+        $reflection = new \ReflectionMethod($controller, 'executeFunction');
+        $reflection->setAccessible(true);
+
+        $json = $reflection->invoke($controller, 'get_party_balance', ['party_name' => 'Gamma Traders']);
+        $result = json_decode($json, true);
+
+        // Must return the exact current_balance value — not 0 (which would happen with the old ->balance column)
+        $this->assertArrayHasKey('balance', $result);
+        $this->assertEquals(7890.25, $result['balance'],
+            'get_party_balance returned wrong balance — likely still reading a non-existent column');
+        $this->assertEquals('Gamma Traders', $result['party_name']);
+        $this->assertEquals('customer', $result['type']);
+    }
 }
