@@ -291,3 +291,12 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer()
     ->name('smartcapture-monthly-usage-reset');
+
+// ── Phase 5.4: Automated 90-Day Scan Image Retention Pruning ───────────────
+// Prunes document scan images older than 90 days from storage directories
+// while preserving extracted JSON transaction data.
+\Illuminate\Support\Facades\Schedule::command('app:prune-scan-images')
+    ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('prune-scan-images-90-day');

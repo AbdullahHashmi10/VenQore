@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Setting;
 use App\Models\CustomCharge;
+use App\Models\Tenant;
 use App\Helpers\SettingsHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -141,7 +142,11 @@ class SettingsController extends Controller
         ]);
 
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        if (!$tenant && auth()->check() && auth()->user()->last_store_id) {
+
+        // A bound tenant with no ID (e.g. the anonymous fake from TestCase::setUp or a stale
+        // container binding) must not suppress the fallback — treat it as unbound so that
+        // last_store_id resolution fires correctly.
+        if (!($tenant?->id) && auth()->check() && auth()->user()->last_store_id) {
             $tenant = Tenant::find(auth()->user()->last_store_id);
         }
 
