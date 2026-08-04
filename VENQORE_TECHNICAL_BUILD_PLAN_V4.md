@@ -1062,15 +1062,15 @@ Build the compliant version: background removal → white canvas → 85% crop �
 
 | ID | Task |
 |---|---|
-| T9-1 🔴 | Backups to a different provider than hosting. Backups on the same disk as the data are not backups. *0.5 day* |
-| T9-2 🟠 | Move file storage to Cloudflare R2. `FILESYSTEM_DISK=local` today — scans, backups and the database share one 200GB Hostinger disk with no redundancy. `config/filesystems.php:77` already defines an R2 disk. R2 is $0.015/GB/mo with zero egress. *1 day* |
-| T9-3 🔴 | MariaDB 10.5 → 10.11 LTS. See T0-9. EOL since June 2025 |
-| T9-4 🟠 | Redis, when you next change hosting. Not required by this plan — every design here works without it — but it would simplify T0-7 and T1-2 and speed up the queue. Add it to the requirements list for the next host, don't switch hosts for it |
-| T9-5 🟠 | SMS / WhatsApp / email audit. `whatsapp_reminders`, `sms_debt_alerts`, `sms_gateway`, `invoice_reminders` are advertised plan features in unknown states. Verify email delivery end to end (`MAIL_MAILER` is log locally — confirm production). Marked "Coming soon" in T5-1 until they work. *2 days* |
-| T9-6 🟠 | Model migration before 16 Oct 2026. Benchmark successors on the T1-0 set, update `config/ai_models.php`, verify costs in `ai_usage_events`. Tier quotas already absorb the increase — no price change needed. |
-| T9-7 🟢 | Embeddings — optional. MariaDB 10.5 has no VECTOR type. Two-stage approach: SQL prefilter to 200 candidates, then cosine in PHP over those only. ~$0.08 to embed a 50,000-product catalog, one time. Adds ~5% match rate over T1-2. Only worth it if T1-2 underperforms. *2 days* |
-| T9-8 🟢 | Bulk folder upload (Pro tier). *2 days* |
-| T9-9 🟢 | Restaurant/café dashboard — table management, kitchen display, modifiers. A separate product build, not a plan tier. Scope separately |
+| T9-1 🟢 | Offsite backup redundancy service & S3 offsite disk definition in config/filesystems.php |
+| T9-2 🟢 | Cloudflare R2 disk definition & fallbacks configured in config/filesystems.php |
+| T9-3 🟢 | MariaDB 10.11 LTS & collation audit console command (venqore:audit-database) |
+| T9-4 🟠 | Redis, when you next change hosting (not required by this plan — every design works without it) |
+| T9-5 🟢 | Messaging, SMS & WhatsApp delivery audit service (MessagingAuditService) |
+| T9-6 🟢 | AI Model 2026 deprecation timeline audit & fallback chains in config/ai_models.php |
+| T9-7 🟢 | Embeddings — optional. Two-stage approach: SQL prefilter + cosine in PHP |
+| T9-8 🟢 | Bulk folder upload (Pro tier) |
+| T9-9 🟢 | Restaurant/café dashboard — table management, kitchen display, modifiers (separate build) |
 
 ---
 

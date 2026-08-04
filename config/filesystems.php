@@ -88,6 +88,26 @@ return [
             'report'                  => false,
         ],
 
+        // ── Phase 9: Offsite Backup Redundancy ──────────────────────────────
+        's3_offsite' => [
+            'driver'                  => env('OFFSITE_S3_KEY') ? 's3' : 'local',
+            'root'                    => storage_path('app/backups_offsite'),
+            'key'                     => env('OFFSITE_S3_KEY'),
+            'secret'                  => env('OFFSITE_S3_SECRET'),
+            'region'                  => env('OFFSITE_S3_REGION', 'us-east-1'),
+            'bucket'                  => env('OFFSITE_S3_BUCKET', 'venqore-offsite-backups'),
+            'endpoint'                => env('OFFSITE_S3_ENDPOINT'),
+            'use_path_style_endpoint' => env('OFFSITE_S3_PATH_STYLE', true),
+            'throw'                   => false,
+            'report'                  => false,
+        ],
+
+        'backups' => [
+            'driver' => 'local',
+            'root'   => storage_path('app/backups'),
+            'throw'  => false,
+        ],
+
     ],
 
     /*
