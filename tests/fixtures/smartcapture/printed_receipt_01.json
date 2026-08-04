@@ -1,0 +1,26 @@
+{
+  "name": "printed_receipt_01.json",
+  "input_type": "text",
+  "input_quality": "printed",
+  "raw_text": "INVOICE #INV-9021\nDate: 2026-08-01\nParty: Metro Wholesale\nItem 1: Coca Cola 1.5L Qty: 12 Price: 180.00 Total: 2160.00\nItem 2: Nestle Pure Life 500ml Qty: 24 Price: 50.00 Total: 1200.00",
+  "expected": {
+    "action": "purchase",
+    "party": "Metro Wholesale",
+    "date": "2026-08-01",
+    "reference": "INV-9021",
+    "items": [
+      {
+        "name": "Coca Cola 1.5L",
+        "qty": 12,
+        "unit_price": 180.00,
+        "line_total": 2160.00
+      },
+      {
+        "name": "Nestle Pure Life 500ml",
+        "qty": 24,
+        "unit_price": 50.00,
+        "line_total": 1200.00
+      }
+    ]
+  }
+}

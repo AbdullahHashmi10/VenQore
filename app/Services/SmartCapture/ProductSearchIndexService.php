@@ -41,7 +41,7 @@ class ProductSearchIndexService
 
         $soundex = soundex($normName);
         $metaphone = metaphone($normName);
-        $skuNorm = $product->sku ? mb_strtolower(trim($product->sku)) : null;
+        $skuNorm = $product->sku ? $this->normalizeText($product->sku) : null;
         $barcode = $product->barcode ? trim($product->barcode) : null;
 
         $tokens = implode(' ', array_unique(array_filter(explode(' ', $normName))));

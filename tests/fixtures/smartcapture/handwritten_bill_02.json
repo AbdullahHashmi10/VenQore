@@ -1,0 +1,44 @@
+{
+  "name": "handwritten_bill_02.json",
+  "input_type": "text",
+  "input_quality": "handwritten",
+  "raw_text": "Kiran Store Slip\nDate: 02-08-2026\nSugar 5kg x 2 = 1500\nTea 900g x 1 = 1200\nTotal: 2700",
+  "expected": {
+    "action": "purchase",
+    "party": "Kiran Store",
+    "date": "2026-08-02",
+    "reference": null,
+    "items": [
+      {
+        "name": "Sugar 5kg",
+        "qty": 2,
+        "unit_price": 750.00,
+        "line_total": 1500.00
+      },
+      {
+        "name": "Tea 900g",
+        "qty": 1,
+        "unit_price": 1200.00,
+        "line_total": 1200.00
+      }
+    ]
+  },
+  "mock_extracted": {
+    "action": "purchase",
+    "party": "Kiran Store",
+    "items": [
+      {
+        "name": "Sugar 5kg",
+        "qty": 2,
+        "unit_price": 750.00,
+        "line_total": 1500.00
+      },
+      {
+        "name": "Tea 900g",
+        "qty": 1,
+        "unit_price": 1200.00,
+        "line_total": 1200.00
+      }
+    ]
+  }
+}

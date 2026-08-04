@@ -225,6 +225,17 @@ class SmartCaptureController extends Controller
             // ── Build payload + size guards ──────────────────────────────────
             $payload = $this->buildPayload($request, $type);
 
+            // T1-7 & T1-8: Input validations & page/duration inspection
+            if ($type === 'audio' && $request->has('duration_seconds')) {
+                $duration = (int) $request->input('duration_seconds');
+                $audioCredits = $this->extractionService->validateAudioDuration($duration);
+            }
+
+            if ($request->has('page_count')) {
+                $pageCount = (int) $request->input('page_count');
+                $pdfMeta = $this->extractionService->validatePdfPages($pageCount);
+            }
+
             // ── Content Payload Deduplication (T0-6 rest) ───────────────────
             // If the exact same file/payload was extracted for this store in the last 24h,
             // return the cached result for free without spending upstream tokens.
@@ -379,10 +390,21 @@ class SmartCaptureController extends Controller
                 }
 
                 $unitPrice = isset($item['unit_price']) && $item['unit_price'] !== null ? (float) $item['unit_price'] : null;
+                $lineTotal = isset($item['line_total']) && $item['line_total'] !== null ? (float) $item['line_total'] : null;
 
-                // Derive unit price from a line total when the model only read one.
-                if ($unitPrice === null && !empty($item['line_total']) && $qty > 0) {
-                    $unitPrice = round(((float) $item['line_total']) / $qty, 4);
+                // T1-9: Server-side arithmetic validation (q * p ≈ t, 1% tolerance)
+                $arithmeticFail = false;
+                if ($unitPrice !== null && $lineTotal !== null && $qty > 0) {
+                    $expectedTotal = $qty * $unitPrice;
+                    if (abs($expectedTotal - $lineTotal) / max(1.0, $lineTotal) > 0.01) {
+                        $arithmeticFail = true;
+                        $unitPrice = round($lineTotal / $qty, 4);
+                    }
+                }
+
+                // Derive unit price from line total when model only read total
+                if ($unitPrice === null && $lineTotal !== null && $qty > 0) {
+                    $unitPrice = round($lineTotal / $qty, 4);
                 }
 
                 $matches = $this->fuzzyMatchService->matchProduct($itemName);
@@ -421,6 +443,29 @@ class SmartCaptureController extends Controller
                         'learned'    => (bool) ($m['learned'] ?? false),
                     ], $matches),
                 ];
+            }
+
+            // T1-5: Batch match fallback for unmatched line items (confidence < 40)
+            $unmatchedItems = [];
+            $candidateLists = [];
+            foreach ($matchedItems as $idx => $mItem) {
+                if (($mItem['confidence'] ?? 0) < 40 && empty($mItem['product_id'])) {
+                    $unmatchedItems[] = $mItem['raw_name'];
+                    $candidateLists[$mItem['raw_name']] = array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $mItem['candidates'] ?? []);
+                }
+            }
+
+            if (!empty($unmatchedItems)) {
+                $fallbackMatches = $this->extractionService->matchFallback($unmatchedItems, $candidateLists);
+                if (is_array($fallbackMatches)) {
+                    foreach ($matchedItems as &$mItem) {
+                        if (isset($fallbackMatches[$mItem['raw_name']]) && $fallbackMatches[$mItem['raw_name']]) {
+                            $mItem['product_id'] = $fallbackMatches[$mItem['raw_name']];
+                            $mItem['match_reason'] = 'ai_fallback_match';
+                        }
+                    }
+                    unset($mItem);
+                }
             }
 
             if (empty($matchedItems)) {

@@ -73,7 +73,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             return;
         }
         const recognition = new SpeechRecognition();
-        recognition.lang = store?.locale === 'ur' ? 'ur-PK' : (store?.locale === 'ar' ? 'ar-SA' : 'en-US');
+        recognition.lang = store?.locale === 'ur' ? 'ur-PK' : (store?.locale === 'hi' ? 'hi-IN' : (store?.locale === 'ar' ? 'ar-SA' : 'en-US'));
         recognition.interimResults = false;
 
         recognition.onstart = () => setDictating(true);

@@ -33,9 +33,11 @@ class AiController extends Controller
         foreach ($intents as $key => $intent) {
             foreach ($intent['phrases'] as $phrase) {
                 if (str_contains($lowerQuery, $phrase)) {
+                    $reportData = $this->resolveSqlIntentReport($key);
                     return response()->json([
-                        'answer' => "Here is your report for '{$phrase}':",
+                        'answer' => $reportData['summary'],
                         'intent' => $key,
+                        'data'   => $reportData['records'],
                         'source' => 'sql_intent_router',
                     ]);
                 }
@@ -1080,5 +1082,43 @@ class AiController extends Controller
             'avg_daily_net' => $avgDailyNet,
             'forecast' => $forecast
         ]);
+    }
+
+    /**
+     * Resolves local SQL queries for predefined AI reporting intents (T1-10).
+     */
+    private function resolveSqlIntentReport(string $intent): array
+    {
+        return match ($intent) {
+            'sales_today' => [
+                'summary' => 'Today\'s Sales: ' . Sale::whereDate('created_at', today())->count() . ' transactions totaling PKR ' . number_format((float) Sale::whereDate('created_at', today())->sum('total'), 2),
+                'records' => Sale::whereDate('created_at', today())->take(10)->get(['id', 'reference_number', 'total', 'created_at'])->toArray(),
+            ],
+            'low_stock' => [
+                'summary' => 'Low Stock Items: ' . Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->count() . ' products requiring reorder.',
+                'records' => Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->take(10)->get(['id', 'name', 'stock_quantity', 'alert_quantity'])->toArray(),
+            ],
+            'receivables' => [
+                'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->sum('balance'), 2) . ' across ' . \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->count() . ' customers.',
+                'records' => \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->take(10)->get(['id', 'name', 'balance'])->toArray(),
+            ],
+            'payables' => [
+                'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->sum('balance'), 2) . ' across ' . \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->count() . ' suppliers.',
+                'records' => \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->take(10)->get(['id', 'name', 'balance'])->toArray(),
+            ],
+            'top_sellers' => [
+                'summary' => 'Top Selling Products by Quantity Sold',
+                'records' => \App\Models\SaleItem::select('product_id', DB::raw('SUM(quantity) as total_qty'))
+                    ->groupBy('product_id')
+                    ->orderByDesc('total_qty')
+                    ->take(5)
+                    ->get()
+                    ->toArray(),
+            ],
+            default => [
+                'summary' => 'Report data retrieved',
+                'records' => [],
+            ],
+        };
     }
 }

@@ -228,6 +228,62 @@ class AiExtractionService
     }
 
     /**
+     * Batch match-fallback call for unmatched line items (T1-5).
+     * Sends unmatched names + top 10 candidate shortlists in ONE single Flash-Lite call.
+     */
+    public function matchFallback(array $unmatchedItems, array $candidateLists): array
+    {
+        if (empty($unmatchedItems)) {
+            return [];
+        }
+
+        $config = $this->resolveConfig();
+        $prompt = "You are matching unmatched receipt line items to candidate store products.\n"
+            . "Unmatched items and candidate options:\n"
+            . json_encode(['unmatched' => $unmatchedItems, 'candidates' => $candidateLists]) . "\n"
+            . "Return a JSON object mapping each unmatched item name to best matched product_id or null.";
+
+        try {
+            $raw = $this->dispatch($config, 'gemini-2.5-flash-lite', 'text', ['text' => $prompt], $prompt);
+            return $this->parseJson($raw);
+        } catch (\Throwable $e) {
+            Log::warning("Match fallback call failed: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Validate audio file duration and calculate page credit consumption (T1-7).
+     * Max duration 180s on server. Returns credits to deduct (1 credit per 30s started).
+     */
+    public function validateAudioDuration(int $durationSeconds): int
+    {
+        if ($durationSeconds > 180) {
+            throw new \Exception("Audio memo exceeds maximum duration of 180 seconds. Please upload a shorter recording.");
+        }
+
+        return (int) ceil(max(1, $durationSeconds) / 30.0);
+    }
+
+    /**
+     * Inspect PDF page count and chunk into documents of max 5 pages (T1-8).
+     */
+    public function validatePdfPages(int $pageCount): array
+    {
+        if ($pageCount <= 0) {
+            $pageCount = 1;
+        }
+
+        $chunks = (int) ceil($pageCount / 5.0);
+
+        return [
+            'total_pages'  => $pageCount,
+            'chunks_count' => $chunks,
+            'credits_cost' => $pageCount,
+        ];
+    }
+
+    /**
      * First substitute model that differs from the one that just failed.
      */
     private function firstSubstituteModel(array $config): ?string
