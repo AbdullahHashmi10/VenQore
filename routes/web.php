@@ -1075,13 +1075,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
         Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
-        Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->name('reports.purchases');
+        Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
         Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
-        Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+        Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
         Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->name('reports.party-statement');
         Route::get('/reports/transactions', [\App\Http\Controllers\ReportController::class, 'transactions'])->name('reports.transactions');
-        Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->name('reports.expenses');
-        Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->name('reports.account-ledger');
+        Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->middleware('plan.feature:expense_manager')->name('reports.expenses');
+        Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->middleware('plan.feature:double_entry_ledger')->name('reports.account-ledger');
         Route::get('/reports/tax', [\App\Http\Controllers\ReportController::class, 'tax'])->name('reports.tax');
         Route::get('/reports/bank-statement', [\App\Http\Controllers\ReportController::class, 'bankStatement'])->name('reports.bank-statement');
 
@@ -1094,12 +1094,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         // Additional 24 Reports (completing 38 total)
         Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
         Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->name('reports.all-parties');
-        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->middleware('plan.feature:report_trial_balance')->name('reports.trial-balance');
         Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->name('reports.item-wise-profit');
         Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->name('reports.party-wise-profit-loss');
         Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('reports.discount');
         Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
-        Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->name('reports.sale-aging');
+        Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->middleware('plan.feature:aged_receivables')->name('reports.sale-aging');
         Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->name('reports.sale-orders');
         Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->name('reports.bill-wise-profit');
         Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->name('reports.expense-by-category');

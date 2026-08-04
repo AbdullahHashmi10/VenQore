@@ -158,6 +158,21 @@ class HandleInertiaRequests extends Middleware
                 ];
             })(),
             'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
+            'plan' => (function () {
+                $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                if (!$tenant) return null;
+                return [
+                    'slug'     => $tenant->plan,
+                    'features' => \App\Services\PlanRepository::featuresFor($tenant),
+                    'limits'   => \App\Services\PlanRepository::limitsFor($tenant),
+                    'usage'    => [
+                        'skus'      => \Illuminate\Support\Facades\Cache::remember("tenant_usage_skus:{$tenant->id}", 60, fn() => \App\Models\Product::where('tenant_id', $tenant->id)->count()),
+                        'staff'     => \Illuminate\Support\Facades\Cache::remember("tenant_usage_staff:{$tenant->id}", 60, fn() => \App\Models\TenantUser::where('tenant_id', $tenant->id)->count()),
+                        'locations' => \Illuminate\Support\Facades\Cache::remember("tenant_usage_locations:{$tenant->id}", 60, fn() => \App\Models\Warehouse::where('tenant_id', $tenant->id)->count()),
+                        'ai_pages'  => $tenant->ai_pages_used ?? 0,
+                    ],
+                ];
+            })(),
             'smartcapture_enabled' => (function () use ($dbReady) {
                 if ($dbReady && $this->hasTable('settings')) {
                     $dbValue = \Illuminate\Support\Facades\Cache::remember('smartcapture_enabled_flag', 60, function () {

@@ -45,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'drm'                     => \App\Http\Middleware\DrmOfflineLockMiddleware::class,
             'drm.license'             => \App\Http\Middleware\DrmLockMiddleware::class,
             'visitor.chat.guard'      => \App\Http\Middleware\VisitorChatGuard::class,
+            'plan.feature'            => \App\Http\Middleware\EnsurePlanFeature::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────

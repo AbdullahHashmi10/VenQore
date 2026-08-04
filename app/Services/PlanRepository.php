@@ -134,5 +134,71 @@ class PlanRepository
         foreach ($keys as $key) {
             Cache::forget("tenant_override:{$tenantId}:{$key}");
         }
+        Cache::forget("tenant_features_map:{$tenantId}:*");
+    }
+
+    /**
+     * Determine if a tenant is authorized to use a specific plan feature key.
+     */
+    public static function canUseFeature(\App\Models\Tenant $tenant, string $feature): bool
+    {
+        // Special T3-3 Cookbook on Counter rule for food-prep industries
+        if ($feature === 'recipes' || $feature === 'bill_of_materials') {
+            if ($tenant->plan === 'counter') {
+                $foodPrepIndustries = [
+                    'cafe', 'restaurant', 'bakery', 'juice_tea_shop',
+                    'food_truck', 'cloud_kitchen', 'sweets_mithai', 'ice_cream_parlour'
+                ];
+                $industry = strtolower(trim((string)($tenant->industry ?? $tenant->industry_type ?? $tenant->business_type ?? '')));
+                if (in_array($industry, $foodPrepIndustries, true)) {
+                    return true;
+                }
+            }
+        }
+
+        $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $feature);
+
+        if ($val === null) {
+            return false; // Default deny per T2-2
+        }
+
+        return ($val === '1' || $val === 1 || $val === true || $val === 'true' || $val === '-1' || $val === -1);
+    }
+
+    /**
+     * Get a key-value boolean map of all feature entitlements for the tenant.
+     */
+    public static function featuresFor(\App\Models\Tenant $tenant): array
+    {
+        $cacheKey = "tenant_features_map:{$tenant->id}:{$tenant->plan}";
+        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+            $rawLimits = self::getLimits($tenant->plan ?? 'starter');
+            $map = [];
+            foreach ($rawLimits as $key => $val) {
+                $map[$key] = self::canUseFeature($tenant, $key);
+            }
+            return $map;
+        });
+    }
+
+    /**
+     * Get tenant resource limits for frontend props.
+     */
+    public static function limitsFor(\App\Models\Tenant $tenant): array
+    {
+        $limits = [];
+        foreach (['sku_limit', 'staff_limit', 'location_limit', 'locations', 'ai_pages_limit', 'ai_queries_limit'] as $key) {
+            $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $key);
+            if ($val !== null) {
+                $limits[$key] = (int) $val;
+                if ($key === 'locations') {
+                    $limits['location_limit'] = (int) $val;
+                }
+            } else {
+                $limits[$key] = 0;
+            }
+        }
+        return $limits;
     }
 }
+

@@ -9,7 +9,7 @@ class PlanFeatureMatrixSeeder extends Seeder
 {
     public function run(): void
     {
-        $planSlugs = ['trial', 'starter', 'growth', 'business', 'ltd_1', 'ltd_2', 'ltd_3'];
+        $planSlugs = ['trial', 'counter', 'starter', 'growth', 'business', 'ltd_1', 'ltd_2', 'ltd_3'];
         
         $planIds = [];
         foreach ($planSlugs as $slug) {
@@ -317,7 +317,32 @@ class PlanFeatureMatrixSeeder extends Seeder
                     if ($slug === 'ltd_3') $baseSlug = 'business';
 
                     // We also keep some standard overrides specifically as in migrations:
-                    $val = $values[$baseSlug] ?? null;
+                    $val = $values[$baseSlug] ?? $values['starter'] ?? '0';
+
+                    // Specific Counter plan overrides
+                    if ($slug === 'counter') {
+                        $counterDisabledKeys = [
+                            'customer_khata', 'supplier_khata', 'unified_party_ledger',
+                            'aged_receivables', 'aged_payables', 'double_entry_ledger',
+                            'purchase_orders', 'purchase_returns', 'suppliers_directory',
+                            'expense_manager', 'report_profit_loss', 'report_trial_balance',
+                            'report_party_statement', 'customer_statements', 'supplier_statements',
+                            'debit_credit_notes', 'outstanding_balance_grid', 'payment_due_dates',
+                            'woocommerce', 'api_access', 'production', 'bill_of_materials',
+                            'loyalty_points', 'digital_gift_cards', 'marketing_campaigns',
+                            'white_label', 'recurring_invoices', 'fund_management', 'bank_reconciliation',
+                            'e_invoicing'
+                        ];
+
+                        if (in_array($key, $counterDisabledKeys, true)) {
+                            $val = '0';
+                        }
+                        if ($key === 'sku_limit') $val = '500';
+                        if ($key === 'staff_limit') $val = '2';
+                        if ($key === 'location_limit' || $key === 'locations') $val = '1';
+                        if ($key === 'ai_pages_limit') $val = '10';
+                        if ($key === 'ai_queries_limit') $val = '50';
+                    }
 
                     // Specific AppSumo customizations to preserve migration overrides:
                     if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '500';

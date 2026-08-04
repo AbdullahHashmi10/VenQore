@@ -34,6 +34,29 @@
 
 return [
 
+    'counter' => [
+        'transactions_per_month' => null,
+        'locations'    => 1,
+        'sku_limit'    => 500,
+        'staff_limit'  => 2,
+        'woocommerce'  => false,
+        'api_access'   => false,
+        'reports'      => 'basic',
+        'growth_engine'=> false,
+        'multi_branch' => false,
+        'owners_daily_pulse' => false,
+        'production'         => false,
+        'e_invoicing'        => false,
+        'bank_reconciliation'=> false,
+        'marketing_campaigns'=> false,
+        'invoice_reminders'  => false,
+        'recurring_invoices' => false,
+        'fund_management'    => false,
+        'loyalty_points'     => false,
+        'digital_gift_cards' => false,
+        'report_profit_loss' => false,
+    ],
+
     'starter' => [
         'transactions_per_month' => null,   // unlimited (subscriptions uncapped — 2026-07-03 decision)
         'locations'    => 1,
