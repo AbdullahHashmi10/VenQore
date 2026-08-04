@@ -635,7 +635,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-009
@@ -707,7 +707,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-015
@@ -719,7 +719,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-016
@@ -743,7 +743,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-018
@@ -779,7 +779,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-021
@@ -803,7 +803,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-023
@@ -887,7 +887,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-030
@@ -899,7 +899,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-031
@@ -911,7 +911,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-032
@@ -923,7 +923,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-033
@@ -935,7 +935,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-034
@@ -965,7 +965,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-036
@@ -977,7 +977,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-037
@@ -989,7 +989,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: false
   -
     id: M-AUTO-038
@@ -1001,7 +1001,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-039
@@ -1013,7 +1013,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-040
@@ -1133,7 +1133,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-050
@@ -1145,7 +1145,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-051
@@ -1157,7 +1157,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: false
   -
     id: M-AUTO-052
@@ -1257,7 +1257,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-059
@@ -1269,7 +1269,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-060
@@ -1281,7 +1281,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-061
@@ -1293,7 +1293,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-062
@@ -1305,7 +1305,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-063
@@ -1317,7 +1317,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-064
@@ -1329,7 +1329,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-065
@@ -1341,7 +1341,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-066
@@ -1353,7 +1353,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-067
@@ -1365,7 +1365,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-068
@@ -1377,7 +1377,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-069
@@ -1389,7 +1389,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-070
@@ -1401,7 +1401,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-071
@@ -1413,7 +1413,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-072
@@ -1425,7 +1425,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-073
@@ -1437,7 +1437,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-074
@@ -1449,7 +1449,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-075
@@ -1461,7 +1461,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-076
@@ -1473,7 +1473,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-077
@@ -1485,7 +1485,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-078
@@ -1497,7 +1497,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-079
@@ -1509,7 +1509,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-080
@@ -1521,7 +1521,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-081
@@ -1533,7 +1533,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-082
@@ -1545,7 +1545,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-083
@@ -1557,7 +1557,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-084
@@ -1569,7 +1569,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-085
@@ -1581,7 +1581,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-086
@@ -1593,7 +1593,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-087
@@ -1605,7 +1605,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-088
@@ -1665,7 +1665,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-093
@@ -1677,7 +1677,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-094
@@ -1713,7 +1713,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-097
@@ -1725,7 +1725,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-098
@@ -1737,7 +1737,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-099
@@ -1773,7 +1773,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-102
@@ -1785,7 +1785,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-103
@@ -1797,7 +1797,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-104
@@ -1809,7 +1809,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-105
@@ -1821,7 +1821,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-106
@@ -1833,7 +1833,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-107
@@ -1857,7 +1857,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-109
@@ -1869,7 +1869,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-110
@@ -1881,7 +1881,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-111
@@ -1893,7 +1893,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-112
@@ -1905,7 +1905,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-113
@@ -1917,7 +1917,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-114
@@ -1929,7 +1929,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-115
@@ -1941,7 +1941,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-116
@@ -1953,7 +1953,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-117
@@ -2049,7 +2049,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-125
@@ -2061,7 +2061,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-126
@@ -2121,7 +2121,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-131
@@ -2133,7 +2133,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-132
@@ -2145,7 +2145,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-133
@@ -2157,7 +2157,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-134
@@ -2169,7 +2169,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-135
@@ -2181,7 +2181,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-136
@@ -2193,7 +2193,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-137
@@ -2205,7 +2205,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-138
@@ -2217,7 +2217,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-139
@@ -2229,7 +2229,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-140
@@ -2241,7 +2241,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-141
@@ -2289,7 +2289,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-145
@@ -2313,7 +2313,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-147
@@ -2337,7 +2337,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-149
@@ -2349,7 +2349,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-150
@@ -2421,7 +2421,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-156
@@ -2433,7 +2433,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-157
@@ -2445,7 +2445,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-158
@@ -2673,7 +2673,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-177
@@ -2685,7 +2685,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-178
@@ -2913,7 +2913,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-197
@@ -2925,7 +2925,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-198
@@ -2937,7 +2937,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-199
@@ -2949,7 +2949,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: HYBRID
     verified: true
   -
     id: M-AUTO-200
@@ -2961,7 +2961,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-201
@@ -2973,7 +2973,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-202
@@ -2997,7 +2997,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: TRANSACTION-DERIVED
     verified: true
   -
     id: M-AUTO-204
@@ -3033,7 +3033,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-207
@@ -3045,7 +3045,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-208
@@ -3057,7 +3057,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-209
@@ -3069,7 +3069,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-210
@@ -3081,7 +3081,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-211
@@ -3093,7 +3093,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-212
@@ -3105,7 +3105,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-213
@@ -3117,7 +3117,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-214
@@ -3129,7 +3129,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-215
@@ -3141,7 +3141,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-216
@@ -3153,7 +3153,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-217
@@ -3165,7 +3165,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-218
@@ -3177,7 +3177,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-219
@@ -3189,7 +3189,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-220
@@ -3201,7 +3201,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-221
@@ -3213,7 +3213,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-222
@@ -3225,7 +3225,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-223
@@ -3237,7 +3237,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-224
@@ -3249,7 +3249,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-225
@@ -3261,7 +3261,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-226
@@ -3273,7 +3273,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-227
@@ -3285,7 +3285,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-228
@@ -3297,7 +3297,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-229
@@ -3309,7 +3309,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-230
@@ -3321,7 +3321,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-231
@@ -3333,7 +3333,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-232
@@ -3345,7 +3345,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-233
@@ -3357,7 +3357,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-234
@@ -3369,7 +3369,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-235
@@ -3381,7 +3381,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-236
@@ -3393,7 +3393,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-237
@@ -3405,7 +3405,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-238
@@ -3417,7 +3417,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-239
@@ -3429,7 +3429,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-240
@@ -3441,7 +3441,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-241
@@ -3453,7 +3453,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-242
@@ -3465,7 +3465,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-243
@@ -3477,7 +3477,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-244
@@ -3489,7 +3489,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-245
@@ -3501,7 +3501,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-246
@@ -3513,7 +3513,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-247
@@ -3525,7 +3525,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-248
@@ -3537,7 +3537,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-249
@@ -3549,7 +3549,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-250
@@ -3561,7 +3561,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-251
@@ -3573,7 +3573,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-252
@@ -3585,7 +3585,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-253
@@ -3597,7 +3597,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-254
@@ -3609,7 +3609,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-255
@@ -3621,7 +3621,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-256
@@ -3633,7 +3633,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-257
@@ -3645,7 +3645,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-258
@@ -3657,7 +3657,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-259
@@ -3669,7 +3669,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-260
@@ -3681,7 +3681,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-261
@@ -3693,7 +3693,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-262
@@ -3705,7 +3705,7 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
   -
     id: M-AUTO-263
@@ -3729,8 +3729,200 @@ metrics:
     service: UNKNOWN
     ledger_accounts: {  }
     source_query: UNKNOWN
-    classification: NON-FINANCIAL
+    classification: LEDGER-DERIVED
     verified: true
+  -
+    id: M-AUTO-265
+    name: 'Terminal Pairing Index'
+    route: store.terminal-pairing.index
+    route_uri: 'GET s/{store_slug}/terminal-pairing-tokens'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\TerminalPairingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: false
+  -
+    id: M-AUTO-266
+    name: 'Billing Payment History'
+    route: store.billing.payment-history
+    route_uri: 'GET s/{store_slug}/billing/payment-history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BillingController@paymentHistory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: false
+  -
+    id: M-AUTO-267
+    name: 'Smart Capture Aliases'
+    route: store.smart-capture.aliases
+    route_uri: 'GET s/{store_slug}/smart-capture/aliases'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SmartCapture\SmartCaptureController@aliases
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: false
+  -
+    id: M-AUTO-268
+    name: 'Reports Point In Time Inventory'
+    route: store.reports.point-in-time-inventory
+    route_uri: 'GET s/{store_slug}/reports/point-in-time-inventory'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@pointInTimeInventory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-269
+    name: 'Reports Point In Time Inventory Details'
+    route: store.reports.point-in-time-inventory.details
+    route_uri: 'GET s/{store_slug}/reports/point-in-time-inventory/details'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@pointInTimeInventoryDetails
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-270
+    name: 'Reports Customer Insights'
+    route: store.reports.customer-insights
+    route_uri: 'GET s/{store_slug}/reports/customer-insights'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@customerInsights
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-271
+    name: 'Reports Customer Insights Details'
+    route: store.reports.customer-insights.details
+    route_uri: 'GET s/{store_slug}/reports/customer-insights/details'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@customerInsightsDetails
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-272
+    name: 'Reports Supplier Insights'
+    route: store.reports.supplier-insights
+    route_uri: 'GET s/{store_slug}/reports/supplier-insights'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@supplierInsights
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-273
+    name: 'Reports Supplier Insights Details'
+    route: store.reports.supplier-insights.details
+    route_uri: 'GET s/{store_slug}/reports/supplier-insights/details'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@supplierInsightsDetails
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: false
+  -
+    id: M-AUTO-274
+    name: 'Growth Engine Show'
+    route: store.growth-engine.show
+    route_uri: 'GET s/{store_slug}/growth-engine/signal/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\GrowthEngineController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: false
+  -
+    id: M-AUTO-275
+    name: 'Growth Engine Scorecard'
+    route: store.growth-engine.scorecard
+    route_uri: 'GET s/{store_slug}/growth-engine/scorecard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\GrowthEngineController@scorecard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: false
+  -
+    id: M-AUTO-276
+    name: 'Vensynq Health'
+    route: store.vensynq.health
+    route_uri: 'GET s/{store_slug}/vensynq/health'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\VenSynQController@healthStatus
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: false
+  -
+    id: M-AUTO-277
+    name: 'Vensynq Money Pipeline'
+    route: store.vensynq.money-pipeline
+    route_uri: 'GET s/{store_slug}/vensynq/money-pipeline'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\VenSynQController@moneyPipeline
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: false
+  -
+    id: M-AUTO-278
+    name: 'Vensynq Payouts'
+    route: store.vensynq.payouts
+    route_uri: 'GET s/{store_slug}/vensynq/payouts'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\VenSynQController@payouts
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: false
+  -
+    id: M-AUTO-279
+    name: 'Legacy Admin Data'
+    route: store.legacy.admin.data
+    route_uri: 'GET s/{store_slug}/admin-panel/data-management'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DataManagementController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: false
+  -
+    id: M-AUTO-280
+    name: 'Legacy Admin Data Template'
+    route: store.legacy.admin.data.template
+    route_uri: 'GET s/{store_slug}/admin-panel/data/template'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DataManagementController@template
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: false
 consistency_groups:
   -
     id: CG-001
@@ -3806,12 +3998,12 @@ flagged_for_remediation:
     reason: 'Inventory Movement is HYBRID — mixes physical and financial data sources'
     plan_task: 'Phase 4 audit'
 stats:
-  total_metrics: 302
-  ledger_derived: 27
-  transaction_derived: 3
-  hybrid: 11
-  non_financial: 261
+  total_metrics: 318
+  ledger_derived: 133
+  transaction_derived: 17
+  hybrid: 59
+  non_financial: 105
   verified: 289
-  coverage_pct: 95.7%
+  coverage_pct: 90.9%
   consistency_groups: 6
   flagged_for_remediation: 6
