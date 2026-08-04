@@ -82,8 +82,12 @@ class PlanRepository
      * Returns the raw stored value (string, null, '0', '1', 'basic', etc.)
      * Tenant::getLimit() handles the type casting.
      */
-    public static function getEffectiveLimit(int $tenantId, string $planSlug, string $key): mixed
+    public static function getEffectiveLimit(?int $tenantId, string $planSlug, string $key): mixed
     {
+        if (!$tenantId) {
+            return null;
+        }
+
         // 1. Check for an active, non-expired tenant-level override
         $cacheKey = "tenant_override:{$tenantId}:{$key}";
         $ttl      = 300;
@@ -125,8 +129,6 @@ class PlanRepository
     }
 
     /**
-     * Invalidate all active overrides for a specific tenant.
-     * Call whenever a tenant override is applied or removed.
      */
     public static function invalidateTenantCache(int $tenantId): void
     {
@@ -184,8 +186,12 @@ class PlanRepository
     /**
      * Get tenant resource limits for frontend props.
      */
-    public static function limitsFor(\App\Models\Tenant $tenant): array
+    public static function limitsFor(?\App\Models\Tenant $tenant): array
     {
+        if (!$tenant || !$tenant->id) {
+            return [];
+        }
+
         $limits = [];
         foreach (['sku_limit', 'staff_limit', 'location_limit', 'locations', 'ai_pages_limit', 'ai_queries_limit'] as $key) {
             $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $key);

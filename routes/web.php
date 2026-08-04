@@ -101,12 +101,9 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::post('/barcode-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'sheet'])
         ->middleware('throttle:tools')->name('barcode.sheet');
 
-    // Barcode Label Sheet Generator — batch of different products, each with its own barcode
-    Route::get('/barcode-label-generator', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'index'])->name('barcode-label');
-    Route::post('/barcode-label-generator/parse', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'parse'])
-        ->middleware('throttle:tools')->name('barcode-label.parse');
-    Route::post('/barcode-label-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'sheet'])
-        ->middleware('throttle:tools')->name('barcode-label.sheet');
+    // Invoice Scanner Tool (T7-2)
+    Route::get('/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'showInvoiceScanner'])->name('invoice-scanner');
+    Route::post('/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'submitInvoiceScanner'])->middleware('throttle:tools')->name('invoice-scanner.submit');
 
     // T2 — Invoice Generator
     Route::get('/invoice-generator', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'index'])->name('invoice');
@@ -1263,8 +1260,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/payouts', [\App\Http\Controllers\VenSynQController::class, 'payouts'])->name('payouts');
         Route::post('/payouts/{payout}/confirm', [\App\Http\Controllers\VenSynQController::class, 'confirmPayout'])->middleware('permission:vensynq.manage')->name('payouts.confirm');
         Route::post('/clearing/toggle', [\App\Http\Controllers\VenSynQController::class, 'enableClearing'])->middleware('permission:vensynq.manage')->name('clearing.toggle');
-        Route::patch('/channels/{channel}/settlement', [\App\Http\Controllers\VenSynQController::class, 'updateSettlement'])->middleware('permission:vensynq.manage')->name('channels.settlement');
     });
+
+    // Phase 7 Growth: AI Product Descriptions & Listing Image Processing
+    Route::post('/products/ai-descriptions/generate', [\App\Http\Controllers\ProductDescriptionController::class, 'generate'])->name('products.ai-descriptions.generate');
+    Route::post('/products/ai-descriptions/apply', [\App\Http\Controllers\ProductDescriptionController::class, 'apply'])->name('products.ai-descriptions.apply');
+    Route::post('/listing-images/process', [\App\Http\Controllers\ListingImageController::class, 'process'])->name('listing-images.process');
 
     // Payments
     // Payments
