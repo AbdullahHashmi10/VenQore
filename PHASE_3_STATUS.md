@@ -18,7 +18,7 @@ All Phase 3 requirements have been fully implemented, reconciled, verified with 
    - Attached `plan.feature:{key}` middleware to **107 routes** in [`routes/web.php`](file:///e:/AMD%20POS/AMD%20POS/routes/web.php) covering all 38 reports, double entry ledger, suppliers directory, purchase orders, proposals, sales orders, expenses, production, WooCommerce sync, recurring invoices, fund management, bank reconciliation, marketing campaigns, and e-invoicing.
 
 3. **Reconciled Enforcement Logic**:
-   - Refactored [`PlanGate::check()`](file:///e:/AMD%20POS/AMD%20POS/app/Services/PlanGate.php#L30) to delegate to [`PlanRepository::canUseFeature()`](file:///e:/AMD%20POS/AMD%20POS/app/Services/PlanRepository.php#L140) as the single unified source of truth for feature availability.
+   - Refactored [`PlanGate::check()`](file:///e:/AMD%20POS/AMD%20POS/app/Services/PlanGate.php#L30) to delegate all boolean feature flag lookups directly to [`PlanRepository::canUseFeature()`](file:///e:/AMD%20POS/AMD%20POS/app/Services/PlanRepository.php#L140). (Numeric limit usage checks like `$currentCount` remain handled within `PlanGate::check()` by design shape as numeric count comparisons).
 
 4. **UI PlanGate Wiring**:
    - Imported and wired `<PlanGate>` in [`resources/js/Pages/Reports/Dashboard.jsx`](file:///e:/AMD%20POS/AMD%20POS/resources/js/Pages/Reports/Dashboard.jsx) to display feature locks and upgrade prompts.

@@ -184,4 +184,50 @@ class Phase3FeatureGatesTest extends TestCase
         // Tenant plan must remain unchanged
         $this->assertEquals('starter', $this->starterTenant->fresh()->plan);
     }
+
+    /** @test */
+    public function it_blocks_downgrade_via_http_endpoint_for_trial_tenants_with_open_balances()
+    {
+        $trialTenant = Tenant::create([
+            'name'             => 'Trial Store',
+            'slug'             => 'trial-store',
+            'plan'             => 'starter',
+            'status'           => 'trial',
+            'setup_completed'  => true,
+            'industry'         => 'retail',
+        ]);
+
+        app()->instance('current.tenant', $trialTenant);
+
+        $user = User::factory()->create(['is_platform_admin' => true]);
+        TenantUser::create([
+            'tenant_id' => $trialTenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+        $this->actingAs($user);
+
+        // Open receivable on Trial tenant
+        Party::create([
+            'tenant_id'       => $trialTenant->id,
+            'name'            => 'Trial Debtor Corp',
+            'type'            => 'customer',
+            'current_balance' => 25000,
+        ]);
+
+        // Attempt HTTP POST downgrade to counter plan while in trial
+        $response = $this->postJson("/s/{$trialTenant->slug}/billing/change-plan", [
+            'plan' => 'counter',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'code'    => 'downgrade_blocked',
+            ]);
+
+        // Tenant plan must remain unchanged
+        $this->assertEquals('starter', $trialTenant->fresh()->plan);
+    }
 }
