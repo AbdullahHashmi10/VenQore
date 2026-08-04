@@ -332,7 +332,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
 
 // ── Store Context Routes ─────────────────────────────────────────────────
 // All routes under /s/{store_slug}/ require auth + valid store membership
-Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class])
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
@@ -1411,7 +1411,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'graphAnalytics'])->name('reports.analytics');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
-    Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->name('sales.store');
+    Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
     Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
     Route::post('/attendance/heartbeat', [\App\Http\Controllers\AttendanceController::class, 'heartbeat'])->name('attendance.heartbeat');
@@ -1428,7 +1428,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Parked Sales (Hold Bill) - MUST BE BEFORE /sales/{sale}
     Route::post('/sales/bulk-destroy', [\App\Http\Controllers\SaleController::class, 'bulkDestroy'])->name('sales.bulk-destroy');
-    Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'park'])->name('sales.park');
+    Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'park'])->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.park');
     Route::get('/sales/parked', [\App\Http\Controllers\SaleController::class, 'getParkedSales'])->name('sales.parked');
     Route::get('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'recall'])->name('sales.recall');
     Route::delete('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'deleteParked'])->name('sales.parked.delete');

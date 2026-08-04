@@ -9,14 +9,14 @@ use Illuminate\Console\Command;
 class LoadTestCommand extends Command
 {
     protected $signature = 'venqore:load-test {--tenants=500} {--requests=1000}';
-    protected $description = 'Run simulated load testing benchmark across concurrent tenant workloads';
+    protected $description = 'Run in-process multi-tenant service & pipeline resolution benchmark';
 
     public function handle(): int
     {
         $tenantCount = (int) $this->option('tenants');
         $requestCount = (int) $this->option('requests');
 
-        $this->info("Starting VenQore Load Test: {$tenantCount} simulated tenants, {$requestCount} total requests...");
+        $this->info("Starting VenQore Multi-Tenant Service Benchmark: {$tenantCount} simulated tenants, {$requestCount} pipeline operations...");
 
         $startTime = microtime(true);
         $successes = 0;

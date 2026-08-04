@@ -300,3 +300,11 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer()
     ->name('prune-scan-images-90-day');
+
+// ── Phase 8: Check Hosted Until Store Expiry ───────────────────────────────
+// Checks store hosted_until expiry thresholds (60, 30, 7 days) daily at 09:30.
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\CheckHostedUntilExpiryJob())
+    ->dailyAt('09:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('check-hosted-until-expiry');
