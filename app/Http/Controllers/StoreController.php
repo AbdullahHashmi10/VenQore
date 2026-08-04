@@ -38,7 +38,7 @@ use Inertia\Response;
 class StoreController extends Controller
 {
     /** Subscription plans that can be trialled from the create-store flow. */
-    private const TRIAL_PLAN_SLUGS = ['starter', 'growth', 'business'];
+    private const TRIAL_PLAN_SLUGS = ['counter', 'starter', 'growth', 'business'];
 
     /**
      * Page shown to users with no stores yet.
@@ -298,6 +298,8 @@ class StoreController extends Controller
                     'currency_symbol' => 'Rs.',
                     'timezone'        => 'Asia/Karachi',
                     'industry'        => 'retail',
+                    'terms_accepted_at' => now(),
+                    'terms_version'     => 'v4.0',
                 ];
 
                 // ── Gift Access Links ───────────────────────────────────────

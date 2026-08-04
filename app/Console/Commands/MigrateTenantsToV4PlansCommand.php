@@ -37,13 +37,21 @@ class MigrateTenantsToV4PlansCommand extends Command
         foreach ($tenants as $tenant) {
             $oldPlan = $tenant->plan;
 
+            // ── EXPLICIT SAFETY GUARD FOR APPSUMO / LTD TENANTS ─────────────
+            // AppSumo / LTD tenants must NEVER be migrated to monthly V4 plans.
+            // Their plan slugs are 'ltd', 'ltd_1', 'ltd_2', 'ltd_3' or carry is_ltd.
+            if ($oldPlan === 'ltd' || str_starts_with((string)$oldPlan, 'ltd_') || !empty($tenant->plan_limits['is_ltd'])) {
+                $this->line("Skipping AppSumo/LTD tenant {$tenant->id} ({$tenant->slug}) — plan remains {$oldPlan}");
+                continue;
+            }
+
             // Mapping legacy slugs to V4 matrix
             $newPlan = match ($oldPlan) {
                 'lite'       => 'counter',
                 'core'       => 'starter',
                 'pro'        => 'growth',
                 'ultimate'   => 'business',
-                default      => $oldPlan, // 'counter', 'starter', 'growth', 'business', 'ltd'
+                default      => $oldPlan, // 'counter', 'starter', 'growth', 'business'
             };
 
             if ($oldPlan !== $newPlan) {
@@ -52,6 +60,17 @@ class MigrateTenantsToV4PlansCommand extends Command
                         ->where('id', $tenant->id)
                         ->update(['plan' => $newPlan]);
                     \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+
+                    // Send email notification to store owner
+                    $ownerEmail = $tenant->ownerEmail();
+                    if ($ownerEmail) {
+                        try {
+                            \Illuminate\Support\Facades\Notification::route('mail', $ownerEmail)
+                                ->notify(new \App\Notifications\V4PlanMigratedNotification($oldPlan, $newPlan));
+                        } catch (\Throwable $e) {
+                            Log::warning("MigrateTenantsToV4: Failed sending email to {$ownerEmail}: " . $e->getMessage());
+                        }
+                    }
                 }
 
                 $this->line("Tenant {$tenant->id} ({$tenant->slug}): {$oldPlan} -> {$newPlan}");

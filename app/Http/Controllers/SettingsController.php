@@ -132,5 +132,29 @@ class SettingsController extends Controller
         $charge->delete();
         return back()->with('success', 'Charge deleted!');
     }
+
+    public function updateDataPrivacy(Request $request)
+    {
+        $data = $request->validate([
+            'shared_catalog_opt_out' => 'required|boolean',
+            'ai_accuracy_opt_in'     => 'required|boolean',
+        ]);
+
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if (!$tenant && auth()->check() && auth()->user()->last_store_id) {
+            $tenant = Tenant::find(auth()->user()->last_store_id);
+        }
+
+        if ($tenant && $tenant->id) {
+            \Illuminate\Support\Facades\DB::table('tenants')
+                ->where('id', $tenant->id)
+                ->update([
+                    'shared_catalog_opt_out' => $data['shared_catalog_opt_out'],
+                    'ai_accuracy_opt_in'     => $data['ai_accuracy_opt_in'],
+                ]);
+        }
+
+        return back()->with('success', 'Data privacy settings updated!');
+    }
 }
 

@@ -1512,6 +1512,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/settings/charges', [\App\Http\Controllers\SettingsController::class, 'storeCharge'])->name('settings.charges.store');
     Route::put('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'updateCharge'])->name('settings.charges.update');
     Route::delete('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'deleteCharge'])->name('settings.charges.delete');
+    Route::post('/settings/data-privacy', [\App\Http\Controllers\SettingsController::class, 'updateDataPrivacy'])->name('settings.data-privacy.update');
 
     // Charity Routes
     Route::get('/charity/stats', [\App\Http\Controllers\CharityController::class, 'stats'])->name('charity.stats');

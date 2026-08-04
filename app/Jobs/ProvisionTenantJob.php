@@ -179,28 +179,39 @@ class ProvisionTenantJob implements ShouldQueue
             $aiScans = 90;
             $isAddon = true;
         }
-        if ($aiLiteId && $variantIdStr === (string)$aiLiteId) {
+
+        $aiTiers = config('pricing.ai_tiers', []);
+        $sparkVariant = $aiTiers['spark']['lemon_squeezy_variant_id'] ?? config('services.lemon_squeezy.ai_spark_variant_id');
+        $shopVariant  = $aiTiers['shop']['lemon_squeezy_variant_id']  ?? config('services.lemon_squeezy.ai_shop_variant_id');
+        $proVariant   = $aiTiers['pro']['lemon_squeezy_variant_id']   ?? config('services.lemon_squeezy.ai_pro_variant_id');
+        $maxVariant   = $aiTiers['max']['lemon_squeezy_variant_id']   ?? config('services.lemon_squeezy.ai_max_variant_id');
+        $byokVariant  = config('pricing.addons.byok.lemon_squeezy_variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id');
+
+        if ($sparkVariant && $sparkVariant !== 'REPLACE_ME' && $variantIdStr === (string)$sparkVariant) {
             $aiStatus = 'managed';
-            // Matches Pricing.jsx AI_OPTIONS: Lite = 200 queries / 150 scans
-            $aiQueries = 200;
-            $aiScans = 150;
+            $aiQueries = $aiTiers['spark']['ai_queries_limit'] ?? 2500;
+            $aiScans = $aiTiers['spark']['ai_pages_limit'] ?? 500;
             $isAddon = true;
         }
-        if ($aiProId && $variantIdStr === (string)$aiProId) {
+        if ($shopVariant && $shopVariant !== 'REPLACE_ME' && $variantIdStr === (string)$shopVariant) {
             $aiStatus = 'managed';
-            // Matches Pricing.jsx AI_OPTIONS: Pro = 420 queries / 480 scans
-            $aiQueries = 420;
-            $aiScans = 480;
+            $aiQueries = $aiTiers['shop']['ai_queries_limit'] ?? 5000;
+            $aiScans = $aiTiers['shop']['ai_pages_limit'] ?? 1000;
             $isAddon = true;
         }
-        if ($aiUltimateId && $variantIdStr === (string)$aiUltimateId) {
+        if ($proVariant && $proVariant !== 'REPLACE_ME' && $variantIdStr === (string)$proVariant) {
             $aiStatus = 'managed';
-            // Matches Pricing.jsx AI_OPTIONS: Ultimate = 800 queries / 850 scans
-            $aiQueries = 800;
-            $aiScans = 850;
+            $aiQueries = $aiTiers['pro']['ai_queries_limit'] ?? 10000;
+            $aiScans = $aiTiers['pro']['ai_pages_limit'] ?? 2000;
             $isAddon = true;
         }
-        if ($aiByokId && $variantIdStr === (string)$aiByokId) {
+        if ($maxVariant && $maxVariant !== 'REPLACE_ME' && $variantIdStr === (string)$maxVariant) {
+            $aiStatus = 'managed';
+            $aiQueries = $aiTiers['max']['ai_queries_limit'] ?? 20000;
+            $aiScans = $aiTiers['max']['ai_pages_limit'] ?? 4000;
+            $isAddon = true;
+        }
+        if ($byokVariant && $byokVariant !== 'REPLACE_ME' && $variantIdStr === (string)$byokVariant) {
             $aiStatus = 'byok';
             $aiQueries = 999999;
             $aiScans = 999999;

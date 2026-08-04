@@ -50,7 +50,7 @@ class Tenant extends Model
     protected static function booted(): void
     {
         static::saving(function (Tenant $tenant) {
-            if (!$tenant->is_golden_master) {
+            if (empty($tenant->attributes['is_golden_master'])) {
                 return;
             }
 
@@ -119,6 +119,10 @@ class Tenant extends Model
         'ai_period_started_at',
         'sync_channels',
         'grace_ends_at',
+        'terms_accepted_at',
+        'terms_version',
+        'shared_catalog_opt_out',
+        'ai_accuracy_opt_in',
     ];
 
     protected $casts = [
@@ -127,6 +131,9 @@ class Tenant extends Model
         'is_demo'               => 'boolean',
         'is_internal'           => 'boolean',
         'is_golden_master'      => 'boolean',
+        'shared_catalog_opt_out'=> 'boolean',
+        'ai_accuracy_opt_in'    => 'boolean',
+        'terms_accepted_at'     => 'datetime',
         'trial_ends_at'         => 'datetime',
         'subscription_ends_at'  => 'datetime',
         'demo_expires_at'       => 'datetime',

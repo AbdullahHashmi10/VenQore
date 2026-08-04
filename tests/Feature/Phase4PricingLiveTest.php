@@ -104,4 +104,32 @@ class Phase4PricingLiveTest extends TestCase
 
         $this->assertEquals('counter', $legacyTenant->fresh()->plan);
     }
+
+    /** @test */
+    public function it_ensures_ltd_tenants_are_never_migrated_by_v4_command()
+    {
+        $ltdTenant1 = Tenant::create([
+            'name'             => 'LTD Store Tier 1',
+            'slug'             => 'ltd-store-tier-1',
+            'plan'             => 'ltd_1',
+            'status'           => 'active',
+            'setup_completed'  => true,
+            'industry'         => 'retail',
+        ]);
+
+        $ltdTenant2 = Tenant::create([
+            'name'             => 'LTD Store Generic',
+            'slug'             => 'ltd-store-generic',
+            'plan'             => 'ltd',
+            'status'           => 'active',
+            'setup_completed'  => true,
+            'industry'         => 'retail',
+        ]);
+
+        $this->artisan('app:migrate-tenants-v4')
+            ->assertExitCode(0);
+
+        $this->assertEquals('ltd', $ltdTenant1->fresh()->plan);
+        $this->assertEquals('ltd', $ltdTenant2->fresh()->plan);
+    }
 }

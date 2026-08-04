@@ -470,8 +470,18 @@ class BillingController extends Controller
      */
     protected function resolvePlanVariantId(string $plan, bool $isAnnual, bool $usePKR): ?string
     {
-        if (!in_array($plan, ['starter', 'growth', 'business'], true)) {
-            return null;
+        $pricing = config('pricing.plans.' . $plan);
+        if ($pricing) {
+            $key = match (true) {
+                $usePKR && $isAnnual  => 'variant_annual_pkr',
+                $usePKR               => 'variant_pkr',
+                $isAnnual             => 'variant_annual',
+                default               => 'variant_monthly',
+            };
+            $variantId = $pricing['variants'][$key] ?? null;
+            if ($variantId && $variantId !== 'REPLACE_ME') {
+                return (string) $variantId;
+            }
         }
 
         $key = match (true) {
@@ -483,7 +493,7 @@ class BillingController extends Controller
 
         $variantId = config("services.lemon_squeezy.{$key}");
 
-        return $variantId ? (string) $variantId : null;
+        return ($variantId && $variantId !== 'REPLACE_ME') ? (string) $variantId : null;
     }
 
 

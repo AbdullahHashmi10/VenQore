@@ -174,24 +174,39 @@ export default function Pricing({ plans = [] }) {
     const planPricePKR = (key) => PRICES_PKR[key]?.[billingType] ?? 0;
     const planPriceStr = (key) => fmt(planPrice(key), planPricePKR(key), isLTD ? '' : '/mo', false);
 
-    // AI options per plan
-    const AI_OPTIONS = {
-        starter: [
-            { key: 'core', emoji: '🌱', name: 'AI Core', tagline: 'Essentials — query answering & invoice reading', priceUSD: 3, pricePKR: 840, queries: 110, scans: 90 },
-            { key: 'lite', emoji: '⚡', name: 'AI Lite', tagline: 'Active scanning & automation triggers', priceUSD: 5, pricePKR: 1400, queries: 200, scans: 150 },
-        ],
-        growth: [
-            { key: 'lite', emoji: '⚡', name: 'AI Lite', tagline: 'Active scanning & automation triggers', priceUSD: 5, pricePKR: 1400, queries: 200, scans: 150 },
-            { key: 'pro', emoji: '🚀', name: 'AI Pro', tagline: 'High-volume stores, churn predictions & forecasting', priceUSD: 15, pricePKR: 4200, queries: 420, scans: 480 },
-        ],
-        enterprise: [
-            { key: 'pro', emoji: '🚀', name: 'AI Pro', tagline: 'High-volume stores, churn predictions & forecasting', priceUSD: 15, pricePKR: 4200, queries: 420, scans: 480 },
-            { key: 'ultimate', emoji: '👑', name: 'AI Ultimate', tagline: 'Maximum throughput — full catalog intelligence', priceUSD: 25, pricePKR: 7000, queries: 800, scans: 850 },
-        ],
-    };
+    const pricingProps = usePage().props.pricing || {};
+    const aiTiersFromProp = pricingProps.ai_tiers || {};
 
-    const aiOptions = selectedPlan ? AI_OPTIONS[selectedPlan] : [];
-    const selectedAIData = aiOptions.find(o => `opt_${o.key}` === selectedAI) ?? null;
+    // Dynamic AI Options — reading directly from single source of truth (config('pricing'))
+    const ALL_AI_OPTIONS = Object.keys(aiTiersFromProp).length > 0
+        ? Object.entries(aiTiersFromProp).map(([key, tier]) => ({
+            key,
+            name: tier.name || `AI ${key.toUpperCase()}`,
+            emoji: key === 'spark' ? '🌱' : key === 'shop' ? '⚡' : key === 'pro' ? '🚀' : '👑',
+            tagline: tier.tagline || '',
+            priceUSD: tier.price_monthly || 0,
+            pricePKR: (tier.price_monthly || 0) * 280,
+            popular: key === 'shop',
+            laymanDesc: tier.description || '',
+            laymanStats: [
+                { label: `${(tier.ai_pages_limit || 0).toLocaleString()} AI Pages per month`, icon: FileText, desc: 'Auto extraction for paper supplier bills' },
+                { label: `${(tier.ai_queries_limit || 0).toLocaleString()} AI Questions per month`, icon: MessageSquare, desc: 'Voice & text inventory queries' },
+            ],
+            techSpecs: tier.tech_specs || [
+                { name: 'Multipage Support', value: 'Merges multi-page bills into 1 transaction' },
+                { name: 'Language Support', value: 'Handwritten & printed (English, Urdu, Hindi, Arabic numerals)' },
+                { name: 'Safety Guard', value: 'Review screen first — never posts to ledger unconfirmed' },
+                { name: 'Self-Verification', value: 'Auto checks line totals (qty × price = total)' },
+            ]
+        }))
+        : [
+            { key: 'spark', name: 'AI Spark', emoji: '🌱', tagline: 'Small Retailer', priceUSD: 3, pricePKR: 840, popular: false },
+            { key: 'shop',  name: 'AI Shop',  emoji: '⚡', tagline: 'Busy Store',     priceUSD: 6, pricePKR: 1680, popular: true },
+            { key: 'pro',   name: 'AI Pro',   emoji: '🚀', tagline: 'High Volume',   priceUSD: 12, pricePKR: 3360, popular: false },
+            { key: 'max',   name: 'AI Max',   emoji: '👑', tagline: 'Enterprise',    priceUSD: 24, pricePKR: 6720, popular: false },
+        ];
+
+    const selectedAIData = ALL_AI_OPTIONS.find(o => o.key === selectedAI || `opt_${o.key}` === selectedAI) ?? null;
 
     // USD costs
     const aiCostUSD = selectedAI === 'byok' ? 5
@@ -553,85 +568,6 @@ export default function Pricing({ plans = [] }) {
 
     const [expandedNerdSpecs, setExpandedNerdSpecs] = useState({});
     const toggleNerdSpec = (key) => setExpandedNerdSpecs(prev => ({ ...prev, [key]: !prev[key] }));
-
-    const ALL_AI_OPTIONS = [
-        {
-            key: 'spark',
-            name: 'AI Spark',
-            emoji: '🌱',
-            tagline: 'Small Retailer & Single Shop',
-            priceUSD: 3,
-            pricePKR: 840,
-            popular: false,
-            laymanDesc: 'Ideal for single-location shops with standard stock. Read supplier invoices from phone photos, auto-create products, and get instant answers about daily sales.',
-            laymanStats: [
-                { label: '500 AI Pages per month', icon: FileText, desc: 'Snap photo of paper supplier bills to auto-load stock & cost prices' },
-                { label: '2,500 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Ask about stock levels, top sellers, & revenue stats in voice or text' },
-            ],
-            techSpecs: [
-                { name: 'Capabilities', value: 'Multipage PDF extraction, standard speed queue' },
-                { name: 'Underlying Models', value: 'Google Gemini 1.5 Flash & GPT-4o-mini' },
-                { name: 'OCR Engine', value: 'Vision Transformer v2 (99.2% extraction accuracy)' },
-            ]
-        },
-        {
-            key: 'shop',
-            name: 'AI Shop',
-            emoji: '⚡',
-            tagline: 'Busy Store & Multi-Counter Retail',
-            priceUSD: 6,
-            pricePKR: 1680,
-            popular: true,
-            laymanDesc: 'Designed for growing stores with daily supplier deliveries. Heavy-duty invoice extraction, audio upload notes, and low-stock reorder forecasts.',
-            laymanStats: [
-                { label: '1,000 AI Pages per month', icon: FileText, desc: '2x page quota for daily stock intake & receiving bills' },
-                { label: '5,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Voice & text queries for staff, managers, & store owners' },
-            ],
-            techSpecs: [
-                { name: 'Capabilities', value: 'Audio upload, Multipage PDF extraction' },
-                { name: 'Underlying Models', value: 'OpenAI GPT-4o & Gemini 1.5 Pro' },
-                { name: 'Response Latency', value: '<450ms streaming tokens' },
-            ]
-        },
-        {
-            key: 'pro',
-            name: 'AI Pro',
-            emoji: '🚀',
-            tagline: 'High-Volume & Multi-Branch Business',
-            priceUSD: 12,
-            pricePKR: 3360,
-            popular: false,
-            laymanDesc: 'For multi-outlet retailers processing dozens of bills weekly. Bulk document processing, priority AI queue, and multi-user staff AI access.',
-            laymanStats: [
-                { label: '2,000 AI Pages per month', icon: FileText, desc: 'High-capacity bulk document processing for busy warehouses' },
-                { label: '10,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Unlimited multi-user staff AI access across all counters' },
-            ],
-            techSpecs: [
-                { name: 'Capabilities', value: 'Audio upload, Multipage PDF, Bulk upload, Priority Queue' },
-                { name: 'Underlying Models', value: 'Claude 3.5 Sonnet / GPT-4o Hybrid Router' },
-                { name: 'API Queue', value: 'Dedicated priority queue' },
-            ]
-        },
-        {
-            key: 'max',
-            name: 'AI Max',
-            emoji: '👑',
-            tagline: 'Enterprise & Multi-Store Chain',
-            priceUSD: 24,
-            pricePKR: 6720,
-            popular: false,
-            laymanDesc: 'Uncapped AI power for large retail chains. Growth signals, scan API access, and real-time predictive stock routing.',
-            laymanStats: [
-                { label: '4,000 AI Pages per month', icon: FileText, desc: 'Enterprise-grade supplier bill & receiving slip processor' },
-                { label: '20,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Uncapped chain-wide AI intelligence for management' },
-            ],
-            techSpecs: [
-                { name: 'Capabilities', value: 'Full capability suite: Scan API, Growth Signals, Priority GPU' },
-                { name: 'Underlying Models', value: 'Dedicated Priority GPT-4o / Claude 3.5 Sonnet' },
-                { name: 'SLA Guarantee', value: '99.9% uptime SLA with sub-300ms latency' },
-            ]
-        }
-    ];
 
     const SYNC_CHANNELS = [
         {
