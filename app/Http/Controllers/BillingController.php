@@ -863,7 +863,7 @@ class BillingController extends Controller
     /**
      * Change the tenant's plan (simulate local upgrades and scheduled downgrades).
      */
-    public function changePlan(Request $request): RedirectResponse
+    public function changePlan(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         if (!app()->bound('current.tenant')) {
             abort(403, 'No tenant context.');
@@ -884,22 +884,45 @@ class BillingController extends Controller
         }
 
         $request->validate([
-            'plan' => 'required|string|in:starter,growth,business',
+            'plan' => 'required|string|in:counter,starter,growth,business',
         ]);
 
         $targetPlan = $request->input('plan');
         $currentPlan = $tenant->plan;
 
         if ($targetPlan === $currentPlan) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'You are already on the ' . ucfirst($targetPlan) . ' plan.'], 422);
+            }
             return back()->with('error', 'You are already on the ' . ucfirst($targetPlan) . ' plan.');
         }
 
-        $planOrder = ['trial', 'starter', 'growth', 'business'];
+        $planOrder = ['trial', 'counter', 'starter', 'growth', 'business'];
         $currentIdx = array_search($currentPlan, $planOrder);
         $targetIdx = array_search($targetPlan, $planOrder);
 
         if ($currentIdx === false || $targetIdx === false) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Invalid plan transition.'], 422);
+            }
             return back()->with('error', 'Invalid plan transition.');
+        }
+
+        // Validate downgrade before allowing plan transition (applies to all tenant states)
+        if ($targetIdx < $currentIdx) {
+            $downgradeValidation = (new \App\Services\PlanDowngradeService())->validateDowngrade($tenant, $targetPlan);
+            if (!$downgradeValidation['allowed']) {
+                $errorMsg = implode(' ', $downgradeValidation['reasons']);
+                if ($request->expectsJson() || $request->wantsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'code'    => 'downgrade_blocked',
+                        'message' => $errorMsg,
+                        'reasons' => $downgradeValidation['reasons'],
+                    ], 422);
+                }
+                return back()->with('error', $errorMsg)->withErrors($downgradeValidation['reasons']);
+            }
         }
 
         // Resolve dynamic prices based on geolocation and DB overrides

@@ -3,6 +3,7 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head, Link } from '@inertiajs/react';
 import { FileText, BarChart, PieChart, TrendingUp, ArrowRight, Download, Clock } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
+import PlanGate from '@/Components/PlanGate';
 
 export default function ReportsDashboard({ stats, recentReports }) {
     const StatCard = ({ title, value, icon: Icon, color, subValue }) => (
@@ -134,10 +135,12 @@ export default function ReportsDashboard({ stats, recentReports }) {
                                 <span className="font-medium">Inventory Report</span>
                                 <ArrowRight size={16} />
                             </button>
-                            <button className="w-full flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
-                                <span className="font-medium">Financial Statement</span>
-                                <ArrowRight size={16} />
-                            </button>
+                            <PlanGate feature="report_profit_loss">
+                                <button className="w-full flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
+                                    <span className="font-medium">Financial Statement</span>
+                                    <ArrowRight size={16} />
+                                </button>
+                            </PlanGate>
                         </div>
                     </MidnightNebula>
                 </div>

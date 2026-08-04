@@ -1026,48 +1026,36 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Suppliers
 
     // Suppliers
-    // Reads are gated on purchases.view (held by viewer/accountant/purchasing_officer too).
-    // Writes (create/update/delete a supplier record) require purchases.suppliers —
-    // a read-only viewer must not be able to mutate or delete supplier records.
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index'])->middleware('permission:purchases.view');
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['store', 'update', 'destroy'])->middleware('permission:purchases.suppliers');
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index'])->middleware(['permission:purchases.view', 'plan.feature:suppliers_directory']);
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['store', 'update', 'destroy'])->middleware(['permission:purchases.suppliers', 'plan.feature:suppliers_directory']);
 
     // Purchase Orders
-    // Reads (index/show) → purchases.view (viewer/accountant/purchasing_officer included).
-    // Create/edit → purchases.create / purchases.edit (manager included; matches
-    // manager's existing access to create/edit POs).
-    // Destroy → purchases.void specifically. 'manager' deliberately does NOT hold
-    // purchases.void (see config/permissions.php) — a hard delete of a purchase
-    // order is a void-class operation, not an edit, and viewer must never reach it.
-    // NOTE: 'create'/'store' MUST be registered before 'index'/'show' — a literal
-    // segment ('create') must beat the {purchase_order} wildcard in 'show', or
-    // GET /purchase-orders/create binds to show() with purchase_order="create" and 404s.
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['create', 'store'])->middleware('permission:purchases.create');
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['index', 'show'])->middleware('permission:purchases.view');
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['edit', 'update'])->middleware('permission:purchases.edit');
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['destroy'])->middleware('permission:purchases.void');
-    Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->middleware('permission:purchases.edit')->name('purchase-orders.receive');
-    Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->middleware('permission:purchases.view')->name('purchase-orders.print');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['create', 'store'])->middleware(['permission:purchases.create', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['index', 'show'])->middleware(['permission:purchases.view', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['edit', 'update'])->middleware(['permission:purchases.edit', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['destroy'])->middleware(['permission:purchases.void', 'plan.feature:purchase_orders']);
+    Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->middleware(['permission:purchases.edit', 'plan.feature:purchase_orders'])->name('purchase-orders.receive');
+    Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->middleware(['permission:purchases.view', 'plan.feature:purchase_orders'])->name('purchase-orders.print');
 
     // Proposals
-    Route::resource('proposals', \App\Http\Controllers\ProposalController::class);
-    Route::post('/proposals/{proposal}/convert', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->name('proposals.convert');
-    Route::post('/proposals/{proposal}/convert-to-sale', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->name('proposals.convert-to-sale');
-    Route::post('/proposals/{proposal}/convert-to-presale', [\App\Http\Controllers\ProposalController::class, 'convertToPreSale'])->name('proposals.convert-to-presale');
-    Route::get('/proposals/{proposal}/print', [\App\Http\Controllers\ProposalController::class, 'print'])->name('proposals.print');
+    Route::resource('proposals', \App\Http\Controllers\ProposalController::class)->middleware('plan.feature:b2b_proposal_builder');
+    Route::post('/proposals/{proposal}/convert', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert');
+    Route::post('/proposals/{proposal}/convert-to-sale', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert-to-sale');
+    Route::post('/proposals/{proposal}/convert-to-presale', [\App\Http\Controllers\ProposalController::class, 'convertToPreSale'])->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert-to-presale');
+    Route::get('/proposals/{proposal}/print', [\App\Http\Controllers\ProposalController::class, 'print'])->middleware('plan.feature:b2b_proposal_builder')->name('proposals.print');
 
     // Sales Orders (Pre-orders with Hold)
     Route::resource('sales-orders', \App\Http\Controllers\SalesOrderController::class)->parameters([
         'sales-orders' => 'order'
-    ])->except(['edit']);
-    Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('sales-orders.convert');
-    Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('sales-orders.export');
-    Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->name('sales-orders.print');
-    Route::post('/sales-orders/{salesOrder}/cancel', [\App\Http\Controllers\SalesOrderController::class, 'cancel'])->name('sales-orders.cancel');
+    ])->middleware('plan.feature:pre_sales_reservation')->except(['edit']);
+    Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.convert');
+    Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware(['permission:data.export', 'plan.feature:pre_sales_reservation'])->name('sales-orders.export');
+    Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.print');
+    Route::post('/sales-orders/{salesOrder}/cancel', [\App\Http\Controllers\SalesOrderController::class, 'cancel'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.cancel');
 
     // Labels
-    Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->name('labels.index');
-    Route::post('/labels/print', [\App\Http\Controllers\LabelController::class, 'print'])->name('labels.print');
+    Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->middleware('plan.feature:barcode_label_print')->name('labels.index');
+    Route::post('/labels/print', [\App\Http\Controllers\LabelController::class, 'print'])->middleware('plan.feature:barcode_label_print')->name('labels.print');
 
     // Reports
     // Reports
@@ -1092,44 +1080,43 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/expiry', [\App\Http\Controllers\ReportController::class, 'expiryReport'])->name('reports.expiry');
 
         // Additional 24 Reports (completing 38 total)
-        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
-        Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->name('reports.all-parties');
+        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('reports.balance-sheet');
+        Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->middleware('plan.feature:customer_khata')->name('reports.all-parties');
         Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->middleware('plan.feature:report_trial_balance')->name('reports.trial-balance');
-        Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->name('reports.item-wise-profit');
-        Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->name('reports.party-wise-profit-loss');
-        Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('reports.discount');
-        Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+        Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.item-wise-profit');
+        Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.party-wise-profit-loss');
+        Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->middleware('plan.feature:discount_report')->name('reports.discount');
+        Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->middleware('plan.feature:cash_flow_report')->name('reports.cash-flow');
         Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->middleware('plan.feature:aged_receivables')->name('reports.sale-aging');
-        Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->name('reports.sale-orders');
-        Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->name('reports.bill-wise-profit');
-        Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->name('reports.expense-by-category');
-        Route::get('/reports/expense-by-item', [\App\Http\Controllers\ReportController::class, 'expenseByItem'])->name('reports.expense-by-item');
-        Route::get('/reports/stock-summary-by-category', [\App\Http\Controllers\ReportController::class, 'stockSummaryByCategory'])->name('reports.stock-summary-by-category');
-        Route::get('/reports/item-detail', [\App\Http\Controllers\ReportController::class, 'itemDetailReport'])->name('reports.item-detail');
-        Route::get('/reports/loan-statement', [\App\Http\Controllers\ReportController::class, 'loanStatement'])->name('reports.loan-statement');
-        Route::get('/reports/tax-rate', [\App\Http\Controllers\ReportController::class, 'taxRateReport'])->name('reports.tax-rate');
-        Route::get('/reports/sale-purchase-by-party', [\App\Http\Controllers\ReportController::class, 'salePurchaseByParty'])->name('reports.sale-purchase-by-party');
-        Route::get('/reports/item-report-by-party', [\App\Http\Controllers\ReportController::class, 'itemReportByParty'])->name('reports.item-report-by-party');
-        Route::get('/reports/party-report-by-item', [\App\Http\Controllers\ReportController::class, 'partyReportByItem'])->name('reports.party-report-by-item');
-        Route::get('/reports/sale-purchase-by-item-category', [\App\Http\Controllers\ReportController::class, 'salePurchaseByItemCategory'])->name('reports.sale-purchase-by-item-category');
-        Route::get('/reports/item-category-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'itemCategoryWiseProfitLoss'])->name('reports.item-category-wise-profit-loss');
-        Route::get('/reports/item-wise-discount', [\App\Http\Controllers\ReportController::class, 'itemWiseDiscount'])->name('reports.item-wise-discount');
-        Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->name('reports.sale-order-items');
-        Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
-        Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
+        Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->middleware('plan.feature:pre_sales_reservation')->name('reports.sale-orders');
+        Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.bill-wise-profit');
+        Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->middleware('plan.feature:expense_manager')->name('reports.expense-by-category');
+        Route::get('/reports/expense-by-item', [\App\Http\Controllers\ReportController::class, 'expenseByItem'])->middleware('plan.feature:expense_manager')->name('reports.expense-by-item');
+        Route::get('/reports/stock-summary-by-category', [\App\Http\Controllers\ReportController::class, 'stockSummaryByCategory'])->middleware('plan.feature:stock_valuation')->name('reports.stock-summary-by-category');
+        Route::get('/reports/item-detail', [\App\Http\Controllers\ReportController::class, 'itemDetailReport'])->middleware('plan.feature:stock_valuation')->name('reports.item-detail');
+        Route::get('/reports/loan-statement', [\App\Http\Controllers\ReportController::class, 'loanStatement'])->middleware('plan.feature:double_entry_ledger')->name('reports.loan-statement');
+        Route::get('/reports/tax-rate', [\App\Http\Controllers\ReportController::class, 'taxRateReport'])->middleware('plan.feature:auto_vat_gst')->name('reports.tax-rate');
+        Route::get('/reports/sale-purchase-by-party', [\App\Http\Controllers\ReportController::class, 'salePurchaseByParty'])->middleware('plan.feature:report_party_statement')->name('reports.sale-purchase-by-party');
+        Route::get('/reports/item-report-by-party', [\App\Http\Controllers\ReportController::class, 'itemReportByParty'])->middleware('plan.feature:report_party_statement')->name('reports.item-report-by-party');
+        Route::get('/reports/party-report-by-item', [\App\Http\Controllers\ReportController::class, 'partyReportByItem'])->middleware('plan.feature:report_party_statement')->name('reports.party-report-by-item');
+        Route::get('/reports/sale-purchase-by-item-category', [\App\Http\Controllers\ReportController::class, 'salePurchaseByItemCategory'])->middleware('plan.feature:report_profit_loss')->name('reports.sale-purchase-by-item-category');
+        Route::get('/reports/item-category-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'itemCategoryWiseProfitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.item-category-wise-profit-loss');
+        Route::get('/reports/item-wise-discount', [\App\Http\Controllers\ReportController::class, 'itemWiseDiscount'])->middleware('plan.feature:discount_report')->name('reports.item-wise-discount');
+        Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->middleware('plan.feature:pre_sales_reservation')->name('reports.sale-order-items');
+        Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->middleware('plan.feature:stock_aging')->name('reports.stock-aging');
+        Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->middleware('plan.feature:report_party_statement')->name('reports.sale-purchase-by-party-group');
         Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
 
-        // New reports (UI Review request): Point-In-Time Inventory, Customer Insights,
-        // Supplier Insights & Price History.
-        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->name('reports.point-in-time-inventory');
-        Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->name('reports.point-in-time-inventory.details');
-        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->name('reports.customer-insights');
-        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->name('reports.customer-insights.details');
-        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->name('reports.supplier-insights');
-        Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->name('reports.supplier-insights.details');
+        // New reports: Point-In-Time Inventory, Customer Insights, Supplier Insights
+        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->middleware('plan.feature:point_in_time_inventory')->name('reports.point-in-time-inventory');
+        Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->middleware('plan.feature:point_in_time_inventory')->name('reports.point-in-time-inventory.details');
+        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->middleware('plan.feature:customer_insights')->name('reports.customer-insights');
+        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->middleware('plan.feature:customer_insights')->name('reports.customer-insights.details');
+        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->middleware('plan.feature:supplier_insights')->name('reports.supplier-insights');
+        Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->middleware('plan.feature:supplier_insights')->name('reports.supplier-insights.details');
 
         // Owner's Daily Pulse (Secure Vault Dashboard)
-        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->name('reports.owner-daily-pulse');
+        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->middleware('plan.feature:owners_daily_pulse')->name('reports.owner-daily-pulse');
         Route::post('/reports/owner-daily-pulse/verify', [\App\Http\Controllers\OwnerDailyPulseController::class, 'verifyPasscode'])->name('reports.owner-daily-pulse.verify');
         Route::post('/reports/owner-daily-pulse/setup', [\App\Http\Controllers\OwnerDailyPulseController::class, 'setup'])->name('reports.owner-daily-pulse.setup');
         Route::post('/reports/owner-daily-pulse/lock', [\App\Http\Controllers\OwnerDailyPulseController::class, 'lock'])->name('reports.owner-daily-pulse.lock');
@@ -1137,16 +1124,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     });
 
     // Cookbook
-    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->name('cookbook.index');
-    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->name('cookbook.create');
-    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->name('cookbook.store');
-    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->name('cookbook.edit');
-    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->name('cookbook.update');
-    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->name('cookbook.destroy');
-    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->name('cookbook.simulate');
+    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:recipes')->name('cookbook.index');
+    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:recipes')->name('cookbook.create');
+    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('plan.feature:recipes')->name('cookbook.store');
+    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:recipes')->name('cookbook.edit');
+    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('plan.feature:recipes')->name('cookbook.update');
+    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('plan.feature:recipes')->name('cookbook.destroy');
+    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('plan.feature:recipes')->name('cookbook.simulate');
 
     // growth-engine
-    Route::middleware('permission:reports.summary')->group(function () {
+    Route::middleware(['permission:reports.summary', 'plan.feature:growth_engine'])->group(function () {
         Route::get('/growth-engine', [\App\Http\Controllers\GrowthEngineController::class, 'index'])->name('growth-engine.index');
         Route::post('/growth-engine/refresh', [\App\Http\Controllers\GrowthEngineController::class, 'refresh'])->name('growth-engine.refresh');
         Route::get('/growth-engine/dashboard', [\App\Http\Controllers\GrowthEngineController::class, 'dashboard'])->name('growth-engine.dashboard');
@@ -1154,11 +1141,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::post('/growth-engine/dismiss/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'dismiss'])->name('growth-engine.dismiss');
         Route::post('/growth-engine/mark-read/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'markRead'])->name('growth-engine.mark-read');
 
-        // ── Growth Engine V2 ────────────────────────────────────────────
-        // `act` is the important addition: recording that the owner DID
-        // something is what lets OutcomeEvaluator tell "the prediction was
-        // wrong" apart from "the prediction was right and you prevented it".
-        // Without it the engine can never learn from a save.
         Route::get('/growth-engine/signal/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'show'])->name('growth-engine.show');
         Route::post('/growth-engine/act/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'act'])->name('growth-engine.act');
         Route::post('/growth-engine/snooze/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'snooze'])->name('growth-engine.snooze');
@@ -1324,11 +1306,87 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
 
     // Production Runs
-    Route::get('/inventory/production', [\App\Http\Controllers\ProductionController::class, 'index'])->name('production.index');
-    Route::get('/inventory/production/create', [\App\Http\Controllers\ProductionController::class, 'create'])->name('production.create');
-    Route::post('/inventory/production', [\App\Http\Controllers\V3\ProductionRunController::class, 'store'])->name('production.store');
-    Route::get('/inventory/production/{run}', [\App\Http\Controllers\ProductionController::class, 'show'])->name('production.show');
-    Route::post('/inventory/production/{run}/complete', [\App\Http\Controllers\V3\ProductionRunController::class, 'complete'])->name('production.complete');
+    Route::get('/inventory/production', [\App\Http\Controllers\ProductionController::class, 'index'])->middleware('plan.feature:production')->name('production.index');
+    Route::get('/inventory/production/create', [\App\Http\Controllers\ProductionController::class, 'create'])->middleware('plan.feature:production')->name('production.create');
+    Route::post('/inventory/production', [\App\Http\Controllers\V3\ProductionRunController::class, 'store'])->middleware('plan.feature:production')->name('production.store');
+    Route::get('/inventory/production/{run}', [\App\Http\Controllers\ProductionController::class, 'show'])->middleware('plan.feature:production')->name('production.show');
+    Route::post('/inventory/production/{run}/complete', [\App\Http\Controllers\V3\ProductionRunController::class, 'complete'])->middleware('plan.feature:production')->name('production.complete');
+
+    // Fund Management (Owner Capital, Transfers, Adjustments)
+    Route::get('/funds', [FundController::class, 'index'])->middleware(['permission:finance.balances', 'plan.feature:fund_management'])->name('funds.index');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('plan.feature:fund_management')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('plan.feature:fund_management')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('plan.feature:fund_management')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('plan.feature:fund_management')->name('funds.adjust');
+
+    // Accounting Routes
+    Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->middleware('plan.feature:double_entry_ledger')->name('accounting.dashboard');
+    Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->middleware('plan.feature:double_entry_ledger')->name('accounting.index');
+    Route::get('/accounting/p-and-l', [\App\Http\Controllers\AccountingController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('accounting.pnl');
+    Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('accounting.balance-sheet');
+
+    // Recurring Invoices
+    Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.index');
+    Route::get('/recurring-invoices/create', [\App\Http\Controllers\RecurringInvoiceController::class, 'create'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.create');
+    Route::post('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'store'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.store');
+    Route::get('/recurring-invoices/{id}/edit', [\App\Http\Controllers\RecurringInvoiceController::class, 'edit'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.edit');
+    Route::put('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'update'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.update');
+    Route::post('/recurring-invoices/{id}/toggle', [\App\Http\Controllers\RecurringInvoiceController::class, 'toggle'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.toggle');
+    Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.destroy');
+
+    // Stock Transfers
+    Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.index');
+    Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.create');
+    Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.store');
+    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.show');
+
+    // Debit Notes
+    Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.index');
+    Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.create');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
+    Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.show');
+
+    // Bank Reconciliation
+    Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.index');
+    Route::post('/bank-reconciliation/import', [\App\Http\Controllers\BankReconciliationController::class, 'import'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.import');
+
+    // Invoice Reminders
+    Route::get('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'index'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.index');
+    Route::get('/invoice-reminders/create', [\App\Http\Controllers\InvoiceReminderController::class, 'create'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.create');
+    Route::post('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'store'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.store');
+    Route::post('/invoice-reminders/{id}/send', [\App\Http\Controllers\InvoiceReminderController::class, 'send'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.send');
+
+    // Marketing Campaigns
+    Route::get('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'index'])->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.index');
+    Route::get('/marketing/campaigns/create', [\App\Http\Controllers\MarketingCampaignController::class, 'create'])->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.create');
+    Route::post('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'store'])->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.store');
+
+    // WooCommerce Sync
+    Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
+        ->middleware('plan.feature:woocommerce')
+        ->name('woocommerce.index');
+    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
+        Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])->name('plugin.download');
+        Route::get('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'index'])->name('connections.index');
+        Route::post('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'store'])->name('connections.store');
+        Route::get('/connections/{connection}/setup', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'setup'])->name('connections.setup');
+        Route::get('/connections/{connection}/status', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'statusJson'])->name('connections.status-json');
+        Route::put('/connections/{connection}/settings', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'updateSettings'])->name('connections.settings');
+        Route::delete('/connections/{connection}', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'destroy'])->name('connections.destroy');
+        Route::get('/connections/{connection}/sync', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'syncPage'])->name('connections.sync');
+        Route::post('/connections/{connection}/approve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'approveSync'])->name('connections.approve');
+        Route::post('/connections/{connection}/push', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePush'])->name('connections.push');
+        Route::post('/connections/{connection}/pull', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePull'])->name('connections.pull');
+        Route::post('/connections/{connection}/scan', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'scanCatalog'])->name('connections.scan');
+        Route::post('/connections/{connection}/resolve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'resolveConflict'])->name('connections.resolve');
+        Route::post('/connections/{connection}/ignore', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'ignore'])->name('connections.ignore');
+        Route::get('/connections/{connection}/logs', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'logs'])->name('connections.logs');
+    });
+
+    // E-Invoicing
+    Route::get('/e-invoicing', [\App\Http\Controllers\EInvoicingController::class, 'index'])->middleware('plan.feature:e_invoicing')->name('e-invoicing.index');
+    Route::post('/e-invoicing/generate', [\App\Http\Controllers\EInvoicingController::class, 'generate'])->middleware('plan.feature:e_invoicing')->name('e-invoicing.generate');
+    Route::post('/e-invoicing/waybill', [\App\Http\Controllers\EInvoicingController::class, 'generateWaybill'])->middleware('plan.feature:e_invoicing')->name('e-invoicing.waybill');
 
     // Parked Sales
     Route::get('/sales/parked-items', [\App\Http\Controllers\ParkedSaleController::class, 'index'])->name('parked-sales.index');

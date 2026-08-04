@@ -30,33 +30,26 @@ class PlanGate
     public static function check(string $feature, ?int $currentCount = null): bool
     {
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        if ($tenant?->is_demo) {
+        if (!$tenant) {
             return true;
         }
 
-        $limit  = $tenant->getLimit($feature);
-
-        // null = unlimited — always allowed
-        if ($limit === null) {
+        if ($tenant->is_demo) {
             return true;
         }
 
-        // false = feature disabled for this plan
-        if ($limit === false) {
-            return false;
+        if ($currentCount !== null) {
+            $limit = PlanRepository::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $feature);
+            if ($limit === null || $limit === '-1' || $limit === -1) {
+                return true; // unlimited
+            }
+            if ($limit === '0' || $limit === 0 || $limit === false) {
+                return false;
+            }
+            return $currentCount < (int) $limit;
         }
 
-        // Numeric cap — check current usage
-        if (is_int($limit) && $currentCount !== null) {
-            return $currentCount < $limit;
-        }
-
-        // String flags (e.g., 'basic' | 'advanced') — just truthy check
-        if (is_string($limit)) {
-            return !empty($limit);
-        }
-
-        return (bool) $limit;
+        return PlanRepository::canUseFeature($tenant, $feature);
     }
 
     /**

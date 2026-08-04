@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Party;
 use App\Models\Product;
-use App\Models\StoreLocation;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
@@ -26,22 +25,23 @@ class Phase3FeatureGatesTest extends TestCase
 
         $this->seed(\Database\Seeders\PlanFeatureMatrixSeeder::class);
 
-        // Seed Counter tenant
+        // Seed Counter tenant using consistent industry attribute
         $this->counterTenant = Tenant::create([
             'name'             => 'Counter Store',
             'slug'             => 'counter-store',
             'plan'             => 'counter',
             'setup_completed'  => true,
-            'industry_type'    => 'grocery',
+            'industry'         => 'grocery',
         ]);
 
-        // Seed Starter tenant
+        // Seed Starter tenant using consistent industry attribute
         $this->starterTenant = Tenant::create([
             'name'             => 'Starter Store',
             'slug'             => 'starter-store',
             'plan'             => 'starter',
+            'status'           => 'active',
             'setup_completed'  => true,
-            'industry_type'    => 'retail',
+            'industry'         => 'retail',
         ]);
     }
 
@@ -144,5 +144,44 @@ class Phase3FeatureGatesTest extends TestCase
         $this->assertFalse($result['allowed']);
         $this->assertNotEmpty($result['reasons']);
         $this->assertStringContainsString('receivables', $result['reasons'][0]);
+    }
+
+    /** @test */
+    public function it_blocks_downgrade_via_http_endpoint_when_open_balances_exist()
+    {
+        $this->withoutExceptionHandling();
+
+        app()->instance('current.tenant', $this->starterTenant);
+
+        $user = User::factory()->create(['is_platform_admin' => true]);
+        TenantUser::create([
+            'tenant_id' => $this->starterTenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+        $this->actingAs($user);
+
+        // Active receivable on Starter tenant
+        Party::create([
+            'tenant_id'       => $this->starterTenant->id,
+            'name'            => 'Debtor Corp',
+            'type'            => 'customer',
+            'current_balance' => 50000,
+        ]);
+
+        // Attempt HTTP POST downgrade to counter plan
+        $response = $this->postJson("/s/{$this->starterTenant->slug}/billing/change-plan", [
+            'plan' => 'counter',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'code'    => 'downgrade_blocked',
+            ]);
+
+        // Tenant plan must remain unchanged
+        $this->assertEquals('starter', $this->starterTenant->fresh()->plan);
     }
 }
