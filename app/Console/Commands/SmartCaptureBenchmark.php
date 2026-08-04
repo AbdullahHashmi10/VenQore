@@ -128,10 +128,14 @@ class SmartCaptureBenchmark extends Command
             if (($actual['action'] ?? '') === $expected['action']) $matches++;
         }
 
-        // Check party
+        // Check party (strict string comparison / normalized matching)
         if (isset($expected['party'])) {
             $totalChecks++;
-            if (!empty($actual['party']) || $expected['party'] === null) $matches++;
+            $expectedParty = mb_strtolower(trim((string) $expected['party']));
+            $actualParty   = mb_strtolower(trim((string) ($actual['party'] ?? '')));
+            if ($expectedParty === $actualParty || ($expectedParty !== '' && str_contains($actualParty, $expectedParty))) {
+                $matches++;
+            }
         }
 
         // Check item count

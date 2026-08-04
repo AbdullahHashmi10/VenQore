@@ -1099,12 +1099,12 @@ class AiController extends Controller
                 'records' => Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->take(10)->get(['id', 'name', 'stock_quantity', 'alert_quantity'])->toArray(),
             ],
             'receivables' => [
-                'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->sum('balance'), 2) . ' across ' . \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->count() . ' customers.',
-                'records' => \App\Models\Party::where('type', 'Customer')->where('balance', '>', 0)->take(10)->get(['id', 'name', 'balance'])->toArray(),
+                'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->sum('current_balance'), 2) . ' across ' . \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->count() . ' customers.',
+                'records' => \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->take(10)->get(['id', 'name', 'current_balance'])->toArray(),
             ],
             'payables' => [
-                'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->sum('balance'), 2) . ' across ' . \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->count() . ' suppliers.',
-                'records' => \App\Models\Party::where('type', 'Supplier')->where('balance', '>', 0)->take(10)->get(['id', 'name', 'balance'])->toArray(),
+                'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->sum('current_balance'), 2) . ' across ' . \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->count() . ' suppliers.',
+                'records' => \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->take(10)->get(['id', 'name', 'current_balance'])->toArray(),
             ],
             'top_sellers' => [
                 'summary' => 'Top Selling Products by Quantity Sold',

@@ -228,4 +228,64 @@ class Phase1SmartCaptureTest extends TestCase
         $this->assertEquals(3, $pdfMeta['chunks_count']);
         $this->assertEquals(12, $pdfMeta['credits_cost']);
     }
+
+    /** @test */
+    public function it_routes_receivables_query_to_sql_reports_with_correct_sums()
+    {
+        $user = \App\Models\User::factory()->create();
+        \App\Models\TenantUser::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+
+        Party::create([
+            'tenant_id'       => $this->tenant->id,
+            'name'            => 'Customer Alpha',
+            'type'            => 'customer',
+            'current_balance' => 4500.50,
+        ]);
+
+        $request = \Illuminate\Http\Request::create('/ai/query', 'GET', ['query' => 'receivables']);
+        $request->setUserResolver(fn() => $user);
+
+        $response = app(\App\Http\Controllers\AiController::class)->query($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('sql_intent_router', $data['source']);
+        $this->assertEquals('receivables', $data['intent']);
+        $this->assertStringContainsString('4,500.50', $data['answer']);
+    }
+
+    /** @test */
+    public function it_routes_payables_query_to_sql_reports_with_correct_sums()
+    {
+        $user = \App\Models\User::factory()->create();
+        \App\Models\TenantUser::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+
+        Party::create([
+            'tenant_id'       => $this->tenant->id,
+            'name'            => 'Supplier Beta',
+            'type'            => 'supplier',
+            'current_balance' => 12500.00,
+        ]);
+
+        $request = \Illuminate\Http\Request::create('/ai/query', 'GET', ['query' => 'payables']);
+        $request->setUserResolver(fn() => $user);
+
+        $response = app(\App\Http\Controllers\AiController::class)->query($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('sql_intent_router', $data['source']);
+        $this->assertEquals('payables', $data['intent']);
+        $this->assertStringContainsString('12,500.00', $data['answer']);
+    }
 }
