@@ -170,7 +170,7 @@ class Phase7GrowthTest extends TestCase
     }
 
     /** @test */
-    public function it_enforces_budget_cap_under_concurrent_spend_reservations()
+    public function it_enforces_sequential_spend_reservation_totals_against_budget_cap()
     {
         $guard = new PublicToolBudgetGuard();
         $maxDailyBudget = 10.00;

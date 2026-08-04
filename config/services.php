@@ -140,4 +140,9 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URL', 'http://127.0.0.1:8000/auth/google/callback'),
     ],
 
+    'cloudflare' => [
+        'turnstile_site_key'   => env('CLOUDFLARE_TURNSTILE_SITE_KEY', ''),
+        'turnstile_secret_key' => env('CLOUDFLARE_TURNSTILE_SECRET_KEY', ''),
+    ],
+
 ];
