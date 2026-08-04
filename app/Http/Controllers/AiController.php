@@ -412,10 +412,42 @@ class AiController extends Controller
                     $finalData = $finalResponse->json();
 
                     $answer = $finalData['candidates'][0]['content']['parts'][0]['text'] ?? "I processed the data but couldn't generate a summary.";
+                    try {
+                        $promptTokens = (int) ($finalData['usageMetadata']['promptTokenCount'] ?? 0);
+                        $outputTokens = (int) ($finalData['usageMetadata']['candidatesTokenCount'] ?? 0);
+                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                        app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                            'tenant_id'       => $tenant?->id,
+                            'feature'         => 'query',
+                            'provider'        => 'gemini',
+                            'model'           => $model,
+                            'key_mode'        => 'platform_paid',
+                            'input_type'      => 'text',
+                            'prompt_tokens'   => $promptTokens,
+                            'output_tokens'   => $outputTokens,
+                            'success'         => true,
+                        ]);
+                    } catch (\Throwable $te) {}
                     return response()->json(['answer' => $answer, 'type' => 'ai_response']);
                 }
 
                 $answer = $part['text'] ?? "I couldn't understand that.";
+                try {
+                    $promptTokens = (int) ($data['usageMetadata']['promptTokenCount'] ?? 0);
+                    $outputTokens = (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0);
+                    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                    app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                        'tenant_id'       => $tenant?->id,
+                        'feature'         => 'query',
+                        'provider'        => 'gemini',
+                        'model'           => $model,
+                        'key_mode'        => 'platform_paid',
+                        'input_type'      => 'text',
+                        'prompt_tokens'   => $promptTokens,
+                        'output_tokens'   => $outputTokens,
+                        'success'         => true,
+                    ]);
+                } catch (\Throwable $te) {}
                 return response()->json(['answer' => $answer, 'type' => 'ai_response']);
 
             } catch (\Exception $e) {

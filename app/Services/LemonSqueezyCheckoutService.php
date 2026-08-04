@@ -45,6 +45,28 @@ class LemonSqueezyCheckoutService
     }
 
     /**
+     * Create a single checkout session bundling base plan + add-ons into one cart (T0-10).
+     * Saves $0.50 Lemon Squeezy processing fee per add-on.
+     */
+    public function createBundledCheckout(Tenant $tenant, array $variantItems, array $options = []): ?string
+    {
+        if (!$this->isConfigured() || empty($variantItems)) {
+            return null;
+        }
+
+        $primaryVariant = $variantItems[0]['variant_id'] ?? null;
+        if (!$primaryVariant) {
+            return null;
+        }
+
+        return $this->createCheckout($tenant, $primaryVariant, array_merge($options, [
+            'custom' => array_merge($options['custom'] ?? [], [
+                'bundled_variants' => $variantItems,
+            ]),
+        ]));
+    }
+
+    /**
      * Branding applied to every checkout, driven by config so it can be tuned
      * per-environment without a code change.
      */

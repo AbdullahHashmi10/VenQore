@@ -475,7 +475,7 @@ class AiExtractionService
 
         $promptTokens = (int) ($json['usageMetadata']['promptTokenCount'] ?? 0);
         $completionTokens = (int) ($json['usageMetadata']['candidatesTokenCount'] ?? 0);
-        $estimatedCost = ($promptTokens * 0.0000001) + ($completionTokens * 0.0000004);
+        $cachedTokens = (int) ($json['usageMetadata']['cachedContentTokenCount'] ?? 0);
 
         $this->lastUsage = [
             'prompt_tokens' => $promptTokens,
@@ -485,14 +485,17 @@ class AiExtractionService
 
         try {
             $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-            \Illuminate\Support\Facades\DB::table('ai_usage_events')->insert([
-                'tenant_id' => $tenant ? $tenant->id : null,
-                'source' => 'smart_capture',
-                'model' => $model,
-                'prompt_tokens' => $promptTokens,
-                'completion_tokens' => $completionTokens,
-                'estimated_cost_usd' => $estimatedCost,
-                'created_at' => now(),
+            app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                'tenant_id'       => $tenant?->id,
+                'feature'         => 'scan',
+                'provider'        => 'gemini',
+                'model'           => $model,
+                'key_mode'        => 'platform_paid',
+                'input_type'      => $inputType,
+                'prompt_tokens'   => $promptTokens,
+                'output_tokens'   => $completionTokens,
+                'cached_tokens'   => $cachedTokens,
+                'success'         => true,
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Failed to record ai_usage_event: " . $e->getMessage());
@@ -588,11 +591,31 @@ class AiExtractionService
             $this->throwProviderError('OpenAI', $response->status(), $response->body(), $response->header('Retry-After'));
         }
 
+        $promptTokens = (int) ($response->json('usage.prompt_tokens') ?? 0);
+        $completionTokens = (int) ($response->json('usage.completion_tokens') ?? 0);
+
         $this->lastUsage = [
-            'prompt_tokens' => $response->json('usage.prompt_tokens'),
-            'output_tokens' => $response->json('usage.completion_tokens'),
+            'prompt_tokens' => $promptTokens,
+            'output_tokens' => $completionTokens,
             'total_tokens'  => $response->json('usage.total_tokens'),
         ];
+
+        try {
+            $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+            app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                'tenant_id'       => $tenant?->id,
+                'feature'         => 'scan',
+                'provider'        => 'openai',
+                'model'           => $model,
+                'key_mode'        => 'platform_paid',
+                'input_type'      => $inputType,
+                'prompt_tokens'   => $promptTokens,
+                'output_tokens'   => $completionTokens,
+                'success'         => true,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to record OpenAI ai_usage_event: " . $e->getMessage());
+        }
 
         $text = $response->json('choices.0.message.content');
         if (!$text) {
@@ -670,10 +693,30 @@ class AiExtractionService
             $this->throwProviderError('Anthropic', $response->status(), $response->body(), $response->header('Retry-After'));
         }
 
+        $promptTokens = (int) ($response->json('usage.input_tokens') ?? 0);
+        $completionTokens = (int) ($response->json('usage.output_tokens') ?? 0);
+
         $this->lastUsage = [
-            'prompt_tokens' => $response->json('usage.input_tokens'),
-            'output_tokens' => $response->json('usage.output_tokens'),
+            'prompt_tokens' => $promptTokens,
+            'output_tokens' => $completionTokens,
         ];
+
+        try {
+            $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+            app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                'tenant_id'       => $tenant?->id,
+                'feature'         => 'scan',
+                'provider'        => 'anthropic',
+                'model'           => $model,
+                'key_mode'        => 'platform_paid',
+                'input_type'      => $inputType,
+                'prompt_tokens'   => $promptTokens,
+                'output_tokens'   => $completionTokens,
+                'success'         => true,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to record Anthropic ai_usage_event: " . $e->getMessage());
+        }
 
         $text = $response->json('content.0.text');
         if (!$text) {
@@ -703,6 +746,31 @@ class AiExtractionService
 
         if ($response->failed()) {
             $this->throwProviderError('DeepSeek', $response->status(), $response->body(), $response->header('Retry-After'));
+        }
+
+        $promptTokens = (int) ($response->json('usage.prompt_tokens') ?? 0);
+        $completionTokens = (int) ($response->json('usage.completion_tokens') ?? 0);
+
+        $this->lastUsage = [
+            'prompt_tokens' => $promptTokens,
+            'output_tokens' => $completionTokens,
+        ];
+
+        try {
+            $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+            app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                'tenant_id'       => $tenant?->id,
+                'feature'         => 'scan',
+                'provider'        => 'deepseek',
+                'model'           => $model,
+                'key_mode'        => 'platform_paid',
+                'input_type'      => $inputType,
+                'prompt_tokens'   => $promptTokens,
+                'output_tokens'   => $completionTokens,
+                'success'         => true,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to record DeepSeek ai_usage_event: " . $e->getMessage());
         }
 
         $text = $response->json('choices.0.message.content');

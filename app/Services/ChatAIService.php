@@ -150,6 +150,28 @@ class ChatAIService
                 $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
                 if ($reply) {
+                    try {
+                        $promptTokens = (int) ($data['usageMetadata']['promptTokenCount'] ?? 0);
+                        $outputTokens = (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0);
+                        $cachedTokens = (int) ($data['usageMetadata']['cachedContentTokenCount'] ?? 0);
+                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+
+                        app(\App\Services\Ai\AiUsageRecorder::class)->record([
+                            'tenant_id'       => $tenant?->id,
+                            'feature'         => 'visitor_chat',
+                            'provider'        => 'gemini',
+                            'model'           => $model,
+                            'key_mode'        => $apiKeyType ?? 'platform_paid',
+                            'input_type'      => 'text',
+                            'prompt_tokens'   => $promptTokens,
+                            'output_tokens'   => $outputTokens,
+                            'cached_tokens'   => $cachedTokens,
+                            'success'         => true,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::warning('Failed to record ChatAIService ai_usage_event: ' . $e->getMessage());
+                    }
+
                     return [
                         'text' => trim($reply),
                         'usage' => $data['usageMetadata'] ?? null,
