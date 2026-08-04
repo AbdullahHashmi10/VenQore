@@ -103,6 +103,9 @@ class Tenant extends Model
         'onboarding_completed',
         'onboarding_steps_done',
         'google_backup_enabled',
+        'hosted_until',
+        'transactions_this_month',
+        'transactions_reset_at',
         'google_backup_retention',
         'google_backup_email',
         'google_access_token',
@@ -393,12 +396,12 @@ class Tenant extends Model
         if ($this->plan !== 'ltd') {
             return $this->plan;
         }
-        $txLimit = $this->getLimit('transactions_per_month');
-        if ($txLimit == 500) {
+        $txLimit = $this->plan_limits['transactions_per_month'] ?? null;
+        if ($txLimit == 1000 || $txLimit == 500) {
             return 'ltd_1';
-        } elseif ($txLimit == 2000) {
+        } elseif ($txLimit == 3000 || $txLimit == 2000) {
             return 'ltd_2';
-        } elseif ($txLimit == 6000) {
+        } elseif ($txLimit == 8000 || $txLimit == 6000) {
             return 'ltd_3';
         }
         return 'ltd_1';

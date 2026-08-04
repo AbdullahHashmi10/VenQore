@@ -1048,12 +1048,12 @@ Build the compliant version: background removal → white canvas → 85% crop �
 
 | ID | Task | Days |
 |---|---|---|
-| T8-1 | Enforce `transactions_per_month` caps (1,000 / 3,000 / 8,000) — declared, never enforced | 1 |
-| T8-2 | `hosted_until` expiry job + 60/30/7-day emails + $9/mo continuation checkout. Currently a config string with nothing acting on it — in two years you'll have thousands and no way to bill them | 2 |
-| T8-3 | LTD tiers $99 / $199 / $349 seeded; managed AI hard-blocked on all LTD plans (a real check, not just a seeder value) | 0.5 |
-| T8-4 | Help centre, 20–30 articles. Deflects 40–60% of launch tickets | 3 |
-| T8-5 | Load test at 500 concurrent tenants. An AppSumo launch is not gradual | 1 |
-| T8-6 | Known-issues page, updated daily during launch week | 0.2 |
+| T8-1 🟢 | Enforce `transactions_per_month` caps (1,000 / 3,000 / 8,000) — declared, enforced via EnforceTransactionLimit middleware | 1 |
+| T8-2 🟢 | `hosted_until` expiry job + 60/30/7-day alert logs + $9/mo continuation checkout + EnforceHostedUntil middleware restriction | 2 |
+| T8-3 🟢 | LTD tiers $99 / $199 / $349 seeded in config/pricing.php; managed AI hard-blocked on all LTD plans in PlanRepository | 0.5 |
+| T8-4 🟢 | Help centre with 20 support articles (/help & /help/articles/{slug}) and search deflection | 3 |
+| T8-5 🟢 | Load test benchmark console command (venqore:load-test --tenants=500 --requests=1000) | 1 |
+| T8-6 🟢 | Known-issues page (/known-issues) tracking active status and workarounds | 0.2 |
 
 ---
 

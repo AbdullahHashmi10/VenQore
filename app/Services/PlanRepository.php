@@ -15,8 +15,19 @@ class PlanRepository
      * Values are stored as strings in DB. null = unlimited.
      * Callers must cast appropriately (PlanGate handles this via Tenant::getLimit()).
      */
+    public static function normalizePlanSlug(string $slug): string
+    {
+        return match (strtolower(trim($slug))) {
+            'ltd_tier_1', 'ltd_1', 'ltd1' => 'ltd_1',
+            'ltd_tier_2', 'ltd_2', 'ltd2' => 'ltd_2',
+            'ltd_tier_3', 'ltd_3', 'ltd3' => 'ltd_3',
+            default => strtolower(trim($slug)),
+        };
+    }
+
     public static function getLimits(string $planSlug): array
     {
+        $planSlug = self::normalizePlanSlug($planSlug);
         $ttl = 3600;
 
         return Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
@@ -88,6 +99,16 @@ class PlanRepository
             return null;
         }
 
+        if ($planSlug === 'ltd') {
+            $t = app()->bound('current.tenant') && app('current.tenant')->id === $tenantId
+                ? app('current.tenant')
+                : \App\Models\Tenant::withoutGlobalScopes()->find($tenantId);
+
+            if ($t && method_exists($t, 'effectivePlan')) {
+                $planSlug = $t->effectivePlan();
+            }
+        }
+
         // 1. Check for an active, non-expired tenant-level override
         $cacheKey = "tenant_override:{$tenantId}:{$key}";
         $ttl      = 300;
@@ -114,8 +135,27 @@ class PlanRepository
             return $override; // null here = unlimited override
         }
 
-        // 2. Fall back to plan default from DB
+        // 2. Fall back to plan default from DB or config
         $limits = self::getLimits($planSlug);
+        if (array_key_exists($key, $limits) && $limits[$key] !== null && $limits[$key] !== '') {
+            return $limits[$key];
+        }
+
+        // 3. LTD fallback from config/pricing.php
+        $normSlug = self::normalizePlanSlug($planSlug);
+        if (str_starts_with($normSlug, 'ltd')) {
+            $ltdKey = match ($normSlug) {
+                'ltd_1' => 'ltd_tier_1',
+                'ltd_2' => 'ltd_tier_2',
+                'ltd_3' => 'ltd_tier_3',
+                default => $normSlug,
+            };
+            $ltdConfig = config("pricing.ltd_plans.{$ltdKey}") ?? config("pricing.ltd_plans.{$normSlug}");
+            if ($ltdConfig && array_key_exists($key, $ltdConfig) && $ltdConfig[$key] !== null) {
+                return (string) $ltdConfig[$key];
+            }
+        }
+
         return $limits[$key] ?? null;
     }
 
@@ -144,6 +184,28 @@ class PlanRepository
      */
     public static function canUseFeature(\App\Models\Tenant $tenant, string $feature): bool
     {
+        $plan = strtolower((string) ($tenant->plan ?? 'starter'));
+
+        // T8-3: Managed AI is hard-blocked on all LTD plans unless tenant provided their own API key (BYOK mode)
+        if (($feature === 'smart_capture' || $feature === 'managed_ai') && str_starts_with($plan, 'ltd')) {
+            $byokKey = null;
+            try {
+                $byokKey = \App\Models\Setting::withoutGlobalScopes()
+                    ->where('tenant_id', $tenant->id)
+                    ->whereIn('key', ['smartcapture_api_key', 'gemini_api_key', 'openai_api_key'])
+                    ->whereNotNull('value')
+                    ->where('value', '!=', '')
+                    ->value('value');
+            } catch (\Throwable $e) {
+                $byokKey = null;
+            }
+
+            if (empty($byokKey)) {
+                return false; // Hard-blocked for platform managed AI on LTD tiers
+            }
+
+            return true; // BYOK AI key unblocks AI feature on LTD tiers
+        }
         // Special T3-3 Cookbook on Counter rule for food-prep industries
         if ($feature === 'recipes' || $feature === 'bill_of_materials') {
             if ($tenant->plan === 'counter') {

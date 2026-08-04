@@ -283,7 +283,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'multi_currency'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'module_toggles'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'hard_lock_negative_stock'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'transactions_per_month'      => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null],
+            'transactions_per_month'      => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null, 'ltd_1' => '1000', 'ltd_2' => '3000', 'ltd_3' => '8000'],
             'staff_limit'                 => ['trial' => '2', 'starter' => '3', 'growth' => '10', 'business' => '50'],
             'multi_branch'                => ['trial' => '0', 'starter' => '0', 'growth' => '3', 'business' => '10'],
             'api_access'                  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
@@ -367,10 +367,10 @@ class PlanFeatureMatrixSeeder extends Seeder
                         if ($key === 'ai_queries_limit') $val = '50';
                     }
 
-                    // Specific AppSumo customizations to preserve migration overrides:
-                    if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '500';
-                    if ($slug === 'ltd_2' && $key === 'transactions_per_month') $val = '2000';
-                    if ($slug === 'ltd_3' && $key === 'transactions_per_month') $val = '6000';
+                    // Specific AppSumo customizations to preserve V4 build plan specs:
+                    if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '1000';
+                    if ($slug === 'ltd_2' && $key === 'transactions_per_month') $val = '3000';
+                    if ($slug === 'ltd_3' && $key === 'transactions_per_month') $val = '8000';
                     if ($slug === 'ltd_2' && str_starts_with($key, 'woocommerce')) $val = '0';
                     if ($slug === 'ltd_3' && str_starts_with($key, 'woocommerce')) $val = '0';
 

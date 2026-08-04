@@ -240,6 +240,9 @@ Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController
 // unreachable because a route registered earlier always wins).
 Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+Route::get('/help', [\App\Http\Controllers\HelpCenterController::class, 'index'])->name('help.index');
+Route::get('/help/articles/{slug}', [\App\Http\Controllers\HelpCenterController::class, 'show'])->name('help.show');
+Route::get('/known-issues', [\App\Http\Controllers\KnownIssuesController::class, 'show'])->name('known-issues.show');
 Route::get('/partners', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'index'])->name('marketing.partners');
 Route::post('/partners-submit', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'store'])->name('marketing.partners.store');
 Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'index'])->name('sitemap');
