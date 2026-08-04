@@ -60,10 +60,10 @@ class SmartCaptureEnable extends Command
         $tenant->ai_status = $mode;
 
         if ($mode === 'managed') {
-            $tenant->ai_scans_limit   = (int) $this->option('scans');
+            $tenant->ai_pages_limit   = (int) ($this->option('pages') ?: $this->option('scans'));
             $tenant->ai_queries_limit = (int) $this->option('queries');
             // Reset the meters so testing starts from a clean slate.
-            $tenant->ai_scans_used    = 0;
+            $tenant->ai_pages_used    = 0;
             $tenant->ai_queries_used  = 0;
         }
 
@@ -88,7 +88,7 @@ class SmartCaptureEnable extends Command
         $this->line("  ai_status : {$tenant->ai_status}");
 
         if ($mode === 'managed') {
-            $this->line("  scans     : 0 / {$tenant->ai_scans_limit}");
+            $this->line("  pages     : 0 / {$tenant->ai_pages_limit}");
             $this->line("  queries   : 0 / {$tenant->ai_queries_limit}");
             $this->newLine();
             $this->warn('Managed mode uses the PLATFORM key. Set GEMINI_API_KEY in .env, then run: php artisan optimize:clear');
@@ -115,7 +115,7 @@ class SmartCaptureEnable extends Command
     {
         $tenants = Tenant::query()
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'ai_status', 'ai_scans_used', 'ai_scans_limit']);
+            ->get(['id', 'name', 'slug', 'ai_status', 'ai_pages_used', 'ai_pages_limit']);
 
         if ($tenants->isEmpty()) {
             $this->warn('No tenants found.');
@@ -123,12 +123,12 @@ class SmartCaptureEnable extends Command
         }
 
         $this->table(
-            ['Name', 'Slug', 'AI status', 'Scans', 'Own key?', 'Tenant id'],
+            ['Name', 'Slug', 'AI status', 'Pages', 'Own key?', 'Tenant id'],
             $tenants->map(fn ($t) => [
                 $t->name,
                 $t->slug,
                 $t->ai_status ?? 'none',
-                ($t->ai_scans_used ?? 0) . ' / ' . ($t->ai_scans_limit ?: '—'),
+                ($t->ai_pages_used ?? 0) . ' / ' . ($t->ai_pages_limit ?: '—'),
                 $this->settingValue($t, 'smartcapture_api_key') ? 'yes' : 'no',
                 $t->id,
             ])->all()
@@ -145,7 +145,7 @@ class SmartCaptureEnable extends Command
 
         $this->info("AI Scan status — {$tenant->name}");
         $this->line('  ai_status  : ' . ($tenant->ai_status ?? 'none'));
-        $this->line('  scans used : ' . ($tenant->ai_scans_used ?? 0) . ' / ' . ($tenant->ai_scans_limit ?: '—'));
+        $this->line('  pages used : ' . ($tenant->ai_pages_used ?? 0) . ' / ' . ($tenant->ai_pages_limit ?: '—'));
         $this->line('  provider   : ' . $provider);
         $this->line('  model      : ' . $model);
         $this->line('  own key    : ' . ($ownKey ? substr($ownKey, 0, 4) . str_repeat('*', 8) . substr($ownKey, -4) : 'not set'));

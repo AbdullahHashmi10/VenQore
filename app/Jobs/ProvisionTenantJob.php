@@ -254,7 +254,7 @@ class ProvisionTenantJob implements ShouldQueue
                         $tenant->update([
                             'ai_status'        => $aiStatus,
                             'ai_queries_limit' => $aiQueries,
-                            'ai_scans_limit'   => $aiScans,
+                            'ai_pages_limit'   => $aiScans,
                         ]);
 
                         // 2026-07-04: Smart Capture ships as part of the AI add-on

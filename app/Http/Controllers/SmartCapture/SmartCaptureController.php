@@ -476,7 +476,10 @@ class SmartCaptureController extends Controller
             }
 
             // ── Meter managed/free usage (BYOK is never metered) ─────────────
-            $this->entitlement->recordScan($check['mode']);
+            $pagesToDebit = $inputType === 'text' ? 0 : ($inputType === 'audio' ? \App\Services\SmartCapture\AiEntitlementService::calculateAudioPages((int)($validated['audio_duration'] ?? 0)) : (int)($pdfMeta['total_pages'] ?? 1));
+            if ($pagesToDebit > 0) {
+                $this->entitlement->debitPage($check['mode'], $pagesToDebit);
+            }
 
             $responsePayload = [
                 'success'               => true,
@@ -1077,4 +1080,37 @@ class SmartCaptureController extends Controller
             abort(403, 'Only store owners or administrators can modify AI settings.');
         }
     }
+
+    public function jobStatus(string $jobId)
+    {
+        $cacheKey = "smart_capture_job:{$jobId}";
+        $data = Cache::get($cacheKey);
+
+        if (!$data) {
+            return response()->json(['success' => false, 'message' => 'Job not found or expired.'], 404);
+        }
+
+        if (($data['status'] ?? '') === 'done') {
+            return response()->json([
+                'success' => true,
+                'status'  => 'done',
+                'result'  => $data['result'] ?? [],
+            ]);
+        }
+
+        if (($data['status'] ?? '') === 'failed') {
+            return response()->json([
+                'success' => false,
+                'status'  => 'failed',
+                'error'   => $data['error'] ?? 'Extraction failed.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success'  => true,
+            'status'   => $data['status'] ?? 'processing',
+            'progress' => $data['progress'] ?? 'Processing...',
+        ]);
+    }
 }
+

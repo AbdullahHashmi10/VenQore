@@ -1817,13 +1817,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     {tenant?.ai_status === 'none' && (
                                         <div className="flex-1 max-w-xs">
                                             <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                                <span>Free Scans Used:</span>
-                                                <span className="font-bold text-white">{(tenant?.plan_limits?.ai_scans_used ?? 0)} / 10</span>
+                                                <span>Free Pages Used:</span>
+                                                <span className="font-bold text-white">{(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / 10</span>
                                             </div>
                                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 <div 
                                                     className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
-                                                    style={{ width: `${Math.min(100, ((tenant?.plan_limits?.ai_scans_used ?? 0) / 10) * 100)}%` }}
+                                                    style={{ width: `${Math.min(100, (((tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)) / 10) * 100)}%` }}
                                                 />
                                             </div>
                                         </div>
@@ -1832,15 +1832,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                     {tenant?.ai_status === 'managed' && (
                                         <div className="flex gap-4">
                                             <div className="text-right">
-                                                <div className="text-2xs text-slate-500 font-bold uppercase">Scans</div>
+                                                <div className="text-2xs text-slate-500 font-bold uppercase">Pages</div>
                                                 <div className="text-sm font-black text-white">
-                                                    {(tenant?.plan_limits?.ai_scans_used ?? 0)} / {(tenant?.plan_limits?.ai_scans_limit ?? 90)}
+                                                    {(tenant?.ai_pages_used ?? tenant?.plan_limits?.ai_pages_used ?? 0)} / {(tenant?.ai_pages_limit ?? tenant?.plan_limits?.ai_pages_limit ?? 500)}
                                                 </div>
                                             </div>
                                             <div className="text-right border-l border-white/10 pl-4">
                                                 <div className="text-2xs text-slate-500 font-bold uppercase">Queries</div>
                                                 <div className="text-sm font-black text-white">
-                                                    {(tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.plan_limits?.ai_queries_limit ?? 110)}
+                                                    {(tenant?.ai_queries_used ?? tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.ai_queries_limit ?? tenant?.plan_limits?.ai_queries_limit ?? 2500)}
                                                 </div>
                                             </div>
                                         </div>

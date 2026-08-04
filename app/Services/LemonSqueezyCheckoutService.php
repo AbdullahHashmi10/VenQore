@@ -380,4 +380,17 @@ class LemonSqueezyCheckoutService
 
         return $rebuilt;
     }
+
+    /**
+     * Increment page quota for top-up purchases (T2-4).
+     */
+    public function incrementAiPages(int $tenantId, int $pages = 200): void
+    {
+        $tenant = Tenant::find($tenantId);
+        if ($tenant) {
+            $tenant->increment('ai_pages_limit', $pages);
+            Log::info("LemonSqueezyCheckoutService: Top-up credited {$pages} pages for tenant {$tenantId}");
+        }
+    }
 }
+

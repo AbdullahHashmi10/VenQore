@@ -273,13 +273,14 @@ class PlanFeatureMatrixSeeder extends Seeder
             // is therefore '0' everywhere; the add-on purchase / BYOK activation must
             // write a tenant_plan_overrides row (smart_capture='1') for that tenant.
             'smart_capture'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'smart_capture_limit'        => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null],
+            'smart_capture_limit'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'ai_pages_limit'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_churn_predictions'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_revenue_forecasting'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_outreach_copy'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_queries_limit'           => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null],
-            'ai_outreach_limit'          => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null],
+            'ai_queries_limit'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'ai_outreach_limit'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'owners_daily_pulse'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
 
             // Group 11 — Live Chat & Customer Engagement
