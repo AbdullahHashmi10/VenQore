@@ -189,5 +189,120 @@ class Phase2MeteringTest extends TestCase
         $this->assertEquals(0, $this->tenant->ai_pages_used);
         $this->assertEquals(0, $this->tenant->ai_queries_used);
     }
+
+    /** @test */
+    public function it_executes_real_http_post_to_extract_endpoint_without_undefined_variable_errors()
+    {
+        $user = User::factory()->create(['is_platform_admin' => true]);
+        TenantUser::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+        $this->actingAs($user);
+
+        // Mock FuzzyMatchService so matchDocument returns matched items
+        $this->mock(\App\Services\SmartCapture\FuzzyMatchService::class, function ($mock) {
+            $mock->shouldReceive('matchProduct')->andReturn([]);
+            $mock->shouldReceive('matchDocument')->andReturn([
+                [
+                    'raw_name'     => 'Item A',
+                    'matched_name' => 'Item A',
+                    'product_id'   => 1,
+                    'quantity'     => 5,
+                    'unit_price'   => 100,
+                    'total'        => 500,
+                    'confidence'   => 1.0,
+                    'match_reason' => 'exact_name',
+                ],
+            ]);
+        });
+
+        // Mock AiExtractionService so it returns a valid extraction array without requiring a live Gemini API key
+        $this->mock(\App\Services\SmartCapture\AiExtractionService::class, function ($mock) {
+            $mock->shouldReceive('resolveConfig')->andReturn([
+                'provider' => 'gemini',
+                'model'    => 'gemini-1.5-flash',
+                'byok'     => false,
+                'api_key'  => 'fake-key',
+            ]);
+            $mock->shouldReceive('hasOwnKey')->andReturn(false);
+            $mock->shouldReceive('extractFromPayload')->andReturn([
+                'action' => 'purchase',
+                'items'  => [
+                    ['name' => 'Item A', 'qty' => 5, 'unit_price' => 100, 'line_total' => 500],
+                ],
+            ]);
+            $mock->shouldReceive('extract')->andReturn([
+                'action' => 'purchase',
+                'items'  => [
+                    ['name' => 'Item A', 'qty' => 5, 'unit_price' => 100, 'line_total' => 500],
+                ],
+            ]);
+            $mock->shouldReceive('matchFallback')->andReturn([]);
+        });
+
+        // HTTP POST to /smart-capture/extract with real text payload
+        $response = $this->postJson("/s/{$this->tenant->slug}/smart-capture/extract", [
+            'type'        => 'text',
+            'text'        => 'Purchase 5 units of Item A at 100 PKR each from Supplier X',
+            'target_type' => 'purchase',
+        ]);
+
+        $this->assertTrue(in_array($response->getStatusCode(), [200, 202]),
+            'Extract endpoint returned HTTP ' . $response->getStatusCode() . ' instead of 200/202: ' . $response->getContent());
+        
+        $data = $response->json();
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('quota_status', $data);
+
+        // Also assert context() returns non-null pages_used and pages_limit
+        $contextRes = $this->getJson("/s/{$this->tenant->slug}/smart-capture/context");
+        $contextRes->assertStatus(200);
+        $contextData = $contextRes->json();
+        $this->assertNotNull($contextData['entitlement']['pages_used']);
+        $this->assertNotNull($contextData['entitlement']['pages_limit']);
+    }
+
+    /** @test */
+    public function it_dispatches_process_smart_capture_job_when_rate_limiter_wait_exceeds_8000ms()
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $user = User::factory()->create(['is_platform_admin' => true]);
+        TenantUser::create([
+            'tenant_id' => $this->tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'owner',
+            'status'    => 'active',
+        ]);
+        $this->actingAs($user);
+
+        // Mock AiRateLimiter so tryAcquire returns wait_ms > 8000ms
+        $this->mock(\App\Services\Ai\AiRateLimiter::class, function ($mock) {
+            $mock->shouldReceive('tryAcquire')->andReturn([
+                'ok'      => false,
+                'wait_ms' => 12000,
+            ]);
+        });
+
+        $response = $this->postJson("/s/{$this->tenant->slug}/smart-capture/extract", [
+            'type'        => 'text',
+            'text'        => 'Purchase 10 items',
+            'target_type' => 'purchase',
+        ]);
+
+        $response->assertStatus(202)
+            ->assertJson([
+                'success' => true,
+                'async'   => true,
+            ]);
+
+        $this->assertNotNull($response->json('job_id'));
+        \Illuminate\Support\Facades\Queue::assertPushed(ProcessSmartCaptureJob::class);
+    }
 }
+
+
 

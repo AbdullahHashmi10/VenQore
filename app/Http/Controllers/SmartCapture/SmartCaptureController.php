@@ -94,8 +94,10 @@ class SmartCaptureController extends Controller
                 'allowed'     => $check['allowed'],
                 'reason'      => $check['reason'],
                 'mode'        => $check['mode'],
-                'scans_used'  => $check['scans_used'],
-                'scans_limit' => $check['scans_limit'],
+                'pages_used'  => $check['pages_used'] ?? 0,
+                'pages_limit' => $check['pages_limit'] ?? 0,
+                'scans_used'  => $check['pages_used'] ?? 0,
+                'scans_limit' => $check['pages_limit'] ?? 0,
                 'message'     => $check['allowed'] ? null : $this->entitlement->lockMessage($check),
             ],
             'settings' => [
@@ -225,15 +227,46 @@ class SmartCaptureController extends Controller
             // ── Build payload + size guards ──────────────────────────────────
             $payload = $this->buildPayload($request, $type);
 
+            $audioDuration = (int) ($request->input('duration_seconds') ?? 0);
+            $pdfMetaPages  = (int) ($request->input('page_count') ?? 1);
+
             // T1-7 & T1-8: Input validations & page/duration inspection
-            if ($type === 'audio' && $request->has('duration_seconds')) {
-                $duration = (int) $request->input('duration_seconds');
-                $audioCredits = $this->extractionService->validateAudioDuration($duration);
+            if ($type === 'audio' && $audioDuration > 0) {
+                $audioCredits = $this->extractionService->validateAudioDuration($audioDuration);
             }
 
             if ($request->has('page_count')) {
-                $pageCount = (int) $request->input('page_count');
-                $pdfMeta = $this->extractionService->validatePdfPages($pageCount);
+                $pdfMeta = $this->extractionService->validatePdfPages($pdfMetaPages);
+            }
+
+            $pagesToDebit = match ($type) {
+                'text'  => 0,
+                'audio' => \App\Services\SmartCapture\AiEntitlementService::calculateAudioPages($audioDuration),
+                default => max(1, $pdfMetaPages),
+            };
+
+            // ── T2-3: Rate limiter check & hybrid async dispatch ─────────────
+            $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
+            $acquireKey  = 'paid_key:scan';
+            $acquire     = $rateLimiter->tryAcquire($acquireKey, 1);
+
+            if (!$acquire['ok'] && ($acquire['wait_ms'] ?? 0) > 8000) {
+                $jobId = (string) \Illuminate\Support\Str::uuid();
+                \App\Jobs\ProcessSmartCaptureJob::dispatch(
+                    $jobId,
+                    $tenant->id,
+                    $payload,
+                    $check['mode'] ?? 'managed',
+                    $pagesToDebit
+                );
+
+                $lock->release();
+                return response()->json([
+                    'success' => true,
+                    'async'   => true,
+                    'job_id'  => $jobId,
+                    'message' => 'High rate-limit wait time. Extraction queued in background.',
+                ], 202);
             }
 
             // ── Content Payload Deduplication (T0-6 rest) ───────────────────
@@ -476,13 +509,13 @@ class SmartCaptureController extends Controller
             }
 
             // ── Meter managed/free usage (BYOK is never metered) ─────────────
-            $pagesToDebit = $inputType === 'text' ? 0 : ($inputType === 'audio' ? \App\Services\SmartCapture\AiEntitlementService::calculateAudioPages((int)($validated['audio_duration'] ?? 0)) : (int)($pdfMeta['total_pages'] ?? 1));
             if ($pagesToDebit > 0) {
                 $this->entitlement->debitPage($check['mode'], $pagesToDebit);
             }
 
             $responsePayload = [
                 'success'               => true,
+                'quota_status'          => $this->entitlement->checkWarningThreshold(),
                 'action'                => $resolvedAction,
                 'party'                 => $partyName,
                 'party_type'            => $partyType,

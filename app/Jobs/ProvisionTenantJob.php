@@ -206,6 +206,14 @@ class ProvisionTenantJob implements ShouldQueue
             $isAddon = true;
         }
 
+        $aiTopupId = config('services.lemon_squeezy.ai_topup_addon_id');
+        if ($aiTopupId && $variantIdStr === (string)$aiTopupId) {
+            $isAddon = true;
+            if ($tenantId) {
+                app(\App\Services\LemonSqueezyCheckoutService::class)->incrementAiPages((int)$tenantId, 200);
+            }
+        }
+
         if ($isAddon) {
             if ($tenantId) {
                 $tenant = Tenant::find($tenantId);
