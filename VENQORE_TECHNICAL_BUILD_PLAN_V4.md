@@ -976,7 +976,7 @@ Plus: confirm WooCommerce is actually deployed to production, and that `woocomme
 <a name="p7"></a>
 ## PHASE 7 — GROWTH
 
-### T7-1 🟠 Shared product knowledge base
+### T7-1 🟢 Shared product knowledge base
 ```php
 Schema::create('shared_products', function (Blueprint $t) { 
     $t->id(); 
@@ -1004,7 +1004,7 @@ Non-negotiable rules:
 
 ---
 
-### T7-2 🟠 Free public tool
+### T7-2 🟢 Free public tool
 `/tools/invoice-scanner`, alongside the 27 existing tools in `resources/js/Pages/Marketing/Tools/`. Ships after Phase 5, before AppSumo.
 
 Guardrails, all of them:
@@ -1022,7 +1022,7 @@ Cost exposure: 100 uses/day = $12/mo · 500 = $59/mo · 2,000 = $234/mo · 10,00
 
 ---
 
-### T7-3 🟠 Product descriptions & List→Catalog
+### T7-3 🟢 Product descriptions & List→Catalog
 **a) AI Generate** — batch 20 products/call, Flash-Lite, thinking: 0, low-priority queue lane. Ask the target first (WooCommerce / Amazon / web / in-store) — same cost, much better output. Store in separate columns (`ai_title`, `ai_description_short`, `ai_description_long`, `ai_tags`) so you can diff, roll back and regenerate. Never overwrite `products.name`. Diff review screen before applying.  
 Credits: 50 free on any paid plan; packs 200/$6 · 500/$12 · 2,000/$39; never expire. Meter: `ai_descriptions_balance`.
 

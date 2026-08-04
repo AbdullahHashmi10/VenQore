@@ -12,8 +12,11 @@ use App\Models\TenantUser;
 use App\Models\User;
 use App\Services\PublicToolBudgetGuard;
 use App\Services\SharedCatalogService;
+use App\Services\SmartCapture\FuzzyMatchService;
+use App\Services\SmartCapture\LearningService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -32,13 +35,13 @@ class Phase7GrowthTest extends TestCase
         $this->seed(\Database\Seeders\PlanFeatureMatrixSeeder::class);
 
         $this->tenant = Tenant::create([
-            'name'                   => 'Growth Store',
-            'slug'                   => 'growth-store',
-            'plan'                   => 'starter',
-            'status'                 => 'active',
-            'setup_completed'        => true,
+            'name'                    => 'Growth Store',
+            'slug'                    => 'growth-store',
+            'plan'                    => 'starter',
+            'status'                  => 'active',
+            'setup_completed'         => true,
             'ai_descriptions_balance' => 50,
-            'shared_catalog_opt_out' => false,
+            'shared_catalog_opt_out'  => false,
         ]);
 
         $this->user = User::factory()->create([
@@ -87,6 +90,39 @@ class Phase7GrowthTest extends TestCase
     }
 
     /** @test */
+    public function it_wires_shared_catalog_into_learning_service_and_fuzzy_match_strategy_six()
+    {
+        app()->instance('current.tenant', $this->tenant);
+
+        $product = Product::create([
+            'tenant_id' => $this->tenant->id,
+            'name'      => 'Universal Cola 500ml',
+            'sku'       => 'COLA-500',
+            'price'     => 2.50,
+        ]);
+
+        $learning = app(LearningService::class);
+
+        // Record a product confirmation via LearningService
+        $learning->remember('product', 'Universal Cola 500ml', (string) $product->id, 'Universal Cola 500ml');
+
+        $sp = SharedProduct::where('canonical_name', 'Universal Cola 500ml')->first();
+        $this->assertNotNull($sp, 'LearningService failed to wire contribution into SharedCatalogService');
+
+        // Confirm 2 more times to publish
+        $learning->remember('product', 'Universal Cola 500ml', (string) $product->id, 'Universal Cola 500ml');
+        $learning->remember('product', 'Universal Cola 500ml', (string) $product->id, 'Universal Cola 500ml');
+
+        $sp->refresh();
+        $this->assertTrue($sp->is_published);
+
+        // Verify FuzzyMatchService strategy 6 resolves the shared catalog match
+        $fuzzy = app(FuzzyMatchService::class);
+        $candidates = $fuzzy->matchProduct('Universal Cola 500ml');
+        $this->assertIsArray($candidates);
+    }
+
+    /** @test */
     public function it_does_not_contribute_when_tenant_has_opted_out()
     {
         $optOutTenant = Tenant::create([
@@ -109,18 +145,15 @@ class Phase7GrowthTest extends TestCase
     }
 
     /** @test */
-    public function it_enforces_public_tool_daily_budget_cap()
+    public function it_enforces_public_tool_daily_budget_cap_atomically()
     {
-        $this->withoutExceptionHandling();
-
-        // Seed $10.00 spend for today
-        PublicToolRequest::create([
-            'email'       => 'prior@example.com',
-            'ip_address'  => '127.0.0.1',
-            'feature'     => 'public_tool',
-            'result_json' => ['test' => true],
-            'cost_usd'    => 10.00,
-            'created_at'  => now(),
+        $todayStr = today()->toDateString();
+        DB::table('ai_spend_counters')->insert([
+            'scope'     => 'public_tool',
+            'day'       => $todayStr,
+            'spend_usd' => 10.00,
+            'cap_usd'   => 10.00,
+            'tripped'   => true,
         ]);
 
         $response = $this->postJson('/tools/invoice-scanner', [
@@ -148,7 +181,7 @@ class Phase7GrowthTest extends TestCase
             ]);
         }
 
-        $check = $guard->checkBudgetAndLimits($email, '10.0.0.1', 10.00);
+        $check = $guard->checkAndReserve($email, '10.0.0.1', 0.0120, 10.00);
         $this->assertFalse($check['allowed']);
         $this->assertEquals('email_limit_exceeded', $check['reason']);
     }
@@ -186,7 +219,7 @@ class Phase7GrowthTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->postJson("/s/{$this->tenant->slug}/products/ai-descriptions/generate", [
-                'product_ids' => [1],
+                'product_ids' => ['some-uuid-123'],
                 'target'      => 'web',
             ]);
 

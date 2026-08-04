@@ -87,6 +87,18 @@ class FuzzyMatchService
             $matchedIds = array_merge($matchedIds, $phoneticMatches);
         }
 
+        // ── 3b. Strategy 6: Shared Catalog Knowledge Base lookup (T7-1) ───────────
+        if (count($matchedIds) < 5 && !empty($normName)) {
+            $sharedMatch = app(\App\Services\SharedCatalogService::class)->lookup($normName);
+            if ($sharedMatch) {
+                $sharedProductIds = Product::where('tenant_id', $tenantId)
+                    ->where('name', 'like', '%' . $sharedMatch->canonical_name . '%')
+                    ->pluck('id')
+                    ->toArray();
+                $matchedIds = array_merge($matchedIds, $sharedProductIds);
+            }
+        }
+
         // Fetch products for candidates
         $products = Product::where('tenant_id', $tenantId)
             ->whereIn('id', array_filter($matchedIds))

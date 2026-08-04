@@ -303,6 +303,18 @@ class LearningService
                     $now,
                 ]
             );
+
+            if ($kind === SmartCaptureAlias::KIND_PRODUCT && app()->bound('current.tenant')) {
+                try {
+                    app(\App\Services\SharedCatalogService::class)->contribute(
+                        app('current.tenant'),
+                        $key,
+                        ['canonical_name' => $targetLabel]
+                    );
+                } catch (\Throwable $e) {
+                    // Shared catalog contribution failure must never block primary learning
+                }
+            }
         } catch (\Throwable $e) {
             // Learning must never break a posted transaction.
             Log::warning('SmartCapture learning: failed to record alias — ' . $e->getMessage());
