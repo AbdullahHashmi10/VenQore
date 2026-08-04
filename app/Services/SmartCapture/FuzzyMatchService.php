@@ -249,4 +249,51 @@ class FuzzyMatchService
 
         return (int) round(($percent * 0.5) + ($levScore * 0.5));
     }
+
+    /**
+     * T9-7: Calculate cosine embedding vector similarity between string n-gram representations.
+     */
+    public function matchByCosineEmbedding(string $str1, string $str2): float
+    {
+        $v1 = $this->buildNGramVector($str1);
+        $v2 = $this->buildNGramVector($str2);
+
+        $dotProduct = 0.0;
+        $norm1 = 0.0;
+        $norm2 = 0.0;
+
+        foreach ($v1 as $gram => $count) {
+            $dotProduct += $count * ($v2[$gram] ?? 0);
+            $norm1 += $count * $count;
+        }
+
+        foreach ($v2 as $count) {
+            $norm2 += $count * $count;
+        }
+
+        if ($norm1 == 0 || $norm2 == 0) {
+            return 0.0;
+        }
+
+        return round($dotProduct / (sqrt($norm1) * sqrt($norm2)), 4);
+    }
+
+    private function buildNGramVector(string $text, int $n = 3): array
+    {
+        $text = mb_strtolower(trim($text));
+        $len = mb_strlen($text);
+        $vector = [];
+
+        if ($len < $n) {
+            $vector[$text] = 1;
+            return $vector;
+        }
+
+        for ($i = 0; $i <= $len - $n; $i++) {
+            $gram = mb_substr($text, $i, $n);
+            $vector[$gram] = ($vector[$gram] ?? 0) + 1;
+        }
+
+        return $vector;
+    }
 }

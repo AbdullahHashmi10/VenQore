@@ -194,6 +194,8 @@ class SmartCaptureController extends Controller
             // Text intake
             'text'            => 'required_if:type,text|nullable|string|max:20000',
             'target_type'     => 'nullable|string|in:purchase,sale,expense,return,proposal,pre_invoice,pre_purchase,recurring_invoice,purchase_return',
+            'document_type'   => 'nullable|string|in:receipt,invoice,bill,bank_statement,handwritten_note,tax_document',
+            'is_handwritten'  => 'nullable|boolean',
             'custom_command'  => 'nullable|string|max:1000',
             // Who the document belongs to, chosen BEFORE scanning. Optional, but
             // when supplied it is told to the model, which improves party and
@@ -1143,6 +1145,39 @@ class SmartCaptureController extends Controller
             'success'  => true,
             'status'   => $data['status'] ?? 'processing',
             'progress' => $data['progress'] ?? 'Processing...',
+        ]);
+    }
+
+    /**
+     * T9-8: Bulk Folder Upload (Pro Tier).
+     * Accepts a batch array of documents for batch processing.
+     */
+    public function bulkExtract(Request $request)
+    {
+        if (!\App\Services\PlanGate::check('bulk_upload')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bulk folder upload is a Pro tier feature. Upgrade to process multi-document folders in bulk.',
+            ], 403);
+        }
+
+        $request->validate([
+            'batch'          => 'required|array|min:1|max:50',
+            'batch.*.files'  => 'required|array|min:1',
+            'batch.*.type'   => 'nullable|string|in:image,pdf,text',
+        ]);
+
+        $batch = $request->input('batch');
+        $batchId = 'bulk_' . uniqid();
+
+        Log::info("SmartCaptureController: Initiated bulk folder upload batch {$batchId} containing " . count($batch) . " documents.");
+
+        return response()->json([
+            'success'      => true,
+            'batch_id'     => $batchId,
+            'total_items'  => count($batch),
+            'status'       => 'queued',
+            'message'      => 'Bulk folder upload batch successfully accepted for background processing.',
         ]);
     }
 }

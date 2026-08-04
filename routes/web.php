@@ -407,6 +407,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             ->group(function () {
             Route::get('/context',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'context'])->name('smart-capture.context');
             Route::post('/extract',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->middleware('throttle:20,1')->name('smart-capture.extract');
+            Route::post('/bulk-extract', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'bulkExtract'])->middleware('throttle:10,1')->name('smart-capture.bulk-extract');
             Route::get('/status/{job_id}', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'jobStatus'])->name('smart-capture.job-status');
             Route::post('/confirm',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->middleware('throttle:30,1')->name('smart-capture.confirm');
             Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
@@ -417,6 +418,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/aliases',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'aliases'])->name('smart-capture.aliases');
             Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('permission:admin.settings_manage')->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
         });
+
+        // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
+        Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
+        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
