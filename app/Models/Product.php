@@ -27,6 +27,25 @@ class Product extends Model
         'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function (Product $product) {
+            try {
+                app(\App\Services\SmartCapture\ProductSearchIndexService::class)->indexProduct($product);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Failed to index product {$product->id}: " . $e->getMessage());
+            }
+        });
+
+        static::deleted(function (Product $product) {
+            try {
+                app(\App\Services\SmartCapture\ProductSearchIndexService::class)->removeProduct($product->tenant_id, $product->id);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Failed to remove product {$product->id} from index: " . $e->getMessage());
+            }
+        });
+    }
+
     public function barcodes()
     {
         return $this->hasMany(ProductBarcode::class);

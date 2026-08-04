@@ -1,0 +1,16 @@
+{
+  "document_type": "purchase",
+  "expected_party": "Metro Cash & Carry",
+  "expected_items": [
+    {
+      "name": "Coca Cola 1.5L",
+      "qty": 10,
+      "unit_price": 180.00
+    },
+    {
+      "name": "Sugar 5kg",
+      "qty": 2,
+      "unit_price": 750.00
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
+import { preprocessImage } from '@/lib/imagePreprocess';
 
 /**
  * SmartCapturePanel — the "AI Scan" intake panel.
@@ -58,9 +59,34 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     // Intake options
     const [targetType, setTargetType] = useState('');
     const [customCommand, setCustomCommand] = useState('');
+    const [isHandwritten, setIsHandwritten] = useState(false);
+    const [expenseCategoryId, setExpenseCategoryId] = useState('');
+    const [dictating, setDictating] = useState(false);
     const [appendMode, setAppendMode] = useState(false);
     const [appendDocType, setAppendDocType] = useState('pre_invoice');
     const [appendDocId, setAppendDocId] = useState('');
+
+    const startDictation = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Browser dictation is not supported in this browser. Use Chrome, Edge, or Safari.');
+            return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = store?.locale === 'ur' ? 'ur-PK' : (store?.locale === 'ar' ? 'ar-SA' : 'en-US');
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setDictating(true);
+        recognition.onend = () => setDictating(false);
+        recognition.onerror = () => setDictating(false);
+        recognition.onresult = (e) => {
+            const transcript = e.results[0]?.[0]?.transcript;
+            if (transcript) {
+                setTextInput((prev) => (prev ? prev + ' ' + transcript : transcript));
+            }
+        };
+        recognition.start();
+    };
 
     // Review state
     const [extractedData, setExtractedData] = useState(null);

@@ -26,6 +26,22 @@ class AiController extends Controller
         $userQuery = $request->input('query');
         Log::info("AI Assistant Query: {$userQuery}");
 
+        // Local SQL intent matching (T1-10) — 0 LLM cost for standard reports
+        $lowerQuery = mb_strtolower(trim($userQuery));
+        $intents = config('ai_intents.intents', []);
+
+        foreach ($intents as $key => $intent) {
+            foreach ($intent['phrases'] as $phrase) {
+                if (str_contains($lowerQuery, $phrase)) {
+                    return response()->json([
+                        'answer' => "Here is your report for '{$phrase}':",
+                        'intent' => $key,
+                        'source' => 'sql_intent_router',
+                    ]);
+                }
+            }
+        }
+
         try {
             $this->checkAccess();
         } catch (\Exception $e) {
