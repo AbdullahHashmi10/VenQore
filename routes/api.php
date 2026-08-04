@@ -73,11 +73,25 @@ Route::middleware('drm.license')->get('/drm/protected', function () {
 });
 
 // ── Public Chatbot Visitor API Routes ──────────────────────────────────────
+// SECURITY (T0-0): these endpoints are UNAUTHENTICATED and reach an upstream
+// LLM on the platform API key. Without throttling they are a free public LLM
+// billed to us. The limits below are the emergency floor — the full guard
+// (per-session / per-IP / per-store caps, Turnstile, spend kill-switch and
+// answer cache) lands in App\Http\Middleware\VisitorChatGuard.
+//
+// NOTE: Laravel's `throttle` middleware uses the cache store. It is only
+// effective across PHP-FPM workers when CACHE_STORE=database (or redis).
+// Verify `CACHE_STORE` before relying on this. See T0-8.
 use App\Http\Controllers\VisitorChatController;
 
-Route::post('/{store_slug}/chatbot/session', [VisitorChatController::class, 'startSession']);
-Route::post('/{store_slug}/chatbot/session/{uuid}/message', [VisitorChatController::class, 'sendMessage']);
-Route::post('/{store_slug}/chatbot/session/{uuid}/typing', [VisitorChatController::class, 'typing']);
+Route::middleware(['throttle:5,1', 'visitor.chat.guard'])->group(function () {
+    Route::post('/{store_slug}/chatbot/session', [VisitorChatController::class, 'startSession']);
+});
+
+Route::middleware(['throttle:15,1', 'visitor.chat.guard'])->group(function () {
+    Route::post('/{store_slug}/chatbot/session/{uuid}/message', [VisitorChatController::class, 'sendMessage']);
+    Route::post('/{store_slug}/chatbot/session/{uuid}/typing', [VisitorChatController::class, 'typing']);
+});
 
 // ── Vena Subscription Context API ──────────────────────────────────────────
 // Returns plan, feature flags, limits, and geo signal for the Vena chat widget.

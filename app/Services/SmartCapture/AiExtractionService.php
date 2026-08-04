@@ -423,7 +423,12 @@ class AiExtractionService
 
     private function callGemini(string $apiKey, string $model, string $inputType, array $payload, string $prompt): string
     {
-        $parts = [];
+        if ($inputType !== 'image' && $inputType !== 'audio') {
+            $prompt .= "\n\n[USER PROVIDED TEXT]\n" . ($payload['text'] ?? '');
+        }
+
+        // Place prompt text FIRST to enable Gemini implicit prefix caching
+        $parts = [['text' => $prompt]];
 
         if ($inputType === 'image') {
             foreach ($payload as $file) {
@@ -431,11 +436,7 @@ class AiExtractionService
             }
         } elseif ($inputType === 'audio') {
             $parts[] = ['inline_data' => ['mime_type' => $payload['mime'], 'data' => $payload['base64']]];
-        } else {
-            $prompt .= "\n\n[USER PROVIDED TEXT]\n" . ($payload['text'] ?? '');
         }
-
-        $parts[] = ['text' => $prompt];
 
         $generationConfig = [
             'temperature'      => 0.0,
@@ -472,11 +473,30 @@ class AiExtractionService
 
         $json = $response->json();
 
+        $promptTokens = (int) ($json['usageMetadata']['promptTokenCount'] ?? 0);
+        $completionTokens = (int) ($json['usageMetadata']['candidatesTokenCount'] ?? 0);
+        $estimatedCost = ($promptTokens * 0.0000001) + ($completionTokens * 0.0000004);
+
         $this->lastUsage = [
-            'prompt_tokens' => $json['usageMetadata']['promptTokenCount'] ?? null,
-            'output_tokens' => $json['usageMetadata']['candidatesTokenCount'] ?? null,
+            'prompt_tokens' => $promptTokens,
+            'output_tokens' => $completionTokens,
             'total_tokens'  => $json['usageMetadata']['totalTokenCount'] ?? null,
         ];
+
+        try {
+            $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+            \Illuminate\Support\Facades\DB::table('ai_usage_events')->insert([
+                'tenant_id' => $tenant ? $tenant->id : null,
+                'source' => 'smart_capture',
+                'model' => $model,
+                'prompt_tokens' => $promptTokens,
+                'completion_tokens' => $completionTokens,
+                'estimated_cost_usd' => $estimatedCost,
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to record ai_usage_event: " . $e->getMessage());
+        }
 
         // A blocked prompt returns 200 with no candidates.
         if (empty($json['candidates'])) {
@@ -782,62 +802,11 @@ class AiExtractionService
 
         $decoded = json_decode($clean, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // Last resort: repair a response truncated mid-array by closing it.
-            $repaired = $this->repairTruncatedJson($clean);
-            $decoded  = $repaired !== null ? json_decode($repaired, true) : null;
-
-            if (!is_array($decoded)) {
-                throw new \Exception('The AI response could not be read as structured data. Try scanning again with a clearer photo.');
-            }
-
-            Log::info('SmartCapture: recovered a truncated AI response.');
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            throw new \Exception('The AI response could not be read as structured data. Try scanning again with a clearer photo.');
         }
 
         return $decoded;
-    }
-
-    /**
-     * Close an object/array that was cut off mid-stream, dropping the trailing
-     * partial element. Cheaper and far safer than re-sending the whole scan.
-     */
-    private function repairTruncatedJson(string $json): ?string
-    {
-        $lastComplete = strrpos($json, '}');
-        if ($lastComplete === false) {
-            return null;
-        }
-
-        $candidate = substr($json, 0, $lastComplete + 1);
-
-        // Balance braces/brackets that the truncation left open.
-        $open = 0;
-        $inString = false;
-        $escaped = false;
-        $stack = [];
-
-        for ($i = 0, $len = strlen($candidate); $i < $len; $i++) {
-            $c = $candidate[$i];
-
-            if ($escaped) { $escaped = false; continue; }
-            if ($c === '\\') { $escaped = true; continue; }
-            if ($c === '"') { $inString = !$inString; continue; }
-            if ($inString) { continue; }
-
-            if ($c === '{' || $c === '[') {
-                $stack[] = $c;
-            } elseif ($c === '}' || $c === ']') {
-                array_pop($stack);
-            }
-        }
-
-        $candidate = rtrim($candidate, " \t\n\r,");
-
-        while (!empty($stack)) {
-            $candidate .= array_pop($stack) === '{' ? '}' : ']';
-        }
-
-        return $candidate;
     }
 
     private function buildPrompt(string $inputType, ?string $targetType, ?string $customCommand, array $context): string
@@ -866,9 +835,7 @@ class AiExtractionService
             . "      \"qty\": number,\n"
             . "      \"unit_price\": number or null,\n"
             . "      \"line_total\": number or null,\n"
-            . "      \"matched_sku\": \"SKU from the store catalog if you are confident it is the same product, else null\",\n"
-            . "      \"confidence\": 0-100 — how sure you are you read THIS line correctly,\n"
-            . "      \"needs_review\": true if the handwriting/print for this line was unclear, else false\n"
+            . "      \"confidence\": 0-100 — how sure you are you read THIS line correctly\n"
             . "    }\n"
             . "  ]\n"
             . "}\n\n"

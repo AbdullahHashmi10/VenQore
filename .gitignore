@@ -69,3 +69,10 @@ Tester/dashboard/last-results.json
 # Planning docs — tracked separately, not in repo
 VenQore_Bootstrap_Master_Plan.md
 VenQore_Launch_Readiness_Plan.docx
+
+# Build & test artifacts (2026-08-04)
+.phpunit.result.cache
+bootstrap/ssr/
+Tester/VerificationCenter/runs/*
+!Tester/VerificationCenter/runs/.gitignore
+!Tester/VerificationCenter/runs/latest.json

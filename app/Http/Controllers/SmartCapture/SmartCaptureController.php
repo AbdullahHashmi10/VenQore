@@ -225,20 +225,61 @@ class SmartCaptureController extends Controller
             // ── Build payload + size guards ──────────────────────────────────
             $payload = $this->buildPayload($request, $type);
 
-            // ── Tenant-scoped catalog context (explicit scoping + hard cap) ──
-            $catalogLimit = (int) config('smartcapture.catalog_limit', 800);
-            $existingProducts = Product::where('tenant_id', $tenant->id)
-                ->orderByDesc('updated_at')
-                ->take($catalogLimit)
-                ->get(['name', 'sku'])
-                ->map(fn ($p) => ['name' => $p->name, 'sku' => $p->sku])
-                ->toArray();
+            // ── Content Payload Deduplication (T0-6 rest) ───────────────────
+            // If the exact same file/payload was extracted for this store in the last 24h,
+            // return the cached result for free without spending upstream tokens.
+            $dedupeHash = 'smartcapture_dedupe:' . md5(json_encode($payload) . ':' . $tenant->id . ':' . ($request->input('target_type') ?? ''));
+            $cachedExtraction = Cache::get($dedupeHash);
+            if ($cachedExtraction && is_array($cachedExtraction)) {
+                $lock->release();
+                $cachedExtraction['deduplicated'] = true;
+                return response()->json($cachedExtraction);
+            }
 
-            $knownParties = Party::where('tenant_id', $tenant->id)
-                ->orderBy('name')->take(300)->pluck('name')->toArray();
+            // ── Catalog context — ADAPTIVE (T0-2) ────────────────────────────
+            // Only send the catalogue when it is small enough that including it
+            // is cheaper than the accuracy it buys. Above the threshold we send
+            // nothing and rely on local matching (FuzzyMatchService + learned
+            // aliases + supplier codes) plus a small fallback call.
+            //
+            // Expenses never get a catalogue: there is nothing to match.
+            $resolvedTargetType = $request->input('target_type');
+            $isExpense          = $resolvedTargetType === 'expense';
+            $inlineMax          = (int) config('smartcapture.catalog_inline_max_products', 300);
+            $catalogLimit       = (int) config('smartcapture.catalog_limit', 800);
 
-            $expenseCategories = ExpenseCategory::where('tenant_id', $tenant->id)
-                ->orderBy('name')->take(200)->pluck('name')->toArray();
+            $existingProducts = [];
+
+            if (!$isExpense) {
+                $productCount = Product::where('tenant_id', $tenant->id)->count();
+
+                if ($productCount > 0 && $productCount <= $inlineMax) {
+                    $existingProducts = Product::where('tenant_id', $tenant->id)
+                        ->orderByDesc('updated_at')
+                        ->take(min($inlineMax, $catalogLimit))
+                        ->get(['name', 'sku'])
+                        ->map(fn ($p) => ['name' => $p->name, 'sku' => $p->sku])
+                        ->toArray();
+                }
+                // else: large catalogue — send nothing, match locally.
+            }
+
+            // ── Party list: NOT sent to the model (T0-3) ─────────────────────
+            // We used to ship 300 party names (~1,500 tokens) on every scan and
+            // then run FuzzyMatchService::matchParty() over the result anyway,
+            // server-side, a few lines below. That is pure duplication — the
+            // local matcher is both free and more reliable than asking the model
+            // to pick from a list. The single `known_party` hint below (set when
+            // the user chose the party before scanning) is all the model needs.
+            $knownParties = [];
+
+            // ── Expense categories: only when this IS an expense (T0-3) ──────
+            // 200 category names (~1,000 tokens) were previously sent on every
+            // scan, including the ~90% that are not expenses.
+            $expenseCategories = $isExpense
+                ? ExpenseCategory::where('tenant_id', $tenant->id)
+                    ->orderBy('name')->take(200)->pluck('name')->toArray()
+                : [];
 
             // ── Party chosen up front, before the scan ───────────────────────
             // Verified against this tenant here so a bad id fails immediately,
@@ -392,7 +433,7 @@ class SmartCaptureController extends Controller
             // ── Meter managed/free usage (BYOK is never metered) ─────────────
             $this->entitlement->recordScan($check['mode']);
 
-            return response()->json([
+            $responsePayload = [
                 'success'               => true,
                 'action'                => $resolvedAction,
                 'party'                 => $partyName,
@@ -423,9 +464,14 @@ class SmartCaptureController extends Controller
                     'api_requests'  => $this->extractionService->lastRequestCount,
                     'model'         => $this->extractionService->lastModelUsed,
                     'tokens'        => $this->extractionService->lastUsage,
-                    'learned_lines' => $learnedCount,
                 ],
-            ]);
+            ];
+
+            if (isset($dedupeHash)) {
+                Cache::put($dedupeHash, $responsePayload, 86400);
+            }
+
+            return response()->json($responsePayload);
         } catch (AiRateLimitException $e) {
             // Never retried server-side — the user gets a countdown instead.
             return response()->json([

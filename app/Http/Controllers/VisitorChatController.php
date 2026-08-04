@@ -126,8 +126,12 @@ class VisitorChatController extends Controller
             }
         }
 
+        // SECURITY (T0-0): this body is forwarded to an upstream LLM on the
+        // platform API key. 10,000 characters is ~2,500 input tokens per
+        // message from an unauthenticated caller. A support question does not
+        // need more than 500 characters.
         $request->validate([
-            'body' => 'required|string|max:10000',
+            'body' => 'required|string|max:500',
         ]);
 
         $body = $request->input('body');

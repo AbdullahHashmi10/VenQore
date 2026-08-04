@@ -1,188 +1,71 @@
 # VenQore Technical Build Plan v4
 
-> **Version:** 4.0.0 (Master Release Spec)  
-> **Target:** VenQore Enterprise ERP, POS & Multi-Store Platform v5.4.0+  
-> **Status:** Active Execution (Phase 0 Complete, Phase 1 In-Progress)  
-> **Repository:** `AbdullahHashmi10/VenQore`  
-> **Architecture Pattern:** Dual Engine (V3 Ledger + Legacy Isolation Layer with PlanGuard Entitlements)
+> **Version:** 4.0.0 (Authoritative Technical Plan)  
+> **Updated:** 2026-08-04  
+> **Target:** VenQore POS & ERP v5.4.0+  
+> **Status:** Active Execution — Phase 0 in progress  
+> **Business Rationale:** `VENQORE_PRICING_AND_STRATEGY.md`
 
 ---
 
-## Executive Summary & System Vision
+## ⛔ CRITICAL WORKFLOW RULES FOR AGENTS
 
-VenQore v4.0 unifies the core retail POS/ERP system with multi-marketplace synchronization (VenSynQ), AI document processing (SmartCapture), double-entry accounting ledger isolation (V3 Accounting Engine), and automated multi-surface truth verification.
-
-This document serves as the authoritative technical build plan for all platform engineering, database migrations, service layers, frontend Inertia/React components, and automated verification gates.
-
----
-
-## Architectural Pillars
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              VENQORE CORE PLATFORM                              │
-├───────────────────────┬─────────────────────────┬───────────────────────────────┤
-│   MONETIZATION LAYER  │   BUSINESS ENGINE (V3)  │   INTEGRATION & SYNC (SYNC)   │
-│  - PlanGuard Gate     │  - AccountingService    │  - VenSynQ Multi-Marketplace   │
-│  - Entitlement Engine │  - FifoInventory Engine │  - SmartCapture AI Scanner    │
-│  - AppSumo / Stripe   │  - Double-Entry Ledger  │  - WooCommerce / Amazon       │
-└───────────────────────┴─────────────────────────┴───────────────────────────────┘
-                                        │
-                                        ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                       VERIFICATION & TRUTH FRAMEWORK v2                         │
-│  - 318 Mapped Route Metrics (LEDGER-DERIVED / TRANSACTION-DERIVED / HYBRID)    │
-│  - Automated CI Gate: `php artisan verify:map --strict`                        │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+1. **Do not invent phases.** The phase list in this document is authoritative and final.
+2. **Do not rename, replace, or "improve" this plan file.** If something is unclear, ask for clarification.
+3. **Do not mark a task complete without all acceptance criteria passing.**
+4. **Do not commit build artifacts.** `.phpunit.result.cache`, `bootstrap/ssr/`, and `Tester/VerificationCenter/runs/*` MUST be gitignored, never committed.
 
 ---
 
-## Phase Roadmap Overview
+## 📋 PHASE 0 — STOP MONEY LEAKING & CLOSE LIVE SECURITY HOLES
 
-| Phase | Description | Scope & Focus | Status |
-|-------|-------------|---------------|--------|
-| **Phase 0** | **Ground Truth, Data Safety & Verification Mapping** | Complete route inventory, registry generation, pre-flight safety | ✅ **COMPLETE** |
-| **Phase 1** | **Multi-Tenancy Foundation & Core Ledger Services** | Tenant isolation, 38 COA accounts, `AccountingService`, `FifoService` | 🟡 In-Progress |
-| **Phase 2** | **Inventory, Multi-Warehouse & Purchase Module** | Batch FIFO tracking, Purchase Orders, Zero-cost guard, Debit notes | 📋 Planned |
-| **Phase 3** | **Sales, POS & Real-Time Sync Engine (VenSynQ)** | Real-time checkout, marketplace stock sync (Woo/Amazon), COGS locks | 📋 Planned |
-| **Phase 4** | **AI SmartCapture & Document OCR Pipeline** | Invoice parsing, entitlement consumption, auto-reconciliation | 📋 Planned |
-| **Phase 5** | **Monetization, Billing & PlanGuard Entitlements** | Tier limits, feature toggles, backfill command overrides, billing portal | 📋 Planned |
-| **Phase 6** | **Multi-Surface Truth Sweep & Verification Framework v2** | Byte-level consistency across 6 CG groups, mutation scoring | 📋 Planned |
-| **Phase 7** | **Production Hardening, Performance & Launch Gate** | Sub-100ms response targets, PWA offline sync, automated release build | 📋 Planned |
+Phase 0 focus: Stop API token waste, restrict unauthenticated public endpoints, enable database-backed locks/queues, and establish accurate telemetry.
 
----
-
-## Detailed Technical Specifications
-
-### PHASE 0 — Ground Truth, Data Safety & Verification Mapping
-**Status:** ✅ **COMPLETE**  
-**Deliverables & Artifacts:**
-1. **Verification Command:** `app/Console/Commands/VerifyMap.php` (`verify:map`)
-2. **Number Registry:** `verification/number_registry.yaml` (318 mapped route metrics)
-3. **Data Safety Isolation:** Tenant Zero preserving legacy AMD Outlets data safely before additive migrations.
-
-**Verification Gate Checklist:**
-- [x] Route discovery scanner walks 220+ routes and classifies endpoints (133 LEDGER-DERIVED, 17 TRANSACTION-DERIVED, 59 HYBRID, 105 NON-FINANCIAL).
-- [x] `php artisan verify:map` executes without fatal errors and writes updated registry.
-- [x] Pre-phase 0 code state committed and pushed to git branch `session2-fixes`.
+| Task # | Status | Description | Files Modified |
+|--------|--------|-------------|----------------|
+| **T0-0 (Step 1)** | ✅ Done | Added `throttle:5,1` on chatbot session start and `throttle:15,1` on message/typing. Reduced message body cap from 10,000 → 500 chars. | `routes/api.php`, `VisitorChatController.php` |
+| **T0-0 (Step 2+)** | 🟡 Pending | `VisitorChatGuard` middleware — Per-session/per-IP/per-store caps, Turnstile integration, spend kill-switch, answer cache, prompt-injection guard, platform kill switch. | `app/Http/Middleware/VisitorChatGuard.php`, `VisitorChatController.php` |
+| **T0-1** | 🟡 Pending | `ai_usage_events` telemetry logging — Log `promptTokenCount`, `candidatesTokenCount`, estimated cost, `tenant_id`, and `source` into database table. | `app/Services/SmartCapture/AiExtractionService.php`, Migration |
+| **T0-2** | ✅ Done | Adaptive catalogue inclusion — Inline catalogue sent only when tenant has ≤300 products; above 300, matching happens client/server-side. Expenses never receive catalogue. | `config/smartcapture.php`, `SmartCaptureController.php` |
+| **T0-3** | ✅ Done | Party list (~1,500 tok) no longer sent in prompt (handled by `FuzzyMatchService::matchParty()`). Expense categories sent only when `target_type === 'expense'`. | `SmartCaptureController.php` |
+| **T0-4** | 🟡 Pending | Terse `responseSchema` — Short JSON schema keys, drop `matched_sku` & `needs_review`, delete `repairTruncatedJson()`. Cuts output tokens ~40%. | `app/Services/SmartCapture/AiExtractionService.php`, `SmartCaptureController.php` |
+| **T0-5** | 🟡 Pending | Client-side image pipeline — Client-side downscale / crop / deskew / blur-check before upload (reduces 4 MB upload to ~250 KB). | `resources/js/Components/SmartCapture/` |
+| **T0-6 (Partial)** | ✅ Done | `thinking_budget_image` reduced from 1024 → 256. | `config/smartcapture.php` |
+| **T0-6 (Rest)** | 🟡 Pending | Text part placed before image part for Gemini implicit prefix caching. Perceptual-hash (pHash) deduplication so identical re-submitted image is free. | `app/Services/SmartCapture/AiExtractionService.php` |
+| **T0-7** | 🟡 Pending | SQL rate limiter & spend caps — Single-row `lockForUpdate()` bucket table for extract API key limits (`pace_ms`). | `app/Services/SmartCapture/RateLimiter.php` |
+| **T0-8** | ✅ Done | Driver updates — `CACHE_STORE=database`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `DB_CONNECTION=mariadb`. Verified `Cache::lock()` single-flight behavior. | `.env`, `.env.example`, `config/database.php` |
+| **T0-9** | 🟡 Pending | MariaDB compatibility — Upgrade path / single-worker queue constraint verification for MariaDB 10.5 / 10.11 LTS. | `config/database.php` |
+| **T0-10** | 🟡 Pending | Single-cart Lemon Squeezy checkout — Bundle base plan + add-ons into one cart session (saves $0.50 fee per add-on). | `app/Http/Controllers/BillingController.php` |
+| **T0-11** | ✅ Done | Deleted `app/Services/SmartCapture/GeminiExtractionService.php` (311 lines of dead code with retry-loop bug). | `GeminiExtractionService.php` (deleted) |
 
 ---
 
-### PHASE 1 — Multi-Tenancy Foundation & Core Ledger Services
-**Target Duration:** 2 Weeks  
-**Depends On:** Phase 0  
-**Focus:** Isolating tenant data at database layer and locking down the V3 double-entry engine.
+## 🎯 PHASE 0 — DEFINITION OF DONE & ACCEPTANCE CRITERIA
 
-#### Database Migrations (V3 Schema Layer)
-- `_v3_create_accounts_table.php`: Chart of Accounts (38 default accounts, Account 7000 Equity Netting).
-- `_v3_create_journal_entries_table.php`: Double-entry headers with `idempotency_key` UNIQUE index.
-- `_v3_create_journal_items_table.php`: Line items with CHECK constraint `(debit_amount > 0 AND credit_amount = 0) OR (debit_amount = 0 AND credit_amount > 0)`.
-- `_v3_create_payment_allocations_table.php`: Over-allocation triggers preventing allocation > payment balance.
-- `_v3_create_party_snapshots_table.php`: Fast ledger balance snapshot by party with `UNIQUE(party_id, account_id)`.
+Phase 0 is COMPLETE only when every box below is checked and verified:
 
-#### Core Services (`app/Services/V3/`)
-1. **`AccountingService`**:
-   - `createEntry(array $header, array $items)`: Atomic transaction posting.
-   - `reverseEntry(string $entryId, string $reason)`: Idempotent debit/credit inversion.
-   - `getBalance(int $accountId, ?string $asOf = null)`: Fast balance calculation from `journal_items`.
-2. **`FifoService`**:
-   - `receiveBatch(int $productId, float $qty, float $unitCost, int $warehouseId)`: FIFO batch creation.
-   - `deductStock(int $productId, float $qty, int $warehouseId)`: Oldest-first batch depletion.
-3. **`PaymentService`**:
-   - `allocate(int $paymentId, array $allocations)`: Over-payment & bill matching logic.
-
-**Phase 1 Verification Gate:**
-- [ ] `AccountingService` throws exception on unbalanced entries (`sum(debit) != sum(credit)`).
-- [ ] DB constraint blocks negative inventory batch quantities (`remaining_qty >= 0`).
-- [ ] All 38 default COA accounts seeded with correct normal balances.
+- [x] `CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION` are set to `database`; `DB_CONNECTION=mariadb`.
+- [x] `Cache::lock()` confirmed working across processes (`LOCK_ACQUIRED` verified).
+- [ ] A script sending 1,000 chatbot messages from one IP is blocked, costs < $0.05, and fires an alert.
+- [ ] Every AI call in the codebase writes exactly one `ai_usage_events` row.
+- [ ] SuperAdmin spend dashboard matches Google Cloud console within 5%.
+- [ ] A 20,000-SKU tenant sends zero catalogue tokens (verified in `ai_usage_events.prompt_tokens`).
+- [ ] A 15-line invoice produces ≤ 400 output tokens.
+- [ ] A 12 MP photo yields ≤ 1,600 image tokens and uploads in < 3 s on 3G.
+- [ ] 50 simultaneous scans queue rather than fail; free key never exceeds 13 RPM / 1,400 RPD.
+- [ ] A 3-product Lemon Squeezy checkout shows exactly one $0.50 fee and provisions all 3 entitlements.
+- [ ] MariaDB upgraded to 10.11 LTS (or one queue worker documented as a hard constraint).
+- [ ] `php artisan test` runs completely green.
 
 ---
 
-### PHASE 2 — Inventory, Multi-Warehouse & Purchase System
-**Target Duration:** 3 Weeks  
-**Depends On:** Phase 1  
+## 🚀 SUBSEQUENT PHASES (High-Level Roadmap)
 
-#### Key Features & Components
-1. **Product CRUD & UOM Multi-Unit Engine:** Base units, sales units, conversion factors (`UomConversionController`).
-2. **Tiered Pricing Engine:** Wholesale, retail, and volume discount brackets (`PriceTierController`).
-3. **Purchase Orders & Receipts (B3/B6):** Batch creation, input tax credits (S-050), AP creation.
-4. **Zero-Cost Purchase Protection (S-004):** Frontend/backend block on zero-unit-cost purchases unless explicitly authorized by Manager PIN.
-5. **Purchase Returns & Debit Notes (B18):** Reversing inventory batches and AP ledger entries.
-
----
-
-### PHASE 3 — Sales, POS & Real-Time Sync Engine (VenSynQ)
-**Target Duration:** 3 Weeks  
-**Depends On:** Phase 2  
-
-#### Key Features & Components
-1. **High-Speed POS Checkout:** Barcode scanner listener, offline-first offline queue, real-time total calculator.
-2. **VenSynQ Multi-Marketplace Sync Engine (`app/Services/VenSynQ/`):**
-   - Marketplace integrations: WooCommerce, Amazon, Shopify, eBay.
-   - Real-time stock sync triggers on sale completion.
-   - Command overrides backfill (`2026_08_03_120000_backfill_vensync_command_overrides.php`).
-3. **COGS Accounting Protection:** Automatic COGS journal posting on every sale line; explicit fallback lock against fabricated cost estimates.
-
----
-
-### PHASE 4 — AI SmartCapture & Document OCR Pipeline
-**Target Duration:** 2 Weeks  
-**Depends On:** Phase 1  
-
-#### Key Features & Components
-1. **Document Upload & Parsing (`AiEntitlementService`):**
-   - Free scan allowance check via `AiEntitlementService::freeScanAllowance()`.
-   - Multi-tenant quota enforcement.
-2. **SmartCapture Aliases & Auto-Mapping:** Supplier alias resolution, automated product matching.
-3. **Auto-Reconciliation:** Purchase draft creation directly from scanned vendor receipts.
-
----
-
-### PHASE 5 — Monetization, Billing & PlanGuard Entitlements
-**Target Duration:** 2 Weeks  
-**Depends On:** Phase 1  
-
-#### Key Features & Components
-1. **PlanGuard Middleware:** Route-level entitlement enforcement (`can:access-feature`).
-2. **Tier Limits & Addon Billing:** Limit enforcement for users, stores, marketplace connections, and AI scans.
-3. **Billing Portal UI (`Pricing.jsx`):** Plan comparison, upgrade modals, Stripe/AppSumo license key redemption.
-
----
-
-### PHASE 6 — Multi-Surface Truth Sweep & Verification Framework v2
-**Target Duration:** 2 Weeks  
-**Depends On:** Phase 3  
-
-#### Key Features & Components
-1. **Consistency Group Verification (6 CG Groups):**
-   - Assert byte-level equality across Dashboard cards, Reports, and API outputs.
-2. **Ledger Truth Sweep:** Remediate 17 `TRANSACTION-DERIVED` and 59 `HYBRID` routes toward pure `LEDGER-DERIVED` sources.
-3. **Automated Mutation Testing:** Run Pest/PHPUnit mutation tests against financial service methods.
-
----
-
-### PHASE 7 — Production Hardening, Performance & Launch Gate
-**Target Duration:** 1 Week  
-**Depends On:** Phase 6  
-
-#### Key Features & Components
-1. **Performance Sweeps:** Sub-100ms API response targets, DB query indexing optimization.
-2. **Deployment Packaging:** Automated release zipping, asset compilation (`npm run build`).
-3. **Final Launch Gate:** Zero strict failures on `php artisan verify:map --strict`.
-
----
-
-## Verification & Execution Protocol
-
-To verify progress during execution of any phase, run:
-```bash
-# 1. Verification mapping gate
-E:\Software\Xampp\php\php.exe artisan verify:map --stats
-
-# 2. Automated test suite execution
-E:\Software\Xampp\php\php.exe vendor/bin/pest
-```
+- **Phase 1:** Local Item Matching & Multi-Tenant Isolation Engine (T1-1 through T1-6)
+- **Phase 2:** Ledger Integrity & Double-Entry Accounting Core (T2-1 through T2-8)
+- **Phase 3:** Real-Time Inventory & VenSynQ Marketplace Pipeline (T3-1 through T3-5)
+- **Phase 4:** Monetization, PlanGuard Entitlements & AppSumo Tier Limits (T4-1 through T4-6)
+- **Phase 5:** Multi-Surface Truth Sweep & Automated Verification Gate (T5-1 through T5-5)
 
 ---
 *End of Technical Build Plan v4.0*

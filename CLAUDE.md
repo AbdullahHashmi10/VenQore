@@ -2,6 +2,16 @@
 
 This is the authoritative context file for AI agents working in this codebase. Read this before doing anything.
 
+## ⛔ ACTIVE WORK — read these before starting anything
+
+| File | What it is |
+|---|---|
+| **`PHASE_0_STATUS.md`** | **Start here.** What is done, what is next, and the rules for working in this repo right now |
+| `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` | The authoritative technical plan — phases, tasks, acceptance criteria |
+| `VENQORE_PRICING_AND_STRATEGY.md` | Pricing, plan limits, AI quotas and the reasoning behind them |
+
+**Do not invent phases, do not replace the plan file, and do not mark a task complete unless its acceptance criteria in the plan actually pass.** If the plan is unclear or looks wrong, say so — do not substitute your own.
+
 ## Deliverable Format Preference
 
 - **Default to Markdown (`.md`) for written deliverables** (reports, plans, findings, summaries, audits, etc.). Do **not** produce `.docx` files by default.
@@ -12,10 +22,21 @@ This is the authoritative context file for AI agents working in this codebase. R
 **VenQore POS** is a multi-tenant SaaS Point-of-Sale and ERP system built for small-to-medium retail and food businesses. It is a Laravel 12 + React 18 (Inertia.js) monolith with offline-capable POS, full accounting, inventory management, WooCommerce integration, and a platform/superadmin layer.
 
 - **App name:** VenQore POS
-- **Database:** `venqore_pos` (MySQL, local: root / no password)
+- **Database:** `venqore_pos` — **MariaDB 10.5** in production (local: root / no password)
 - **App URL:** http://127.0.0.1:8000
 - **Domain:** venqore.com
-- **Queue:** database driver (Laravel Horizon available)
+- **Queue:** ⚠️ `.env` currently sets `QUEUE_CONNECTION=sync` — jobs run **inline in the web request**, not in the background. Must become `database`. See `PHASE_0_STATUS.md`.
+
+> ### ⚠️ Production environment — corrected 2026-08-04
+>
+> | Previously documented | Actual |
+> |---|---|
+> | PHP 8.2 | **PHP 8.4** |
+> | MySQL | **MariaDB 10.5** — EOL since June 2025, upgrade to 10.11 LTS pending |
+> | Queue: database | `sync` — no background processing |
+> | — | **No Redis.** Cache/session/queue must all use the `database` driver |
+>
+> **MariaDB implications:** use `DB_CONNECTION=mariadb` (Laravel's `mysql` driver defaults to `utf8mb4_0900_ai_ci`, a MySQL-only collation MariaDB does not have). MariaDB 10.5 has no `SKIP LOCKED`, so the database queue is limited to **one worker** until the upgrade.
 
 ---
 
@@ -23,10 +44,11 @@ This is the authoritative context file for AI agents working in this codebase. R
 
 | Layer | Technology |
 |---|---|
-| Backend | PHP 8.2, Laravel 12 |
+| Backend | PHP 8.4 (local 8.2+), Laravel 12 |
 | Frontend | React 18, Inertia.js v2, Tailwind CSS v3 |
 | Build tool | Vite 7 |
-| Database | MySQL |
+| Database | MariaDB 10.5 (driver: `mariadb`) |
+| Queue / Cache | Database driver (`QUEUE_CONNECTION=database`, `CACHE_STORE=database`) |
 | Auth | Laravel Sanctum + Breeze |
 | PDF | barryvdh/laravel-dompdf |
 | Excel | maatwebsite/excel |
@@ -248,7 +270,8 @@ resources/js/
 
 ## Database Policy & Rules (CRITICAL)
 
-- **Strict MySQL Policy:** The entire system is built strictly on **MySQL**. SQLite is **NOT** supported for any part of the system (including testing). Do NOT write or configure any SQLite databases or connections.
+- **Strict MySQL/MariaDB Policy:** The entire system runs on **MariaDB 10.5** (MySQL-compatible). SQLite is **NOT** supported for any part of the system (including testing). Do NOT write or configure any SQLite databases or connections.
+- **Write portable SQL.** MariaDB is not MySQL 8. Avoid MySQL-only features: `SKIP LOCKED` (MariaDB 10.6+), `JSON_TABLE` (10.6+), `VECTOR` (11.7+), and the `utf8mb4_0900_*` collations (MySQL only — use `utf8mb4_unicode_ci`).
 - **Production Database:** `venqore_pos` (never wipe or refresh this database).
 - **Testing Database:** `amd_pos_test` (used by phpunit/pest for feature tests).
 - **Smoke Tests:** Smoke tests run on `venqore_pos` dynamically but are strictly read-only and must NEVER use `RefreshDatabase` or alter data.

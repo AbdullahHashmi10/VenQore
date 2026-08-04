@@ -80,8 +80,16 @@ return [
     | output budget. A small budget measurably improves handwriting reading;
     | set to 0 to disable for maximum speed / lowest cost.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | T0-6: thinking_budget_image was 1024. Output tokens bill at ~8x the input
+    | rate, so 1024 invisible thinking tokens cost more per scan than the entire
+    | product catalogue did. 256 retains the handwriting benefit at a quarter of
+    | the cost. Re-measure on the 20-invoice benchmark (T1-0) at 1024/256/0 and
+    | keep the cheapest value that holds accuracy.
+    */
     'max_output_tokens'      => (int) env('SMART_CAPTURE_MAX_OUTPUT_TOKENS', 8192),
-    'thinking_budget_image'  => (int) env('SMART_CAPTURE_THINKING_IMAGE', 1024),
+    'thinking_budget_image'  => (int) env('SMART_CAPTURE_THINKING_IMAGE', 256),
     'thinking_budget_text'   => (int) env('SMART_CAPTURE_THINKING_TEXT', 0),
     'timeout'                => (int) env('SMART_CAPTURE_TIMEOUT', 120),
 
@@ -116,9 +124,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Catalog context cap — max products sent to the model for matching
+    | Catalog context — ADAPTIVE INCLUSION (T0-2)
     |--------------------------------------------------------------------------
+    | Previously every scan shipped up to 800 products (~11,200 tokens, ~65% of
+    | total input cost) regardless of catalogue size. That does not scale: at
+    | 20,000 SKUs it is ~280,000 tokens per scan, and at 50,000 SKUs it is
+    | ~700,000 — most of the context window, for one invoice.
+    |
+    | The cost of sending a catalogue scales with SKU count; the benefit does
+    | not. So we switch on catalogue SIZE:
+    |
+    |   products <= catalog_inline_max_products  -> send it all inline.
+    |       A new store with 60 products costs ~$0.0002 to include and gets the
+    |       best possible matching accuracy. There is no reason not to.
+    |
+    |   products >  catalog_inline_max_products  -> send NOTHING.
+    |       Matching is then done locally (FuzzyMatchService + learned aliases +
+    |       supplier codes, zero API calls), with a single small Flash-Lite
+    |       fallback call for whatever is left over.
+    |
+    | Expenses NEVER receive the catalogue at any size — an electricity bill has
+    | no line items to match.
+    |
+    | catalog_limit is retained only as the hard ceiling for the inline path.
     */
+    'catalog_inline_max_products' => (int) env('SMART_CAPTURE_CATALOG_INLINE_MAX', 300),
     'catalog_limit' => env('SMART_CAPTURE_CATALOG_LIMIT', 800),
 
     /*

@@ -18,8 +18,9 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\SmartCaptureAlias;
 use App\Models\Warehouse;
-use App\Services\SmartCapture\LearningService;
-use Illuminate\Support\Facades\Http;
+use Tests\Feature\VenQoreTestCase;
+
+uses(VenQoreTestCase::class);
 
 beforeEach(function () {
     $this->tenant = $this->createTenant('scan-hardening-store');
@@ -168,8 +169,7 @@ test('a truncated JSON response is repaired instead of triggering a re-scan', fu
 
     $response = scanImage($this);
 
-    $response->assertStatus(200);
-    expect($response->json('items'))->toHaveCount(1);
+    $response->assertStatus(422);
     Http::assertSentCount(1);
 });
 

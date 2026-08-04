@@ -44,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'lemon-squeezy.signature' => \App\Http\Middleware\VerifyLemonSqueezySignature::class,
             'drm'                     => \App\Http\Middleware\DrmOfflineLockMiddleware::class,
             'drm.license'             => \App\Http\Middleware\DrmLockMiddleware::class,
+            'visitor.chat.guard'      => \App\Http\Middleware\VisitorChatGuard::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────
