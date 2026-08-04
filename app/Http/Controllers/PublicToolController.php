@@ -26,28 +26,46 @@ class PublicToolController extends Controller
         PublicToolBudgetGuard $guard,
         AiExtractionService $aiService
     ): JsonResponse {
-        $request->validate([
-            'email'           => 'required|email|max:255',
-            'file'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'turnstile_token' => 'nullable|string',
-        ]);
+        $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
+        
+        $rules = [
+            'email' => 'required|email|max:255',
+            'file'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
+        ];
+
+        if (!empty($turnstileSecret)) {
+            $rules['turnstile_token'] = 'required|string';
+        } else {
+            $rules['turnstile_token'] = 'nullable|string';
+        }
+
+        $request->validate($rules);
 
         $email = strtolower(trim($request->input('email')));
         $ip    = $request->ip() ?? '127.0.0.1';
 
-        // 1. Turnstile Server-Side Verification (if configured)
-        $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
-        if (!empty($turnstileSecret) && $request->filled('turnstile_token')) {
+        // 1. Mandatory Turnstile Server-Side Verification (when secret configured)
+        if (!empty($turnstileSecret)) {
+            $token = $request->input('turnstile_token');
+            if (empty($token)) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'CAPTCHA verification token required.',
+                    'reason'  => 'turnstile_missing',
+                ], 422);
+            }
+
             $verifyRes = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => $turnstileSecret,
-                'response' => $request->input('turnstile_token'),
+                'response' => $token,
                 'remoteip' => $ip,
             ]);
 
             if (!$verifyRes->json('success')) {
                 return response()->json([
-                    'error'  => 'CAPTCHA verification failed. Please try submitting again.',
-                    'reason' => 'turnstile_failed',
+                    'success' => false,
+                    'error'   => 'CAPTCHA verification failed. Please try submitting again.',
+                    'reason'  => 'turnstile_failed',
                 ], 422);
             }
         }
@@ -58,66 +76,70 @@ class PublicToolController extends Controller
 
         if (!$check['allowed']) {
             return response()->json([
+                'success'  => false,
                 'error'    => $check['message'],
                 'reason'   => $check['reason'],
                 'waitlist' => true,
             ], 429);
         }
 
-        // 3. Real AI Extraction Service Call (Phase 1 engine)
+        // 3. Real AI Extraction Service Call (Phase 1 engine) — NO FAKE FALLBACKS
         $extractedItems = [];
-        $vendorName     = 'Extracted Invoice Vendor';
+        $vendorName     = 'Scanned Invoice';
         $invoiceNo      = 'INV-PUBLIC-' . rand(1000, 9999);
         $subtotal       = 0.00;
 
-        if ($request->hasFile('file')) {
-            try {
-                $file = $request->file('file');
-                $base64 = base64_encode(file_get_contents($file->getRealPath()));
-                $mime = $file->getMimeType();
+        try {
+            $file   = $request->file('file');
+            $base64 = base64_encode(file_get_contents($file->getRealPath()));
+            $mime   = $file->getMimeType();
 
-                $extractionResult = $aiService->extract([
-                    'images'  => [["data" => $base64, "mime" => $mime]],
-                    'feature' => 'public_tool',
-                ]);
+            $extractionResult = $aiService->extract(
+                'image',
+                [['base64' => $base64, 'mime' => $mime]],
+                'purchase'
+            );
 
-                if (!empty($extractionResult['items'])) {
-                    foreach ($extractionResult['items'] as $item) {
-                        $qty   = (float) ($item['qty'] ?? 1);
-                        $price = (float) ($item['unit_price'] ?? $item['price'] ?? 0);
-                        $tot   = (float) ($item['total'] ?? ($qty * $price));
+            if (!empty($extractionResult['items'])) {
+                foreach ($extractionResult['items'] as $item) {
+                    $qty   = (float) ($item['qty'] ?? 1);
+                    $price = (float) ($item['unit_price'] ?? $item['price'] ?? 0);
+                    $tot   = (float) ($item['total'] ?? ($qty * $price));
 
-                        $extractedItems[] = [
-                            'item_name'  => $item['name'] ?? $item['description'] ?? 'Extracted Product',
-                            'qty'        => $qty,
-                            'unit_price' => $price,
-                            'total'      => $tot,
-                        ];
-                        $subtotal += $tot;
-                    }
+                    $extractedItems[] = [
+                        'item_name'  => $item['name'] ?? $item['description'] ?? 'Extracted Product',
+                        'qty'        => $qty,
+                        'unit_price' => $price,
+                        'total'      => $tot,
+                    ];
+                    $subtotal += $tot;
                 }
-                if (!empty($extractionResult['vendor_name'])) {
-                    $vendorName = $extractionResult['vendor_name'];
-                }
-                if (!empty($extractionResult['invoice_number'])) {
-                    $invoiceNo = $extractionResult['invoice_number'];
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Public tool AI extraction fallback triggered: ' . $e->getMessage());
             }
+            if (!empty($extractionResult['party'])) {
+                $vendorName = $extractionResult['party'];
+            } elseif (!empty($extractionResult['vendor_name'])) {
+                $vendorName = $extractionResult['vendor_name'];
+            }
+
+            if (!empty($extractionResult['reference'])) {
+                $invoiceNo = $extractionResult['reference'];
+            } elseif (!empty($extractionResult['invoice_number'])) {
+                $invoiceNo = $extractionResult['invoice_number'];
+            }
+        } catch (\Throwable $e) {
+            Log::error('Public tool AI extraction failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error'   => 'Invoice extraction failed. Please provide a clear, readable image or PDF document.',
+            ], 422);
         }
 
-        // Fallback structuring if empty file or extraction yielded zero items
+        // Strict requirement: zero extracted items is an error, never serve fake data
         if (empty($extractedItems)) {
-            $extractedItems = [
-                [
-                    'item_name'  => 'Extracted Invoice Line Item',
-                    'qty'        => 1,
-                    'unit_price' => 120.00,
-                    'total'      => 120.00,
-                ],
-            ];
-            $subtotal = 120.00;
+            return response()->json([
+                'success' => false,
+                'error'   => 'No valid invoice items could be extracted from the uploaded document.',
+            ], 422);
         }
 
         $resultPayload = [

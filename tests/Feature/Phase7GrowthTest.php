@@ -16,7 +16,9 @@ use App\Services\SmartCapture\FuzzyMatchService;
 use App\Services\SmartCapture\LearningService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -156,12 +158,55 @@ class Phase7GrowthTest extends TestCase
             'tripped'   => true,
         ]);
 
+        $file = UploadedFile::fake()->create('invoice.jpg', 100, 'image/jpeg');
+
         $response = $this->postJson('/tools/invoice-scanner', [
             'email' => 'newuser@example.com',
+            'file'  => $file,
         ]);
 
         $response->assertStatus(429)
             ->assertJson(['reason' => 'budget_exceeded']);
+    }
+
+    /** @test */
+    public function it_enforces_budget_cap_under_concurrent_spend_reservations()
+    {
+        $guard = new PublicToolBudgetGuard();
+        $maxDailyBudget = 10.00;
+        $costPerScan = 1.00;
+
+        $successfulReservations = 0;
+        $blockedReservations    = 0;
+
+        // Simulate 12 concurrent requests reserving spend against a $10.00 budget
+        for ($i = 1; $i <= 12; $i++) {
+            $email = "user_{$i}@example.com";
+            $ip    = "192.168.1.{$i}";
+
+            $result = $guard->checkAndReserve($email, $ip, $costPerScan, $maxDailyBudget);
+
+            if ($result['allowed']) {
+                $successfulReservations++;
+            } else {
+                $blockedReservations++;
+                $this->assertEquals('budget_exceeded', $result['reason']);
+            }
+        }
+
+        // Exactly 10 requests at $1.00 can succeed before hitting $10.00 cap; 2 must be blocked
+        $this->assertEquals(10, $successfulReservations);
+        $this->assertEquals(2, $blockedReservations);
+
+        // Verify row spend counter in DB is exactly 10.00 and tripped is true
+        $counter = DB::table('ai_spend_counters')
+            ->where('scope', 'public_tool')
+            ->where('day', today()->toDateString())
+            ->first();
+
+        $this->assertNotNull($counter);
+        $this->assertEquals(10.00, (float) $counter->spend_usd);
+        $this->assertTrue((bool) $counter->tripped);
     }
 
     /** @test */
@@ -184,6 +229,52 @@ class Phase7GrowthTest extends TestCase
         $check = $guard->checkAndReserve($email, '10.0.0.1', 0.0120, 10.00);
         $this->assertFalse($check['allowed']);
         $this->assertEquals('email_limit_exceeded', $check['reason']);
+    }
+
+    /** @test */
+    public function it_verifies_public_tool_submission_with_mocked_turnstile_and_extraction()
+    {
+        Config::set('services.cloudflare.turnstile_secret_key', 'test_secret_key');
+        Config::set('smartcapture.gemini_key', 'test_gemini_key');
+        Config::set('smartcapture.api_key', 'test_gemini_key');
+
+        Http::fake([
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify' => Http::response(['success' => true], 200),
+            'https://generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                [
+                                    'text' => json_encode([
+                                        'party'     => 'Acme Supplies',
+                                        'reference' => 'INV-9988',
+                                        'items'     => [
+                                            ['name' => 'Paper Reams', 'qty' => 5, 'unit_price' => 10.00, 'total' => 50.00],
+                                        ],
+                                    ]),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $file = UploadedFile::fake()->create('invoice.pdf', 200, 'application/pdf');
+
+        $response = $this->postJson('/tools/invoice-scanner', [
+            'email'           => 'validuser@example.com',
+            'file'            => $file,
+            'turnstile_token' => 'valid_turnstile_token_123',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'turnstile/v0/siteverify');
+        });
     }
 
     /** @test */
