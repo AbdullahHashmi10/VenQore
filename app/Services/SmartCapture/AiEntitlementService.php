@@ -93,12 +93,13 @@ class AiEntitlementService
             return ['allowed' => true, 'reason' => null, 'mode' => 'byok', 'scans_used' => $used, 'scans_limit' => $limit];
         }
 
-        // ── Free tier: 10 chances ─────────────────────────────────────────────
+        // ── Free tier allowance ─────────────────────────────────────────────
         if ($status === 'none') {
-            if ($used >= 10) {
-                return ['allowed' => false, 'reason' => 'free_limit_reached', 'mode' => 'free', 'scans_used' => $used, 'scans_limit' => 10];
+            $freeLimit = self::freeScanAllowance();
+            if ($used >= $freeLimit) {
+                return ['allowed' => false, 'reason' => 'free_limit_reached', 'mode' => 'free', 'scans_used' => $used, 'scans_limit' => $freeLimit];
             }
-            return ['allowed' => true, 'reason' => null, 'mode' => 'free', 'scans_used' => $used, 'scans_limit' => 10];
+            return ['allowed' => true, 'reason' => null, 'mode' => 'free', 'scans_used' => $used, 'scans_limit' => $freeLimit];
         }
 
         return ['allowed' => false, 'reason' => 'no_addon', 'mode' => null, 'scans_used' => $used, 'scans_limit' => $limit];

@@ -64,7 +64,33 @@ class ProvisionTenantJob implements ShouldQueue
 
         if ($tenantId) {
             $tenant = Tenant::find($tenantId);
-            if (!$tenant) {
+            if ($tenant) {
+                $emailMatches = $email && $tenant->users()->where('email', $email)->exists();
+                $allAddonVariantIds = array_filter([
+                    (string) config('services.lemon_squeezy.woocommerce_addon_id'),
+                    (string) config('services.lemon_squeezy.amazon_addon_id'),
+                    (string) config('services.lemon_squeezy.ebay_addon_id'),
+                    (string) config('services.lemon_squeezy.tiktok_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_starter_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_lite_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_pro_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_ultimate_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_byok_addon_id'),
+                ]);
+
+                $variantIdStr = $variantId !== null ? (string)$variantId : '';
+
+                $isAddonOrService = !empty(data_get($this->payload, 'meta.custom_data.addon_key'))
+                    || !empty(data_get($this->payload, 'custom_data.addon_key'))
+                    || !empty(data_get($this->payload, 'meta.custom_data.is_onboarding_service'))
+                    || !empty(data_get($this->payload, 'custom_data.is_onboarding_service'))
+                    || ($variantIdStr !== '' && in_array($variantIdStr, $allAddonVariantIds, true));
+
+                if (!$emailMatches && !$isAddonOrService) {
+                    $tenant = null;
+                    $tenantId = null;
+                }
+            } else {
                 $tenantId = null;
             }
         }

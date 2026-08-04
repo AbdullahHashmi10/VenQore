@@ -7,7 +7,7 @@ import {
     Check, X, ArrowRight, ArrowLeft, Zap, ShieldCheck, Crown,
     ChevronDown, Sparkles, Globe, CreditCard, Lock, CheckCircle2,
     AlertCircle, Cpu, Key, Ban, Star, ShoppingCart, Package,
-    BarChart3, Layers, MessageSquare, TrendingUp, Rocket
+    BarChart3, Layers, MessageSquare, TrendingUp, Rocket, FileText, Store
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -103,7 +103,9 @@ export default function Pricing({ plans = [] }) {
     const [currencyDisplay, setCurrencyDisplay] = useState('USD');
     const [selectedPlan, setSelectedPlan] = useState('growth');
     const [selectedAI, setSelectedAI] = useState('none');
-    const [currentStep, setCurrentStep] = useState(1); // 1=pricing page, 2=sync, 3=onboarding, 4=checkout, 5=confirmation
+    const [currentStep, setCurrentStep] = useState(1); // 1=pricing page, 2=ai engine, 3=sync, 4=onboarding, 5=checkout, 6=confirmation
+    const [expandedCards, setExpandedCards] = useState({ starter: false, growth: false, enterprise: false });
+    const toggleCardExpand = (key) => setExpandedCards(prev => ({ ...prev, [key]: !prev[key] }));
     const [selectedSyncs, setSelectedSyncs] = useState([]);
     const [selectedService, setSelectedService] = useState(null); // 'basic' | 'descriptions' | 'images'
     const [calcProducts, setCalcProducts] = useState('');
@@ -353,6 +355,150 @@ export default function Pricing({ plans = [] }) {
         return [];
     };
 
+    const FULL_FEATURE_LIST = {
+        starter: {
+            totalIncluded: 18,
+            totalSuite: 32,
+            ratioLabel: '18 of 32 Features Included',
+            categorizedFeatures: [
+                { category: 'Platform Limits', name: '1 Store Location', included: true },
+                { category: 'Platform Limits', name: '3 Staff Accounts', included: true },
+                { category: 'Platform Limits', name: '1,000 Product SKUs', included: true },
+                { category: 'Platform Limits', name: '14-Day Free Trial', included: true },
+                { category: 'Platform Limits', name: 'Multi-Branch Sync', included: false },
+
+                { category: 'POS & Checkout', name: 'Full POS Checkout', included: true },
+                { category: 'POS & Checkout', name: 'Barcode Scanner Integration', included: true },
+                { category: 'POS & Checkout', name: 'WebUSB Thermal Printing', included: true },
+                { category: 'POS & Checkout', name: 'Multi-Tab Checkout (3 Tabs)', included: true },
+                { category: 'POS & Checkout', name: 'Park & Recall Bills', included: true },
+                { category: 'POS & Checkout', name: 'Split Payments (Cash/Card/Khata)', included: true },
+                { category: 'POS & Checkout', name: 'Serial / IMEI Lifecycle Tracking', included: false },
+
+                { category: 'Inventory', name: 'Product Variants & FIFO Valuation', included: true },
+                { category: 'Inventory', name: 'Batch & Expiry Date Tracking', included: false },
+                { category: 'Inventory', name: 'Bill of Materials (Recipes)', included: false },
+                { category: 'Inventory', name: 'Auto-Assembly Production Runs', included: false },
+
+                { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: false },
+                { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: false },
+                { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: false },
+
+                { category: 'Reports', name: 'Sales & Purchase Reports', included: true },
+                { category: 'Reports', name: 'Profit & Loss Statement (P&L)', included: true },
+                { category: 'Reports', name: 'Cash Flow Statement', included: true },
+                { category: 'Reports', name: 'Balance Sheet Statement', included: false },
+                { category: 'Reports', name: '40-Report Full Analytics Suite', included: false },
+
+                { category: 'AI & E-Commerce', name: 'Vena AI Support Chat', included: true },
+                { category: 'AI & E-Commerce', name: '10 Lifetime Free AI Scans', included: true },
+                { category: 'AI & E-Commerce', name: 'Managed AI Add-ons (From $3/mo)', included: true },
+                { category: 'AI & E-Commerce', name: 'BYOK AI Key Unlock ($5 once)', included: true },
+                { category: 'AI & E-Commerce', name: 'VenSynQ Marketplace Sync ($10/mo)', included: true },
+
+                { category: 'Support', name: 'Email Support', included: true },
+                { category: 'Support', name: 'Live Agent Chat Support', included: false },
+                { category: 'Support', name: '24/7 Priority SLA & Dedicated Account Manager', included: false },
+            ]
+        },
+        growth: {
+            totalIncluded: 26,
+            totalSuite: 32,
+            ratioLabel: '26 of 32 Features Included',
+            categorizedFeatures: [
+                { category: 'Platform Limits', name: '3 Store Locations', included: true },
+                { category: 'Platform Limits', name: '10 Staff Accounts', included: true },
+                { category: 'Platform Limits', name: '10,000 Product SKUs', included: true },
+                { category: 'Platform Limits', name: '14-Day Free Trial', included: true },
+                { category: 'Platform Limits', name: '3-Store Multi-Branch Sync', included: true },
+
+                { category: 'POS & Checkout', name: 'Full POS Checkout', included: true },
+                { category: 'POS & Checkout', name: 'Barcode Scanner Integration', included: true },
+                { category: 'POS & Checkout', name: 'WebUSB Thermal Printing', included: true },
+                { category: 'POS & Checkout', name: 'Multi-Tab Checkout (10 Tabs)', included: true },
+                { category: 'POS & Checkout', name: 'Park & Recall Bills', included: true },
+                { category: 'POS & Checkout', name: 'Split Payments (Cash/Card/Khata)', included: true },
+                { category: 'POS & Checkout', name: 'Serial / IMEI Lifecycle Tracking', included: false },
+
+                { category: 'Inventory', name: 'Product Variants & FIFO Valuation', included: true },
+                { category: 'Inventory', name: 'Batch & Expiry Date Tracking', included: true },
+                { category: 'Inventory', name: 'Bill of Materials (Recipes)', included: true },
+                { category: 'Inventory', name: 'Auto-Assembly Production Runs', included: false },
+
+                { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: true },
+                { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: true },
+                { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: false },
+
+                { category: 'Reports', name: 'Sales & Purchase Reports', included: true },
+                { category: 'Reports', name: 'Profit & Loss Statement (P&L)', included: true },
+                { category: 'Reports', name: 'Cash Flow Statement', included: true },
+                { category: 'Reports', name: 'Balance Sheet Statement', included: true },
+                { category: 'Reports', name: '40-Report Full Analytics Suite', included: false },
+
+                { category: 'AI & E-Commerce', name: 'Vena AI Support Chat', included: true },
+                { category: 'AI & E-Commerce', name: '10 Lifetime Free AI Scans', included: true },
+                { category: 'AI & E-Commerce', name: 'Managed AI Add-ons (From $5/mo)', included: true },
+                { category: 'AI & E-Commerce', name: 'BYOK AI Key Unlock ($5 once)', included: true },
+                { category: 'AI & E-Commerce', name: 'VenSynQ Marketplace Sync ($10/mo)', included: true },
+
+                { category: 'Support', name: 'Email Support', included: true },
+                { category: 'Support', name: 'Live Agent Chat Support', included: true },
+                { category: 'Support', name: '24/7 Priority SLA & Dedicated Account Manager', included: false },
+            ]
+        },
+        enterprise: {
+            totalIncluded: 32,
+            totalSuite: 32,
+            ratioLabel: 'All 32 Features Included',
+            categorizedFeatures: [
+                { category: 'Platform Limits', name: '10 Store Locations', included: true },
+                { category: 'Platform Limits', name: '50 Staff Accounts', included: true },
+                { category: 'Platform Limits', name: '50,000 Product SKUs', included: true },
+                { category: 'Platform Limits', name: '14-Day Free Trial', included: true },
+                { category: 'Platform Limits', name: 'Multi-Branch Sync', included: true },
+
+                { category: 'POS & Checkout', name: 'Full POS Checkout', included: true },
+                { category: 'POS & Checkout', name: 'Barcode Scanner Integration', included: true },
+                { category: 'POS & Checkout', name: 'WebUSB Thermal Printing', included: true },
+                { category: 'POS & Checkout', name: 'Multi-Tab Checkout (50 Tabs)', included: true },
+                { category: 'POS & Checkout', name: 'Park & Recall Bills', included: true },
+                { category: 'POS & Checkout', name: 'Split Payments (Cash/Card/Khata)', included: true },
+                { category: 'POS & Checkout', name: 'Serial / IMEI Lifecycle Tracking', included: true },
+
+                { category: 'Inventory', name: 'Product Variants & FIFO Valuation', included: true },
+                { category: 'Inventory', name: 'Batch & Expiry Date Tracking', included: true },
+                { category: 'Inventory', name: 'Bill of Materials (Recipes)', included: true },
+                { category: 'Inventory', name: 'Auto-Assembly Production Runs', included: true },
+
+                { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: true },
+                { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: true },
+                { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: true },
+
+                { category: 'Reports', name: 'Sales & Purchase Reports', included: true },
+                { category: 'Reports', name: 'Profit & Loss Statement (P&L)', included: true },
+                { category: 'Reports', name: 'Cash Flow Statement', included: true },
+                { category: 'Reports', name: 'Balance Sheet Statement', included: true },
+                { category: 'Reports', name: '40-Report Full Analytics Suite', included: true },
+
+                { category: 'AI & E-Commerce', name: 'Vena AI Support Chat', included: true },
+                { category: 'AI & E-Commerce', name: '10 Lifetime Free AI Scans', included: true },
+                { category: 'AI & E-Commerce', name: 'Managed AI Add-ons (From $15/mo)', included: true },
+                { category: 'AI & E-Commerce', name: 'BYOK AI Key Unlock ($5 once)', included: true },
+                { category: 'AI & E-Commerce', name: 'VenSynQ Marketplace Sync ($10/mo)', included: true },
+
+                { category: 'Support', name: 'Email Support', included: true },
+                { category: 'Support', name: 'Live Agent Chat Support', included: true },
+                { category: 'Support', name: '24/7 Priority SLA & Dedicated Account Manager', included: true },
+            ]
+        }
+    };
+
     const PLAN_DATA = {
         starter: {
             name: 'Starter Engine',
@@ -365,6 +511,8 @@ export default function Pricing({ plans = [] }) {
             iconBg: 'bg-blue-500/10 text-blue-400',
             badgeBg: 'bg-blue-500/10 border-blue-500/20 text-blue-300',
             inheritLabel: null,
+            totalIncluded: 18,
+            ratioLabel: '18 of 32 Features Included',
             includes: getPlanIncludes('starter'),
             excludes: getPlanExcludes('starter'),
         },
@@ -380,6 +528,8 @@ export default function Pricing({ plans = [] }) {
             badgeBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300',
             popular: true,
             inheritLabel: 'Everything in Starter Engine, plus:',
+            totalIncluded: 26,
+            ratioLabel: '26 of 32 Features Included',
             includes: getPlanIncludes('growth'),
             excludes: getPlanExcludes('growth'),
         },
@@ -394,16 +544,201 @@ export default function Pricing({ plans = [] }) {
             iconBg: 'bg-purple-500/10 text-purple-400',
             badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-300',
             inheritLabel: 'Everything in Growth Engine, plus:',
+            totalIncluded: 32,
+            ratioLabel: 'All 32 Features Included',
             includes: getPlanIncludes('enterprise'),
             excludes: getPlanExcludes('enterprise'),
         },
     };
 
+    const [expandedNerdSpecs, setExpandedNerdSpecs] = useState({});
+    const toggleNerdSpec = (key) => setExpandedNerdSpecs(prev => ({ ...prev, [key]: !prev[key] }));
+
+    const ALL_AI_OPTIONS = [
+        {
+            key: 'lite',
+            name: 'AI Lite',
+            emoji: '🌱',
+            tagline: 'Small Retailer & Single Shop',
+            priceUSD: 3,
+            pricePKR: 850,
+            popular: false,
+            laymanDesc: 'Ideal for single-location shops with standard stock. Read supplier invoices from phone photos, auto-create products, and get instant answers about daily sales.',
+            laymanStats: [
+                { label: '50 Supplier Invoices / Bills Scanned per month', icon: FileText, desc: 'Snap photo of paper supplier bills to auto-load stock & cost prices' },
+                { label: '300 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Ask about stock levels, top sellers, & revenue stats in voice or text' },
+                { label: '50 AI Product Descriptions per month', icon: Sparkles, desc: 'Auto-generate titles & descriptions for new products in 1 click' },
+            ],
+            techSpecs: [
+                { name: 'Underlying Models', value: 'OpenAI GPT-4o-mini & Google Gemini 1.5 Flash' },
+                { name: 'OCR Engine', value: 'Vision Transformer v2 (99.2% extraction accuracy)' },
+                { name: 'Response Latency', value: '<600ms average response time' },
+                { name: 'Multi-lingual OCR', value: 'English, Urdu, Arabic, Chinese invoice parsing' },
+                { name: 'Schema Output', value: 'Structured JSON & CSV line-item extraction' },
+            ]
+        },
+        {
+            key: 'core',
+            name: 'AI Core',
+            emoji: '⚡',
+            tagline: 'Busy Store & Multi-Counter Retail',
+            priceUSD: 5,
+            pricePKR: 1400,
+            popular: true,
+            laymanDesc: 'Designed for growing stores with daily supplier deliveries. Heavy-duty invoice extraction, low-stock reorder forecasts, and voice AI commands.',
+            laymanStats: [
+                { label: '150 Supplier Invoices / Bills Scanned per month', icon: FileText, desc: '3x more scan quota for daily stock intake & receiving bills' },
+                { label: '1,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Voice & text queries for staff, managers, & store owners' },
+                { label: '200 AI Product Descriptions per month', icon: Sparkles, desc: 'Auto-generate SEO product descriptions & category tags' },
+            ],
+            techSpecs: [
+                { name: 'Underlying Models', value: 'OpenAI GPT-4o & Gemini 1.5 Pro' },
+                { name: 'OCR Engine', value: 'Deep Vision OCR with line-item table parsing' },
+                { name: 'Response Latency', value: '<450ms streaming tokens' },
+                { name: 'Context Window', value: '128,000 token window for multi-page bills' },
+                { name: 'Auto Reorder Engine', value: 'Statistical moving-average low-stock predictor' },
+            ]
+        },
+        {
+            key: 'pro',
+            name: 'AI Pro',
+            emoji: '🚀',
+            tagline: 'High-Volume & Multi-Branch Business',
+            priceUSD: 15,
+            pricePKR: 4200,
+            popular: false,
+            laymanDesc: 'For multi-outlet retailers processing dozens of bills weekly. Advanced profit analysis, automatic stock discrepancy flags, and multi-user staff AI access.',
+            laymanStats: [
+                { label: '480 Supplier Invoices / Bills Scanned per month', icon: FileText, desc: 'High-capacity bulk document processing for busy warehouses' },
+                { label: '3,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Unlimited multi-user staff AI access across all counters' },
+                { label: '800 AI Product Descriptions per month', icon: Sparkles, desc: 'Bulk catalog AI enrichment & multi-channel tagging' },
+            ],
+            techSpecs: [
+                { name: 'Underlying Models', value: 'Claude 3.5 Sonnet / GPT-4o Hybrid Router' },
+                { name: 'OCR Engine', value: 'Multi-page PDF batch processing + tax extraction' },
+                { name: 'Anomaly Detection', value: 'Automated PO vs receiving bill reconciliation' },
+                { name: 'API Queue', value: '1,200 requests/min dedicated priority queue' },
+            ]
+        },
+        {
+            key: 'ultimate',
+            name: 'AI Ultimate',
+            emoji: '👑',
+            tagline: 'Enterprise & Multi-Store Chain',
+            priceUSD: 29,
+            pricePKR: 8100,
+            popular: false,
+            laymanDesc: 'Uncapped AI power for large retail chains. Real-time predictive stock routing, custom AI taxonomy fine-tuning, and priority GPU processing.',
+            laymanStats: [
+                { label: '850 Supplier Invoices / Bills Scanned per month', icon: FileText, desc: 'Enterprise-grade supplier bill & receiving slip processor' },
+                { label: '10,000 AI Inventory Assistant Questions per month', icon: MessageSquare, desc: 'Uncapped chain-wide AI intelligence for management' },
+                { label: '2,500 AI Product Descriptions per month', icon: Sparkles, desc: 'Automated enterprise catalog generation engine' },
+            ],
+            techSpecs: [
+                { name: 'Underlying Models', value: 'Dedicated Priority GPT-4o / Claude 3.5 Sonnet' },
+                { name: 'Custom Taxonomy', value: 'Fine-tuned LayoutLM for custom supplier formats' },
+                { name: 'SLA Guarantee', value: '99.9% uptime SLA with sub-300ms latency' },
+            ]
+        }
+    ];
+
     const SYNC_CHANNELS = [
-        { key: 'woocommerce', name: 'WooCommerce', icon: Globe, desc: 'Real-time bidirectional stock sync for WordPress/WooCommerce stores.', priceUSD: 10, pricePKR: 2800, comingSoon: false },
-        { key: 'amazon', name: 'Amazon Marketplace', icon: ShoppingCart, desc: 'Automate order extraction and live inventory tracking across Amazon.', priceUSD: 10, pricePKR: 2800, comingSoon: false },
-        { key: 'ebay', name: 'eBay Integration', icon: Package, desc: 'Sync inventory counts and sales invoices automatically with eBay.', priceUSD: 10, pricePKR: 2800, comingSoon: true },
-        { key: 'tiktok', name: 'TikTok Shop', icon: Star, desc: 'Connect catalog attributes and import marketplace sales from TikTok.', priceUSD: 10, pricePKR: 2800, comingSoon: true },
+        {
+            key: 'woocommerce',
+            name: 'WooCommerce Integration',
+            icon: Globe,
+            priceUSD: 10,
+            pricePKR: 2800,
+            comingSoon: false,
+            laymanTitle: 'Sync Physical Shop with WooCommerce Website',
+            laymanDesc: 'Connect your WordPress / WooCommerce online store. When a customer buys in your physical shop, online stock decreases in under 3 seconds so you never sell out-of-stock items.',
+            laymanHighlights: [
+                '⚡ Instant stock sync (POS ↔ Website in under 3 seconds)',
+                '📦 Auto-import web orders straight into your POS cashier screen',
+                '👥 Unified customer profiles & complete purchase history'
+            ],
+            techSpecs: [
+                { name: 'Protocol', value: 'WooCommerce REST API v3 & Webhook Listener' },
+                { name: 'Sync Latency', value: '<3,000ms bidirectional webhook trigger' },
+                { name: 'Stock Locking', value: 'Atomic inventory subtraction with lock prevention' },
+                { name: 'Security', value: 'HMAC-SHA256 signature verification' }
+            ]
+        },
+        {
+            key: 'amazon',
+            name: 'Amazon Marketplace Sync',
+            icon: ShoppingCart,
+            priceUSD: 10,
+            pricePKR: 2800,
+            comingSoon: false,
+            laymanTitle: 'Sync FBA/FBM Inventory & Auto-Import Amazon Orders',
+            laymanDesc: 'Connect your Amazon Seller Central account. Import Amazon orders straight into your POS ledger, keep FBA & FBM stock in sync, and generate tax invoices in 1 click.',
+            laymanHighlights: [
+                '🛒 Auto-import Amazon FBA & FBM orders to POS ledger',
+                '📉 Live FBA & FBM inventory count auto-sync',
+                '📄 1-Click tax invoice & packing slip generation'
+            ],
+            techSpecs: [
+                { name: 'Protocol', value: 'Amazon Selling Partner API (SP-API v2022-09-01)' },
+                { name: 'Authentication', value: 'OAuth 2.0 PKCE with LWA auto-rotation' },
+                { name: 'Throttling', value: 'Token-bucket rate limiter for SP-API quotas' },
+                { name: 'Multi-Region', value: 'US, UK, EU, UAE, & SA Marketplace endpoints' }
+            ]
+        },
+        {
+            key: 'shopify',
+            name: 'Shopify Store Sync',
+            icon: Store,
+            priceUSD: 10,
+            pricePKR: 2800,
+            comingSoon: true,
+            laymanTitle: 'Real-Time Inventory & Order Sync with Shopify',
+            laymanDesc: 'Connect your Shopify store. Automatically mirror physical store inventory with your online Shopify catalog.',
+            laymanHighlights: [
+                '🛍️ Instant 2-way stock adjustment between POS & Shopify',
+                '📊 Sync online orders, tax codes, and customer profiles'
+            ],
+            techSpecs: [
+                { name: 'Protocol', value: 'Shopify GraphQL Admin API & Webhooks (2024-07)' },
+                { name: 'Status', value: 'Coming Soon — Beta Access Q4 2026' }
+            ]
+        },
+        {
+            key: 'ebay',
+            name: 'eBay Integration',
+            icon: Package,
+            priceUSD: 10,
+            pricePKR: 2800,
+            comingSoon: true,
+            laymanTitle: 'Automate eBay Listings & Order Imports',
+            laymanDesc: 'Automatically sync physical POS sales with your eBay seller listings so quantities are always 100% accurate.',
+            laymanHighlights: [
+                '🏷️ Sync store inventory with active eBay auction & buy-it-now listings',
+                '🚚 Import eBay orders directly into local POS dispatch queue'
+            ],
+            techSpecs: [
+                { name: 'Protocol', value: 'eBay Trading API & Fulfillment API' },
+                { name: 'Status', value: 'Coming Soon — Launching Q4 2026' }
+            ]
+        },
+        {
+            key: 'tiktok',
+            name: 'TikTok Shop',
+            icon: Star,
+            priceUSD: 10,
+            pricePKR: 2800,
+            comingSoon: true,
+            laymanTitle: 'Live-Stream & Short-Video Sales Sync',
+            laymanDesc: 'Connect TikTok Shop to import live-stream sales directly into your POS stock system.',
+            laymanHighlights: [
+                '🎥 Real-time flash sale inventory reservation during TikTok lives',
+                '📊 Channel-wise TikTok revenue performance reports'
+            ],
+            techSpecs: [
+                { name: 'Protocol', value: 'TikTok Shop Partner API v2' },
+                { name: 'Status', value: 'Coming Soon — Launching Q4 2026' }
+            ]
+        }
     ];
 
     const FAQS = [
@@ -412,6 +747,7 @@ export default function Pricing({ plans = [] }) {
         { id: 'faq-ai-monthly', q: 'How does managed AI billing work?', a: 'Managed AI plans (AI Core, AI Lite, AI Pro, AI Ultimate) are monthly add-ons. We handle the infrastructure, models, and usage. You pay us a flat monthly fee and we take care of the rest. There is no usage surprise billing — your monthly cap is shown clearly on your plan.' },
         { id: 'faq-scans-allowance', q: 'How many AI scans do I get, and what happens when I run out?', a: 'Every plan comes with 10 free lifetime scans. Managed AI plans provide monthly quotas: AI Core (90 scans/mo), AI Lite (150 scans/mo), AI Pro (480 scans/mo), and AI Ultimate (850 scans/mo). When you reach your monthly scan limit, AI extraction pauses until your next billing cycle, or you can add your own OpenAI/Gemini API key (BYOK) for unlimited scans billed directly by your provider.' },
         { id: 'faq-scan-definition', q: 'What counts as one AI scan?', a: 'One document submission (up to 5 images or invoice pages) processed by SmartCapture counts as a single scan. Retrying or reviewing extracted data inside VenQore does not consume additional scans.' },
+        { id: 'faq-token-usage', q: 'How does token consumption work across AI Invoice Scanning, Assistant Questions, and Product Writing?', a: 'AI models (like Gemini & OpenAI) measure work in tokens (approx. 4 characters per token). Here is what each action consumes under the hood: 1) AI Invoice Photo Scan uses ~7,000 input tokens (image processing + system prompt) + ~800 output tokens (JSON data). On Gemini 1.5 Flash, 1 scan costs ~$0.0007 (less than 1/10th of a cent). 2) AI Assistant Question uses ~1,500 input tokens + ~250 output tokens (~$0.00018 per query). 3) AI Product Description Writer uses ~300 input tokens + ~350 output tokens (~$0.00012 per product). Managed AI plans cover all these operations with flat monthly caps so you never have to worry about token math.' },
         { id: 'faq-vensynq-channels', q: 'Which marketplaces does VenSynQ support?', a: 'VenSynQ currently supports live automated sync for Amazon Marketplace and WooCommerce. eBay and TikTok Shop integrations are currently on our product roadmap.' },
         { id: 'faq-charge', q: 'When will my card actually be charged?', a: 'Your subscription is only charged after your 14-day free trial ends — not on the day you sign up. The only immediate charge possible is the $5 BYOK activation fee (if you select that option). Onboarding services are charged from inside your admin panel when you choose to initiate the service — not at checkout.' },
         { id: 'faq-service', q: 'How do onboarding services work with the trial?', a: 'You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.' },
@@ -463,7 +799,7 @@ export default function Pricing({ plans = [] }) {
         <div className="space-y-0">
 
             {/* ── Hero ─────────────────────────────────────────────── */}
-            <section className="relative pt-28 sm:pt-36 pb-16 px-6 text-center">
+            <section className="relative pt-28 sm:pt-36 pb-12 px-6 text-center">
                 <div className="max-w-3xl mx-auto">
                     <RevealOnScroll>
                         <SectionLabel icon={Sparkles}>14-Day Free Trial — No Card Required</SectionLabel>
@@ -481,7 +817,7 @@ export default function Pricing({ plans = [] }) {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.15}>
                         <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
-                            Select a plan below. We'll then show you exactly which AI tier fits it best — so you're never comparing plans, just picking your power level.
+                            Simple, transparent pricing built for modern retail. Select your base plan below and customize your AI power level in the next step.
                         </p>
                     </RevealOnScroll>
 
@@ -538,176 +874,11 @@ export default function Pricing({ plans = [] }) {
                             </div>
                         </RevealOnScroll>
                     )}
-
-                    {/* Billing toggle */}
-                    <RevealOnScroll delay={0.2}>
-                        <div className="flex justify-center mb-16 mt-4 relative z-10">
-                            <BillingToggle value={billingType} onChange={setBillingType} />
-                        </div>
-                    </RevealOnScroll>
                 </div>
             </section>
 
-            {/* ── Plan Cards ───────────────────────────────────────── */}
-            <section className="px-6 pb-4">
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        {Object.entries(PLAN_DATA).map(([key, plan], idx) => {
-                            const PlanIcon = plan.icon;
-                            const isSelected = selectedPlan === key;
-
-                            return (
-                                <RevealOnScroll key={key} delay={idx * 0.06}>
-                                    <div
-                                        id={`plan-${key}`}
-                                        onClick={() => handlePlanSelect(key)}
-                                        className={`relative rounded-[2rem] border cursor-pointer overflow-hidden transition-all duration-500 flex flex-col
-                                            ${isSelected
-                                                ? `bg-gradient-to-b ${plan.accentFrom} to-transparent ${plan.accentBorder} shadow-2xl ${plan.accentGlow} scale-[1.015]`
-                                                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.035] hover:border-white/10 hover:scale-[1.005]'
-                                            }`}
-                                    >
-                                        {/* Popular badge */}
-                                        {plan.popular && (
-                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500" />
-                                        )}
-                                        {plan.popular && (
-                                            <div className="absolute top-3 right-4">
-                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
-                                                    Most Popular
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        <div className="p-7">
-                                            {/* Icon + name */}
-                                            <div className="flex items-center gap-3 mb-5">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${plan.iconBg}`}>
-                                                    <PlanIcon size={18} />
-                                                </div>
-                                                <div>
-                                                    <div className="text-slate-900 dark:text-white font-black text-base tracking-tight">{plan.name}</div>
-                                                    {isSelected && (
-                                                        <span className={`text-3xs font-black tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
-                                                            Selected ✓
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Price */}
-                                            <div className="mb-6 flex flex-col">
-                                                <span className="text-[32px] font-black text-slate-900 dark:text-white font-display">{planPriceStr(key)}</span>
-                                                <span className="text-xs text-slate-500 font-medium mt-1">
-                                                    {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
-                                                </span>
-                                                {isPK && (
-                                                    <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 block">
-                                                        ≈ Rs {Math.round(planPricePKR(key)).toLocaleString()}{isLTD ? '' : '/mo'} (billed in USD)
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <p className="text-xs text-slate-500 leading-relaxed mb-5">{plan.tagline}</p>
-
-                                            {/* Inherit banner for Growth & Enterprise */}
-                                            {plan.inheritLabel && (
-                                                <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${isSelected ? 'bg-white/[0.04]' : 'bg-white/[0.02]'} border border-white/[0.05]`}>
-                                                    <Layers size={11} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                                                    <span className="text-2xs font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Features — always fully visible */}
-                                            <div className="space-y-2">
-                                                {plan.includes.map((f, i) => (
-                                                    <div key={i} className="flex items-center gap-2.5">
-                                                        <Check size={12} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-600 dark:text-slate-300">{f}</span>
-                                                    </div>
-                                                ))}
-                                                {plan.excludes.map((f, i) => (
-                                                    <div key={i} className="flex items-center gap-2.5">
-                                                        <X size={12} className="text-slate-500 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-500">{f}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Selection indicator at bottom */}
-                                        <div className="px-7 pb-6 pt-3 space-y-3">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlePlanSelect(key);
-                                                    // Allow state update to register before continuing
-                                                    setTimeout(() => handleContinue(), 50);
-                                                }}
-                                                className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
-                                                    isSelected
-                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-slate-900 shadow-lg shadow-indigo-500/20'
-                                                        : 'bg-white/[0.04] text-slate-600 dark:text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
-                                                }`}
-                                            >
-                                                {isSelected ? 'Selected ✓' : 'Choose Plan'}
-                                            </button>
-                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
-                                        </div>
-                                    </div>
-                                </RevealOnScroll>
-                            );
-                        })}
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Social Proof & Trust Strip ─────────────────────────── */}
-            <section className="px-6 py-12 relative overflow-hidden">
-                <div className="max-w-6xl mx-auto">
-                    <RevealOnScroll>
-                        {/* Trust Badges */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                            {[
-                                { icon: ShieldCheck, text: "14-Day Free Trial", desc: "Test all features risk-free" },
-                                { icon: CreditCard, text: "No Credit Card Required", desc: "Start instantly without friction" },
-                                { icon: Ban, text: "Cancel Anytime", desc: "No contracts, no lock-in" },
-                                { icon: Lock, text: "SOC2-Compliant Security", desc: "Your data is fully encrypted" }
-                            ].map((badge, i) => (
-                                <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-md">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
-                                        <badge.icon size={20} />
-                                    </div>
-                                    <h4 className="text-slate-900 dark:text-white text-xs font-bold tracking-tight mb-1">{badge.text}</h4>
-                                    <p className="text-slate-500 text-3xs leading-relaxed">{badge.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Logo Strip of Trusted Businesses */}
-                        <div className="p-8 rounded-3xl border border-white/[0.05] bg-white/[0.01] backdrop-blur-sm text-center">
-                            <p className="text-slate-500 text-3xs font-black uppercase tracking-[0.2em] mb-6">Trusted by 10,000+ merchants worldwide</p>
-                            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60">
-                                {[
-                                    { name: "APEX RETAIL", sub: "Pharmacy & General" },
-                                    { name: "VERDANT", sub: "Organic Grocery" },
-                                    { name: "SOLAS", sub: "Electronics Hub" },
-                                    { name: "KHATOON", sub: "Fashion Boutique" },
-                                    { name: "OMNISTORE", sub: "Multi-Warehouse" }
-                                ].map((brand, i) => (
-                                    <div key={i} className="flex flex-col items-center">
-                                        <span className="text-slate-600 dark:text-slate-300 font-extrabold tracking-widest text-xs">{brand.name}</span>
-                                        <span className="text-[9px] text-slate-500 tracking-wider font-bold mt-0.5">{brand.sub}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-                </div>
-            </section>
-
-            {/* ── Competitor Cost Comparison ─────────────────────────── */}
-            <section className="px-6 py-12 relative overflow-hidden">
+            {/* ── Competitor Cost Comparison (Moved to top after main header) ── */}
+            <section className="px-6 py-6 relative overflow-hidden">
                 <div className="max-w-4xl mx-auto">
                     <RevealOnScroll>
                         <div className="rounded-[2rem] border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 to-transparent p-8 md:p-12 relative shadow-[0_0_50px_rgba(16,185,129,0.05)]">
@@ -777,344 +948,186 @@ export default function Pricing({ plans = [] }) {
                 </div>
             </section>
 
-            {/* ── AI Configuration Panel — always visible, updates when plan changes ── */}
-            <section ref={aiSectionRef} className="px-6 py-6">
-                <div className="max-w-5xl mx-auto">
-                    <div className="transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-100 translate-y-0">
-
-                        {selectedPlan && (
-                            <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-slate-950 to-slate-950 overflow-hidden relative">
-
-                                {/* Top gradient line */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-
-                                <div className="p-8 md:p-10">
-
-                                    {/* Header */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                                                    <Cpu size={12} />
-                                                </span>
-                                                <span className="text-2xs font-black tracking-widest text-purple-400 uppercase">
-                                                    AI Engine — {PLAN_DATA[selectedPlan]?.name}
-                                                </span>
-                                            </div>
-                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display">
-                                                Which AI level do you want?
-                                            </h2>
-                                            <p className="text-sm text-slate-500 mt-1 max-w-lg">
-                                                These two options are matched to your selected plan. Pick the one that fits your volume — or bring your own key for free AI.
-                                            </p>
-                                        </div>
-                                        <div className="flex-shrink-0">
-                                            <span className={`px-3 py-1.5 rounded-xl text-2xs font-black tracking-wider uppercase ${PLAN_DATA[selectedPlan]?.badgeBg} border`}>
-                                                {PLAN_DATA[selectedPlan]?.name}
-                                            </span>
-                                        </div>
+            {/* ── 14-Day Free Trial Notice & Trust Badges Strip ── */}
+            <section className="px-6 py-6 relative overflow-hidden">
+                <div className="max-w-6xl mx-auto">
+                    <RevealOnScroll>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                                { icon: ShieldCheck, text: "14-Day Free Trial", desc: "Test all features risk-free" },
+                                { icon: CreditCard, text: "No Credit Card Required", desc: "Start instantly without friction" },
+                                { icon: Ban, text: "Cancel Anytime", desc: "No contracts, no lock-in" },
+                                { icon: Lock, text: "SOC2-Compliant Security", desc: "Your data is fully encrypted" }
+                            ].map((badge, i) => (
+                                <div key={i} className="flex flex-col items-center text-center p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-md">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
+                                        <badge.icon size={20} />
                                     </div>
-
-                                    {/* Two AI Option Cards */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        {aiOptions.map((opt, idx) => {
-                                            const optKey = `opt_${opt.key}`;
-                                            const isChosen = selectedAI === optKey;
-                                            return (
-                                                <button
-                                                    key={opt.key}
-                                                    id={`ai-option-${opt.key}`}
-                                                    onClick={() => setSelectedAI(isChosen ? 'none' : optKey)}
-                                                    className={`relative text-left p-6 rounded-2xl border transition-all duration-300 flex flex-col gap-3
-                                                        ${isChosen
-                                                            ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.12)]'
-                                                            : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10 hover:bg-white/[0.04]'
-                                                        }`}
-                                                >
-                                                    {/* Header row: emoji+name on left, radio on right — no absolute overlap */}
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="flex items-start gap-3 min-w-0">
-                                                            <span className="text-2xl flex-shrink-0">{opt.emoji}</span>
-                                                            <div className="min-w-0">
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    <span className="text-slate-900 dark:text-white font-black text-base">{opt.name}</span>
-                                                                    {idx === 1 && (
-                                                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-4xs font-black tracking-wider whitespace-nowrap">MORE POWER</span>
-                                                                    )}
-                                                                </div>
-                                                                <div className="text-slate-500 text-xs mt-0.5">{opt.tagline}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${isChosen ? 'border-purple-400 bg-purple-400' : 'border-slate-600'}`}>
-                                                            {isChosen && <Check size={10} className="text-slate-900 dark:text-white" strokeWidth={3} />}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-between flex-wrap gap-2">
-                                                        <div className="flex gap-2 flex-wrap">
-                                                            <span className="text-2xs text-purple-400 bg-purple-500/[0.08] border border-purple-500/10 px-2 py-1 rounded-lg font-mono">
-                                                                {opt.queries} Queries/mo
-                                                            </span>
-                                                            <span className="text-2xs text-indigo-600 dark:text-indigo-400 bg-indigo-500/[0.08] border border-indigo-500/10 px-2 py-1 rounded-lg font-mono">
-                                                                {opt.scans} Scans/mo
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <span className="text-slate-900 dark:text-white font-black text-xl">
-                                                                +{fmt(opt.priceUSD, opt.pricePKR)}
-                                                            </span>
-                                                            <span className="text-slate-500 text-xs">/mo</span>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* BYOK + No AI row */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                                        {/* BYOK */}
-                                        <button
-                                            id="ai-byok"
-                                            onClick={() => setSelectedAI(selectedAI === 'byok' ? 'none' : 'byok')}
-                                            className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
-                                                ${selectedAI === 'byok'
-                                                    ? 'bg-amber-500/8 border-amber-500/40'
-                                                    : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                                    <Key size={14} className="text-amber-600 dark:text-amber-400" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-slate-900 dark:text-white text-xs font-bold">Bring Your Own API Key (BYOK)</div>
-                                                    <div className="text-slate-500 text-2xs mt-0.5">Use your own OpenAI or Gemini key — free forever after</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                                <span className="text-amber-300 font-black text-sm whitespace-nowrap">
-                                                    {fmt(5, 1400, ' once')}
-                                                </span>
-                                                <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
-                                            </div>
-                                        </button>
-
-                                        {/* No AI */}
-                                        <button
-                                            id="ai-none"
-                                            onClick={() => setSelectedAI('none')}
-                                            className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
-                                                ${selectedAI === 'none'
-                                                    ? 'bg-slate-800/50 border-slate-600/40'
-                                                    : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                                                    <Ban size={14} className="text-slate-500" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-slate-900 dark:text-white text-xs font-bold">Skip AI for now</div>
-                                                    <div className="text-slate-500 text-2xs mt-0.5">Base retail system — you can add AI later from your dashboard</div>
-                                                </div>
-                                            </div>
-                                            <span className="text-emerald-600 dark:text-emerald-400 font-black text-xs whitespace-nowrap">No card needed</span>
-                                        </button>
-                                    </div>
-
-                                    {/* BYOK clarification line */}
-                                    <div className="p-3.5 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.08] flex items-start gap-2.5 mb-6">
-                                        <Key size={12} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                            <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
-                                            Select BYOK and pay a one-time {isPK ? (currencyDisplay === 'PKR' ? 'Rs 1,400 (approx. $5, billed in USD)' : '$5 (approx. Rs 1,400, billed in USD)') : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
-                                        </p>
-                                    </div>
-
-                                    {/* Card requirement notice or No-AI Warning Nudge */}
-                                    {selectedAI === 'none' ? (
-                                        <div className="flex items-start gap-4 p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.05)]">
-                                            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                                                <Sparkles size={16} className="text-purple-400 animate-pulse" />
-                                            </div>
-                                            <div>
-                                                <div className="text-xs font-black text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
-                                                    Unlock the full experience
-                                                </div>
-                                                <div className="text-1xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                                    You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't be able to experience any of the AI-powered features</span> like smart catalog intelligence and automated scanning. In order to enjoy complete features, we highly recommend adding one of the premium AI options above — <span className="text-purple-300 font-bold">you don't have to pay anything today!</span> Just add your card to unlock all capabilities, and you can cancel anytime.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 ${isCardRequired && selectedPlan
-                                            ? 'bg-amber-500/[0.05] border-amber-500/20'
-                                            : 'bg-emerald-500/[0.05] border-emerald-500/15'}`}>
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCardRequired && selectedPlan ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-                                                {isCardRequired && selectedPlan
-                                                    ? <CreditCard size={14} className="text-amber-600 dark:text-amber-400" />
-                                                    : <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />}
-                                            </div>
-                                            <div>
-                                                <div className={`text-xs font-bold ${isCardRequired && selectedPlan ? 'text-amber-300' : 'text-emerald-300'}`}>
-                                                    {isCardRequired && selectedPlan ? 'A credit card will be required at checkout' : 'No credit card required'}
-                                                </div>
-                                                <div className="text-2xs text-slate-500 mt-0.5">
-                                                    {isCardRequired && selectedPlan
-                                                        ? 'An AI add-on is selected. Your card is authorized now but charged only after your 14-day trial ends.'
-                                                        : 'No AI selected. Your full 14-day trial starts immediately — no payment details needed.'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* ── Continue CTA — visible right here after AI selection ── */}
-                                    <div className="mt-6 flex flex-col gap-4 pt-6 border-t border-white/[0.06]">
-                                        {/* Summary pill */}
-                                        <div className="flex items-center gap-2.5 flex-wrap">
-                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                                                <Check size={11} className="text-indigo-600 dark:text-indigo-400" />
-                                                <span className="text-1xs text-slate-600 dark:text-slate-300 font-semibold">{PLAN_DATA[selectedPlan]?.name}</span>
-                                            </div>
-                                            {selectedAIData && (
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/[0.08] border border-purple-500/[0.15]">
-                                                    <span className="text-sm">{selectedAIData.emoji}</span>
-                                                    <span className="text-1xs text-purple-300 font-semibold">{selectedAIData.name}</span>
-                                                </div>
-                                            )}
-                                            {selectedAI === 'byok' && (
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/[0.08] border border-amber-500/[0.15]">
-                                                    <Key size={11} className="text-amber-600 dark:text-amber-400" />
-                                                    <span className="text-1xs text-amber-300 font-semibold">BYOK</span>
-                                                </div>
-                                            )}
-                                            {selectedAI === 'none' && (
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
-                                                    <Ban size={11} className="text-slate-500" />
-                                                    <span className="text-1xs text-slate-500 font-semibold">No AI</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* CTA — full width on mobile */}
-                                        <button
-                                            id="ai-panel-continue"
-                                            onClick={handleContinue}
-                                            className="w-full flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-void-950 text-sm font-black uppercase tracking-widest hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.25)] shadow-lg transition-all duration-300"
-                                        >
-                                            Continue <ArrowRight size={14} />
-                                        </button>
-                                    </div>
-
+                                    <h4 className="text-slate-900 dark:text-white text-xs font-bold tracking-tight mb-1">{badge.text}</h4>
+                                    <p className="text-slate-500 text-3xs leading-relaxed">{badge.desc}</p>
                                 </div>
-                            </div>
-                        )}
-
-                    </div>
+                            ))}
+                        </div>
+                    </RevealOnScroll>
                 </div>
             </section>
 
-            {/* ── Comparison Table ─────────────────────────────────── */}
-            <section className="px-6 py-16">
-                <div className="max-w-5xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-10">
-                            <SectionLabel icon={BarChart3}>Deep Dive Comparison</SectionLabel>
-                            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-display">Everything, side by side.</h2>
-                            <p className="text-slate-500 text-sm mt-2">No asterisks. No fine print. Just exactly what each plan includes.</p>
-                        </div>
-                    </RevealOnScroll>
-
+            {/* ── Plan Cards ───────────────────────────────────────── */}
+            <section className="px-6 py-8">
+                <div className="max-w-6xl mx-auto">
+                    {/* Billing toggle */}
                     <RevealOnScroll delay={0.1}>
-                        <div className="rounded-[1.5rem] border border-white/[0.07] bg-white/[0.01] overflow-x-auto">
-                            <table className="w-full min-w-[600px]">
-                                <thead>
-                                    <tr className="border-b border-white/[0.07]">
-                                        <th className="py-5 pl-6 pr-4 text-left text-2xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Feature</th>
-                                        <th className="py-5 px-4 text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <Zap size={14} className="text-blue-400" />
-                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Starter</span>
-                                                <span className="text-2xs text-blue-400 font-bold">{planPriceStr('starter')}</span>
-                                            </div>
-                                        </th>
-                                        <th className="py-5 px-4 text-center bg-indigo-950/20">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <TrendingUp size={14} className="text-indigo-600 dark:text-indigo-400" />
-                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Growth</span>
-                                                <span className="text-2xs text-indigo-600 dark:text-indigo-400 font-bold">{planPriceStr('growth')}</span>
-                                            </div>
-                                        </th>
-                                        <th className="py-5 pr-6 pl-4 text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <Crown size={14} className="text-purple-400" />
-                                                <span className="text-2xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wide">Enterprise</span>
-                                                <span className="text-2xs text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {/* Limits */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Platform Limits</td></tr>
-                                    <TableRow label="Store Locations" starter="1" growth="3" enterprise="10" />
-                                    <TableRow label="Staff Accounts" starter="3" growth="10" enterprise="50" />
-                                    <TableRow label="Product SKUs" starter="1,000" growth="10,000" enterprise="50,000" />
-                                    <TableRow label="Multi-Branch Sync" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="14-Day Free Trial" starter={true} growth={true} enterprise={true} highlight />
-
-                                    {/* POS */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
-                                    <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="WebUSB Thermal Printing" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Multi-Tab Checkout" starter="3 tabs" growth="10 tabs" enterprise="50 tabs" />
-                                    <TableRow label="Park & Recall (Hold Bill)" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Split Payments" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Serial / IMEI Tracking" starter={false} growth={false} enterprise={true} highlight />
-
-                                    {/* Inventory */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Inventory</td></tr>
-                                    <TableRow label="Product Variants & FIFO" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Batch & Expiry Tracking" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Bill of Materials (Recipes)" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Auto-Assembly Production" starter={false} growth={false} enterprise={true} highlight />
-
-                                    {/* Finance */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Finance & Accounting</td></tr>
-                                    <TableRow label="Double-Entry Ledger" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Customer Khata (Credit)" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="WhatsApp Debt Alerts" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Bank Reconciliation" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Loyalty & Gift Cards" starter={false} growth={false} enterprise={true} highlight />
-
-                                    {/* AI & Automation */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-indigo-400 uppercase tracking-widest">SmartCapture AI Scan & VenSynQ Sync</td></tr>
-                                    <TableRow label="Free AI Scan Allowance" starter="10 lifetime" growth="10 lifetime" enterprise="10 lifetime" />
-                                    <TableRow label="Managed AI Add-ons (Core/Lite/Pro/Ultimate)" starter="From $3/mo" growth="From $5/mo" enterprise="From $15/mo" highlight />
-                                    <TableRow label="BYOK AI (Own Key)" starter="$5 one-time" growth="$5 one-time" enterprise="$5 one-time" />
-                                    <TableRow label="Amazon Marketplace Sync" starter="$10/mo" growth="$10/mo" enterprise="$10/mo" />
-                                    <TableRow label="WooCommerce Sync" starter="$10/mo" growth="$10/mo" enterprise="$10/mo" />
-                                    <TableRow label="eBay & TikTok Shop Sync" starter="Coming Soon" growth="Coming Soon" enterprise="Coming Soon" />
-
-                                    {/* Reports */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Reports</td></tr>
-                                    <TableRow label="Sales & Purchase Reports" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Profit & Loss Statement" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Balance Sheet" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Cash Flow Statement" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="40-Report Full Suite" starter={false} growth={false} enterprise={true} highlight />
-
-                                    {/* Support */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-3xs font-black text-slate-500 uppercase tracking-widest">Support</td></tr>
-                                    <TableRow label="AI Support Chatbot (Vena)" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="Live Agent Support (Handoff)" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Email Support" starter={true} growth={true} enterprise={true} />
-                                    <TableRow label="24/7 Priority SLA" starter={false} growth={false} enterprise={true} highlight />
-                                    <TableRow label="Dedicated Account Manager" starter={false} growth={false} enterprise={true} />
-                                </tbody>
-                            </table>
+                        <div className="flex justify-center mb-12 relative z-10">
+                            <BillingToggle value={billingType} onChange={setBillingType} />
                         </div>
                     </RevealOnScroll>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        {Object.entries(PLAN_DATA).map(([key, plan], idx) => {
+                            const PlanIcon = plan.icon;
+                            const isSelected = selectedPlan === key;
+
+                            return (
+                                <RevealOnScroll key={key} delay={idx * 0.06}>
+                                    <div
+                                        id={`plan-${key}`}
+                                        onClick={() => handlePlanSelect(key)}
+                                        className={`relative rounded-[2rem] border cursor-pointer overflow-hidden transition-all duration-500 flex flex-col
+                                            ${isSelected
+                                                ? `bg-gradient-to-b ${plan.accentFrom} to-transparent ${plan.accentBorder} shadow-2xl ${plan.accentGlow} scale-[1.015]`
+                                                : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.035] hover:border-white/10 hover:scale-[1.005]'
+                                            }`}
+                                    >
+                                        {/* Popular badge */}
+                                        {plan.popular && (
+                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500" />
+                                        )}
+                                        {plan.popular && (
+                                            <div className="absolute top-3 right-4">
+                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-3xs font-black tracking-widest uppercase">
+                                                    Most Popular
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="p-7">
+                                            {/* Icon + name */}
+                                            <div className="flex items-center gap-3 mb-5">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${plan.iconBg}`}>
+                                                    <PlanIcon size={18} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-slate-900 dark:text-white font-black text-base tracking-tight">{plan.name}</div>
+                                                    {isSelected && (
+                                                        <span className={`text-3xs font-black tracking-[0.2em] uppercase px-2 py-0.5 rounded-full ${plan.badgeBg} border`}>
+                                                            Selected ✓
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Price */}
+                                            <div className="mb-6 flex flex-col">
+                                                <span className="text-[32px] font-black text-slate-900 dark:text-white font-display">{planPriceStr(key)}</span>
+                                                <span className="text-xs text-slate-500 font-medium mt-1">
+                                                    {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
+                                                </span>
+                                                {isPK && (
+                                                    <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 block">
+                                                        ≈ Rs {Math.round(planPricePKR(key)).toLocaleString()}{isLTD ? '' : '/mo'} (billed in USD)
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-xs text-slate-500 leading-relaxed mb-5">{plan.tagline}</p>
+
+                                            {/* Inherit banner for Growth & Enterprise */}
+                                            {plan.inheritLabel && (
+                                                <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${isSelected ? 'bg-white/[0.04]' : 'bg-white/[0.02]'} border border-white/[0.05]`}>
+                                                    <Layers size={11} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                                                    <span className="text-2xs font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Feature Ratio Counter Badge */}
+                                            <div className="mb-4 flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                                <span className="text-2xs font-extrabold text-slate-300 flex items-center gap-1.5">
+                                                    <CheckCircle2 size={13} className="text-emerald-400" />
+                                                    {plan.ratioLabel}
+                                                </span>
+                                            </div>
+
+                                            {/* Highlights */}
+                                            <div className="space-y-2">
+                                                {plan.includes.map((f, i) => (
+                                                    <div key={i} className="flex items-center gap-2.5">
+                                                        <Check size={12} className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                                        <span className="text-xs text-slate-600 dark:text-slate-300">{f}</span>
+                                                    </div>
+                                                ))}
+                                                {plan.excludes.map((f, i) => (
+                                                    <div key={i} className="flex items-center gap-2.5">
+                                                        <X size={12} className="text-slate-500 flex-shrink-0" />
+                                                        <span className="text-xs text-slate-500">{f}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Expanded Detailed Breakdown */}
+                                            {expandedCards[key] && (
+                                                <div className="space-y-2 mt-4 pt-4 border-t border-white/[0.08] animate-fadeIn">
+                                                    <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-3">All {FULL_FEATURE_LIST[key].totalSuite} Platform Capabilities:</div>
+                                                    {FULL_FEATURE_LIST[key].categorizedFeatures.map((item, i) => (
+                                                        <div key={i} className="flex items-center gap-2 text-2xs">
+                                                            {item.included ? (
+                                                                <Check size={11} className="text-emerald-400 flex-shrink-0" />
+                                                            ) : (
+                                                                <X size={11} className="text-slate-600 flex-shrink-0" />
+                                                            )}
+                                                            <span className={item.included ? "text-slate-200 font-medium" : "text-slate-500 opacity-60"}>
+                                                                {item.name}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* In-Card See More / Show Less Toggle Button */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleCardExpand(key);
+                                                }}
+                                                className="w-full mt-4 py-2 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-indigo-500/30 text-indigo-300 hover:text-white text-2xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                                            >
+                                                <span>{expandedCards[key] ? 'Show Less ▲' : `See All ${FULL_FEATURE_LIST[key].totalIncluded} Features ▼`}</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Selection indicator at bottom */}
+                                        <div className="px-7 pb-6 pt-3 space-y-3">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handlePlanSelect(key);
+                                                    setTimeout(() => handleContinue(), 50);
+                                                }}
+                                                className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
+                                                    isSelected
+                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-slate-900 shadow-lg shadow-indigo-500/20'
+                                                        : 'bg-white/[0.04] text-slate-600 dark:text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
+                                                }`}
+                                            >
+                                                {isSelected ? 'Selected ✓' : 'Choose Plan'}
+                                            </button>
+                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
+                                        </div>
+                                    </div>
+                                </RevealOnScroll>
+                            );
+                        })}
+                    </div>
                 </div>
             </section>
 
@@ -1137,7 +1150,7 @@ export default function Pricing({ plans = [] }) {
                 </div>
             </section>
 
-            {/* ── Sticky CTA ───────────────────────────────────────── */}
+            {/* ── Bottom CTA ───────────────────────────────────────── */}
             <section className="px-6 py-10 pb-20">
                 <div className="max-w-lg mx-auto">
                     <RevealOnScroll>
@@ -1145,7 +1158,7 @@ export default function Pricing({ plans = [] }) {
                             {selectedPlan ? (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-slate-500 dark:text-slate-400 mb-4">
                                     <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
-                                    <span>{PLAN_DATA[selectedPlan]?.name} selected{selectedAIData ? ` + ${selectedAIData.name}` : selectedAI === 'byok' ? ' + BYOK' : ''}</span>
+                                    <span>{PLAN_DATA[selectedPlan]?.name} selected</span>
                                 </div>
                             ) : (
                                 <div className="text-slate-500 text-sm mb-4">Select a plan above to continue</div>
@@ -1158,15 +1171,13 @@ export default function Pricing({ plans = [] }) {
                             className={`w-full py-5 justify-center text-sm ${!selectedPlan ? 'opacity-40 cursor-not-allowed' : ''}`}
                         >
                             {selectedPlan ? (
-                                <>Secure My Plan <ArrowRight size={16} /></>
+                                <>Select Plan & Customise AI <ArrowRight size={16} /></>
                             ) : (
                                 <>Select a plan to continue <ArrowRight size={16} /></>
                             )}
                         </MagneticButton>
                         <p className="text-center text-1xs text-slate-500 mt-3">
-                            {isCardRequired && selectedPlan
-                                ? 'Card authorized today. Charged only after 14-day trial ends.'
-                                : '14-day free trial. No card. No commitment.'}
+                            14-day free trial. No credit card required. Cancel anytime.
                         </p>
                     </RevealOnScroll>
                 </div>
@@ -1174,86 +1185,375 @@ export default function Pricing({ plans = [] }) {
         </div>
     );
 
-    // ── Step 2: Platform Sync ──────────────────────────────────────────────
+    // ── Step 2: Dedicated AI Engine Configuration ──────────────────────────
+    const renderAIStep = () => (
+        <section ref={aiSectionRef} className="min-h-screen px-6 py-24">
+            <div className="max-w-4xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="text-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/15 text-purple-400 text-2xs font-black tracking-widest uppercase mb-4">
+                        Step 2 of 4
+                    </div>
+                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
+                        Power {PLAN_DATA[selectedPlan]?.name} with AI
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                        These two AI tiers are tailored to your selected plan. Choose the power level that fits your business volume, or bring your own API key.
+                    </p>
+                </div>
+
+                {selectedPlan && (
+                    <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-slate-950 to-slate-950 overflow-hidden relative shadow-2xl">
+                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
+
+                        <div className="p-8 md:p-10 space-y-6">
+                            {/* All 4 AI Option Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {ALL_AI_OPTIONS.map((opt) => {
+                                    const optKey = `opt_${opt.key}`;
+                                    const isChosen = selectedAI === optKey;
+                                    const isNerdExpanded = expandedNerdSpecs[optKey];
+
+                                    return (
+                                        <div
+                                            key={opt.key}
+                                            id={`ai-option-${opt.key}`}
+                                            onClick={() => setSelectedAI(isChosen ? 'none' : optKey)}
+                                            className={`relative text-left p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between cursor-pointer
+                                                ${isChosen
+                                                    ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.12)]'
+                                                    : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10 hover:bg-white/[0.04]'
+                                                }`}
+                                        >
+                                            <div>
+                                                <div className="flex items-start justify-between gap-3 mb-3">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <span className="text-3xl flex-shrink-0">{opt.emoji}</span>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <span className="text-slate-900 dark:text-white font-black text-lg">{opt.name}</span>
+                                                                {opt.popular && (
+                                                                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-3xs font-black tracking-wider uppercase">
+                                                                        RECOMMENDED
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-slate-400 text-xs font-semibold mt-0.5">{opt.tagline}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right flex-shrink-0">
+                                                        <div className="text-slate-900 dark:text-white font-black text-xl">
+                                                            +{fmt(opt.priceUSD, opt.pricePKR)}
+                                                        </div>
+                                                        <span className="text-slate-500 text-3xs">/month</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Plain English Layman Description */}
+                                                <p className="text-xs text-slate-400 leading-relaxed mb-4">{opt.laymanDesc}</p>
+
+                                                {/* Layman Key Capabilities List */}
+                                                <div className="space-y-2.5 mb-4 p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
+                                                    {opt.laymanStats.map((stat, i) => {
+                                                        const StatIcon = stat.icon;
+                                                        return (
+                                                            <div key={i} className="flex items-start gap-2.5">
+                                                                <div className="w-5 h-5 rounded bg-purple-500/10 text-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                                    <StatIcon size={11} />
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-xs font-bold text-slate-200">{stat.label}</div>
+                                                                    <div className="text-3xs text-slate-500 leading-tight">{stat.desc}</div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                {/* Expandable Technical Specs for Nerds */}
+                                                {isNerdExpanded && (
+                                                    <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5 animate-fadeIn">
+                                                        <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-2">Technical Engine Specifications:</div>
+                                                        {opt.techSpecs.map((spec, i) => (
+                                                            <div key={i} className="flex items-center justify-between text-3xs gap-2">
+                                                                <span className="text-slate-500 font-mono">{spec.name}</span>
+                                                                <span className="text-slate-300 font-mono font-semibold text-right">{spec.value}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.05]">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleNerdSpec(optKey);
+                                                        }}
+                                                        className="text-3xs font-bold text-slate-500 hover:text-indigo-300 uppercase tracking-wider transition-colors flex items-center gap-1"
+                                                    >
+                                                        {isNerdExpanded ? 'Hide Technical Details ▲' : 'Technical Specifications ▼'}
+                                                    </button>
+                                                    <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isChosen ? 'bg-purple-500 text-slate-900' : 'bg-white/5 text-slate-400'}`}>
+                                                        {isChosen ? 'Selected ✓' : 'Select Tier'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* BYOK + Skip AI row */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button
+                                    id="ai-byok"
+                                    onClick={() => setSelectedAI(selectedAI === 'byok' ? 'none' : 'byok')}
+                                    className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
+                                        ${selectedAI === 'byok'
+                                            ? 'bg-amber-500/8 border-amber-500/40'
+                                            : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                            <Key size={14} className="text-amber-600 dark:text-amber-400" />
+                                        </div>
+                                        <div>
+                                            <div className="text-slate-900 dark:text-white text-xs font-bold">Bring Your Own Key (BYOK)</div>
+                                            <div className="text-slate-500 text-2xs mt-0.5">Use OpenAI/Gemini key — free forever after</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                        <span className="text-amber-300 font-black text-sm whitespace-nowrap">
+                                            {fmt(5, 1400, ' once')}
+                                        </span>
+                                        <span className="text-3xs text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
+                                    </div>
+                                </button>
+
+                                <button
+                                    id="ai-none"
+                                    onClick={() => setSelectedAI('none')}
+                                    className={`text-left p-4 rounded-xl border transition-all duration-300 flex items-center justify-between gap-3
+                                        ${selectedAI === 'none'
+                                            ? 'bg-slate-800/50 border-slate-600/40'
+                                            : 'bg-white/[0.02] border-white/[0.05] hover:border-white/8'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                                            <Ban size={14} className="text-slate-500" />
+                                        </div>
+                                        <div>
+                                            <div className="text-slate-900 dark:text-white text-xs font-bold">Skip AI for now</div>
+                                            <div className="text-slate-500 text-2xs mt-0.5">Base retail system — add AI anytime later</div>
+                                        </div>
+                                    </div>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-black text-xs whitespace-nowrap">No card needed</span>
+                                </button>
+                            </div>
+
+                            {/* BYOK clarification line */}
+                            <div className="p-3.5 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.08] flex items-start gap-2.5">
+                                <Key size={12} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                                <p className="text-1xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
+                                    Select BYOK and pay a one-time {isPK ? (currencyDisplay === 'PKR' ? 'Rs 1,400 (approx. $5, billed in USD)' : '$5 (approx. Rs 1,400, billed in USD)') : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever.
+                                </p>
+                            </div>
+
+                            {/* Card requirement notice or No-AI Warning Nudge */}
+                            {selectedAI === 'none' ? (
+                                <div className="flex items-start gap-4 p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.05)]">
+                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                                        <Sparkles size={16} className="text-purple-400 animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-black text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
+                                            Unlock the full experience
+                                        </div>
+                                        <div className="text-1xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                            You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't experience AI catalog intelligence & invoice scanning</span>. We recommend adding one of the AI options above — <span className="text-purple-300 font-bold">you pay nothing today!</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 ${isCardRequired && selectedPlan
+                                    ? 'bg-amber-500/[0.05] border-amber-500/20'
+                                    : 'bg-emerald-500/[0.05] border-emerald-500/15'}`}>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isCardRequired && selectedPlan ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
+                                        {isCardRequired && selectedPlan
+                                            ? <CreditCard size={14} className="text-amber-600 dark:text-amber-400" />
+                                            : <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />}
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs font-bold ${isCardRequired && selectedPlan ? 'text-amber-300' : 'text-emerald-300'}`}>
+                                            {isCardRequired && selectedPlan ? 'A credit card will be required at checkout' : 'No credit card required'}
+                                        </div>
+                                        <div className="text-2xs text-slate-500 mt-0.5">
+                                            {isCardRequired && selectedPlan
+                                                ? 'Your card is authorized now but charged only after your 14-day trial ends.'
+                                                : 'No AI selected. Your full 14-day trial starts immediately — no payment details needed.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2 Nav */}
+                <div className="flex items-center justify-between pt-6 border-t border-white/[0.05]">
+                    <button
+                        onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                    >
+                        <ArrowLeft size={13} /> Back to Plans
+                    </button>
+                    <MagneticButton
+                        id="ai-step-continue"
+                        onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        variant="indigo"
+                        className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
+                    >
+                        Continue to Online Sync <ArrowRight size={13} />
+                    </MagneticButton>
+                </div>
+            </div>
+        </section>
+    );
+
+    // ── Step 3: Platform Sync ──────────────────────────────────────────────
     const renderSyncStep = () => (
         <section className="min-h-screen px-6 py-24">
-            <div className="max-w-3xl mx-auto space-y-8">
+            <div className="max-w-4xl mx-auto space-y-8">
                 <RevealOnScroll>
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
-                            Step 2 of 3
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
+                            Step 3 of 5
                         </div>
                         <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
-                            Do you sell online?
+                            Connect Your Online Sales Channels
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-                            Connect your existing platforms and everything syncs in one place — stock, orders, and customers. You can also do this anytime from your dashboard.
+                        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+                            Connect your online store or Amazon seller account. When an item sells in your physical shop, online inventory updates automatically in under 3 seconds.
                         </p>
                         <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                            <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
-                            <span className="text-1xs text-emerald-600 dark:text-emerald-400 font-semibold">No card needed to connect — just to subscribe later</span>
+                            <CheckCircle2 size={12} className="text-emerald-400" />
+                            <span className="text-1xs text-emerald-400 font-semibold">Available for all users globally — connect now or add anytime later</span>
                         </div>
                     </div>
                 </RevealOnScroll>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {SYNC_CHANNELS.map((ch, idx) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {SYNC_CHANNELS.map((ch) => {
                         const Icon = ch.icon;
                         const isAdded = selectedSyncs.includes(ch.key);
                         const isComingSoon = ch.comingSoon;
+                        const isNerdExpanded = expandedNerdSpecs[`sync_${ch.key}`];
 
                         return (
-                            <RevealOnScroll key={ch.key} delay={idx * 60}>
-                                <button
-                                    type="button"
-                                    disabled={isComingSoon}
-                                    onClick={() => !isComingSoon && setSelectedSyncs(isAdded
-                                        ? selectedSyncs.filter(s => s !== ch.key)
-                                        : [...selectedSyncs, ch.key])}
-                                    className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative ${
-                                        isComingSoon
-                                            ? 'border-white/[0.04] bg-white/[0.01] opacity-50 cursor-not-allowed'
-                                            : isAdded
-                                            ? 'border-indigo-400/40 bg-indigo-500/[0.06] shadow-lg shadow-indigo-500/5'
-                                            : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.035] hover:border-white/10'
-                                    }`}
-                                >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex items-center gap-3.5">
-                                            <div className={`p-2.5 rounded-xl ${isAdded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'}`}>
-                                                <Icon size={18} />
+                            <div
+                                key={ch.key}
+                                onClick={() => !isComingSoon && setSelectedSyncs(isAdded
+                                    ? selectedSyncs.filter(s => s !== ch.key)
+                                    : [...selectedSyncs, ch.key])}
+                                className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 relative flex flex-col justify-between ${
+                                    isComingSoon
+                                        ? 'border-white/[0.04] bg-white/[0.01] opacity-60 cursor-not-allowed'
+                                        : isAdded
+                                        ? 'border-indigo-400/50 bg-indigo-500/[0.08] shadow-lg shadow-indigo-500/10 cursor-pointer'
+                                        : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 cursor-pointer'
+                                }`}
+                            >
+                                <div>
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-3 rounded-xl flex-shrink-0 ${isAdded ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/5 text-slate-400'}`}>
+                                                <Icon size={20} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-white">{ch.name}</span>
+                                                    <span className="text-base font-black text-white">{ch.name}</span>
                                                     {isComingSoon && (
-                                                        <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                        <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                                             Coming Soon
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{ch.desc}</p>
+                                                <div className="text-2xs text-indigo-300 font-bold mt-0.5">{ch.laymanTitle}</div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAdded ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
-                                                {isAdded && <Check size={9} className="text-slate-900 dark:text-white" strokeWidth={3} />}
-                                            </div>
-                                            <span className="text-xs text-slate-900 dark:text-white font-bold whitespace-nowrap">
-                                                +{fmt(ch.priceUSD, ch.pricePKR)}/mo
+                                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                            <span className="text-sm text-white font-black whitespace-nowrap">
+                                                +{fmt(ch.priceUSD, ch.pricePKR)}
                                             </span>
+                                            <span className="text-3xs text-slate-500">/month</span>
                                         </div>
                                     </div>
-                                </button>
-                            </RevealOnScroll>
+
+                                    {/* Plain English Layman Description */}
+                                    <p className="text-xs text-slate-400 leading-relaxed mb-4">{ch.laymanDesc}</p>
+
+                                    {/* Key Highlights (Active channels only) */}
+                                    {!isComingSoon && ch.laymanHighlights && (
+                                        <div className="space-y-1.5 mb-4 p-3 rounded-xl bg-black/30 border border-white/[0.05]">
+                                            {ch.laymanHighlights.map((hl, i) => (
+                                                <div key={i} className="text-2xs text-slate-300 font-medium leading-relaxed">
+                                                    {hl}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    {/* Technical Specs (Active channels only) */}
+                                    {!isComingSoon && isNerdExpanded && (
+                                        <div className="mt-3 pt-3 border-t border-white/[0.08] space-y-1.5 animate-fadeIn">
+                                            <div className="text-3xs font-black text-indigo-300 uppercase tracking-widest mb-2">Technical API Specifications:</div>
+                                            {ch.techSpecs.map((spec, i) => (
+                                                <div key={i} className="flex items-center justify-between text-3xs gap-2">
+                                                    <span className="text-slate-500 font-mono">{spec.name}</span>
+                                                    <span className="text-slate-300 font-mono font-semibold text-right">{spec.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.05]">
+                                        {!isComingSoon ? (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleNerdSpec(`sync_${ch.key}`);
+                                                }}
+                                                className="text-3xs font-bold text-slate-500 hover:text-indigo-300 uppercase tracking-wider transition-colors flex items-center gap-1"
+                                            >
+                                                {isNerdExpanded ? 'Hide Technical Details ▲' : 'Technical Specifications ▼'}
+                                            </button>
+                                        ) : (
+                                            <span className="text-3xs font-mono text-amber-400/70">In Development</span>
+                                        )}
+                                        <span className={`text-2xs font-bold px-3 py-1 rounded-lg transition-all ${isAdded ? 'bg-indigo-500 text-slate-900' : 'bg-white/5 text-slate-400'}`}>
+                                            {isAdded ? 'Connected ✓' : isComingSoon ? 'Coming Soon' : 'Connect Channel'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
 
                 {selectedSyncs.length > 0 && (
                     <div className="p-4 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-3">
-                        <Globe size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <Globe size={14} className="text-indigo-400 flex-shrink-0" />
+                        <p className="text-xs text-slate-400">
                             The moment a barcode transaction completes inside your POS, stock updates across all connected platforms in under 3 seconds. No overselling. Ever.
                         </p>
                     </div>
@@ -1261,14 +1561,14 @@ export default function Pricing({ plans = [] }) {
 
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
-                        onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
+                        onClick={() => { setCurrentStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
-                        <ArrowLeft size={13} /> Back
+                        <ArrowLeft size={13} /> Back to AI Selection
                     </button>
                     <MagneticButton
                         id="sync-continue"
-                        onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => { setCurrentStep(4); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         variant="indigo"
                         className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
                     >
@@ -1279,7 +1579,7 @@ export default function Pricing({ plans = [] }) {
         </section>
     );
 
-    // ── Step 3: Onboarding Services — per-product calculator ─────────────────
+    // ── Step 4: Onboarding Services — per-product calculator ─────────────────
     const renderOnboardingStep = () => {
         const fmtCost = (usdAmount, pkrAmount = null) => {
             const usdVal = parseFloat(usdAmount) || 0;
@@ -1304,7 +1604,7 @@ export default function Pricing({ plans = [] }) {
                 {/* Header */}
                 <div className="text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-2xs font-black tracking-widest uppercase mb-4">
-                        Step 3 of 3
+                        Step 4 of 4
                     </div>
                     <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display mb-3">
                         Want us to load your products?
@@ -1502,14 +1802,14 @@ export default function Pricing({ plans = [] }) {
                 {/* Nav */}
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
-                        onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back
                     </button>
                     <MagneticButton
                         id="onboarding-continue"
-                        onClick={() => { setCurrentStep(4); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => { setCurrentStep(5); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         variant="indigo"
                         className="px-8 py-3.5 text-xs font-black uppercase tracking-widest"
                     >
@@ -1526,7 +1826,7 @@ export default function Pricing({ plans = [] }) {
         );
     };
 
-    // ── Step 4: Checkout ────────────────────────────────────────────────────
+    // ── Step 5: Checkout ────────────────────────────────────────────────────
     const renderCheckout = () => {
         const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
         const trialEndStr = trialEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -1770,7 +2070,7 @@ export default function Pricing({ plans = [] }) {
 
                                 <button
                                     type="button"
-                                    onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                    onClick={() => { setCurrentStep(4); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                     className="w-full text-center text-slate-500 hover:text-slate-400 text-1xs font-bold uppercase tracking-widest transition-colors"
                                 >
                                     ← Back
@@ -1783,7 +2083,7 @@ export default function Pricing({ plans = [] }) {
         );
     };
 
-    // ── Step 5: Confirmation ────────────────────────────────────────────────
+    // ── Step 6: Confirmation ────────────────────────────────────────────────
     const renderConfirmation = () => {
         const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
         const trialEndStr = trialEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -1874,13 +2174,15 @@ export default function Pricing({ plans = [] }) {
         );
     };
 
-    // ── Step indicator (steps 2–4) ─────────────────────────────────────────
+    // ── Step indicator (steps 2–5) ─────────────────────────────────────────
     const renderStepBar = () => {
-        if (currentStep === 1 || currentStep === 5) return null;
+        if (currentStep === 1 || currentStep === 6) return null;
         const steps = [
             { n: 1, label: 'Plan' },
-            { n: 3, label: 'Setup' },
-            { n: 4, label: 'Checkout' },
+            { n: 2, label: 'AI Engine' },
+            { n: 3, label: 'Sync' },
+            { n: 4, label: 'Setup' },
+            { n: 5, label: 'Checkout' },
         ];
         return (
             <div className="sticky top-[64px] z-40 bg-void-950/90 backdrop-blur-xl border-b border-white/[0.05] py-3 px-6">
@@ -1909,10 +2211,11 @@ export default function Pricing({ plans = [] }) {
         >
             {renderStepBar()}
             {currentStep === 1 && renderPricingPage()}
-            {currentStep === 2 && renderSyncStep()}
-            {currentStep === 3 && renderOnboardingStep()}
-            {currentStep === 4 && renderCheckout()}
-            {currentStep === 5 && renderConfirmation()}
+            {currentStep === 2 && renderAIStep()}
+            {currentStep === 3 && renderSyncStep()}
+            {currentStep === 4 && renderOnboardingStep()}
+            {currentStep === 5 && renderCheckout()}
+            {currentStep === 6 && renderConfirmation()}
         </MarketingLayout>
     );
 }

@@ -1,0 +1,1 @@
+{"class":"Tests\\Feature\\FrontendSyntaxIntegrityTest","method":"frontend_codebase_has_no_eslint_errors","file":"E:\\AMD POS\\AMD POS\\FinalTester\\tests\\Feature\\FrontendSyntaxIntegrityTest.php","status":"passed","duration_ms":5881,"id":"Tests\\Feature\\FrontendSyntaxIntegrityTest::frontend_codebase_has_no_eslint_errors"}

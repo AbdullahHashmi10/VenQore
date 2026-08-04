@@ -207,7 +207,9 @@ class VenSynQController extends Controller
         }
 
         if (!$platform) {
-            $platform = $request->route('platform') ?? $request->input('platform', '');
+            $platform = $request->route('platform')
+                ?? $request->route()?->defaults['platform']
+                ?? $request->input('platform', '');
         }
 
         if (!$storeSlug) {

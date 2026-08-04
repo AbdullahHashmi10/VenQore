@@ -84,7 +84,7 @@ const FULFILLMENT_LABELS = {
     jit: { label: 'JIT — Buy Day-Of',          badge: 'bg-amber-900/40 text-amber-300 border-amber-700' },
 };
 
-export default function VenSynQSettings({ channels = [], warehouses = [], expenseCategories = [] }) {
+export default function VenSynQSettings({ channels = [], warehouses = [], expenseCategories = [], platforms = [] }) {
     const { props } = usePage();
     const flash = props.flash ?? {};
     const store = props.store;

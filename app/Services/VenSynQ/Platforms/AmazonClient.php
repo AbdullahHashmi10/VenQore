@@ -178,7 +178,7 @@ class AmazonClient implements PlatformClient
             ];
         }
 
-        if (config('vensynq.sandbox_mode') || $code === 'sandbox_bypass') {
+        if (config('vensynq.sandbox_mode') || $code === 'sandbox_bypass' || $code === 'mock_code_placeholder') {
             $platformRefreshToken = config('vensynq.platforms.amazon.refresh_token') ?? 'Atzr|IwEBI_sandbox_default_refresh_token';
             return [
                 'access_token'  => 'sim_amazon_sandbox_access_token_' . bin2hex(random_bytes(16)),

@@ -54,6 +54,8 @@ foreach (glob(__DIR__ . '/Feature/*', GLOB_ONLYDIR) as $dir) {
 
     pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$dirName}");
     pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$dirName}");
+    pest()->extend(VenQoreTestCase::class)->in("FinalTester/tests/Feature/{$dirName}");
+    pest()->extend(VenQoreTestCase::class)->in("FinalTester\\tests\\Feature\\{$dirName}");
     pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$dirName}");
     pest()->extend(VenQoreTestCase::class)->in("tests\\Feature\\{$dirName}");
 }
@@ -81,6 +83,8 @@ foreach (glob(__DIR__ . '/Feature/*.php') as $file) {
 
     pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$fileName}");
     pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$fileName}");
+    pest()->extend(VenQoreTestCase::class)->in("FinalTester/tests/Feature/{$fileName}");
+    pest()->extend(VenQoreTestCase::class)->in("FinalTester\\tests\\Feature\\{$fileName}");
     pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$fileName}");
     pest()->extend(VenQoreTestCase::class)->in("tests\\Feature\\{$fileName}");
 }

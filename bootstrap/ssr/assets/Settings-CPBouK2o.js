@@ -70,7 +70,7 @@ const FULFILLMENT_LABELS = {
   fba: { label: "FBA — Platform Warehouse", badge: "bg-purple-900/40 text-purple-300 border-purple-700" },
   jit: { label: "JIT — Buy Day-Of", badge: "bg-amber-900/40 text-amber-300 border-amber-700" }
 };
-function VenSynQSettings({ channels = [], warehouses = [], expenseCategories = [] }) {
+function VenSynQSettings({ channels = [], warehouses = [], expenseCategories = [], platforms = [] }) {
   const { props } = usePage();
   const flash = props.flash ?? {};
   const store = props.store;

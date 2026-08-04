@@ -12,11 +12,11 @@
 #               T2 = consistency (cross-surface / service-backed comparison)
 #               T3 = health/structural (existence, wiring, architecture, docs)
 #
-# phpunit_test_methods_total: 1417
+# phpunit_test_methods_total: 1429
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 1417
+  phpunit_test_methods_total: 1429
   note: total = SUM of member test_methods (testX(), @test, #[Test], pest it/test).
 
 suites:
@@ -573,6 +573,14 @@ suites:
     members:
       - file: tests/Feature/Module21/RealWorkflowIntegrationTest.php
         test_methods: 34
+        oracle_tier: T2
+  - id: Feature.Monetization
+    path: tests/Feature/Monetization
+    test_methods: 12
+    files: 1
+    members:
+      - file: tests/Feature/Monetization/AiAndSyncEntitlementTest.php
+        test_methods: 12
         oracle_tier: T2
   - id: Feature.Money
     path: tests/Feature/Money

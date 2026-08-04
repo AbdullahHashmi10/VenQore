@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module19;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\EcommerceChannel;
 use App\Services\VenSynQ\IntegrationHealthService;
 use App\Services\VenSynQ\PlatformRegistry;

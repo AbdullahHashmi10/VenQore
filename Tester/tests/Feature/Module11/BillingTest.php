@@ -6,6 +6,8 @@ use Tests\Feature\VenQoreTestCase;
 use App\Models\AppSumoCode;
 use App\Models\StoreLicense;
 
+uses(VenQoreTestCase::class);
+
 test('valid_appsumo_code_assigns_correct_plan', function () {
     $tenant = $this->createTenant();
     $user = $this->actingAsOwner($tenant);
