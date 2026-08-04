@@ -256,6 +256,18 @@ class ProvisionTenantJob implements ShouldQueue
                             );
                         }
 
+                        if (in_array('amazon', $addonSyncs)) {
+                            \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                                ['tenant_id' => $tenant->id, 'override_key' => 'amazon'],
+                                [
+                                    'override_value' => '1',
+                                    'reason'         => 'Purchased Amazon sync add-on (Lemon Squeezy)',
+                                    'updated_at'     => now(),
+                                    'created_at'     => now(),
+                                ]
+                            );
+                        }
+
                         // Unlock VenSynQ Command Center for any marketplace channel add-on
                         $marketplaces = array_intersect($addonSyncs, ['amazon', 'woocommerce', 'ebay', 'tiktok']);
                         if (!empty($marketplaces)) {
