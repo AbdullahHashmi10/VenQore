@@ -259,43 +259,22 @@ export default function SidebarItem({
                                     const isComingSoon = itemName.includes('Coming Soon');
 
                                     return (
-                                        <FeatureLockBadge key={sIdx} isLocked={locked || isComingSoon} showBadge={false}>
+                                        <FeatureLockBadge key={sIdx} isLocked={locked || isComingSoon} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
                                                 <span className="block pl-4 py-1.5 text-xs font-medium text-slate-400 dark:text-slate-600 cursor-pointer">
                                                     {itemName}
                                                 </span>
-                                            ) : locked ? (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
-                                                            detail: {
-                                                                feature: itemName.toLowerCase().replace(' ', '_').replace('/', '_'),
-                                                                message: `${itemName} is not available on your current plan. Please upgrade your plan to unlock.`,
-                                                                current_plan: routeParams?.store_slug ? 'starter' : 'starter',
-                                                                upgrade_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/upgrade` : '#',
-                                                                billing_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing` : '#',
-                                                                portal_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/portal` : '#'
-                                                            }
-                                                        }));
-                                                    }}
-                                                    className="w-full text-left pl-4 py-1.5 text-xs font-medium text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 transition-colors flex justify-between pr-2 group/sub outline-none"
-                                                >
-                                                    <span className="flex items-center gap-1.5">
-                                                        {itemName}
-                                                        <span className="text-2xs">🔒</span>
-                                                    </span>
-                                                    <span className="text-3xs px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
-                                                </button>
                                             ) : (
                                                 window.route().has(activeRouteName) && (
                                                     <Link
                                                         id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
                                                         href={window.route(activeRouteName, routeParams || {})}
-                                                        className="block pl-4 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                                        className={`block pl-4 py-1.5 text-xs font-medium transition-colors ${locked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                                                     >
-                                                        {itemName}
+                                                        <span className="flex items-center gap-1.5">
+                                                            {itemName}
+                                                            {locked && <span className="text-2xs">🔒</span>}
+                                                        </span>
                                                     </Link>
                                                 )
                                             )}
@@ -328,40 +307,17 @@ export default function SidebarItem({
                         : baseRoute;
 
                     return (
-                        <FeatureLockBadge key={idx} isLocked={locked} showBadge={false}>
-                            {locked ? (
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
-                                            detail: {
-                                                feature: itemName.toLowerCase().replace(' ', '_').replace('/', '_'),
-                                                message: `${itemName} is not available on your current plan. Please upgrade your plan to unlock.`,
-                                                current_plan: routeParams?.store_slug ? 'starter' : 'starter',
-                                                upgrade_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/upgrade` : '#',
-                                                billing_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing` : '#',
-                                                portal_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/portal` : '#'
-                                            }
-                                        }));
-                                    }}
-                                    className="w-full text-left pl-4 py-2 text-xs font-medium text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 transition-colors flex justify-between pr-2 group/sub outline-none"
+                        <FeatureLockBadge key={idx} isLocked={locked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
+                            {window.route().has(routeName) && (
+                                <Link
+                                    href={window.route(routeName, routeParams || {})}
+                                    className={`block pl-4 py-2 text-xs font-medium transition-colors relative ${locked ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                                 >
                                     <span className="flex items-center gap-1.5">
                                         {itemName}
-                                        <span className="text-2xs">🔒</span>
+                                        {locked && <span className="text-2xs">🔒</span>}
                                     </span>
-                                    <span className="text-3xs px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
-                                </button>
-                            ) : (
-                                window.route().has(routeName) && (
-                                    <Link
-                                        href={window.route(routeName, routeParams || {})}
-                                        className="block pl-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors relative"
-                                    >
-                                        {itemName}
-                                    </Link>
-                                )
+                                </Link>
                             )}
                         </FeatureLockBadge>
                     );
@@ -370,4 +326,3 @@ export default function SidebarItem({
         </div>
     );
 }
-

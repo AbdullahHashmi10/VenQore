@@ -18,6 +18,7 @@ import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
 import WelcomeTourModal from '@/Components/WelcomeTourModal';
 import DashboardTourGuide from '@/Components/DashboardTourGuide';
+import { usePermission } from '@/Hooks/usePermission';
 
 export default function Dashboard({
     performance,
@@ -35,34 +36,15 @@ export default function Dashboard({
     inventoryValue
 }) {
     const { auth, store } = usePage().props;
-    const isAdmin = auth?.user?.role === 'platform_admin' || auth?.user?.role === 'admin' || auth?.user?.role === 'owner';
+    const { hasPerm, isAdmin } = usePermission();
 
-    const userPerms = auth?.user?.permissions || [];
-    const hasPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
-    const canSales = isAdmin || hasPerm('sales', 'reports');
-    const canFinance = isAdmin || hasPerm('finance');
-    const canInventory = isAdmin || hasPerm('inventory');
-    const canReports = isAdmin || hasPerm('reports');
-    const canPurchases = isAdmin || hasPerm('purchases');
+    const canSales = hasPerm('sales', 'reports');
+    const canFinance = hasPerm('finance');
+    const canInventory = hasPerm('inventory');
+    const canReports = hasPerm('reports');
+    const canPurchases = hasPerm('purchases');
 
-    // Dynamic grid spans for the bottom row cards
-    let topProductsSpan = "col-span-12 md:col-span-8 lg:col-span-6";
-    let lowStockSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-    let purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-
-    if (canSales && canInventory && canPurchases) {
-        topProductsSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-        lowStockSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-        purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-    } else if (canSales && canPurchases) {
-        topProductsSpan = "col-span-12 md:col-span-8 lg:col-span-6";
-        purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
-    } else if (canInventory && canPurchases) {
-        lowStockSpan = "col-span-12 md:col-span-6 lg:col-span-5";
-        purchasesSpan = "col-span-12 md:col-span-6 lg:col-span-4";
-    } else if (canPurchases) {
-        purchasesSpan = "col-span-12 lg:col-span-9";
-    }
+    const showRightPanel = isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant';
 
     const [profitView, setProfitView] = useState('Month');
     const [performancePeriod, setPerformancePeriod] = useState('Today');
@@ -141,95 +123,261 @@ export default function Dashboard({
                 </div>
             )}
 
-            <div className="grid grid-cols-12 lg:grid-rows-6 gap-6 lg:h-[calc(100vh-5rem)] h-auto w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
+            <div className="grid grid-cols-12 gap-6 w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
 
-                {/* --- Row 1: High Level Stats (Top Left) --- */}
-                {canSales && (
-                <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
-                    <DualStatCard
-                        title="Performance"
-                        leftLabel="Total Revenue" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
-                        rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0), store)}
-                        icon={TrendingUp}
-                        colorClass="bg-indigo-500"
-                        delay={0}
-                        period={performancePeriod}
-                        onPeriodChange={setPerformancePeriod}
-                        onLeftClick={() => router.visit(route('store.sales.index', { store_slug: store?.slug }))}
-                        onRightClick={() => router.visit(route('store.reports.dashboard', { store_slug: store?.slug }))}
-                    />
-                </div>
-                )}
-                {canFinance && (
-                <div id="tour-outstanding" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
-                    <DualStatCard
-                        title="Outstanding"
-                        leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0), store)}
-                        rightLabel="To Pay" rightValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.payables || 0), store)}
-                        icon={CreditCard}
-                        colorClass="bg-orange-500"
-                        delay={100}
-                        period={outstandingPeriod}
-                        onPeriodChange={setOutstandingPeriod}
-                        onLeftClick={() => router.visit(route('store.finance.receivables', { store_slug: store?.slug }))}
-                        onRightClick={() => router.visit(route('store.finance.payables', { store_slug: store?.slug }))}
-                    />
-                </div>
-                )}
-                {canFinance && (
-                <div id="tour-net-profit" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
-                    {/* Quick Profit Check */}
-                    <div
-                        onClick={() => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug }))}
-                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col justify-center gap-2 h-full relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300 cursor-pointer"
-                    >
-                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
-
-                        <div className="flex items-center gap-3 relative z-10 shrink-0">
-                            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
-                                <Wallet size={18} />
-                            </div>
-                            <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">Net Profit</h3>
-                            <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
-                                <PremiumDropdown
-                                    options={[
-                                        { value: 'Today', label: 'Today' },
-                                        { value: 'Month', label: 'Month' },
-                                        { value: 'Year', label: 'Year' },
-                                        { value: 'All Time', label: 'All Time' }
-                                    ]}
-                                    value={netProfitPeriod}
-                                    onChange={setNetProfitPeriod}
+                {/* --- Left Side Content --- */}
+                <div className={`col-span-12 ${showRightPanel ? 'lg:col-span-9' : ''} flex flex-col gap-6`}>
+                    
+                    {/* --- Row 1: High Level Stats --- */}
+                    <div className="flex flex-col sm:flex-row gap-6 w-full">
+                        {canSales && (
+                            <div id="tour-performance" className="flex-1 min-h-[140px]">
+                                <DualStatCard
+                                    title="Performance"
+                                    leftLabel="Total Revenue" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
+                                    rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0), store)}
+                                    icon={TrendingUp}
+                                    colorClass="bg-indigo-500"
+                                    delay={0}
+                                    period={performancePeriod}
+                                    onPeriodChange={setPerformancePeriod}
+                                    onLeftClick={() => router.visit(route('store.sales.index', { store_slug: store?.slug }))}
+                                    onRightClick={() => router.visit(route('store.reports.dashboard', { store_slug: store?.slug }))}
                                 />
                             </div>
-                        </div>
-
-                        {/* Breakdown Metrics */}
-                        <div className="grid grid-cols-2 gap-3 relative z-10 grow items-center">
-                            {/* Vertical Divider */}
-                            <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
-
-                            <div className="text-center min-w-0">
-                                <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
-                                <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
+                        )}
+                        {canFinance && (
+                            <div id="tour-outstanding" className="flex-1 min-h-[140px]">
+                                <DualStatCard
+                                    title="Outstanding"
+                                    leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0), store)}
+                                    rightLabel="To Pay" rightValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.payables || 0), store)}
+                                    icon={CreditCard}
+                                    colorClass="bg-orange-500"
+                                    delay={100}
+                                    period={outstandingPeriod}
+                                    onPeriodChange={setOutstandingPeriod}
+                                    onLeftClick={() => router.visit(route('store.finance.receivables', { store_slug: store?.slug }))}
+                                    onRightClick={() => router.visit(route('store.finance.payables', { store_slug: store?.slug }))}
+                                />
                             </div>
-                            <div className="text-center min-w-0">
-                                <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
-                                    {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
-                                </p>
-                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-3xs font-medium opacity-80 leading-none">
-                                    <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Revenue">Revenue: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
-                                    <span className="text-red-500 whitespace-nowrap" title="Expenses">Expenses: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
+                        )}
+                        {canFinance && (
+                            <div id="tour-net-profit" className="flex-1 min-h-[140px]">
+                                <div
+                                    onClick={() => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug }))}
+                                    className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col justify-center gap-2 h-full relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300 cursor-pointer"
+                                >
+                                    <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
+
+                                    <div className="flex items-center gap-3 relative z-10 shrink-0">
+                                        <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
+                                            <Wallet size={18} />
+                                        </div>
+                                        <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">Net Profit</h3>
+                                        <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+                                            <PremiumDropdown
+                                                options={[
+                                                    { value: 'Today', label: 'Today' },
+                                                    { value: 'Month', label: 'Month' },
+                                                    { value: 'Year', label: 'Year' },
+                                                    { value: 'All Time', label: 'All Time' }
+                                                ]}
+                                                value={netProfitPeriod}
+                                                onChange={setNetProfitPeriod}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 relative z-10 grow items-center">
+                                        <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+                                        <div className="text-center min-w-0">
+                                            <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
+                                            <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
+                                        </div>
+                                        <div className="text-center min-w-0">
+                                            <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
+                                                {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
+                                            </p>
+                                            <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-3xs font-medium opacity-80 leading-none">
+                                                <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Revenue">Revenue: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
+                                                <span className="text-red-500 whitespace-nowrap" title="Expenses">Expenses: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
+                    </div>
+
+                    {/* --- Row 2: Sales Chart & Opportunities --- */}
+                    <div className="flex flex-col lg:flex-row gap-6 w-full min-h-[300px]">
+                        {canSales && (
+                            <div id="tour-sales-chart" className={`flex-1 min-h-[300px]`}>
+                                <ChartSection salesData={salesData} />
+                            </div>
+                        )}
+                        {isAdmin && store?.features?.growth_engine == 1 && (
+                            <div id="tour-opportunities" className="w-full lg:w-[280px] shrink-0 flex flex-col">
+                                <TodaysOpportunities className="flex-1" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* --- Row 3: Tables --- */}
+                    <div className="flex flex-col lg:flex-row gap-6 w-full">
+                        {/* Top Selling Items */}
+                        {canSales && (
+                            <div id="tour-top-products" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px] group">
+                                <div className="flex justify-between items-center mb-4 shrink-0">
+                                    <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                        <div className="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
+                                        Top Products
+                                    </h3>
+                                    <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"><MoreHorizontal size={18} /></button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="text-xs font-semibold text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                                <th className="pb-3 pl-2">Product</th>
+                                                <th className="pb-3 text-center">Volume</th>
+                                                <th className="pb-3 text-right pr-2">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {topSellingItems.map((item, i) => (
+                                                <tr key={i} className="group/row hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-default rounded-xl">
+                                                    <td className="py-3 pl-2 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-sm border border-slate-200 dark:border-slate-700 group-hover/row:scale-110 transition-transform">
+                                                                {item.image}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
+                                                                <p className="text-2xs text-slate-400 font-medium">{item.category}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 text-sm text-center font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
+                                                        <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-xs">{item.sold}</span>
+                                                    </td>
+                                                    <td className="py-3 pr-2 text-sm text-right font-bold text-emerald-600 dark:text-emerald-400 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
+                                                        {item.revenue}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {topSellingItems.length === 0 && (
+                                                <tr>
+                                                    <td colSpan="3" className="py-8 text-center text-slate-400 text-sm">No sales data yet.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* LOW STOCK ITEMS */}
+                        {canInventory && (
+                            <div id="tour-low-stock" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px]">
+                                <div className="flex justify-between items-center mb-4 shrink-0">
+                                    <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                                        <div className="w-1.5 h-5 bg-red-500 rounded-full"></div>
+                                        Low Stock Alerts
+                                    </h3>
+                                    <button className="text-xs text-indigo-600 font-medium hover:underline">View All</button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
+                                    {lowStockItems.map((item) => (
+                                        <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
+                                                <p className="text-2xs text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
+                                            </div>
+                                            {canPurchases && (
+                                                <button
+                                                    onClick={() => router.visit(route('store.purchases.create', { store_slug: store?.slug, product_id: item.id }))}
+                                                    className="px-2 py-1 bg-white dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 hover:text-indigo-600"
+                                                >
+                                                    Order
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {lowStockItems.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                            <span className="text-2xl">✅</span>
+                                            <p className="text-xs mt-2">Stock levels are healthy</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PURCHASES */}
+                        {canPurchases && (
+                            <div id="tour-purchases" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px]">
+                                <div className="flex justify-between items-center mb-4 shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                                        <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Purchases</h3>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <PremiumDropdown
+                                                options={[
+                                                    { value: 'Today', label: 'Today' },
+                                                    { value: 'Month', label: 'Month' },
+                                                    { value: 'Year', label: 'Year' },
+                                                    { value: 'All Time', label: 'All Time' }
+                                                ]}
+                                                value={purchasesPeriod}
+                                                onChange={setPurchasesPeriod}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => router.visit(route('store.purchases.index', { store_slug: store?.slug }))}
+                                            className="text-xs text-indigo-600 font-medium hover:underline"
+                                        >
+                                            View All
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
+                                    {purchasesList.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: item.id }))}
+                                            className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/10 rounded-xl border border-orange-100 dark:border-orange-900/20 hover:scale-[1.01] transition-transform cursor-pointer"
+                                        >
+                                            <div className="min-w-0 flex-1 pr-2">
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.supplier_name}</p>
+                                                <p className="text-2xs text-slate-400 font-medium">{item.date}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.total_amount}</span>
+                                                <p className="text-3xs uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {purchasesList.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8">
+                                            <span className="text-2xl">📦</span>
+                                            <p className="text-xs mt-2">No purchases recorded yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-                )}
 
                 {/* --- RIGHT PANEL (Desktop Only) --- */}
-                {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
-                    <div id="tour-right-panel" className="hidden lg:block col-span-3 lg:row-span-6 h-full">
+                {showRightPanel && (
+                    <div id="tour-right-panel" className="hidden lg:block col-span-3 h-full">
                         <RightPanel
                             recentTransactions={recentTransactions}
                             bankAccounts={bankAccounts}
@@ -238,169 +386,6 @@ export default function Dashboard({
                             inventoryValue={inventoryValue}
                         />
                     </div>
-                )}
-
-                {/* --- MIDDLE: Sales Chart & Opportunities --- */}
-                {canSales && (
-                <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} lg:row-span-3 min-h-[300px]`}>
-                    <ChartSection salesData={salesData} />
-                </div>
-                )}
-
-                {isAdmin && (
-                    <div id="tour-opportunities" className="col-span-12 lg:col-span-3 lg:row-span-3 h-full min-h-0 flex flex-col">
-                        <TodaysOpportunities className="flex-1" />
-                    </div>
-                )}
-
-                {/* --- BOTTOM: Tables (Bottom Left) --- */}
-
-                {/* Top Selling Items */}
-                {canSales && (
-                <div id="tour-top-products" className={`${topProductsSpan} lg:row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group`}>
-                    <div className="flex justify-between items-center mb-4 shrink-0">
-                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <div className="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
-                            Top Products
-                        </h3>
-                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"><MoreHorizontal size={18} /></button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="text-xs font-semibold text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                                    <th className="pb-3 pl-2">Product</th>
-                                    <th className="pb-3 text-center">Volume</th>
-                                    <th className="pb-3 text-right pr-2">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {topSellingItems.map((item, i) => (
-                                    <tr key={i} className="group/row hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-default rounded-xl">
-                                        <td className="py-3 pl-2 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-sm border border-slate-200 dark:border-slate-700 group-hover/row:scale-110 transition-transform">
-                                                    {item.image}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
-                                                    <p className="text-2xs text-slate-400 font-medium">{item.category}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 text-sm text-center font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                            <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-xs">{item.sold}</span>
-                                        </td>
-                                        <td className="py-3 pr-2 text-sm text-right font-bold text-emerald-600 dark:text-emerald-400 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                            {item.revenue}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {topSellingItems.length === 0 && (
-                                    <tr>
-                                        <td colSpan="3" className="py-8 text-center text-slate-400 text-sm">No sales data yet.</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                )}
-
-                {/* LOW STOCK ITEMS */}
-                {canInventory && (
-                <div id="tour-low-stock" className={`${lowStockSpan} lg:row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
-                    <div className="flex justify-between items-center mb-4 shrink-0">
-                        <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                            <div className="w-1.5 h-5 bg-red-500 rounded-full"></div>
-                            Low Stock Alerts
-                        </h3>
-                        <button className="text-xs text-indigo-600 font-medium hover:underline">View All</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
-                        {lowStockItems.map((item) => (
-                            <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
-                                <div>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
-                                    <p className="text-2xs text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
-                                </div>
-                                {/* PROBLEM 7 FIX: Order button only for roles with purchases permission */}
-                                {(auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || auth?.user?.role === 'manager' || auth?.user?.role === 'purchasing_officer' || auth?.user?.permissions?.includes('purchases')) && (
-                                <button
-                                    onClick={() => router.visit(route('store.purchases.create', { store_slug: store?.slug, product_id: item.id }))}
-                                    className="px-2 py-1 bg-white dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 hover:text-indigo-600"
-                                >
-                                    Order
-                                </button>
-                                )}
-                            </div>
-                        ))}
-                        {lowStockItems.length === 0 && (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                <span className="text-2xl">✅</span>
-                                <p className="text-xs mt-2">Stock levels are healthy</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                )}
-
-                {/* PURCHASES */}
-                {canPurchases && (
-                <div id="tour-purchases" className={`${purchasesSpan} lg:row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
-                    <div className="flex justify-between items-center mb-4 shrink-0">
-                        <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
-                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Purchases</h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <PremiumDropdown
-                                    options={[
-                                        { value: 'Today', label: 'Today' },
-                                        { value: 'Month', label: 'Month' },
-                                        { value: 'Year', label: 'Year' },
-                                        { value: 'All Time', label: 'All Time' }
-                                    ]}
-                                    value={purchasesPeriod}
-                                    onChange={setPurchasesPeriod}
-                                />
-                            </div>
-                            <button
-                                onClick={() => router.visit(route('store.purchases.index', { store_slug: store?.slug }))}
-                                className="text-xs text-indigo-600 font-medium hover:underline"
-                            >
-                                View All
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
-                        {purchasesList.map((item) => (
-                            <div
-                                key={item.id}
-                                onClick={() => router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: item.id }))}
-                                className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/10 rounded-xl border border-orange-100 dark:border-orange-900/20 hover:scale-[1.01] transition-transform cursor-pointer"
-                            >
-                                <div className="min-w-0 flex-1 pr-2">
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.supplier_name}</p>
-                                    <p className="text-2xs text-slate-400 font-medium">{item.date}</p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.total_amount}</span>
-                                    <p className="text-3xs uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
-                                </div>
-                            </div>
-                        ))}
-                        {purchasesList.length === 0 && (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8">
-                                <span className="text-2xl">📦</span>
-                                <p className="text-xs mt-2">No purchases recorded yet</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
                 )}
 
             </div>

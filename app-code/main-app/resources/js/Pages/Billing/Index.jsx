@@ -21,9 +21,9 @@ const PLAN_META = {
     starter:  { label: 'Starter Engine',  price: '$36/mo',  color: vq.indigo[500], Icon: Shield },
     growth:   { label: 'Growth Engine',   price: '$63/mo',  color: vq.violet[500], Icon: Zap },
     business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
-    ltd_1:    { label: 'LTD — Starter',  price: '$79',      color: vq.emerald[500], Icon: Sparkles },
+    ltd_1:    { label: 'LTD — Starter',  price: '$99',      color: vq.emerald[500], Icon: Sparkles },
     ltd_2:    { label: 'LTD — Growth',   price: '$199',     color: vq.emerald[500], Icon: Sparkles },
-    ltd_3:    { label: 'LTD — Business', price: '$399',     color: vq.emerald[500], Icon: Sparkles },
+    ltd_3:    { label: 'LTD — Business', price: '$349',     color: vq.emerald[500], Icon: Sparkles },
 };
 
 const FEATURES = [
@@ -39,7 +39,6 @@ const FEATURES = [
 ];
 
 const FEATURE_UPGRADE_TARGET = {
-    woocommerce: 'growth',
     growth_engine: 'growth',
     multi_branch: 'growth',
     api_access: 'business',
@@ -287,7 +286,8 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 
 // --- Main Page Component ---
 export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null }) {
-    const { store } = usePage().props;
+    const { store, pricing } = usePage().props;
+    const aiTiers = pricing?.ai_tiers || {};
     const storeSlug = store?.slug;
     const isPK = PKR_ENABLED && country === 'PK' && pk_verification?.status === 'approved';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
@@ -881,10 +881,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
     const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
 
-    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 19 : selectedPlan === 'growth' ? 49 : selectedPlan === 'business' ? 99 : 0);
+    // Fallbacks must mirror config/pricing.php values (starter: 36, growth: 63, business: 129)
+    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 36 : selectedPlan === 'growth' ? 63 : selectedPlan === 'business' ? 129 : 0);
     const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
 
-    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 19 : currentPlanKey === 'growth' ? 49 : currentPlanKey === 'business' ? 99 : 0);
+    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 36 : currentPlanKey === 'growth' ? 63 : currentPlanKey === 'business' ? 129 : 0);
     const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
 
     const diffUSD = targetPriceUSD - currentPriceUSD;
@@ -1907,23 +1908,18 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </p>
 
                                         <div className="grid grid-cols-2 gap-3">
-                                            {[
-                                                { key: 'ai_starter', label: 'Starter AI', price: '$3', scans: 90, queries: 110 },
-                                                { key: 'ai_lite', label: 'Lite AI', price: '$5', scans: 150, queries: 200 },
-                                                { key: 'ai_pro', label: 'Pro AI', price: '$15', scans: 480, queries: 420 },
-                                                { key: 'ai_ultimate', label: 'Ultimate AI', price: '$25', scans: 850, queries: 800 }
-                                            ].map(plan => (
+                                            {Object.entries(aiTiers).map(([key, tier]) => (
                                                 <div 
-                                                    key={plan.key} 
-                                                    onClick={() => handlePurchaseAddon(plan.key)}
+                                                    key={key} 
+                                                    onClick={() => handlePurchaseAddon(`ai_${key}`)}
                                                     className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
                                                 >
                                                     <div className="flex justify-between items-center mb-1">
-                                                        <span className="text-xs font-black text-white group-hover:text-purple-300 transition-colors">{plan.label}</span>
-                                                        <span className="text-xs font-black text-purple-400">{plan.price}</span>
+                                                        <span className="text-xs font-black text-white group-hover:text-purple-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                                        <span className="text-xs font-black text-purple-400">${tier.price_monthly}</span>
                                                     </div>
                                                     <div className="text-3xs text-slate-500">
-                                                        {plan.scans} scans / {plan.queries} queries
+                                                        {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
                                                     </div>
                                                 </div>
                                             ))}

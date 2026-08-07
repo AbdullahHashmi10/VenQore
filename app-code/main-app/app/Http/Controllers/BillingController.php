@@ -827,18 +827,18 @@ class BillingController extends Controller
         $tenant = app('current.tenant');
 
         $request->validate([
-            'addon_type' => 'required|string|in:ai_byok,ai_starter,ai_lite,ai_pro,ai_ultimate,sync_woocommerce,sync_amazon'
+            'addon_type' => 'required|string|in:ai_byok,ai_spark,ai_shop,ai_pro,ai_max,sync_woocommerce,sync_amazon'
         ]);
 
         $addonType = $request->input('addon_type');
 
-        // Map addon_type to variant ID from config/services.php
+        // Map addon_type to variant ID from config/pricing.php (or fallback)
         $variantId = match ($addonType) {
-            'ai_byok'          => config('services.lemon_squeezy.ai_byok_addon_id'),
-            'ai_starter'       => config('services.lemon_squeezy.ai_starter_addon_id'),
-            'ai_lite'          => config('services.lemon_squeezy.ai_lite_addon_id'),
-            'ai_pro'           => config('services.lemon_squeezy.ai_pro_addon_id'),
-            'ai_ultimate'      => config('services.lemon_squeezy.ai_ultimate_addon_id'),
+            'ai_byok'          => config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id'),
+            'ai_spark'         => config('pricing.ai_tiers.spark.variant_id') ?? config('services.lemon_squeezy.ai_spark_addon_id'),
+            'ai_shop'          => config('pricing.ai_tiers.shop.variant_id') ?? config('services.lemon_squeezy.ai_shop_addon_id'),
+            'ai_pro'           => config('pricing.ai_tiers.pro.variant_id') ?? config('services.lemon_squeezy.ai_pro_addon_id'),
+            'ai_max'           => config('pricing.ai_tiers.max.variant_id') ?? config('services.lemon_squeezy.ai_max_addon_id'),
             'sync_woocommerce' => config('services.lemon_squeezy.woocommerce_addon_id'),
             'sync_amazon'      => config('services.lemon_squeezy.amazon_addon_id'),
             default            => null

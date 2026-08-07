@@ -53,8 +53,8 @@ $say = static function (string $line) use ($quiet): void {
 };
 
 if (! is_dir($primary)) {
-    fwrite(STDERR, "FATAL: primary source suite not found at {$primary}\n");
-    exit(1);
+    $say("  [INFO] Primary source suite not found at {$primary}. Skipping sync.");
+    exit(0);
 }
 
 $say('');

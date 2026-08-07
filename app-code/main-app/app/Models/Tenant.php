@@ -372,23 +372,7 @@ class Tenant extends Model
 
     public function featuresArray(): array
     {
-        return [
-            'variants'            => (bool)$this->feature_variants,
-            'serials'             => (bool)$this->feature_serials,
-            'batches'             => (bool)$this->feature_batches,
-            'manufacturing'       => (bool)$this->feature_manufacturing,
-            'production'          => $this->featureOn('production'),
-            'bill_of_materials'   => $this->featureOn('bill_of_materials'),
-            'e_invoicing'         => $this->featureOn('e_invoicing'),
-            'invoice_reminders'   => $this->featureOn('invoice_reminders'),
-            'recurring_invoices'  => $this->featureOn('recurring_invoices'),
-            'bank_reconciliation' => $this->featureOn('bank_reconciliation'),
-            'fund_management'     => $this->featureOn('fund_management'),
-            'email_marketing'     => $this->featureOn('marketing_campaigns'),
-            'sms_marketing'       => $this->featureOn('marketing_campaigns'),
-            'campaigns'           => $this->featureOn('marketing_campaigns'),
-            'growth_engine'       => $this->featureOn('growth_engine'),
-        ];
+        return PlanRepository::featuresFor($this);
     }
 
     public function effectivePlan(): string

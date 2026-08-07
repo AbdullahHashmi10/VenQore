@@ -1,11 +1,12 @@
 import { usePage } from '@inertiajs/react';
 
 export function usePlan() {
-    const { plan } = usePage().props;
+    const { plan, store } = usePage().props;
+    const features = plan?.features ?? store?.features ?? {};
 
     const hasFeature = (featureKey) => {
-        if (!plan || !plan.features) return true;
-        return Boolean(plan.features[featureKey]);
+        if (!plan && !store) return true; // Default allow for public marketing routes
+        return Boolean(features[featureKey]);
     };
 
     const isWithinLimit = (limitKey) => {

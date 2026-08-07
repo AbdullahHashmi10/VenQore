@@ -294,6 +294,9 @@ export const FEATURE_GROUPS = [
             { key: 'report_tax_rate_breakdown',  label: '#198 · Tax Rate Breakdown',                     type: 'boolean' },
             { key: 'report_graph_analytics',     label: '#199 · Graph Analytics Dashboard',              type: 'boolean' },
             { key: 'report_loan_statement',      label: '#200 · Loan Statement',                         type: 'boolean' },
+            { key: 'point_in_time_inventory',    label: '#200.1 · Point-in-Time Inventory',              type: 'boolean' },
+            { key: 'customer_insights',          label: '#200.2 · Customer Insights Report',             type: 'boolean' },
+            { key: 'supplier_insights',          label: '#200.3 · Supplier Insights Report',             type: 'boolean' },
         ],
     },
 
@@ -1451,6 +1454,24 @@ export const FEATURE_DEFAULTS = {
         "growth": "1",
         "business": "1"
     },
+    "point_in_time_inventory": {
+        "trial": "0",
+        "starter": "0",
+        "growth": "1",
+        "business": "1"
+    },
+    "customer_insights": {
+        "trial": "0",
+        "starter": "0",
+        "growth": "1",
+        "business": "1"
+    },
+    "supplier_insights": {
+        "trial": "0",
+        "starter": "0",
+        "growth": "1",
+        "business": "1"
+    },
     "report_profit_loss": {
         "trial": "0",
         "starter": "0",
@@ -1748,8 +1769,8 @@ export const FEATURE_DEFAULTS = {
     "growth_engine": {
         "trial": "0",
         "starter": "0",
-        "growth": "0",
-        "business": "0"
+        "growth": "1",
+        "business": "1"
     },
     "ai_churn_predictions": {
         "trial": "0",

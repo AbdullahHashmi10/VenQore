@@ -93,7 +93,7 @@ export default function WhatIsIncluded() {
                         <div className="p-4 sm:p-6 text-center border-l border-white/10">
                             <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">1 Code</p>
                             <p className="font-bold text-white">Starter LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$79</p>
+                            <p className="text-2xl font-black text-white mt-1">$99</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
                         <div className="p-4 sm:p-6 text-center border-l border-indigo-500/30 bg-indigo-500/5">
@@ -105,7 +105,7 @@ export default function WhatIsIncluded() {
                         <div className="p-4 sm:p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
                             <p className="text-xs text-amber-400 uppercase tracking-widest mb-1">3 Codes Stacked</p>
                             <p className="font-bold text-amber-300">Business LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$399</p>
+                            <p className="text-2xl font-black text-white mt-1">$349</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
                     </div>
@@ -161,7 +161,7 @@ export default function WhatIsIncluded() {
                                 <Section title="Intelligence & Growth">
                                     <Feature label="Growth Engine (AI Retention)"    starter={false} growth={true}  business={true} />
                                     <Feature label="AI Customer Insights"            starter={false} growth={true}  business={true} />
-                                    <Feature label="WooCommerce Sync"                starter={false} growth={true}  business={true} />
+                                    <Feature label="WooCommerce Sync"                starter="Add-on" growth="Add-on" business="Add-on" />
                                     <Feature label="Public REST API"                 starter={false} growth={false} business={true} />
                                 </Section>
                                 <Section title="Hosting & Support">

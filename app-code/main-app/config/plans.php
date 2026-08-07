@@ -58,6 +58,8 @@ return [
         'discount_report'    => false,
         'cash_flow_report'   => false,
         'stock_valuation'    => false,
+        // 2026-08-08: Explicitly disabled for Counter plan because the tier does not include the bookkeeping/ledgers module.
+        'outstanding_balance_grid' => false,
     ],
 
     'starter' => [
@@ -91,7 +93,7 @@ return [
         'woocommerce'  => false,
         'api_access'   => false,
         'reports'      => 'advanced',
-        'growth_engine'=> false,            // AI add-on key — off by default on all plans (matches seeder)
+        'growth_engine'=> true,             // AI Growth Engine — enabled on Growth (Phase 1)
         'multi_branch' => true,
         'owners_daily_pulse' => true,
         'production'         => true,
@@ -115,7 +117,7 @@ return [
         'woocommerce'  => false,
         'api_access'   => true,
         'reports'      => 'advanced',
-        'growth_engine'=> false,            // AI add-on key — off by default (matches seeder)
+        'growth_engine'=> true,             // AI Growth Engine — enabled on Business (Phase 1)
         'multi_branch' => true,
         'owners_daily_pulse' => true,
         'production'         => true,
@@ -170,7 +172,7 @@ return [
         'woocommerce'  => false,
         'api_access'   => false,
         'reports'      => 'advanced',
-        'growth_engine'=> false,
+        'growth_engine'=> true,             // AI Growth Engine — enabled on LTD 2 (Phase 1)
         'multi_branch' => true,
         'owners_daily_pulse' => true,
         'production'         => true,
@@ -197,7 +199,7 @@ return [
         'woocommerce'  => false,
         'api_access'   => true,
         'reports'      => 'advanced',
-        'growth_engine'=> false,
+        'growth_engine'=> true,             // AI Growth Engine — enabled on LTD 3 (Phase 1)
         'multi_branch' => true,
         'owners_daily_pulse' => true,
         'production'         => true,

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -20,7 +20,7 @@ export default function CookbookIndex({ recipes = [], store }) {
 
     const handleDelete = (id, name) => {
         if (confirm(`Are you sure you want to delete "${name}"?`)) {
-            router.delete(route('store.cookbook.destroy', id));
+            router.delete(route('store.cookbook.destroy', { store_slug: store.slug, id }));
         }
     };
 
@@ -183,7 +183,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                                             </button>
                                         )}
                                         <Link
-                                            href={route('store.cookbook.edit', recipe.id)}
+                                            href={route('store.cookbook.edit', { store_slug: store.slug, id: recipe.id })}
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                         >
                                             <Edit size={14} />

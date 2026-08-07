@@ -63,17 +63,10 @@ const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
 
 // ── Billing Toggle ─────────────────────────────────────────────────────
 const BillingToggle = ({ value, onChange }) => {
-    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-    const showLtd = params.get('channel') === 'appsumo' || params.get('ltd') === '1';
-
     const options = [
         { key: 'subscription_monthly', label: 'Monthly' },
         { key: 'subscription_annual', label: 'Annual', badge: 'Save 20%' },
     ];
-
-    if (showLtd) {
-        options.push({ key: 'ltd', label: 'Lifetime' });
-    }
 
     return (
         <div className="inline-flex items-center p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
@@ -83,9 +76,7 @@ const BillingToggle = ({ value, onChange }) => {
                     onClick={() => onChange(opt.key)}
                     className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-300
                         ${value === opt.key
-                            ? opt.key === 'ltd'
-                                ? 'bg-amber-600/80 text-white shadow-md'
-                                : 'bg-indigo-600 text-white shadow-md'
+                            ? 'bg-indigo-600 text-white shadow-md'
                             : 'text-slate-400 hover:text-slate-300'}`}
                 >
                     {opt.label}
@@ -126,7 +117,7 @@ export default function Pricing({ plans = [] }) {
     const aiSectionRef = useRef(null);
     const confirmSectionRef = useRef(null);
 
-    const isLTD = billingType === 'ltd';
+    const isLTD = false;
 
     useEffect(() => {
         setSelectedAI('none');
@@ -138,14 +129,14 @@ export default function Pricing({ plans = [] }) {
 
     // Price helpers — default fallbacks
     const defaultPricesUSD = {
-        starter: { subscription_monthly: 36, subscription_annual: 30, ltd: 79 },
-        growth: { subscription_monthly: 63, subscription_annual: 53, ltd: 199 },
-        enterprise: { subscription_monthly: 129, subscription_annual: 108, ltd: 399 },
+        starter: { subscription_monthly: 36, subscription_annual: 30 },
+        growth: { subscription_monthly: 63, subscription_annual: 53 },
+        enterprise: { subscription_monthly: 129, subscription_annual: 108 },
     };
     const defaultPricesPKR = {
-        starter: { subscription_monthly: 1100, subscription_annual: 916, ltd: 22120 },
-        growth: { subscription_monthly: 1800, subscription_annual: 1500, ltd: 55720 },
-        enterprise: { subscription_monthly: 5300, subscription_annual: 4416, ltd: 111720 },
+        starter: { subscription_monthly: 1100, subscription_annual: 916 },
+        growth: { subscription_monthly: 1800, subscription_annual: 1500 },
+        enterprise: { subscription_monthly: 5300, subscription_annual: 4416 },
     };
 
     const PRICES_USD = { ...defaultPricesUSD };
@@ -168,10 +159,6 @@ export default function Pricing({ plans = [] }) {
                     PRICES_PKR[baseSlug].subscription_monthly = monthlyPKR;
                     PRICES_PKR[baseSlug].subscription_annual = Math.round(annualPKR / 12);
                 }
-            } else if (plan.slug === 'ltd_1' || plan.slug === 'ltd_2' || plan.slug === 'ltd_3') {
-                const targetSlug = plan.slug === 'ltd_1' ? 'starter' : plan.slug === 'ltd_2' ? 'growth' : 'enterprise';
-                PRICES_USD[targetSlug].ltd = parseFloat(plan.price_lifetime_usd || plan.price_lifetime || defaultPricesUSD[targetSlug].ltd);
-                PRICES_PKR[targetSlug].ltd = plan.price_lifetime_pkr ? parseFloat(plan.price_lifetime_pkr) : (plan.price_lifetime ? Math.round(plan.price_lifetime * 280) : defaultPricesPKR[targetSlug].ltd);
             }
         });
     }
@@ -284,11 +271,6 @@ export default function Pricing({ plans = [] }) {
     const isCardRequired = selectedAI !== 'none' || selectedSyncs.length > 0 || !!selectedService || trialMode === 'deferred';
 
     const getActivePlanSlug = (key) => {
-        if (isLTD) {
-            if (key === 'starter') return 'ltd_1';
-            if (key === 'growth') return 'ltd_2';
-            return 'ltd_3';
-        }
         if (key === 'enterprise') return 'business';
         return key;
     };

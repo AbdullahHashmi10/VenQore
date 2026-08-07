@@ -80,7 +80,6 @@ export default function UpgradeModal() {
             'Unlimited products (SKUs)',
             'Up to 10 staff accounts',
             'Up to 3 warehouse locations',
-            'WooCommerce integration',
             'Growth Engine (AI retention)',
             'Advanced reports',
             'Multi-branch support',
@@ -239,8 +238,16 @@ export default function UpgradeModal() {
 
                     {/* ── CTA Buttons ── */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Primary: Upgrade CTA — LTD-aware */}
-                        {isLtd ? (
+                        {feature === 'woocommerce' ? (
+                            <a
+                                href={billingUrl && billingUrl !== '#' ? `${billingUrl}?tab=addons` : '/billing?tab=addons'}
+                                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 transition-all shadow-lg"
+                            >
+                                <Sparkles size={16} />
+                                Purchase WooCommerce Add-on
+                                <ArrowRight size={14} />
+                            </a>
+                        ) : isLtd ? (
                             canStackMore ? (
                                 // LTD user who can still stack more codes
                                 <a

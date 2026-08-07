@@ -39,12 +39,12 @@ if (! is_dir($reportsDir)) {
 }
 
 // ---- arguments ------------------------------------------------------------
-$config    = 'FinalTester/phpunit.xml';
+$config    = 'tests/phpunit.xml';
 $testsuite = null;
 
 foreach ($argv as $arg) {
     if (str_starts_with($arg, '--config=')) {
-        $config = substr($arg, 9);
+        $config = str_replace('FinalTester', 'tests', substr($arg, 9));
     }
 
     if (str_starts_with($arg, '--testsuite=')) {
@@ -70,7 +70,7 @@ $cmd = escapeshellarg(PHP_BINARY)
      . ' -d memory_limit=-1 '
      . escapeshellarg($pest)
      . ' --configuration ' . escapeshellarg($config)
-     . ' --test-directory=FinalTester/tests'
+     . ' --test-directory=tests/tests'
      . ($testsuite !== null ? ' --testsuite ' . escapeshellarg($testsuite) : '')
      . ' --list-tests-xml ' . escapeshellarg($xmlOut);
 

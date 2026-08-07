@@ -19,7 +19,8 @@ import { preprocessImage } from '@/lib/imagePreprocess';
  *          — created new, or appended to an existing open/draft document.
  */
 export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image' }) {
-    const { store } = usePage().props;
+    const { store, pricing } = usePage().props;
+    const aiTiers = pricing?.ai_tiers || {};
     const [activeTab, setActiveTab] = useState(initialTab);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -1178,23 +1179,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </p>
 
                         <div className="grid grid-cols-2 gap-2">
-                            {[
-                                { key: 'ai_starter', label: 'Starter AI', price: '$9', scans: 90, queries: 110 },
-                                { key: 'ai_lite', label: 'Lite AI', price: '$19', scans: 150, queries: 200 },
-                                { key: 'ai_pro', label: 'Pro AI', price: '$39', scans: 480, queries: 420 },
-                                { key: 'ai_ultimate', label: 'Ultimate AI', price: '$79', scans: 850, queries: 800 }
-                            ].map(plan => (
+                            {Object.entries(aiTiers).map(([key, tier]) => (
                                 <div 
-                                    key={plan.key} 
-                                    onClick={() => handlePurchaseAddon(plan.key)}
+                                    key={key} 
+                                    onClick={() => handlePurchaseAddon(`ai_${key}`)}
                                     className="p-2.5 rounded-lg bg-white dark:bg-white/[0.01] border border-slate-200 dark:border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
                                 >
                                     <div className="flex justify-between items-center mb-0.5">
-                                        <span className="text-1xs font-black text-slate-800 dark:text-white group-hover:text-purple-400 transition-colors">{plan.label}</span>
-                                        <span className="text-1xs font-black text-purple-500">{plan.price}</span>
+                                        <span className="text-1xs font-black text-slate-800 dark:text-white group-hover:text-purple-400 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                        <span className="text-1xs font-black text-purple-500">${tier.price_monthly}</span>
                                     </div>
                                     <div className="text-4xs text-slate-500">
-                                        {plan.scans} scans / {plan.queries} queries
+                                        {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
                                     </div>
                                 </div>
                             ))}

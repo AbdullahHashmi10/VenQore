@@ -23,8 +23,10 @@ setlocal enabledelayedexpansion
 
 set "DISPLAY=%~1"
 set "CFG=%~2"
+if not "%CFG%"=="" set "CFG=%CFG:FinalTester=tests%"
 set "SUITE=%~3"
 set "EXTRA=%~4"
+if not "%EXTRA%"=="" set "EXTRA=%EXTRA:FinalTester=tests%"
 
 set "FT_DIR=%~dp0.."
 pushd "%FT_DIR%\.."
@@ -136,7 +138,7 @@ REM  Pest closure-style test runs with no base class and no booted Laravel app.
 
 "%PHP_BIN%" -d memory_limit=-1 vendor\bin\pest ^
     --configuration "%CFG%" ^
-    --test-directory=FinalTester/tests ^
+    --test-directory=tests/tests ^
     %SUITE_RUN% ^
     --log-junit "%FT_DIR%\reports\junit.xml" ^
     --no-coverage ^

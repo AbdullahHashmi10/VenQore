@@ -71,12 +71,16 @@ class ProvisionTenantJob implements ShouldQueue
                     (string) config('services.lemon_squeezy.amazon_addon_id'),
                     (string) config('services.lemon_squeezy.ebay_addon_id'),
                     (string) config('services.lemon_squeezy.tiktok_addon_id'),
+                    (string) config('pricing.ai_tiers.spark.variant_id'),
+                    (string) config('pricing.ai_tiers.shop.variant_id'),
+                    (string) config('pricing.ai_tiers.pro.variant_id'),
+                    (string) config('pricing.ai_tiers.max.variant_id'),
+                    (string) config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id'),
+                    (string) config('services.lemon_squeezy.ai_topup_addon_id'),
                     (string) config('services.lemon_squeezy.ai_starter_addon_id'),
                     (string) config('services.lemon_squeezy.ai_lite_addon_id'),
                     (string) config('services.lemon_squeezy.ai_pro_addon_id'),
                     (string) config('services.lemon_squeezy.ai_ultimate_addon_id'),
-                    (string) config('services.lemon_squeezy.ai_byok_addon_id'),
-                    (string) config('services.lemon_squeezy.ai_topup_addon_id'),
                 ]);
 
                 $variantIdStr = $variantId !== null ? (string)$variantId : '';
@@ -199,34 +203,34 @@ class ProvisionTenantJob implements ShouldQueue
         }
 
         $aiTiers = config('pricing.ai_tiers', []);
-        $sparkVariant = $aiTiers['spark']['lemon_squeezy_variant_id'] ?? config('services.lemon_squeezy.ai_spark_variant_id');
-        $shopVariant  = $aiTiers['shop']['lemon_squeezy_variant_id']  ?? config('services.lemon_squeezy.ai_shop_variant_id');
-        $proVariant   = $aiTiers['pro']['lemon_squeezy_variant_id']   ?? config('services.lemon_squeezy.ai_pro_variant_id');
-        $maxVariant   = $aiTiers['max']['lemon_squeezy_variant_id']   ?? config('services.lemon_squeezy.ai_max_variant_id');
-        $byokVariant  = config('pricing.addons.byok.lemon_squeezy_variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id');
+        $sparkVariant = $aiTiers['spark']['variant_id'] ?? config('services.lemon_squeezy.ai_spark_variant_id');
+        $shopVariant  = $aiTiers['shop']['variant_id']  ?? config('services.lemon_squeezy.ai_shop_variant_id');
+        $proVariant   = $aiTiers['pro']['variant_id']   ?? config('services.lemon_squeezy.ai_pro_variant_id');
+        $maxVariant   = $aiTiers['max']['variant_id']   ?? config('services.lemon_squeezy.ai_max_variant_id');
+        $byokVariant  = config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id');
 
         if ($sparkVariant && $sparkVariant !== 'REPLACE_ME' && $variantIdStr === (string)$sparkVariant) {
             $aiStatus = 'managed';
-            $aiQueries = $aiTiers['spark']['ai_queries_limit'] ?? 2500;
-            $aiScans = $aiTiers['spark']['ai_pages_limit'] ?? 500;
+            $aiQueries = $aiTiers['spark']['queries'] ?? 2500;
+            $aiScans = $aiTiers['spark']['pages'] ?? 500;
             $isAddon = true;
         }
         if ($shopVariant && $shopVariant !== 'REPLACE_ME' && $variantIdStr === (string)$shopVariant) {
             $aiStatus = 'managed';
-            $aiQueries = $aiTiers['shop']['ai_queries_limit'] ?? 5000;
-            $aiScans = $aiTiers['shop']['ai_pages_limit'] ?? 1000;
+            $aiQueries = $aiTiers['shop']['queries'] ?? 5000;
+            $aiScans = $aiTiers['shop']['pages'] ?? 1000;
             $isAddon = true;
         }
         if ($proVariant && $proVariant !== 'REPLACE_ME' && $variantIdStr === (string)$proVariant) {
             $aiStatus = 'managed';
-            $aiQueries = $aiTiers['pro']['ai_queries_limit'] ?? 10000;
-            $aiScans = $aiTiers['pro']['ai_pages_limit'] ?? 2000;
+            $aiQueries = $aiTiers['pro']['queries'] ?? 10000;
+            $aiScans = $aiTiers['pro']['pages'] ?? 2000;
             $isAddon = true;
         }
         if ($maxVariant && $maxVariant !== 'REPLACE_ME' && $variantIdStr === (string)$maxVariant) {
             $aiStatus = 'managed';
-            $aiQueries = $aiTiers['max']['ai_queries_limit'] ?? 20000;
-            $aiScans = $aiTiers['max']['ai_pages_limit'] ?? 4000;
+            $aiQueries = $aiTiers['max']['queries'] ?? 20000;
+            $aiScans = $aiTiers['max']['pages'] ?? 4000;
             $isAddon = true;
         }
         if ($byokVariant && $byokVariant !== 'REPLACE_ME' && $variantIdStr === (string)$byokVariant) {

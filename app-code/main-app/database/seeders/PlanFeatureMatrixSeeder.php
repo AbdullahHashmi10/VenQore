@@ -249,6 +249,9 @@ class PlanFeatureMatrixSeeder extends Seeder
             'discount_report'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'cash_flow_report'           => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'stock_valuation'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'point_in_time_inventory'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'customer_insights'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'supplier_insights'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             // 'stock_aging' (no 'report_' prefix) is the actual key routes/web.php
             // gates /reports/stock-aging on. 'report_stock_aging' above is a
             // DIFFERENT, separate SuperAdmin-only toggle (see featureGroups.js)
@@ -311,7 +314,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'smart_capture'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'smart_capture_limit'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_pages_limit'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'], // Enabled on Growth & Business (Phase 1 change - 2026-08-08)
             'ai_churn_predictions'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_revenue_forecasting'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_outreach_copy'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],

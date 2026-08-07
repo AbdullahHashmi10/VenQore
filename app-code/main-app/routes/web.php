@@ -32,6 +32,7 @@ Route::get('/pricing', function () {
         $plans = \App\Models\Plan::with(['limits', 'features'])
             ->where('is_active', true)
             ->where('is_visible', true)
+            ->where('slug', 'not like', 'ltd%')
             ->orderBy('sort_order')
             ->get();
     } catch (\Throwable $e) {
@@ -1552,66 +1553,52 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/reports/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('reports.dashboard');
 
     // Admin Panel (Hub) — DEPRECATED
-    // The old /admin-panel is now the Store Admin at /s/{slug}/staff and /s/{slug}/settings
-    // This route is kept as a redirect safety net to prevent broken bookmarks from panicking
-    Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
+    // Now protected by permission:admin.settings_manage middleware to prevent access gaps
+    Route::group(['middleware' => ['permission:admin.settings_manage']], function () {
+        Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
 
-    // Data Management (Import/Export)
-    Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
-    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('legacy.admin.data.export');
-    Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
-    Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
-    Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
-    Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
-    Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
-    Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
-    Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
+        // Data Management (Import/Export)
+        Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
+        Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('legacy.admin.data.export');
+        Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
+        Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
+        Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
+        Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
+        Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
+        Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
+        Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
 
-    // Backups
-    // SECURITY FIX: these 8 routes previously had NO permission middleware at all —
-    // any authenticated store member (not just admins) could create/download/restore/
-    // delete raw SQL database backups. The equivalent routes inside the nested
-    // 'admin.' group above (permission:admin.settings_manage) were deliberately
-    // commented out "for structural security", but that guard never actually applied
-    // here since these routes (registered further down in the same outer 'store.'
-    // group) are what Admin/Backups.jsx and now the Data & Backup hub actually call.
-    // Gated to admin.settings_manage to match every other admin-only action in this
-    // file (Settings, Database, Data Management, Migration).
-    // Former page route — Admin/Backups.jsx was folded into the "Backups" tab of the
-    // Data & Backup hub (Admin/DataManagement.jsx). Kept as a redirect so old
-    // bookmarks/links don't 404.
-    Route::get('/admin-panel/backups', function () {
-        return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'backups']);
-    })->middleware('permission:admin.settings_manage')->name('backups.index');
-    Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->middleware('permission:admin.settings_manage')->name('backups.store');
-    Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->middleware('permission:admin.settings_manage')->name('backups.restore');
-    Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->middleware('permission:admin.settings_manage')->name('backups.import');
-    Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->middleware('permission:admin.settings_manage')->name('backups.progress');
-    Route::get('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->middleware('permission:admin.settings_manage')->name('backups.download');
-    Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->middleware('permission:admin.settings_manage')->name('backups.delete');
-    Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->middleware('permission:admin.settings_manage')->name('backups.email');
+        // Backups
+        Route::get('/admin-panel/backups', function () {
+            return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'backups']);
+        })->name('backups.index');
+        Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+        Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+        Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
+        Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');
+        Route::get('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+        Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+        Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
 
-    Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
-    // Migration / Backup Import
-    // SECURITY FIX: same gap as Backups above — importing external data into the
-    // tenant's live database had no permission check at all. Now gated the same way.
-    // Former page route — Admin/Migration.jsx was folded into the "Migrate from
-    // Another System" tab of the Data & Backup hub. Kept as a redirect for old links.
-    Route::get('/admin-panel/migration', function () {
-        return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'migrate']);
-    })->middleware('permission:admin.settings_manage')->name('legacy.admin.migration.index');
-    Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->middleware('permission:admin.settings_manage')->name('legacy.admin.migration.analyze');
-    Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->middleware('permission:admin.settings_manage')->name('legacy.admin.migration.execute');
+        Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
+        
+        // Migration / Backup Import
+        Route::get('/admin-panel/migration', function () {
+            return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'migrate']);
+        })->name('legacy.admin.migration.index');
+        Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('legacy.admin.migration.analyze');
+        Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
 
-    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:admin.staff_manage')->name('legacy.admin.users');
-    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('legacy.admin.users.store');
-    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->middleware('permission:users.manage')->name('legacy.admin.users.update');
-    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->middleware('permission:users.manage')->name('legacy.admin.users.destroy');
-    Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_manage')->name('legacy.admin.settings');
-    Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
-    Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
-    Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:admin.settings_manage')->name('legacy.admin.database');
-    Route::get('/admin-panel/staff', function () { return redirect()->route('store.legacy.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.staff');
+        Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:admin.staff_manage')->name('legacy.admin.users');
+        Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('legacy.admin.users.store');
+        Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->middleware('permission:users.manage')->name('legacy.admin.users.update');
+        Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->middleware('permission:users.manage')->name('legacy.admin.users.destroy');
+        Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('legacy.admin.settings');
+        Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
+        Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
+        Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->name('legacy.admin.database');
+        Route::get('/admin-panel/staff', function () { return redirect()->route('store.legacy.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.staff');
+    });
 
     // Staff Attendance
     Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
