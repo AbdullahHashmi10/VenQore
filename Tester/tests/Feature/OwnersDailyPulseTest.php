@@ -25,7 +25,10 @@ class OwnersDailyPulseTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tenant = $this->createTenant(plan: 'active', status: 'active');
+        // 'active' is a tenant STATUS, not a plan slug — it doesn't exist in
+        // PlanFeatureMatrixSeeder, so owners_daily_pulse fail-closed to locked.
+        // 'business' genuinely has owners_daily_pulse enabled (see seeder).
+        $this->tenant = $this->createTenant(plan: 'business', status: 'active');
         $this->owner  = $this->createTenantUser($this->tenant, 'owner');
     }
 

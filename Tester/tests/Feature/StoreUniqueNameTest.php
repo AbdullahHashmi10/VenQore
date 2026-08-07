@@ -27,6 +27,7 @@ class StoreUniqueNameTest extends VenQoreTestCase
         $response = $this->actingAs($user)->post('/new-store', [
             'name' => 'Original Unique Store Name',
             'plan' => 'starter',
+            'terms_consent' => true,
         ]);
 
         $response->assertRedirect(route('hub'));
@@ -67,6 +68,7 @@ class StoreUniqueNameTest extends VenQoreTestCase
         $response = $this->actingAs($user)->post('/new-store', [
             'name' => 'Active Store Name',
             'plan' => 'starter',
+            'terms_consent' => true,
         ]);
 
         $response->assertStatus(302);
@@ -105,6 +107,7 @@ class StoreUniqueNameTest extends VenQoreTestCase
         $response = $this->actingAs($user)->post('/new-store', [
             'name' => 'Active Store Name',
             'plan' => 'starter',
+            'terms_consent' => true,
         ]);
 
         $response->assertStatus(302);
@@ -143,6 +146,7 @@ class StoreUniqueNameTest extends VenQoreTestCase
         $response = $this->actingAs($user)->post('/new-store', [
             'name' => 'Soft Deleted Store Name',
             'plan' => 'starter',
+            'terms_consent' => true,
         ]);
 
         $response->assertStatus(302);
@@ -182,6 +186,7 @@ class StoreUniqueNameTest extends VenQoreTestCase
         $response = $this->actingAs($user)->post('/new-store', [
             'name' => 'Soft Deleted Store Name',
             'plan' => 'starter',
+            'terms_consent' => true,
         ]);
 
         $response->assertStatus(302);

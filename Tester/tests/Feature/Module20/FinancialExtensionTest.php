@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module20;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Tests\Feature\VenQoreTestCase;
 use App\Models\Party;
 use App\Models\Invoice;

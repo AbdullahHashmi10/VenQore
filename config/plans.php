@@ -55,6 +55,9 @@ return [
         'loyalty_points'     => false,
         'digital_gift_cards' => false,
         'report_profit_loss' => false,
+        'discount_report'    => false,
+        'cash_flow_report'   => false,
+        'stock_valuation'    => false,
     ],
 
     'starter' => [
@@ -101,6 +104,7 @@ return [
         'loyalty_points'     => false,
         'digital_gift_cards' => false,
         'report_profit_loss' => true,
+        'bulk_upload'        => true,
     ],
 
     'business' => [
@@ -124,13 +128,15 @@ return [
         'loyalty_points'     => true,
         'digital_gift_cards' => true,
         'report_profit_loss' => true,
+        'bulk_upload'        => true,
     ],
 
     // ── AppSumo LTD Plans (Phase 7) — mirror seeder: ltd_1=starter, ltd_2=growth,
     //    ltd_3=business equivalents, plus the tx caps from the AppSumo listing. ──
 
     'ltd_1' => [
-        'transactions_per_month' => 500,
+        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
+        'transactions_per_month' => 1000,
         'locations'    => 1,
         'sku_limit'    => 1000,
         'staff_limit'  => 3,
@@ -156,7 +162,8 @@ return [
     ],
 
     'ltd_2' => [
-        'transactions_per_month' => 2000,
+        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
+        'transactions_per_month' => 3000,
         'locations'    => 3,
         'sku_limit'    => 10000,            // growth-equivalent (matches seeder)
         'staff_limit'  => 10,
@@ -182,7 +189,8 @@ return [
     ],
 
     'ltd_3' => [
-        'transactions_per_month' => 6000,
+        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
+        'transactions_per_month' => 8000,
         'locations'    => 10,               // business-equivalent (matches seeder)
         'sku_limit'    => 50000,
         'staff_limit'  => 50,

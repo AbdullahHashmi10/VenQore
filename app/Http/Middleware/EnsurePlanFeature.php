@@ -23,16 +23,19 @@ class EnsurePlanFeature
         }
 
         if (!PlanRepository::canUseFeature($tenant, $feature)) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->header('X-Inertia') || $request->ajax() || app()->environment('testing')) {
                 return response()->json([
                     'success' => false,
                     'code'    => 'feature_locked',
                     'feature' => $feature,
                     'message' => "The '{$feature}' feature requires a plan upgrade. Upgrade your plan to access this feature.",
-                ], 402);
+                    'upgrade' => true,
+                    'required_tier' => 'business',
+                ], 403);
             }
 
-            return redirect()->route('billing.index')->with('warning', "The '{$feature}' feature requires a plan upgrade.");
+            return redirect()->route('store.billing', ['store_slug' => $tenant->slug])
+                ->with('warning', "The '{$feature}' feature requires a plan upgrade.");
         }
 
         return $next($request);

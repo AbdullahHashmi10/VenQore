@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Product;

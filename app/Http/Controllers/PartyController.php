@@ -96,8 +96,13 @@ class PartyController extends Controller
                     ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)');
             }, 'net_ap');
 
-        // Apply Filters
+        $tenant = app('current.tenant');
+
+        // Apply Filters (supplier_khata gate)
         if ($request->filled('type') && $request->type !== 'all') {
+            if ($request->type === 'supplier' && !\App\Services\PlanRepository::canUseFeature($tenant, 'supplier_khata')) {
+                abort(403, 'Supplier Khata (Credit Register) requires a Growth or Business plan.');
+            }
             $query->where('type', $request->type);
         }
 
@@ -120,7 +125,7 @@ class PartyController extends Controller
             $query->orderBy($sortBy, $sortDir);
         }
 
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenant->id;
         $receivables = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
@@ -141,12 +146,14 @@ class PartyController extends Controller
             ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
             ->value('net');
 
+        $canViewGrid = \App\Services\PlanRepository::canUseFeature($tenant, 'outstanding_balance_grid');
+
         $stats = [
             'total'       => Party::count(),
             'customers'   => Party::where('type', 'customer')->count(),
             'suppliers'   => Party::where('type', 'supplier')->count(),
-            'receivables' => max(0, $receivables),
-            'payables'    => max(0, $payables),
+            'receivables' => $canViewGrid ? max(0, $receivables) : 0,
+            'payables'    => $canViewGrid ? max(0, $payables) : 0,
         ];
 
         $parties = $query->paginate(200)->withQueryString();

@@ -112,6 +112,8 @@ class FullRouteSweepTest extends TestCase
         'redeem'           => 'Feature/AppSumo/*',
         'refund-policy'    => 'Feature/LegalPagesTest',
         'terms'            => 'Feature/LegalPagesTest',
+        'help'             => 'Feature/HelpCenterTest',
+        'known-issues'     => 'Feature/KnownIssuesTest',
         'updater'          => 'Updater endpoints',
         'webhooks'         => 'Webhook handlers',
         'welcome'          => 'Feature/MarketingSsrTest',

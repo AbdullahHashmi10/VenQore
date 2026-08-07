@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Billing;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 

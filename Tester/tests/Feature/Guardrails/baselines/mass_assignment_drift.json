@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "signature": "ActivityLog::event",
+    "reason": "Detailed audit log event type column added in migration 2026_07_08_000002"
+  },
+  {
+    "signature": "ActivityLog::log_name",
+    "reason": "Detailed audit log category name column added in migration 2026_07_08_000002"
+  },
+  {
+    "signature": "ChatMessage::chat_session_id",
+    "reason": "Chat session foreign key added in migration 2026_05_31_000000"
+  },
+  {
+    "signature": "ChatMessage::tenant_id",
+    "reason": "Tenant isolation foreign key added in migration 2026_05_31_000000"
+  }
+]

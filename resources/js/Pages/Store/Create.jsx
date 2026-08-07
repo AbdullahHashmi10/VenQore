@@ -45,9 +45,10 @@ function InputBase({ className = '', hasError, ...props }) {
 
 export default function CreateStore({ available_license = null, selected_plan = null, trial_days = 14 }) {
     const { data, setData, post, processing, errors } = useForm({
-        name:     '',
-        plan:     selected_plan?.slug || '',
-        interval: selected_plan?.interval || 'monthly',
+        name:          '',
+        plan:          selected_plan?.slug || '',
+        interval:      selected_plan?.interval || 'monthly',
+        terms_consent: false,
     });
 
     const handleSubmit = (e) => {
@@ -177,11 +178,28 @@ export default function CreateStore({ available_license = null, selected_plan = 
                             </div>
                         )}
 
+                        {/* Terms & Privacy Consent */}
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                            <div className="flex items-start gap-3">
+                                <input
+                                    id="terms_consent"
+                                    type="checkbox"
+                                    checked={data.terms_consent}
+                                    onChange={e => setData('terms_consent', e.target.checked)}
+                                    className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-white/20 bg-white/5 focus:ring-indigo-500 cursor-pointer shrink-0"
+                                />
+                                <label htmlFor="terms_consent" className="text-xs text-slate-300 leading-relaxed cursor-pointer select-none">
+                                    I agree to the <Link href="/terms" target="_blank" className="text-indigo-400 font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="text-indigo-400 font-semibold hover:underline">Privacy Policy</Link>, including data handling & shared catalog terms described in Section 6.
+                                </label>
+                            </div>
+                            <FieldError message={errors.terms_consent} />
+                        </div>
+
                         {/* Submit */}
                         <button
                             id="create-store-submit"
                             type="submit"
-                            disabled={processing || !data.name}
+                            disabled={processing || !data.name || !data.terms_consent}
                             className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
                                 bg-gradient-to-r from-indigo-500 to-purple-600
                                 hover:from-indigo-400 hover:to-purple-500

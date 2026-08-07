@@ -237,6 +237,14 @@ test('[SMOKE-16] WooCommerce plugin update check endpoint responds', function ()
     // If this 500s, it creates noise across all customer stores.
     $response = $this->getJson('/api/woo/plugin/check-update');
 
+    // TEMP DIAGNOSTIC (2026-08-07): print the real body on failure so the
+    // controller's diagnostic try/catch (added same day) is actually visible
+    // instead of just the bare status-code mismatch. Remove alongside the
+    // controller's temporary try/catch once the root cause is fixed.
+    if ($response->status() === 500) {
+        dump('SMOKE-16 500 response body: ' . $response->getContent());
+    }
+
     expect($response->status())->not->toBe(500);
 });
 

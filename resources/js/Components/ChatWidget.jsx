@@ -14,8 +14,76 @@ db.version(1).stores({
 });
 
 export default function ChatWidget() {
-    const { store, auth } = usePage().props;
+    const { store, auth, turnstile_site_key } = usePage().props;
     const { url } = usePage();
+
+    // Turnstile explicit widget rendering state & refs
+    const [turnstileToken, setTurnstileToken] = useState(null);
+    const turnstileWidgetId = useRef(null);
+    const turnstileContainerRef = useRef(null);
+
+    useEffect(() => {
+        if (!turnstile_site_key) return;
+
+        const renderWidget = () => {
+            if (window.turnstile && turnstileContainerRef.current && turnstileWidgetId.current === null) {
+                try {
+                    turnstileWidgetId.current = window.turnstile.render(turnstileContainerRef.current, {
+                        sitekey: turnstile_site_key,
+                        size: 'invisible',
+                        callback: (token) => {
+                            setTurnstileToken(token);
+                        },
+                        'expired-callback': () => {
+                            setTurnstileToken(null);
+                            if (turnstileWidgetId.current !== null && window.turnstile) {
+                                window.turnstile.reset(turnstileWidgetId.current);
+                            }
+                        },
+                        'error-callback': () => {
+                            setTurnstileToken(null);
+                        },
+                    });
+                } catch (err) {
+                    console.warn('Turnstile render warning:', err);
+                }
+            }
+        };
+
+        const scriptId = 'cf-turnstile-script';
+        let script = document.getElementById(scriptId);
+
+        if (!script) {
+            script = document.createElement('script');
+            script.id = scriptId;
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                if (window.turnstile && window.turnstile.ready) {
+                    window.turnstile.ready(renderWidget);
+                } else {
+                    renderWidget();
+                }
+            };
+            document.head.appendChild(script);
+        } else {
+            if (window.turnstile && window.turnstile.ready) {
+                window.turnstile.ready(renderWidget);
+            } else {
+                renderWidget();
+            }
+        }
+
+        return () => {
+            if (turnstileWidgetId.current !== null && window.turnstile) {
+                try {
+                    window.turnstile.remove(turnstileWidgetId.current);
+                } catch (e) {}
+                turnstileWidgetId.current = null;
+            }
+        };
+    }, [turnstile_site_key]);
 
     // Check if the mobile nav bar is active to avoid overlapping
     const showMobileNavBar = (() => {
@@ -179,9 +247,11 @@ export default function ChatWidget() {
         try {
             const name = auth?.user?.name || 'Guest';
             const email = auth?.user?.email || null;
+            const tokenToSubmit = turnstileToken || (window.turnstile ? window.turnstile.getResponse() : null);
             const res  = await axios.post(`/api/${store?.slug}/chatbot/session`, {
                 visitor_name: name,
                 visitor_email: email,
+                turnstile_token: tokenToSubmit,
             });
             const data = res.data;
             setSessionUuid(data.session_uuid);
@@ -610,6 +680,9 @@ export default function ChatWidget() {
                     </button>
                 )}
             </div>
+
+            {/* Cloudflare Turnstile Invisible Container */}
+            <div ref={turnstileContainerRef} id="turnstile-chat-container" className="hidden" />
 
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

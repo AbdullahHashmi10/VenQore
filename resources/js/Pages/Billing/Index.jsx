@@ -17,6 +17,7 @@ const PKR_ENABLED = false;
 
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
+    counter:  { label: 'Counter Engine',  price: '$18/mo',  color: vq.blue[500], Icon: Monitor },
     starter:  { label: 'Starter Engine',  price: '$36/mo',  color: vq.indigo[500], Icon: Shield },
     growth:   { label: 'Growth Engine',   price: '$63/mo',  color: vq.violet[500], Icon: Zap },
     business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
@@ -181,7 +182,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
     }
 
     if (isLtd && !isCurrent) return null;
-    const planOrder = ['starter', 'growth', 'business'];
+    const planOrder = ['counter', 'starter', 'growth', 'business'];
     const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
     const thisIdx    = planOrder.indexOf(planKey);
 
@@ -880,10 +881,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
     const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
 
-    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'starter' ? 19 : selectedPlan === 'growth' ? 49 : selectedPlan === 'business' ? 99 : 0);
+    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 19 : selectedPlan === 'growth' ? 49 : selectedPlan === 'business' ? 99 : 0);
     const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
 
-    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'starter' ? 19 : currentPlanKey === 'growth' ? 49 : currentPlanKey === 'business' ? 99 : 0);
+    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 19 : currentPlanKey === 'growth' ? 49 : currentPlanKey === 'business' ? 99 : 0);
     const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
 
     const diffUSD = targetPriceUSD - currentPriceUSD;
@@ -894,7 +895,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     let remainingDays = 0;
     let nextBillingDateStr = "";
 
-    const planOrder = ['starter', 'growth', 'business'];
+    const planOrder = ['counter', 'starter', 'growth', 'business'];
     const currentIdx = planOrder.indexOf(currentPlanKey);
     const targetIdx = planOrder.indexOf(selectedPlan);
     const isUpgrade = targetIdx > currentIdx;
@@ -1404,9 +1405,9 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
                                 {isTrial || isViewOnly ? (
-                                     ['starter', 'growth', 'business'].map(key => (
+                                     ['counter', 'starter', 'growth', 'business'].map(key => (
                                         <PlanCard
                                             key={key}
                                             planKey={key}
@@ -1961,35 +1962,49 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                 <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
                                     <div>
-                                        <span className="text-2xs font-bold text-indigo-400 uppercase tracking-widest">Platform Sync Trial</span>
-                                        <h4 className="text-sm font-black text-white mt-1">Evaluate WooCommerce Sync</h4>
+                                        <span className="text-2xs font-bold text-indigo-400 uppercase tracking-widest">Platform Sync</span>
+                                        <h4 className="text-sm font-black text-white mt-1">WooCommerce Sync Add-on</h4>
                                         <p className="text-1xs text-slate-500 mt-2 leading-relaxed">
-                                            Test automatic inventory syncing with WooCommerce for the remainder of your trial period.
+                                            Automatic inventory and order syncing with WooCommerce.
                                         </p>
                                     </div>
                                     
                                     <div className="mt-4">
                                         {tenant?.sync_channels && tenant.sync_channels.includes('woocommerce') ? (
                                             <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-                                                <CheckCircle2 size={14} /> Sync Channels Active
+                                                <CheckCircle2 size={14} /> WooCommerce Sync Active
                                             </span>
-                                        ) : isTrial ? (
-                                            tenant?.plan_limits?.sync_trial_used ? (
-                                                <span className="text-xs text-slate-500 font-bold">Sync trial already utilized.</span>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleAddonTrial('sync')}
-                                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
-                                                >
-                                                    Start Platform Sync Trial
-                                                </button>
-                                            )
                                         ) : (
                                             <button
-                                                onClick={() => handleSelectPlan('growth')}
-                                                className="px-5 py-2.5 bg-white text-void-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                                onClick={() => handlePurchaseAddon('sync_woocommerce')}
+                                                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
                                             >
-                                                Subscribe to Sync Add-on
+                                                Subscribe to WooCommerce Sync ($10/mo)
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
+                                    <div>
+                                        <span className="text-2xs font-bold text-amber-400 uppercase tracking-widest">Marketplace Sync</span>
+                                        <h4 className="text-sm font-black text-white mt-1">Amazon SP-API Sync Add-on</h4>
+                                        <p className="text-1xs text-slate-500 mt-2 leading-relaxed">
+                                            2-way stock, order, and FBA/FBM inventory sync with Amazon.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="mt-4">
+                                        {tenant?.sync_channels && tenant.sync_channels.includes('amazon') ? (
+                                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                                                <CheckCircle2 size={14} /> Amazon Sync Active
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={() => handlePurchaseAddon('sync_amazon')}
+                                                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                            >
+                                                Subscribe to Amazon Sync ($10/mo)
                                             </button>
                                         )}
                                     </div>

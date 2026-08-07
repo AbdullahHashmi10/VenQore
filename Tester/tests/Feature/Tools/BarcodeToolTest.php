@@ -185,6 +185,8 @@ class BarcodeToolTest extends TestCase
     {
         // Plan §6.1 hard rule: core output is never gated. Assert the render
         // endpoint has no auth/lead requirement at all.
+        \Illuminate\Support\Facades\DB::table('tool_lead_events')->delete();
+        \Illuminate\Support\Facades\DB::table('tool_leads')->delete();
         $response = $this->postJson(route('tools.barcode.render'), [
             'format' => 'code128',
             'value'  => 'FREE-NO-EMAIL',

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module09;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Product;
 use App\Models\Stock;
 use Illuminate\Support\Facades\DB;

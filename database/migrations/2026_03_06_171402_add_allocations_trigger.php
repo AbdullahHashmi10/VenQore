@@ -7,7 +7,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             DB::unprepared("
                 DROP TRIGGER IF EXISTS chk_allocation_insert;
                 CREATE TRIGGER chk_allocation_insert BEFORE INSERT ON payment_allocations
@@ -78,7 +79,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             DB::unprepared("DROP TRIGGER IF EXISTS chk_allocation_insert;");
             DB::unprepared("DROP TRIGGER IF EXISTS chk_allocation_update;");
         }

@@ -28,8 +28,56 @@ class ToolSeo
     public static function pages(): array
     {
         $nav = self::toolsNav();
-        return array_merge(            self::hubPage($nav),            self::barcodePages($nav),            self::invoicePages($nav),            self::receiptPages($nav),            self::priceTagPages($nav),            self::labelSheetPages($nav),            self::marginCalculatorPages($nav),            self::inventoryHealthPages($nav),            self::skuGeneratorPages($nav),            self::qrCodePages($nav),            self::qrMenuPages($nav),            self::stockCountPages($nav),            self::purchaseOrderPages($nav),            self::packingSlipPages($nav),            self::quotationPages($nav),            self::creditNotePages($nav),            self::csvCleanerPages($nav),            self::cashDrawerPages($nav),            self::paymentFeePages($nav),            self::posRoiPages($nav),            self::foodCostPages($nav),            self::barcodeLabelSheetPages($nav),        );    }
+        return array_merge(            self::hubPage($nav),            self::barcodePages($nav),            self::invoicePages($nav),            self::receiptPages($nav),            self::priceTagPages($nav),            self::labelSheetPages($nav),            self::marginCalculatorPages($nav),            self::inventoryHealthPages($nav),            self::skuGeneratorPages($nav),            self::qrCodePages($nav),            self::qrMenuPages($nav),            self::stockCountPages($nav),            self::purchaseOrderPages($nav),            self::packingSlipPages($nav),            self::quotationPages($nav),            self::creditNotePages($nav),            self::csvCleanerPages($nav),            self::cashDrawerPages($nav),            self::paymentFeePages($nav),            self::posRoiPages($nav),            self::foodCostPages($nav),            self::barcodeLabelSheetPages($nav),            self::invoiceScannerPages($nav),        );    }
 
+    private static function invoiceScannerPages(string $nav): array
+    {
+        $faqs = [
+            ['Is the AI Invoice Scanner free?', 'Yes. Uploading and scanning an invoice or purchase receipt is free with no signup required.'],
+            ['What file formats are supported?', 'Supported formats include JPG, PNG, and PDF up to 10MB in size.'],
+            ['What data is extracted?', 'The scanner extracts line items, quantities, unit prices, totals, vendor/party names, and invoice reference numbers.'],
+        ];
+
+        return [
+            'tools.invoice-scanner' => [
+                'title'       => 'Free AI Invoice & Receipt Scanner — Instant Extraction | VenQore',
+                'description' => 'Extract line items, quantities, prices, vendor name, and reference number from any invoice or receipt instantly using AI. Free, no signup required.',
+                'keywords'    => 'free ai invoice scanner, receipt scanner online, extract invoice pdf, parse purchase order',
+                'jsonld'      => [
+                    [
+                        '@context' => 'https://schema.org',
+                        '@graph'   => [
+                            self::softwareApplicationLd(
+                                'VenQore AI Invoice Scanner',
+                                url('/tools/invoice-scanner'),
+                                'Free online AI invoice scanner extracting line items, prices, and vendor data from image and PDF invoices.'
+                            ),
+                            self::breadcrumbLd([
+                                ['name' => 'Home', 'url' => url('/')],
+                                ['name' => 'Tools', 'url' => url('/tools')],
+                                ['name' => 'AI Invoice Scanner', 'url' => url('/tools/invoice-scanner')],
+                            ]),
+                            self::faqLd($faqs),
+                        ],
+                    ],
+                ],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<nav aria-label="breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/tools">Tools</a> &rsaquo; AI Invoice Scanner</nav>'
+                    . '<h1>Free AI Invoice &amp; Receipt Scanner</h1>'
+                    . '<p><strong>Upload any supplier invoice or receipt image/PDF to extract itemized lines, prices, and totals instantly.</strong> Powered by VenQore SmartCapture AI.</p>'
+                    . '<h2>Frequently asked questions</h2>'
+                    . implode('', array_map(fn ($qa) => "<p><strong>{$qa[0]}</strong> {$qa[1]}</p>", $faqs))
+                    . $nav . '</main>',
+            ],
+            'tools.invoice-scanner.submit' => [
+                'title'       => 'Submit Invoice Scan | VenQore Tools',
+                'description' => 'API endpoint for invoice scanning.',
+                'keywords'    => 'invoice scan submit',
+                'jsonld'      => [],
+                'static_html' => '<main><h1>Submit Invoice Scan</h1><p>API endpoint for invoice scanning.</p>' . self::toolsNav() . '</main>',
+            ],
+        ];
+    }
 
     private static function toolsNav(): string
     {

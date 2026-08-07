@@ -16,16 +16,22 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 class WooConnectionController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
         return [
-            function ($request, $next) {
+            // checkPluginUpdate and downloadStaticPlugin are public, unauthenticated
+            // endpoints with no store/tenant context in their URL — they're hit
+            // directly by customers' WordPress/WooCommerce installs (plugin update
+            // checks, plugin zip downloads), not by a logged-in tenant user. They
+            // must never be gated behind a tenant's plan entitlement.
+            (new Middleware(function ($request, $next) {
                 \App\Services\PlanGate::enforce('woocommerce');
                 return $next($request);
-            }
+            }))->except(['checkPluginUpdate', 'downloadStaticPlugin']),
         ];
     }
 
@@ -533,32 +539,40 @@ class WooConnectionController extends Controller implements HasMiddleware
      */
     public function checkPluginUpdate(Request $request)
     {
-        $pluginFile = public_path('downloads/venqore-sync/venqore-sync.php');
+        try {
+            $pluginFile = public_path('downloads/venqore-sync/venqore-sync.php');
 
-        if (!file_exists($pluginFile)) {
-            return response()->json(['error' => 'Plugin file not found'], 404);
+            if (!file_exists($pluginFile)) {
+                return response()->json(['error' => 'Plugin file not found'], 404);
+            }
+
+            $latestVersion = '1.0.0';
+            $content = file_get_contents($pluginFile);
+            if (preg_match("/define\(\s*'VENQORE_SYNC_VERSION'\s*,\s*'([^']+)'\s*\);/", $content, $matches)) {
+                $latestVersion = $matches[1];
+            }
+
+            $response = [
+                'name'         => 'VenQore Sync',
+                'slug'         => 'venqore-sync',
+                'plugin'       => 'venqore-sync/venqore-sync.php',
+                'new_version'  => $latestVersion,
+                'url'          => 'https://venqore.com',
+                'package'      => url('/downloads/venqore-sync.zip'),
+                'sections'     => [
+                    'description' => 'Bidirectional real-time synchronization between WooCommerce and VenQore POS. Instantly synchronizes products, live inventory levels, and custom pricing tier matrices.',
+                    'changelog'   => '<h4>1.1.0</h4><ul><li>Added WooCommerce product column auto-styling to prevent vertical squishing.</li><li>Added instant synchronous catalog push failsafe.</li><li>Implemented WordPress Native Plugin Auto-Updating.</li></ul>'
+                ]
+            ];
+
+            return response()->json($response);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Unable to check for plugin updates at this time.',
+            ], 500);
         }
-
-        $latestVersion = '1.0.0';
-        $content = file_get_contents($pluginFile);
-        if (preg_match("/define\(\s*'VENQORE_SYNC_VERSION'\s*,\s*'([^']+)'\s*\);/", $content, $matches)) {
-            $latestVersion = $matches[1];
-        }
-
-        $response = [
-            'name'         => 'VenQore Sync',
-            'slug'         => 'venqore-sync',
-            'plugin'       => 'venqore-sync/venqore-sync.php',
-            'new_version'  => $latestVersion,
-            'url'          => 'https://venqore.com',
-            'package'      => url('/downloads/venqore-sync.zip'),
-            'sections'     => [
-                'description' => 'Bidirectional real-time synchronization between WooCommerce and VenQore POS. Instantly synchronizes products, live inventory levels, and custom pricing tier matrices.',
-                'changelog'   => '<h4>1.1.0</h4><ul><li>Added WooCommerce product column auto-styling to prevent vertical squishing.</li><li>Added instant synchronous catalog push failsafe.</li><li>Implemented WordPress Native Plugin Auto-Updating.</li></ul>'
-            ]
-        ];
-
-        return response()->json($response);
     }
 
     // ─── Private Helper ───────────────────────────────────────────────────────

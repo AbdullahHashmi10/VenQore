@@ -210,6 +210,13 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::post('/barcode-validator/check', [\App\Http\Controllers\Marketing\Tools\BarcodeValidatorToolController::class, 'validateGtin'])
         ->middleware('throttle:tools')->name('barcode-validator.check');
 
+    // Barcode Label Sheet Generator
+    Route::get('/barcode-label', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'index'])->name('barcode-label');
+    Route::post('/barcode-label/parse', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('barcode-label.parse');
+    Route::post('/barcode-label/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('barcode-label.sheet');
+
     // Shared lead capture (plan §4.4, §6.3)
     Route::post('/lead', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'store'])
         ->middleware('throttle:tool-leads')->name('lead.store');
@@ -422,6 +429,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
         Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
+        Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->name('restaurant.table.status');
+        Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->name('restaurant.order.status');
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
@@ -459,10 +468,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             // Data & Disaster Recovery
             Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
             Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('data.export');
-            Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->name('data.import');
-            Route::post('/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('data.upload-mapping');
-            Route::post('/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('data.process-import');
-            Route::post('/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('data.validate-import');
+            Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->middleware('plan.feature:bulk_upload')->name('data.import');
+            Route::post('/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->middleware('plan.feature:bulk_upload')->name('data.upload-mapping');
+            Route::post('/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->middleware('plan.feature:bulk_upload')->name('data.process-import');
+            Route::post('/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->middleware('plan.feature:bulk_upload')->name('data.validate-import');
             Route::get('/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('data.template');
             
             // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
@@ -1071,7 +1080,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
         Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
         Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
-        Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->name('reports.party-statement');
+        Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->middleware('plan.feature:report_party_statement')->name('reports.party-statement');
         Route::get('/reports/transactions', [\App\Http\Controllers\ReportController::class, 'transactions'])->name('reports.transactions');
         Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->middleware('plan.feature:expense_manager')->name('reports.expenses');
         Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->middleware('plan.feature:double_entry_ledger')->name('reports.account-ledger');
@@ -1204,17 +1213,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::put('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'update'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.update');
     Route::delete('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'destroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.destroy');
     Route::delete('/parties', [\App\Http\Controllers\PartyController::class, 'bulkDestroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.bulk-destroy');
-    Route::get('/parties/ledgers', [\App\Http\Controllers\PartyController::class, 'index'])->name('parties.ledgers');
-    Route::get('/parties/{party}/ledger', [\App\Http\Controllers\PartyController::class, 'ledger'])->name('parties.ledger');
+    Route::get('/parties/ledgers', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('plan.feature:unified_party_ledger')->name('parties.ledgers');
+    Route::get('/parties/{party}/ledger', [\App\Http\Controllers\PartyController::class, 'ledger'])->middleware('plan.feature:unified_party_ledger')->name('parties.ledger');
     Route::get('/parties/{party}', fn($party) => redirect()->route('store.parties.ledger', ['store_slug' => app('current.tenant')->slug, 'party' => $party]))->name('parties.show');
 
     // Expenses
-    // Expenses
-    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware('permission:finance.expenses')->name('expenses.index');
-    Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('expenses.store');
-    Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->name('expenses.category.store');
-    Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
-    Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.index');
+    Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.store');
+    Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.category.store');
+    Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.destroy');
 
     // ─── VenSynQ — Multi-Channel Fulfillment Engine ───────────────────────────
     Route::prefix('vensynq')->name('vensynq.')
@@ -1416,7 +1424,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'graphAnalytics'])->name('reports.analytics');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
-    Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
+    Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
     Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
     Route::post('/attendance/heartbeat', [\App\Http\Controllers\AttendanceController::class, 'heartbeat'])->name('attendance.heartbeat');
@@ -1829,8 +1837,8 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::resource('purchases', \App\Http\Controllers\V3\PurchaseController::class)
          ->only(['index', 'create', 'store', 'show']);
 
-    Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->name('purchases.return.create');
-    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->name('purchases.return.store');
+    Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->middleware('plan.feature:purchase_returns')->name('purchases.return.create');
+    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
 
     Route::post('supplier-payments', [\App\Http\Controllers\V3\SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
 
@@ -1840,7 +1848,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('supplier-advances', [\App\Http\Controllers\V3\SupplierAdvanceController::class, 'store'])->name('supplier-advances.store');
     Route::post('stock-adjustments', [\App\Http\Controllers\V3\StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
     Route::post('stock-transfers', [\App\Http\Controllers\V3\StockTransferController::class, 'store'])->name('stock-transfers.store');
-    Route::get('suppliers/{supplierId}/statement', [\App\Http\Controllers\V3\SupplierStatementController::class, 'show'])->name('suppliers.statement');
+    Route::get('suppliers/{supplierId}/statement', [\App\Http\Controllers\V3\SupplierStatementController::class, 'show'])->middleware('plan.feature:supplier_statements')->name('suppliers.statement');
 
     // Phase 3 — Sales & Customer Management
     Route::post('parties',           [\App\Http\Controllers\V3\PartyController::class, 'store'])->name('parties.store');
@@ -1862,7 +1870,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('quotations', [\App\Http\Controllers\V3\QuotationController::class, 'store'])->name('quotations.store');
     Route::post('quotations/{id}/convert-to-order', [\App\Http\Controllers\V3\QuotationController::class, 'convertToOrder'])->name('quotations.convert-to-order');
 
-    Route::get('customers/{customerId}/statement', [\App\Http\Controllers\V3\CustomerStatementController::class, 'show'])->name('customers.statement');
+    Route::get('customers/{customerId}/statement', [\App\Http\Controllers\V3\CustomerStatementController::class, 'show'])->middleware('plan.feature:customer_statements')->name('customers.statement');
 
     // Nested under products
     Route::prefix('products/{productId}')->name('products.')->group(function () {
@@ -1905,7 +1913,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('loans/drawdown', [\App\Http\Controllers\V3\LoanController::class, 'drawdown'])->name('loans.drawdown');
     Route::post('loans/repay', [\App\Http\Controllers\V3\LoanController::class, 'repay'])->name('loans.repay');
 
-    Route::post('expenses', [\App\Http\Controllers\V3\ExpenseController::class, 'store'])->name('expenses.store');
+    Route::post('expenses', [\App\Http\Controllers\V3\ExpenseController::class, 'store'])->middleware('plan.feature:expense_manager')->name('expenses.store');
     Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->name('funds.store');
     Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->name('bank-transfers.store');
     Route::post('donations', [\App\Http\Controllers\V3\DonationController::class, 'store'])->name('donations.store');
@@ -1916,19 +1924,19 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->name('fiscal-year.close');
 
     // Reports
-    Route::get('reports/trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
-    Route::get('reports/profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->name('reports.profit-loss');
-    Route::get('reports/balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
-    Route::get('reports/cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
-    Route::get('reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('reports.aged-receivables');
-    Route::get('reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('reports.aged-payables');
+    Route::get('reports/trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->middleware('plan.feature:report_trial_balance')->name('reports.trial-balance');
+    Route::get('reports/profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
+    Route::get('reports/balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('reports.balance-sheet');
+    Route::get('reports/cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->middleware('plan.feature:cash_flow_report')->name('reports.cash-flow');
+    Route::get('reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->middleware('plan.feature:aged_receivables')->name('reports.aged-receivables');
+    Route::get('reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->middleware('plan.feature:aged_payables')->name('reports.aged-payables');
     Route::get('reports/sales', [\App\Http\Controllers\V3\ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('reports/purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->name('reports.purchases');
-    Route::get('reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('reports.inventory-valuation');
+    Route::get('reports/purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
+    Route::get('reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->middleware('plan.feature:stock_valuation')->name('reports.inventory-valuation');
     Route::get('reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('reports.cogs');
-    Route::get('reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('reports.gross-profit');
+    Route::get('reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.gross-profit');
     Route::get('reports/tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('reports.tax');
-    Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
+    Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->middleware('plan.feature:unified_party_ledger')->name('reports.party-ledger');
     Route::get('reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
     Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('reports.export');
 

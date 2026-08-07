@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\ChatSession;
 use App\Models\Setting;
 use App\Models\Product;

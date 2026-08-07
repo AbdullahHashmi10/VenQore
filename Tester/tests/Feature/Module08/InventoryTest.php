@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module08;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;

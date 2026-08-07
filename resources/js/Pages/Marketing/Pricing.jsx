@@ -62,33 +62,43 @@ const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
 );
 
 // ── Billing Toggle ─────────────────────────────────────────────────────
-const BillingToggle = ({ value, onChange }) => (
-    <div className="inline-flex items-center p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-        {[
-            { key: 'subscription_monthly', label: 'Monthly' },
-            { key: 'subscription_annual', label: 'Annual', badge: 'Save 20%' },
-            { key: 'ltd', label: 'Lifetime' },
-        ].map((opt) => (
-            <button
-                key={opt.key}
-                onClick={() => onChange(opt.key)}
-                className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-300
-                    ${value === opt.key
-                        ? opt.key === 'ltd'
-                            ? 'bg-amber-600/80 text-white shadow-md'
-                            : 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-slate-300'}`}
-            >
-                {opt.label}
-                {opt.badge && (
-                    <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
-                        {opt.badge}
-                    </span>
-                )}
-            </button>
-        ))}
-    </div>
-);
+const BillingToggle = ({ value, onChange }) => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const showLtd = params.get('channel') === 'appsumo' || params.get('ltd') === '1';
+
+    const options = [
+        { key: 'subscription_monthly', label: 'Monthly' },
+        { key: 'subscription_annual', label: 'Annual', badge: 'Save 20%' },
+    ];
+
+    if (showLtd) {
+        options.push({ key: 'ltd', label: 'Lifetime' });
+    }
+
+    return (
+        <div className="inline-flex items-center p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            {options.map((opt) => (
+                <button
+                    key={opt.key}
+                    onClick={() => onChange(opt.key)}
+                    className={`relative px-4 py-2 rounded-lg text-1xs font-bold tracking-wide transition-all duration-300
+                        ${value === opt.key
+                            ? opt.key === 'ltd'
+                                ? 'bg-amber-600/80 text-white shadow-md'
+                                : 'bg-indigo-600 text-white shadow-md'
+                            : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                    {opt.label}
+                    {opt.badge && (
+                        <span className="absolute -top-2.5 -right-1 px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-4xs font-black rounded-full whitespace-nowrap">
+                            {opt.badge}
+                        </span>
+                    )}
+                </button>
+            ))}
+        </div>
+    );
+};
 
 // ── Main Component ─────────────────────────────────────────────────────
 export default function Pricing({ plans = [] }) {
@@ -334,7 +344,7 @@ export default function Pricing({ plans = [] }) {
                 '3-Store Multi-Branch Sync',
                 'Batch & Expiry Tracking',
                 'Bill of Materials',
-                'WhatsApp Debt Alerts',
+                'WhatsApp Debt Alerts (Coming Soon)',
                 'Live Agent Chat Support'
             ];
         }
@@ -397,7 +407,7 @@ export default function Pricing({ plans = [] }) {
 
                 { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
                 { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
-                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: false },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts (Coming Soon)', included: false },
                 { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: false },
                 { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: false },
 
@@ -444,7 +454,7 @@ export default function Pricing({ plans = [] }) {
 
                 { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
                 { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
-                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: true },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts (Coming Soon)', included: false },
                 { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: true },
                 { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: false },
 
@@ -491,7 +501,7 @@ export default function Pricing({ plans = [] }) {
 
                 { category: 'Finance & Ledger', name: 'Double-Entry Khata Ledger', included: true },
                 { category: 'Finance & Ledger', name: 'Customer Credit Ledger', included: true },
-                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts', included: true },
+                { category: 'Finance & Ledger', name: 'WhatsApp Debt Alerts (Coming Soon)', included: false },
                 { category: 'Finance & Ledger', name: 'Bank Feed Reconciliation', included: true },
                 { category: 'Finance & Ledger', name: 'Customer Loyalty & Gift Cards', included: true },
 

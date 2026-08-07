@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Billing;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Services\TrialCreditService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;

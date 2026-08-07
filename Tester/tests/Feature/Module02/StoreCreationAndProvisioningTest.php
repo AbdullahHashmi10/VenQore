@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\PlanLimitException;
 use App\Jobs\WooSync\ProcessWebhookJob;
+use Tests\Feature\VenQoreTestCase;
+
+uses(VenQoreTestCase::class);
 
 test('owner can create store successfully', function () {
     $user = User::factory()->create([
@@ -33,6 +36,7 @@ test('owner can create store successfully', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'My Brand New Store',
+        'terms_consent' => true,
     ]);
 
     // Successful creation redirects to hub
@@ -78,6 +82,7 @@ test('store creation seeds default data', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Unified Seeded Store',
+        'terms_consent' => true,
     ]);
 
     $tenant = Tenant::where('name', 'Unified Seeded Store')->first();
@@ -148,6 +153,7 @@ test('ltd tier1 blocked after 1 store', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Blocked Second Store',
+        'terms_consent' => true,
     ]);
 
     // Should redirect back with validation errors
@@ -199,6 +205,7 @@ test('ltd tier2 blocked after 2 stores', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Blocked Third Store',
+        'terms_consent' => true,
     ]);
 
     // Should redirect back with validation errors
@@ -243,6 +250,7 @@ test('ltd tier3 blocked after 4 stores', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Blocked Fifth Store',
+        'terms_consent' => true,
     ]);
 
     // Should redirect back with validation errors
@@ -274,6 +282,7 @@ test('store creation does not fail when woocommerce env not set', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Woo Isolation Store',
+        'terms_consent' => true,
     ]);
 
     $response->assertRedirect('/hub');
@@ -311,6 +320,7 @@ test('duplicate store name or slug is rejected', function () {
     // Attempting to create duplicate-named store should be rejected
     $response = $this->post('/new-store', [
         'name' => 'Duplicate Brand',
+        'terms_consent' => true,
     ]);
 
     $response->assertStatus(302);
@@ -334,6 +344,7 @@ test('reserved subdomain is safely sanitized', function () {
 
     $response = $this->post('/new-store', [
         'name' => 'Admin', // 'admin' is a reserved subdomain
+        'terms_consent' => true,
     ]);
 
     $response->assertRedirect('/hub');
@@ -370,6 +381,7 @@ test('does not create partial store', function () {
     try {
         $this->post('/new-store', [
             'name' => 'FORCED_FAILURE',
+            'terms_consent' => true,
         ]);
     } catch (\Exception $e) {
         $this->assertEquals('Forced Transaction Failure', $e->getMessage());
@@ -511,6 +523,7 @@ test('store creation has double submit prevention via cache lock', function () {
     // Send a store creation request while locked
     $response = $this->post('/new-store', [
         'name' => 'Concurrent Store Attempt',
+        'terms_consent' => true,
     ]);
 
     // Should redirect back with validation/concurrency errors
@@ -524,6 +537,7 @@ test('store creation has double submit prevention via cache lock', function () {
     $lock->release();
     $response = $this->post('/new-store', [
         'name' => 'Successful Store Attempt',
+        'terms_consent' => true,
     ]);
     $response->assertRedirect('/hub');
 });

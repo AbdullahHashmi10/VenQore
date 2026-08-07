@@ -180,6 +180,7 @@ return [
     ],
 
     'ltd_plans' => [
+        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
         'ltd_tier_1' => [
             'name'                   => 'AppSumo Tier 1 (LTD)',
             'slug'                   => 'ltd_tier_1',

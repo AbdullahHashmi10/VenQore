@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class VisitorChatGuard
 {
-    private const MAX_IP_PER_HOUR = 20;
-    private const MAX_SESSION_PER_HOUR = 15;
+    private const MAX_IP_PER_HOUR = 40;
+    private const MAX_IP_PER_DAY = 100;
+    private const MAX_SESSION_MESSAGES = 20;
+    private const MAX_STORE_PER_DAY = 500;
     private const MAX_BODY_LENGTH = 500;
 
     private const INJECTION_PATTERNS = [
@@ -33,30 +35,52 @@ class VisitorChatGuard
 
         $ip = $request->ip();
         $uuid = $request->route('uuid') ?? $request->input('session_uuid');
+        $storeSlug = $request->route('store_slug') ?? $request->input('store_slug');
 
-        // 2. Per-IP Rate Limiting
+        // 2. Per-IP Rate Limiting (Hourly: 40, Daily: 100)
         $ipKey = "chat_guard_ip_{$ip}";
+        Cache::add($ipKey, 0, 3600);
         $ipCount = Cache::increment($ipKey);
-        if ($ipCount === 1) {
-            Cache::put($ipKey, 1, 3600); // 1 hour window
-        }
 
         if ($ipCount > self::MAX_IP_PER_HOUR) {
-            Log::warning("VisitorChatGuard: IP limit exceeded for IP {$ip}");
+            Log::warning("VisitorChatGuard: IP hourly limit exceeded for IP {$ip}");
             return response()->json([
-                'error' => 'Rate limit exceeded. Please try again later.'
+                'error' => 'Hourly message limit reached for your IP. Please try again later.'
             ], 429);
         }
 
-        // 3. Per-Session Rate Limiting
+        $ipDayKey = "chat_guard_ip_day_{$ip}";
+        Cache::add($ipDayKey, 0, 86400);
+        $ipDayCount = Cache::increment($ipDayKey);
+
+        if ($ipDayCount > self::MAX_IP_PER_DAY) {
+            Log::warning("VisitorChatGuard: IP daily limit exceeded for IP {$ip}");
+            return response()->json([
+                'error' => 'Daily message limit reached for your IP. Please try again tomorrow.'
+            ], 429);
+        }
+
+        // 3. Per-Store Daily Limit (500/day)
+        if ($storeSlug) {
+            $storeDayKey = "chat_guard_store_day_{$storeSlug}";
+            Cache::add($storeDayKey, 0, 86400);
+            $storeDayCount = Cache::increment($storeDayKey);
+
+            if ($storeDayCount > self::MAX_STORE_PER_DAY) {
+                Log::warning("VisitorChatGuard: Store daily limit exceeded for store {$storeSlug}");
+                return response()->json([
+                    'error' => 'Daily chat limit reached for this store. Please try again tomorrow.'
+                ], 429);
+            }
+        }
+
+        // 4. Per-Session Rate Limiting (20 messages max)
         if ($uuid) {
             $sessionKey = "chat_guard_session_{$uuid}";
+            Cache::add($sessionKey, 0, 3600);
             $sessionCount = Cache::increment($sessionKey);
-            if ($sessionCount === 1) {
-                Cache::put($sessionKey, 1, 3600);
-            }
 
-            if ($sessionCount > self::MAX_SESSION_PER_HOUR) {
+            if ($sessionCount > self::MAX_SESSION_MESSAGES) {
                 return response()->json([
                     'error' => 'Session message limit reached for this session.'
                 ], 429);

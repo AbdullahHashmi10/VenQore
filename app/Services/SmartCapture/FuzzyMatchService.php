@@ -99,6 +99,16 @@ class FuzzyMatchService
             }
         }
 
+        // ── 3c. Strategy 7: Cosine Embedding n-gram lookup (T9-7) ──────────────────
+        if (count($matchedIds) < 5 && !empty($normName)) {
+            $candidateProducts = Product::where('tenant_id', $tenantId)->take(50)->get(['id', 'name']);
+            foreach ($candidateProducts as $p) {
+                if ($this->matchByCosineEmbedding($normName, $p->name) >= 0.4) {
+                    $matchedIds[] = $p->id;
+                }
+            }
+        }
+
         // Fetch products for candidates
         $products = Product::where('tenant_id', $tenantId)
             ->whereIn('id', array_filter($matchedIds))
@@ -246,8 +256,9 @@ class FuzzyMatchService
         $maxLen = max(strlen($s1), strlen($s2));
 
         $levScore = $maxLen > 0 ? (1 - ($lev / $maxLen)) * 100 : 0;
+        $cosineScore = $this->matchByCosineEmbedding($s1, $s2) * 100;
 
-        return (int) round(($percent * 0.5) + ($levScore * 0.5));
+        return (int) round(($percent * 0.35) + ($levScore * 0.35) + ($cosineScore * 0.30));
     }
 
     /**

@@ -12,7 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             // 1. journal_entries.user_id -> users.id: change ON DELETE CASCADE to ON DELETE RESTRICT (or SET NULL if nullable).
             // Let's check: journal_entries.user_id is nullable? We'll make sure it's nullable or use RESTRICT.
             // RESTRICT is safer to prevent deleting users who posted journals, but SET NULL is also a valid pattern if the column is nullable.
@@ -50,7 +51,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             if (Schema::hasTable('journal_entries') && Schema::hasColumn('journal_entries', 'user_id')) {
                 Schema::table('journal_entries', function (Blueprint $table) {
                     try { $table->dropForeign(['user_id']); } catch (\Throwable $e) {}

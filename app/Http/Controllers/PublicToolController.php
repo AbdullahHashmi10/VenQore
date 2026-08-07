@@ -24,7 +24,8 @@ class PublicToolController extends Controller
     public function submitInvoiceScanner(
         Request $request,
         PublicToolBudgetGuard $guard,
-        AiExtractionService $aiService
+        AiExtractionService $aiService,
+        \App\Services\Ai\AiSpendGuard $spendGuard
     ): JsonResponse {
         $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
         
@@ -71,6 +72,16 @@ class PublicToolController extends Controller
         }
 
         // 2. Atomic Budget & Limit Reservation
+        $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
+        $rateCheck = $rateLimiter->tryAcquire('public_tool');
+        if (!$rateCheck['ok']) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'The free scanner tool is receiving high traffic right now. Please wait a moment and try again.',
+                'reason'  => 'rate_limit',
+            ], 429);
+        }
+
         $estimatedCost = 0.0120;
         $check = $guard->checkAndReserve($email, $ip, $estimatedCost, 10.00);
 
@@ -80,6 +91,14 @@ class PublicToolController extends Controller
                 'error'    => $check['message'],
                 'reason'   => $check['reason'],
                 'waitlist' => true,
+            ], 429);
+        }
+
+        if (!$spendGuard->checkAndRecord('public_tool', $estimatedCost, 10.00)) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'The free scanner tool daily spend budget has been reached for today. Please try again tomorrow.',
+                'reason'  => 'spend_cap_exceeded',
             ], 429);
         }
 
@@ -97,8 +116,13 @@ class PublicToolController extends Controller
             $extractionResult = $aiService->extract(
                 'image',
                 [['base64' => $base64, 'mime' => $mime]],
-                'purchase'
+                'purchase',
+                null,
+                ['feature' => 'public_tool']
             );
+
+            $actualCost = (float) ($extractionResult['cost_usd'] ?? $estimatedCost);
+            $spendGuard->reconcile('public_tool', $estimatedCost, $actualCost);
 
             if (!empty($extractionResult['items'])) {
                 foreach ($extractionResult['items'] as $item) {

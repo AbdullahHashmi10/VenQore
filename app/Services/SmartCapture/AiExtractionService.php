@@ -86,17 +86,21 @@ class AiExtractionService
      *
      * @return array{provider:string, api_key:?string, model:string, byok:bool}
      */
-    public function resolveConfig(): array
+    public function resolveConfig(?string $feature = null): array
     {
         // 1. Dedicated per-store SmartCapture settings (BYOK) — strictly tenant-scoped
         $tenantKey = $this->tenantSetting('smartcapture_api_key');
 
         if ($tenantKey !== null) {
             $provider = $this->normalizeProvider($this->tenantSetting('smartcapture_provider') ?: 'gemini');
+            $model = $this->tenantSetting('smartcapture_model');
+            if (!$model && $feature) {
+                $model = config("smartcapture.feature_models.{$feature}");
+            }
             return [
                 'provider' => $provider,
                 'api_key'  => $tenantKey,
-                'model'    => $this->tenantSetting('smartcapture_model') ?: config("smartcapture.default_models.{$provider}"),
+                'model'    => $model ?: config("smartcapture.default_models.{$provider}"),
                 'byok'     => true,
             ];
         }
@@ -104,10 +108,14 @@ class AiExtractionService
         // 2. Legacy tenant chatbot key (historically a Gemini key) — also tenant-scoped
         $legacyKey = $this->tenantSetting('chatbot_api_key') ?? $this->tenantSetting('openai_api_key');
         if ($legacyKey !== null) {
+            $model = null;
+            if ($feature) {
+                $model = config("smartcapture.feature_models.{$feature}");
+            }
             return [
                 'provider' => 'gemini',
                 'api_key'  => $legacyKey,
-                'model'    => config('smartcapture.default_models.gemini'),
+                'model'    => $model ?: config('smartcapture.default_models.gemini'),
                 'byok'     => true,
             ];
         }
@@ -118,10 +126,12 @@ class AiExtractionService
             ? (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'))
             : config('smartcapture.api_key');
 
+        $featureModel = $feature ? config("smartcapture.feature_models.{$feature}") : null;
+
         return [
             'provider' => $provider,
             'api_key'  => $key ?: null,
-            'model'    => config('smartcapture.model') ?: config("smartcapture.default_models.{$provider}"),
+            'model'    => $featureModel ?: (config('smartcapture.model') ?: config("smartcapture.default_models.{$provider}")),
             'byok'     => false,
         ];
     }
@@ -179,7 +189,7 @@ class AiExtractionService
         $this->lastModelUsed = null;
         $this->lastUsage = [];
 
-        $config = $this->resolveConfig();
+        $config = $this->resolveConfig($context['feature'] ?? 'scan');
 
         if (empty($config['api_key'])) {
             throw new \Exception('No AI API key is configured. Add your own key in AI Scan settings.');
@@ -191,6 +201,23 @@ class AiExtractionService
         }
 
         $prompt = $this->buildPrompt($inputType, $targetType, $customCommand, $context);
+
+        // Server-side image verification (T0-5): reject images under 400px
+        if ($inputType === 'image' && is_array($payload)) {
+            foreach ($payload as $file) {
+                if (!empty($file['base64'])) {
+                    $rawBinary = @base64_decode($file['base64']);
+                    if ($rawBinary) {
+                        $info = @getimagesizefromstring($rawBinary);
+                        if ($info && isset($info[0], $info[1])) {
+                            if ($info[0] < 400 || $info[1] < 400) {
+                                throw new \Exception("Image resolution ({$info[0]}x{$info[1]}px) is too low. Please upload a clear photo of at least 400x400 pixels.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Attempt 1 — the configured model. This is the ONLY request in the
         // overwhelming majority of scans.
@@ -237,14 +264,14 @@ class AiExtractionService
             return [];
         }
 
-        $config = $this->resolveConfig();
+        $config = $this->resolveConfig('match_fallback');
         $prompt = "You are matching unmatched receipt line items to candidate store products.\n"
             . "Unmatched items and candidate options:\n"
             . json_encode(['unmatched' => $unmatchedItems, 'candidates' => $candidateLists]) . "\n"
             . "Return a JSON object mapping each unmatched item name to best matched product_id or null.";
 
         try {
-            $raw = $this->dispatch($config, 'gemini-2.5-flash-lite', 'text', ['text' => $prompt], $prompt);
+            $raw = $this->dispatch($config, $config['model'], 'text', ['text' => $prompt], $prompt);
             return $this->parseJson($raw);
         } catch (\Throwable $e) {
             Log::warning("Match fallback call failed: " . $e->getMessage());
@@ -494,13 +521,40 @@ class AiExtractionService
             $parts[] = ['inline_data' => ['mime_type' => $payload['mime'], 'data' => $payload['base64']]];
         }
 
+        $pageCount = ($inputType === 'image' && is_array($payload)) ? max(1, count($payload)) : 1;
+        $maxTokens = 800 + (400 * $pageCount);
+
         $generationConfig = [
             'temperature'      => 0.0,
             'topP'             => 0.1,
-            'maxOutputTokens'  => (int) config('smartcapture.max_output_tokens', 8192),
-            // Forces syntactically valid JSON, which removes the single largest
-            // cause of "parse failed" (and therefore of wasted retries).
+            'maxOutputTokens'  => $maxTokens,
             'responseMimeType' => 'application/json',
+            'responseSchema'   => [
+                'type'       => 'OBJECT',
+                'properties' => [
+                    'a'  => ['type' => 'STRING'],
+                    'pt' => ['type' => 'STRING', 'nullable' => true],
+                    'd'  => ['type' => 'STRING', 'nullable' => true],
+                    'rf' => ['type' => 'STRING', 'nullable' => true],
+                    'dc' => ['type' => 'INTEGER'],
+                    'it' => [
+                        'type'  => 'ARRAY',
+                        'items' => [
+                            'type'       => 'OBJECT',
+                            'properties' => [
+                                'n'  => ['type' => 'STRING'],
+                                'q'  => ['type' => 'NUMBER'],
+                                'p'  => ['type' => 'NUMBER', 'nullable' => true],
+                                't'  => ['type' => 'NUMBER', 'nullable' => true],
+                                'sc' => ['type' => 'STRING', 'nullable' => true],
+                                'c'  => ['type' => 'INTEGER'],
+                            ],
+                            'required' => ['n', 'q', 'c'],
+                        ],
+                    ],
+                ],
+                'required' => ['a', 'dc', 'it'],
+            ],
         ];
 
         $thinkingBudget = $inputType === 'image'
@@ -633,13 +687,50 @@ class AiExtractionService
             $content = $prompt . "\n\n[USER PROVIDED TEXT]\n" . ($payload['text'] ?? '');
         }
 
+        $pageCount = ($inputType === 'image' && is_array($payload)) ? max(1, count($payload)) : 1;
+        $maxTokens = 800 + (400 * $pageCount);
+
         $response = Http::timeout((int) config('smartcapture.timeout', 120))
             ->withToken($apiKey)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model'                 => $model,
                 'temperature'           => 0.0,
-                'max_completion_tokens' => (int) config('smartcapture.max_output_tokens', 8192),
-                'response_format'       => ['type' => 'json_object'],
+                'max_completion_tokens' => $maxTokens,
+                'response_format'       => [
+                    'type'        => 'json_schema',
+                    'json_schema' => [
+                        'name'   => 'terse_extraction_response',
+                        'strict' => true,
+                        'schema' => [
+                            'type'                 => 'object',
+                            'properties'           => [
+                                'a'  => ['type' => 'string'],
+                                'pt' => ['type' => ['string', 'null']],
+                                'd'  => ['type' => ['string', 'null']],
+                                'rf' => ['type' => ['string', 'null']],
+                                'dc' => ['type' => 'integer'],
+                                'it' => [
+                                    'type'  => 'array',
+                                    'items' => [
+                                        'type'                 => 'object',
+                                        'properties'           => [
+                                            'n'  => ['type' => 'string'],
+                                            'q'  => ['type' => 'number'],
+                                            'p'  => ['type' => ['number', 'null']],
+                                            't'  => ['type' => ['number', 'null']],
+                                            'sc' => ['type' => ['string', 'null']],
+                                            'c'  => ['type' => 'integer'],
+                                        ],
+                                        'required'             => ['n', 'q', 'p', 't', 'sc', 'c'],
+                                        'additionalProperties' => false,
+                                    ],
+                                ],
+                            ],
+                            'required'             => ['a', 'pt', 'd', 'rf', 'dc', 'it'],
+                            'additionalProperties' => false,
+                        ],
+                    ],
+                ],
                 'messages'              => [['role' => 'user', 'content' => $content]],
             ]);
 
@@ -734,15 +825,51 @@ class AiExtractionService
             $content[] = ['type' => 'text', 'text' => $prompt . "\n\n[USER PROVIDED TEXT]\n" . ($payload['text'] ?? '')];
         }
 
+        $pageCount = ($inputType === 'image' && is_array($payload)) ? max(1, count($payload)) : 1;
+        $maxTokens = 800 + (400 * $pageCount);
+
+        $toolSchema = [
+            'name'         => 'extract_terse_transaction',
+            'description'  => 'Extract document details using terse schema.',
+            'input_schema' => [
+                'type'       => 'object',
+                'properties' => [
+                    'a'  => ['type' => 'string'],
+                    'pt' => ['type' => 'string'],
+                    'd'  => ['type' => 'string'],
+                    'rf' => ['type' => 'string'],
+                    'dc' => ['type' => 'integer'],
+                    'it' => [
+                        'type'  => 'array',
+                        'items' => [
+                            'type'       => 'object',
+                            'properties' => [
+                                'n'  => ['type' => 'string'],
+                                'q'  => ['type' => 'number'],
+                                'p'  => ['type' => 'number'],
+                                't'  => ['type' => 'number'],
+                                'sc' => ['type' => 'string'],
+                                'c'  => ['type' => 'integer'],
+                            ],
+                            'required' => ['n', 'q', 'c'],
+                        ],
+                    ],
+                ],
+                'required' => ['a', 'dc', 'it'],
+            ],
+        ];
+
         $response = Http::timeout((int) config('smartcapture.timeout', 120))
             ->withHeaders([
                 'x-api-key'         => $apiKey,
                 'anthropic-version' => '2023-06-01',
             ])
             ->post('https://api.anthropic.com/v1/messages', [
-                'model'      => $model,
-                'max_tokens' => (int) config('smartcapture.max_output_tokens', 8192),
-                'messages'   => [['role' => 'user', 'content' => $content]],
+                'model'       => $model,
+                'max_tokens'  => $maxTokens,
+                'messages'    => [['role' => 'user', 'content' => $content]],
+                'tools'       => [$toolSchema],
+                'tool_choice' => ['type' => 'tool', 'name' => 'extract_terse_transaction'],
             ]);
 
         if ($response->failed()) {
@@ -774,6 +901,11 @@ class AiExtractionService
             \Illuminate\Support\Facades\Log::warning("Failed to record Anthropic ai_usage_event: " . $e->getMessage());
         }
 
+        $toolUseInput = $response->json('content.0.input');
+        if (is_array($toolUseInput)) {
+            return json_encode($toolUseInput);
+        }
+
         $text = $response->json('content.0.text');
         if (!$text) {
             throw new \Exception('Empty response from Anthropic.');
@@ -788,11 +920,14 @@ class AiExtractionService
             throw new \Exception('DeepSeek supports text input only. Use Gemini, OpenAI or Claude for photos/audio.');
         }
 
+        $maxTokens = 800 + 400; // text only = 1 page equivalent
+
         $response = Http::timeout((int) config('smartcapture.timeout', 120))
             ->withToken($apiKey)
             ->post('https://api.deepseek.com/chat/completions', [
                 'model'           => $model,
                 'temperature'     => 0.0,
+                'max_tokens'      => $maxTokens,
                 'response_format' => ['type' => 'json_object'],
                 'messages'        => [[
                     'role'    => 'user',
@@ -1023,6 +1158,15 @@ class AiExtractionService
             $prompt .= "\n\n[TARGET DOCUMENT TYPE]\nThe user explicitly requested to create a '{$targetType}'. You MUST set \"action\" to exactly '{$targetType}'.";
         }
 
+        if (!empty($context['document_type'])) {
+            $docType = $context['document_type'];
+            $prompt .= "\n\n[DOCUMENT FORMAT HINT]\nThe user specified this document is a '{$docType}'. Tailor your extraction specifically for a {$docType}.";
+        }
+
+        if (!empty($context['is_handwritten'])) {
+            $prompt .= "\n\n[PRIORITY NOTICE: HANDWRITTEN DOCUMENT]\nThis document is explicitly flagged as HANDWRITTEN. Apply extra scrutiny using the HANDWRITING PROTOCOL above.";
+        }
+
         if ($customCommand) {
             $prompt .= "\n\n[USER INSTRUCTIONS]\nRespect these additional user instructions while extracting:\n\"{$customCommand}\"";
         }
@@ -1062,6 +1206,19 @@ class AiExtractionService
             $prompt .= "\n\n[EXPENSE CATEGORIES]\n"
                 . json_encode($categories) . "\n"
                 . "If action is 'expense', set \"expense_category\" to the closest category name from this list (or null if none fits).";
+        }
+
+        // ── Party chosen by the user before scanning (SmartCaptureController) ──
+        // Telling the model who the document belongs to stops it inventing a
+        // party from a letterhead or a slogan, and lets the controller flag a
+        // mismatch (e.g. a supplier bill scanned against a chosen customer)
+        // instead of silently using the model's own guess.
+        $knownParty = $context['known_party'] ?? null;
+        if (!empty($knownParty)) {
+            $prompt .= "\n\n[PARTY CHOSEN BEFORE SCANNING]\n"
+                . "The user has already told us this document belongs to: "
+                . json_encode($knownParty) . "\n"
+                . "Use this as the party unless the document clearly names a different party — in that case, extract what the document actually says and let the app flag the mismatch.";
         }
 
         return $prompt;

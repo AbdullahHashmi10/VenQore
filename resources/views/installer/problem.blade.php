@@ -140,7 +140,7 @@
                         <div class="accordion-body active">
                             <h3>1. Check .env File</h3>
                             <p>Verify these settings in your <code>.env</code> file:</p>
-                            <pre>DB_CONNECTION=mysql
+                            <pre>DB_CONNECTION=mariadb
 DB_HOST=127.0.0.1
 DB_DATABASE=your_db_name
 DB_USERNAME=your_db_user</pre>

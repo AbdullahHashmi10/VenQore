@@ -109,6 +109,7 @@ class ChatRoutingService
                     'prompt_tokens' => $usage['promptTokenCount'] ?? null,
                     'completion_tokens' => $usage['candidatesTokenCount'] ?? null,
                     'total_tokens' => $usage['totalTokenCount'] ?? null,
+                    'cost_usd' => $aiResponse['cost_usd'] ?? 0.0,
                     'model' => $aiResponse['model'] ?? null,
                     'api_key_type' => $aiResponse['api_key_type'] ?? null,
                 ],

@@ -86,7 +86,7 @@ class SmartCaptureController extends Controller
         }
 
         $check = $this->entitlement->checkScan();
-        $config = $this->extractionService->resolveConfig();
+        $config = $this->extractionService->resolveConfig('scan');
 
         return response()->json([
             'success' => true,
@@ -357,6 +357,8 @@ class SmartCaptureController extends Controller
                     // This store's own confirmed vocabulary, so local shorthand
                     // resolves on the first pass instead of needing a correction.
                     'learned_aliases'    => $this->learning->promptHints(),
+                    'document_type'      => $request->input('document_type'),
+                    'is_handwritten'     => $request->boolean('is_handwritten'),
                     // Telling the model who the document belongs to stops it
                     // inventing a party from a letterhead or a slogan.
                     'known_party'        => $chosenParty ? [
@@ -464,8 +466,9 @@ class SmartCaptureController extends Controller
                     // How sure the model was that it READ this line correctly —
                     // distinct from how sure we are which product it maps to.
                     'read_confidence' => isset($item['confidence']) ? (int) $item['confidence'] : null,
-                    'needs_review' => (isset($item['confidence']) && (int) $item['confidence'] < 80),
-                    'learned'      => $isLearned,
+                    'needs_review'    => (isset($item['confidence']) && (int) $item['confidence'] < 80) || $arithmeticFail,
+                    'arithmetic_flag' => $arithmeticFail,
+                    'learned'         => $isLearned,
                     'match_reason' => $bestMatch['reason'] ?? null,
                     'product_id'   => $productId,
                     'candidates'   => array_map(fn ($m) => [
@@ -515,47 +518,58 @@ class SmartCaptureController extends Controller
                 $this->entitlement->debitPage($check['mode'], $pagesToDebit);
             }
 
-            $responsePayload = [
-                'success'               => true,
-                'quota_status'          => $this->entitlement->checkWarningThreshold(),
-                'action'                => $resolvedAction,
-                'party'                 => $partyName,
-                'party_type'            => $partyType,
-                'party_candidates'      => $partyCandidates,
-                'suggested_party_id'    => $suggestedPartyId,
-                'party_learned'         => $partyLearned,
-                // Set when the user named the party before scanning.
-                'party_preselected'     => $chosenParty ? [
-                    'id'   => $chosenParty->id,
-                    'name' => $chosenParty->name,
-                    'type' => $chosenParty->type,
-                    // True when the document turned out to be the other side of
-                    // the ledger from what they picked (e.g. they chose a
-                    // customer but the scan is a supplier bill).
-                    'type_mismatch' => $chosenParty->type !== $partyType,
-                ] : null,
-                'expense_category'      => $rawResult['expense_category'] ?? null,
-                'suggested_category_id' => $suggestedCategoryId,
-                'category_learned'      => $categoryLearned,
-                'date'                  => $rawResult['date'] ?? null,
-                'reference'             => $rawResult['reference'] ?? null,
-                'notes'                 => $rawResult['notes'] ?? null,
-                'document_confidence'   => isset($rawResult['document_confidence']) ? (int) $rawResult['document_confidence'] : null,
-                'items'                 => $matchedItems,
-                'meta'                  => [
-                    // Proof of the one-scan-one-request contract, visible in the UI.
-                    'api_requests'  => $this->extractionService->lastRequestCount,
-                    'model'         => $this->extractionService->lastModelUsed,
-                    'tokens'        => $this->extractionService->lastUsage,
-                    'learned_lines' => $learnedCount,
-                ],
-            ];
+            try {
+                $responsePayload = [
+                    'success'               => true,
+                    'quota_status'          => $this->entitlement->checkWarningThreshold(),
+                    'action'                => $resolvedAction,
+                    'party'                 => $partyName,
+                    'party_type'            => $partyType,
+                    'party_candidates'      => $partyCandidates,
+                    'suggested_party_id'    => $suggestedPartyId,
+                    'party_learned'         => $partyLearned,
+                    // Set when the user named the party before scanning.
+                    'party_preselected'     => $chosenParty ? [
+                        'id'   => $chosenParty->id,
+                        'name' => $chosenParty->name,
+                        'type' => $chosenParty->type,
+                        // True when the document turned out to be the other side of
+                        // the ledger from what they picked (e.g. they chose a
+                        // customer but the scan is a supplier bill).
+                        'type_mismatch' => $chosenParty->type !== $partyType,
+                    ] : null,
+                    'expense_category'      => $rawResult['expense_category'] ?? null,
+                    'suggested_category_id' => $suggestedCategoryId,
+                    'category_learned'      => $categoryLearned,
+                    'date'                  => $rawResult['date'] ?? null,
+                    'reference'             => $rawResult['reference'] ?? null,
+                    'notes'                 => $rawResult['notes'] ?? null,
+                    'document_confidence'   => isset($rawResult['document_confidence']) ? (int) $rawResult['document_confidence'] : null,
+                    'items'                 => $matchedItems,
+                    'meta'                  => [
+                        // Proof of the one-scan-one-request contract, visible in the UI.
+                        'api_requests'  => $this->extractionService->lastRequestCount,
+                        'model'         => $this->extractionService->lastModelUsed,
+                        'tokens'        => $this->extractionService->lastUsage,
+                        'learned_lines' => $learnedCount,
+                    ],
+                ];
 
-            if (isset($dedupeHash)) {
-                Cache::put($dedupeHash, $responsePayload, 86400);
+                if (isset($dedupeHash)) {
+                    Cache::put($dedupeHash, $responsePayload, 86400);
+                }
+
+                return response()->json($responsePayload);
+            } catch (\Throwable $postDebitErr) {
+                if ($pagesToDebit > 0) {
+                    $this->entitlement->refundPage($check['mode'], $pagesToDebit);
+                }
+                Log::error('SmartCapture post-debit assembly failed: ' . $postDebitErr->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your scan succeeded but we hit an error preparing the results — your page credit was not charged. Please try again.',
+                ], 500);
             }
-
-            return response()->json($responsePayload);
         } catch (AiRateLimitException $e) {
             // Never retried server-side — the user gets a countdown instead.
             return response()->json([

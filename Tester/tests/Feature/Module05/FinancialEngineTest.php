@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 /**
  * Module 03 — Financial Engine
  *

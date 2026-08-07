@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\BankAccount;
 use Illuminate\Support\Facades\DB;
 

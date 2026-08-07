@@ -11,9 +11,12 @@ use App\Helpers\SettingsHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
+use Tests\Feature\VenQoreTestCase;
+
+uses(VenQoreTestCase::class);
 
 beforeEach(function () {
-    $this->tenant = $this->createTenant('store-1');
+    $this->tenant = $this->createTenant('store-1', 'business');
     $this->actingAsOwner($this->tenant);
     $this->seedTenantDefaults($this->tenant);
 
@@ -216,6 +219,7 @@ test('drm offline lock restricts usage when license is invalid offline', functio
 // for each unit being sold.
 
 test('serial tracking validation checks serial numbers at checkout', function () {
+    $this->tenant->update(['feature_serials' => true]);
     // Create a serial-tracked product with stock
     $product = Product::factory()->create([
         'tenant_id'    => $this->tenant->id,

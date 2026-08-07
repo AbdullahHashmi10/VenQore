@@ -39,6 +39,7 @@
         "vitest": "^4.1.10"
     },
     "dependencies": {
+        "@heroicons/react": "^2.2.0",
         "dexie": "^4.2.1",
         "driver.js": "^1.4.0",
         "laravel-echo": "^2.3.4",

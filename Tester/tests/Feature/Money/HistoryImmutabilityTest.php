@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Stock;

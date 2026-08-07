@@ -170,6 +170,63 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
                     </div>
                 </div>
             </div>
+
+            {/* Data Privacy & Opt-Out Settings */}
+            <div className="p-6 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                        <Globe size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-base font-bold text-slate-800 dark:text-white">Data Privacy & Community Intelligence</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Control data sharing and AI accuracy improvement settings</p>
+                    </div>
+                </div>
+
+                <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                    <div className="flex items-center justify-between py-2">
+                        <div>
+                            <span className="text-sm font-bold text-slate-800 dark:text-white block">Opt out of Shared Product Catalog</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Do not contribute anonymized SKU names/barcodes to global catalog matching</span>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={!!data.shared_catalog_opt_out}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setData('shared_catalog_opt_out', checked);
+                                const { router } = require('@inertiajs/react');
+                                router.post(route('store.settings.data-privacy.update'), {
+                                    shared_catalog_opt_out: checked,
+                                    ai_accuracy_opt_in: !!data.ai_accuracy_opt_in
+                                }, { preserveScroll: true });
+                            }}
+                            className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between py-2 border-t border-slate-100 dark:border-slate-700/50">
+                        <div>
+                            <span className="text-sm font-bold text-slate-800 dark:text-white block">Opt in to AI Accuracy Learning</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Allow anonymized receipt extraction corrections to train model prompts</span>
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={!!data.ai_accuracy_opt_in}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setData('ai_accuracy_opt_in', checked);
+                                const { router } = require('@inertiajs/react');
+                                router.post(route('store.settings.data-privacy.update'), {
+                                    shared_catalog_opt_out: !!data.shared_catalog_opt_out,
+                                    ai_accuracy_opt_in: checked
+                                }, { preserveScroll: true });
+                            }}
+                            className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

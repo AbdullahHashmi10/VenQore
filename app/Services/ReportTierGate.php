@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class ReportTierGate
 {
     public static $order = ['starter', 'growth', 'business'];
@@ -16,12 +18,12 @@ class ReportTierGate
 
         if ($plan === 'ltd' && app()->bound('current.tenant')) {
             $tenant = app('current.tenant');
-            $txLimit = $tenant->getLimit('transactions_per_month');
-            if ($txLimit == 500) {
+            $txLimit = (int) $tenant->getLimit('transactions_per_month');
+            if ($txLimit === 500 || $txLimit === 1000) {
                 return 'starter';
-            } elseif ($txLimit == 2000) {
+            } elseif ($txLimit === 2000 || $txLimit === 3000) {
                 return 'growth';
-            } elseif ($txLimit == 6000) {
+            } elseif ($txLimit === 6000 || $txLimit === 8000) {
                 return 'business';
             }
         }
@@ -62,7 +64,12 @@ class ReportTierGate
         $requiredIndex = array_search($requiredTier, self::$order);
 
         if ($tenantIndex === false) {
-            $tenantIndex = 0; // default to starter
+            Log::error('ReportTierGate: unrecognized tenant tier, failing open', [
+                'tenant_id'     => $tenant?->id,
+                'plan'          => $tenantPlan,
+                'resolved_tier' => $tenantTier,
+            ]);
+            return true; // fail open — never silently deny a paying customer
         }
         if ($requiredIndex === false) {
             return true;

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module10;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Product;
 use Tests\Feature\VenQoreTestCase;
 

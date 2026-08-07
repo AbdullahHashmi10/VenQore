@@ -141,13 +141,15 @@ class CleanupDeadAccounts extends Command
                     }
                 }
 
-                // Delete R2 folder (uncomment when R2 is configured — Phase 3.3)
-                // try {
-                //     Storage::disk('r2')->deleteDirectory("tenants/{$tenant->id}");
-                //     $this->line("  ✓ R2 folder deleted");
-                // } catch (\Throwable $e) {
-                //     $this->warn("  ⚠ R2 folder deletion failed: " . $e->getMessage());
-                // }
+                // Delete R2 cloud files
+                try {
+                    if (Storage::disk('r2')->exists("tenants/{$tenant->id}")) {
+                        Storage::disk('r2')->deleteDirectory("tenants/{$tenant->id}");
+                    }
+                    $this->line("  ✓ R2 folder deleted");
+                } catch (\Throwable $e) {
+                    $this->warn("  ⚠ R2 folder deletion failed: " . $e->getMessage());
+                }
 
                 // Finally delete the tenant record itself
                 $tenant->forceDelete();

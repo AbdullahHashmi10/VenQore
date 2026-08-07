@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 /**
  * M1-06 — Tax After Discount Test
  *

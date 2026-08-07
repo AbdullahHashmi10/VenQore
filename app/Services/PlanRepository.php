@@ -220,6 +220,22 @@ class PlanRepository
             }
         }
 
+        $aliases = [
+            'recipes' => 'bill_of_materials',
+            'cash_flow_report' => 'report_cash_flow',
+            'cash_flow' => 'report_cash_flow',
+            'stock_valuation_report' => 'report_stock_valuation',
+            'stock_valuation' => 'report_stock_valuation',
+            'inventory_valuation' => 'report_stock_valuation',
+            'inventory_valuation_report' => 'report_stock_valuation',
+            'aged_receivables' => 'report_sales_aging',
+            'profit_loss' => 'report_profit_loss',
+            'trial_balance' => 'report_trial_balance',
+        ];
+        if (isset($aliases[$feature])) {
+            $feature = $aliases[$feature];
+        }
+
         $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $feature);
 
         if ($val === null) {

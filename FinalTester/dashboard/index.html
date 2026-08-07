@@ -210,7 +210,12 @@
   </div>
 
   <!-- ================= AREAS ================= -->
-  <h2>Coverage by area</h2>
+  <div class="head-row">
+    <h2>Coverage by area</h2>
+    <div class="copybar">
+      <button class="mini" data-copy="areas">Copy by area</button>
+    </div>
+  </div>
   <div class="areas" id="areas"></div>
 
   <!-- ================= FAILURES ================= -->
@@ -739,6 +744,37 @@
     }).join('\n');
   }
 
+  function buildAreasText() {
+    var areas = (lastState && lastState.areas) || {};
+    var names = Object.keys(areas).sort();
+    var out = ['VenQore test coverage by area (includes Routes/Guardrails/etc.)',
+               new Date().toISOString(), ''.padEnd(78, '='), '',
+               padCol('AREA', 24) + padCol('EXPECTED', 10) + padCol('EXECUTED', 10)
+                 + padCol('PASSED', 8) + padCol('FAILED', 8) + padCol('SKIPPED', 8) + 'STATUS'];
+    out.push(''.padEnd(78, '-'));
+    var totals = { expected: 0, executed: 0, passed: 0, failed: 0, skipped: 0 };
+    names.forEach(function (name) {
+      var a = areas[name];
+      totals.expected += a.expected || 0;
+      totals.executed += a.executed || 0;
+      totals.passed += a.passed || 0;
+      totals.failed += a.failed || 0;
+      totals.skipped += a.skipped || 0;
+      out.push(padCol(name, 24) + padCol(fmt(a.expected), 10) + padCol(fmt(a.executed), 10)
+        + padCol(fmt(a.passed), 8) + padCol(fmt(a.failed), 8) + padCol(fmt(a.skipped), 8)
+        + (a.status || '?'));
+    });
+    out.push(''.padEnd(78, '-'));
+    out.push(padCol('TOTAL', 24) + padCol(fmt(totals.expected), 10) + padCol(fmt(totals.executed), 10)
+      + padCol(fmt(totals.passed), 8) + padCol(fmt(totals.failed), 8) + padCol(fmt(totals.skipped), 8));
+    return out.join('\n');
+  }
+
+  function padCol(v, width) {
+    v = String(v == null ? '' : v);
+    return v.length >= width ? v + ' ' : v + ''.padEnd(width - v.length, ' ');
+  }
+
   function buildSummaryText() {
     var s = lastState || {};
     return [
@@ -761,6 +797,7 @@
 
   function buildEverythingText() {
     return buildSummaryText() + '\n\n\n'
+         + buildAreasText() + '\n\n\n'
          + buildGroupedText() + '\n\n\n'
          + buildFailuresText() + '\n\n\n'
          + 'RUNNER OUTPUT\n' + ''.padEnd(70, '=') + '\n'
@@ -771,6 +808,7 @@
     'failures': buildFailuresText,
     'failures-grouped': buildGroupedText,
     'failures-names': buildNamesText,
+    'areas': buildAreasText,
     'console': function () { return lines.join('\n'); },
     'summary': buildSummaryText,
     'everything': buildEverythingText

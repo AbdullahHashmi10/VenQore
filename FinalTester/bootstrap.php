@@ -67,10 +67,10 @@ if ($db === 'venqore_pos') {
 // ---------------------------------------------------------------------------
 $connection = getenv('DB_CONNECTION') ?: ($_ENV['DB_CONNECTION'] ?? 'mysql');
 
-if ($connection !== 'mysql') {
+if ($connection !== 'mysql' && $connection !== 'mariadb') {
     fwrite(STDERR, str_repeat('=', 74) . PHP_EOL);
-    fwrite(STDERR, "FATAL: DB_CONNECTION is '{$connection}' — this suite requires 'mysql'." . PHP_EOL);
-    fwrite(STDERR, "VenQore asserts on MySQL trigger, decimal and isolation semantics." . PHP_EOL);
+    fwrite(STDERR, "FATAL: DB_CONNECTION is '{$connection}' — this suite requires 'mysql' or 'mariadb'." . PHP_EOL);
+    fwrite(STDERR, "VenQore asserts on MySQL/MariaDB trigger, decimal and isolation semantics." . PHP_EOL);
     fwrite(STDERR, "Results from any other engine are not trustworthy. Aborting." . PHP_EOL);
     fwrite(STDERR, str_repeat('=', 74) . PHP_EOL);
     exit(1);

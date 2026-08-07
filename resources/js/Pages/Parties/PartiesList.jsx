@@ -9,6 +9,7 @@ import {
     Search, Download, Printer, Edit2, Trash2, Eye, ChevronUp, ChevronDown, X, Filter
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
+import PlanGate from '@/Components/PlanGate';
 import axios from 'axios';
 
 export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
@@ -366,44 +367,46 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                 </div>
 
                 {/* Stats Cards - Responsive Grid */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
-                                <Users size={14} />
+                <PlanGate feature="outstanding_balance_grid" showUpgradeBadge={false}>
+                    <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+                        <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
+                                    <Users size={14} />
+                                </div>
+                                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Parties</p>
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Parties</p>
+                            <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.total || 0}</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.total || 0}</p>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
-                                <UserCheck size={14} />
+                        <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+                                    <UserCheck size={14} />
+                                </div>
+                                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Customers</p>
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Customers</p>
+                            <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
-                                <TrendingUp size={14} />
+                        <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
+                                    <TrendingUp size={14} />
+                                </div>
+                                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">To Receive</p>
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">To Receive</p>
+                            <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.receivables)}</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.receivables)}</p>
-                    </div>
-                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg shrink-0">
-                                <TrendingDown size={14} />
+                        <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <div className="p-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg shrink-0">
+                                    <TrendingDown size={14} />
+                                </div>
+                                <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Payables</p>
                             </div>
-                            <p className="text-2xs sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Payables</p>
+                            <p className="text-sm sm:text-base md:text-lg font-black text-rose-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.payables)}</p>
                         </div>
-                        <p className="text-sm sm:text-base md:text-lg font-black text-rose-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.payables)}</p>
                     </div>
-                </div>
+                </PlanGate>
 
                 {/* Mobile Toolbar (sm:hidden) */}
                 <div className="sm:hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">

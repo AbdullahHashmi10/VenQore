@@ -726,10 +726,38 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     // ── Intake option controls ───────────────────────────────────────────────
     const openDocs = ctx?.open_documents?.[appendDocType] || [];
 
-    const renderAdvancedControls = () => (
-        <div className="mb-6 space-y-4 text-left bg-slate-900/40 backdrop-blur-md p-5 rounded-3xl border border-white/5 relative z-20 font-sans shadow-xl">
-            {/* Create new vs append */}
-            <div className="flex gap-2">
+    const renderAdvancedControls = () => {
+        const pagesUsed = ctx?.entitlement?.pages_used ?? 0;
+        const pagesLimit = ctx?.entitlement?.pages_limit ?? 0;
+        const usagePercent = (pagesLimit > 0) ? Math.min(100, Math.round((pagesUsed / pagesLimit) * 100)) : 0;
+
+        return (
+            <div className="mb-6 space-y-4 text-left bg-slate-900/40 backdrop-blur-md p-5 rounded-3xl border border-white/5 relative z-20 font-sans shadow-xl">
+                {/* Quota Warning & Block Banners (T2-4) */}
+                {pagesLimit > 0 && usagePercent >= 80 && (
+                    <div className={`p-3.5 rounded-2xl text-xs font-medium flex items-center justify-between gap-3 border ${usagePercent >= 100
+                        ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle size={16} className="shrink-0" />
+                            <span>
+                                {usagePercent >= 100
+                                    ? `100% Quota Exceeded (${pagesUsed}/${pagesLimit} pages used). Upgrade tier or switch to BYOK.`
+                                    : `Quota Warning: ${usagePercent}% of monthly AI pages used (${pagesUsed}/${pagesLimit} pages).`}
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={openSettings}
+                            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-2xs font-bold whitespace-nowrap"
+                        >
+                            BYOK / Upgrade
+                        </button>
+                    </div>
+                )}
+
+                {/* Create new vs append */}
+                <div className="flex gap-2">
                 <button
                     type="button"
                     onClick={() => setAppendMode(false)}
@@ -866,6 +894,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             )}
         </div>
     );
+};
 
     // ── Settings drawer UI ───────────────────────────────────────────────────
     const renderSettingsDrawer = () => (

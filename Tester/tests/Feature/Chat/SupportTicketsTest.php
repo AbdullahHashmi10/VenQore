@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\SupportTicket;
 use App\Models\SupportTicketReply;
 use App\Models\Tenant;

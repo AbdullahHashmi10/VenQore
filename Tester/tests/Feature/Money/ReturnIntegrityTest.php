@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 /**
  * ════════════════════════════════════════════════════════════════════════════
  *  SELLABLE-BLOCKER ACCEPTANCE TESTS — Returns money-integrity

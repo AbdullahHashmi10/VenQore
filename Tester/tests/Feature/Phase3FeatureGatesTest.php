@@ -59,9 +59,12 @@ class Phase3FeatureGatesTest extends TestCase
         ]);
         $this->actingAs($user);
 
-        // Counter plan has aged_receivables disabled -> expect 402 for JSON
+        // Counter plan has aged_receivables disabled -> EnsurePlanFeature
+        // middleware returns 403 with code=feature_locked for JSON/testing requests
+        // (see app/Http/Middleware/EnsurePlanFeature.php) — matches the other 21
+        // feature-gating tests in this suite that expect 403, not 402.
         $response = $this->getJson("/s/{$this->counterTenant->slug}/reports/sale-aging");
-        $response->assertStatus(402)
+        $response->assertStatus(403)
             ->assertJson([
                 'success' => false,
                 'code'    => 'feature_locked',

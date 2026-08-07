@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module12;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Tests\Feature\VenQoreTestCase;
 
 test('profit_and_loss_revenue_equals_sum_of_net_sales', function () {

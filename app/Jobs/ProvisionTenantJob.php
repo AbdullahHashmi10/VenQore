@@ -179,6 +179,24 @@ class ProvisionTenantJob implements ShouldQueue
             $aiScans = 90;
             $isAddon = true;
         }
+        if ($aiLiteId && $variantIdStr === (string)$aiLiteId) {
+            $aiStatus = 'managed';
+            $aiQueries = 200;
+            $aiScans = 150;
+            $isAddon = true;
+        }
+        if ($aiProId && $variantIdStr === (string)$aiProId) {
+            $aiStatus = 'managed';
+            $aiQueries = 420;
+            $aiScans = 480;
+            $isAddon = true;
+        }
+        if ($aiUltimateId && $variantIdStr === (string)$aiUltimateId) {
+            $aiStatus = 'managed';
+            $aiQueries = 800;
+            $aiScans = 850;
+            $isAddon = true;
+        }
 
         $aiTiers = config('pricing.ai_tiers', []);
         $sparkVariant = $aiTiers['spark']['lemon_squeezy_variant_id'] ?? config('services.lemon_squeezy.ai_spark_variant_id');
@@ -216,6 +234,51 @@ class ProvisionTenantJob implements ShouldQueue
             $aiQueries = 999999;
             $aiScans = 999999;
             $isAddon = true;
+        }
+
+        $staffSeatId    = config('pricing.add_ons.staff_seat.variant_id') ?? config('services.lemon_squeezy.staff_seat_addon_id');
+        $locationSeatId = config('pricing.add_ons.location_seat.variant_id') ?? config('services.lemon_squeezy.location_seat_addon_id');
+
+        if ($staffSeatId && $staffSeatId !== 'REPLACE_ME' && $variantIdStr === (string)$staffSeatId) {
+            $isAddon = true;
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+                if ($tenant) {
+                    $currentLimit = (int) $tenant->getLimit('staff_limit');
+                    $quantity = (int) (data_get($this->payload, 'data.attributes.quantity') ?? 1);
+                    \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                        ['tenant_id' => $tenant->id, 'override_key' => 'staff_limit'],
+                        [
+                            'override_value' => (string) ($currentLimit + $quantity),
+                            'reason'         => 'Purchased additional staff seat add-on (Lemon Squeezy)',
+                            'updated_at'     => now(),
+                            'created_at'     => now(),
+                        ]
+                    );
+                    \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+                }
+            }
+        }
+
+        if ($locationSeatId && $locationSeatId !== 'REPLACE_ME' && $variantIdStr === (string)$locationSeatId) {
+            $isAddon = true;
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+                if ($tenant) {
+                    $currentLimit = (int) $tenant->getLimit('locations');
+                    $quantity = (int) (data_get($this->payload, 'data.attributes.quantity') ?? 1);
+                    \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                        ['tenant_id' => $tenant->id, 'override_key' => 'locations'],
+                        [
+                            'override_value' => (string) ($currentLimit + $quantity),
+                            'reason'         => 'Purchased additional location seat add-on (Lemon Squeezy)',
+                            'updated_at'     => now(),
+                            'created_at'     => now(),
+                        ]
+                    );
+                    \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+                }
+            }
         }
 
         $aiTopupId = config('services.lemon_squeezy.ai_topup_addon_id');

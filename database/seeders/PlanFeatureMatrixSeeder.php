@@ -241,6 +241,19 @@ class PlanFeatureMatrixSeeder extends Seeder
             'report_expiring_soon'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'report_profit_loss'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'report_trial_balance'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            // Launch gap found 2026-08-07: these 3 keys are used by routes/web.php
+            // (plan.feature:discount_report / cash_flow_report / stock_valuation)
+            // but were never seeded here, so featureOn()'s fail-closed default
+            // locked them for EVERY plan including business/ltd_3. Tiered to match
+            // similar-weight report keys above (report_account_ledger/report_stock_aging).
+            'discount_report'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'cash_flow_report'           => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'stock_valuation'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            // 'stock_aging' (no 'report_' prefix) is the actual key routes/web.php
+            // gates /reports/stock-aging on. 'report_stock_aging' above is a
+            // DIFFERENT, separate SuperAdmin-only toggle (see featureGroups.js)
+            // with no route wired to it — not a duplicate, don't merge these.
+            'stock_aging'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'report_transactions_history'=> ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'report_item_profit'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'report_bill_profitability'  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
@@ -305,6 +318,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'ai_queries_limit'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'ai_outreach_limit'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'owners_daily_pulse'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'bulk_upload'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
 
             // Group 11 — Live Chat & Customer Engagement
             'live_chat_widget'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
@@ -340,7 +354,9 @@ class PlanFeatureMatrixSeeder extends Seeder
                     if ($slug === 'ltd_3') $baseSlug = 'business';
 
                     // We also keep some standard overrides specifically as in migrations:
-                    $val = $values[$baseSlug] ?? $values['starter'] ?? '0';
+                    $val = array_key_exists($baseSlug, $values)
+                        ? $values[$baseSlug]
+                        : (array_key_exists('starter', $values) ? $values['starter'] : '0');
 
                     // Specific Counter plan overrides
                     if ($slug === 'counter') {
@@ -367,7 +383,7 @@ class PlanFeatureMatrixSeeder extends Seeder
                         if ($key === 'ai_queries_limit') $val = '50';
                     }
 
-                    // Specific AppSumo customizations to preserve V4 build plan specs:
+                    // Specific AppSumo customizations to preserve V4 build plan specs (single source of truth: 1000 / 3000 / 8000):
                     if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '1000';
                     if ($slug === 'ltd_2' && $key === 'transactions_per_month') $val = '3000';
                     if ($slug === 'ltd_3' && $key === 'transactions_per_month') $val = '8000';

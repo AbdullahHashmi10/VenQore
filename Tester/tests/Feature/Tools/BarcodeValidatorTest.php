@@ -64,6 +64,8 @@ class BarcodeValidatorTest extends TestCase
 
     public function test_validator_requires_no_email(): void
     {
+        \Illuminate\Support\Facades\DB::table('tool_lead_events')->delete();
+        \Illuminate\Support\Facades\DB::table('tool_leads')->delete();
         $response = $this->postJson(route('tools.barcode-validator.check'), [
             'value' => '036000291452',
         ]);

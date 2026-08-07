@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { usePlan } from '@/Hooks/usePlan';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
 
 export default function PlanGate({ feature, children, fallback = null, showUpgradeBadge = true }) {
+    const { store } = usePage().props;
     const { hasFeature } = usePlan();
     const isAllowed = hasFeature(feature);
 
@@ -32,7 +33,7 @@ export default function PlanGate({ feature, children, fallback = null, showUpgra
                     The requested feature is not included in your current subscription plan.
                 </p>
                 <Link
-                    href={route('billing.index')}
+                    href={route('store.billing', { store_slug: store?.slug })}
                     className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition"
                 >
                     Upgrade Plan

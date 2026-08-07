@@ -50,4 +50,38 @@ class AiSpendGuard
             return !$tripped;
         }, 3);
     }
+
+    /**
+     * Reconcile estimated cost with actual cost incurred for today's spend counter.
+     * Adjusts current spend_usd by ($actualCost - $estimatedCost).
+     */
+    public function reconcile(string $scope, float $estimatedCost, float $actualCost): void
+    {
+        $today = today()->toDateString();
+        $delta = $actualCost - $estimatedCost;
+
+        if (abs($delta) < 0.00000001) {
+            return;
+        }
+
+        DB::transaction(function () use ($scope, $today, $delta) {
+            $row = DB::table('ai_spend_counters')
+                ->where('scope', $scope)
+                ->where('day', $today)
+                ->lockForUpdate()
+                ->first();
+
+            if ($row) {
+                $newSpend = max(0, (float) $row->spend_usd + $delta);
+                $tripped = $newSpend >= (float) $row->cap_usd;
+
+                DB::table('ai_spend_counters')
+                    ->where('id', $row->id)
+                    ->update([
+                        'spend_usd' => $newSpend,
+                        'tripped'   => $tripped,
+                    ]);
+            }
+        }, 3);
+    }
 }

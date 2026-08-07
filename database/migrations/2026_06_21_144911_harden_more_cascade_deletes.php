@@ -12,7 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             // 1. stock_movements.product_id -> products.id [RESTRICT] (prevent deleting product if it has movements)
             if (Schema::hasTable('stock_movements') && Schema::hasColumn('stock_movements', 'product_id')) {
                 Schema::table('stock_movements', function (Blueprint $table) {
@@ -46,7 +47,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             if (Schema::hasTable('stock_movements') && Schema::hasColumn('stock_movements', 'product_id')) {
                 Schema::table('stock_movements', function (Blueprint $table) {
                     try { $table->dropForeign(['product_id']); } catch (\Throwable $e) {}

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module17;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Tests\Feature\VenQoreTestCase;
 use App\Models\Setting;
 use App\Models\Product;

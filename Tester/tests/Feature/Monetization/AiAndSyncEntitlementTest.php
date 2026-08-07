@@ -98,7 +98,7 @@ test('add-on provisioning survives the NOT NULL applied_by column', function () 
     $tenant->refresh();
 
     expect($tenant->ai_status)->toBe('managed')
-        ->and($tenant->ai_scans_limit)->toBe(150)      // AI Lite — matches Pricing.jsx
+        ->and($tenant->ai_pages_limit)->toBe(150)      // AI Lite — matches Pricing.jsx
         ->and($tenant->ai_queries_limit)->toBe(200);
 
     expect(DB::table('tenant_plan_overrides')
@@ -223,14 +223,14 @@ test('free tier allowance comes from config, not a hardcoded number', function (
     expect(AiEntitlementService::freeScanAllowance())->toBe(3);
 
     $tenant = $this->createTenant('free-scanner');
-    $tenant->update(['ai_status' => 'none', 'ai_scans_used' => 2]);
+    $tenant->update(['ai_status' => 'none', 'ai_pages_used' => 2]);
     $this->bindTenantContext($tenant);
 
     $check = app(AiEntitlementService::class)->checkScan();
     expect($check['allowed'])->toBeTrue()
-        ->and($check['scans_limit'])->toBe(3);
+        ->and($check['pages_limit'])->toBe(3);
 
-    $tenant->update(['ai_scans_used' => 3]);
+    $tenant->update(['ai_pages_used' => 3]);
     $this->bindTenantContext($tenant->fresh());
 
     $check = app(AiEntitlementService::class)->checkScan();
@@ -242,8 +242,8 @@ test('managed tier stops at its monthly quota', function () {
     $tenant = $this->createTenant('managed-scanner');
     $tenant->update([
         'ai_status'       => 'managed',
-        'ai_scans_limit'  => 150,
-        'ai_scans_used'   => 150,
+        'ai_pages_limit'  => 150,
+        'ai_pages_used'   => 150,
     ]);
     $this->bindTenantContext($tenant);
 
@@ -268,17 +268,17 @@ test('smart capture routes 404 when the platform switch is off', function () {
 
 test('monthly reset clears managed usage but never the free lifetime allowance', function () {
     $managed = $this->createTenant('reset-managed');
-    $managed->update(['ai_status' => 'managed', 'ai_scans_used' => 120, 'ai_queries_used' => 90]);
+    $managed->update(['ai_status' => 'managed', 'ai_period_started_at' => now(), 'ai_pages_used' => 120, 'ai_queries_used' => 90]);
 
     $free = $this->createTenant('reset-free');
-    $free->update(['ai_status' => 'none', 'ai_scans_used' => 10]);
+    $free->update(['ai_status' => 'none', 'ai_pages_used' => 10]);
 
     (new ResetAiUsageJob())->handle();
 
-    expect($managed->fresh()->ai_scans_used)->toBe(0)
+    expect($managed->fresh()->ai_pages_used)->toBe(0)
         ->and($managed->fresh()->ai_queries_used)->toBe(0);
 
     // The free allowance is LIFETIME. Resetting it would hand out infinite
     // free scans to anyone willing to wait for the 1st of the month.
-    expect($free->fresh()->ai_scans_used)->toBe(10);
+    expect($free->fresh()->ai_pages_used)->toBe(10);
 });

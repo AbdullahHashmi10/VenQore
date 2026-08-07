@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Billing;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Jobs\ProvisionTenantJob;
 use App\Services\LemonSqueezyStatus;
 

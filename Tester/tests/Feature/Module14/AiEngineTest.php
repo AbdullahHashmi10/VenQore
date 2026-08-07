@@ -2,9 +2,13 @@
 
 namespace Tests\Feature\Module14;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Product;
 use App\Models\Account;
 use App\Models\User;
+use App\Models\TenantPlanOverride;
+use App\Services\PlanRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Feature\VenQoreTestCase;
@@ -212,6 +216,20 @@ test('prevents co-purchase recommendations from leaking across tenants', functio
 test('isolates ai settings per tenant', function () {
     $tenantA = $this->createTenant();
     $tenantB = $this->createTenant();
+
+    // growth_engine is an add-on, OFF by default on every plan tier
+    // (see PlanFeatureMatrixSeeder.php) — the route is gated by
+    // 'plan.feature:growth_engine', so both tenants need it explicitly
+    // enabled via a TenantPlanOverride the same way PaymentProcessingTest does.
+    foreach ([$tenantA, $tenantB] as $t) {
+        TenantPlanOverride::create([
+            'tenant_id'      => $t->id,
+            'override_key'   => 'growth_engine',
+            'override_value' => '1',
+            'applied_by'     => auth()->id() ?? 1,
+        ]);
+        PlanRepository::invalidateTenantCache($t->id);
+    }
 
     // Configure settings for Tenant A
     $this->actingAsOwner($tenantA);

@@ -292,6 +292,7 @@ class SaleController extends Controller
                     'posted_at'            => now(),
                     'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
                     'payment_method'       => $request->payment_method,
+                    'due_date'             => \App\Services\PlanRepository::canUseFeature(app('current.tenant'), 'payment_due_dates') ? $request->input('due_date') : null,
                 ]);
             });
 

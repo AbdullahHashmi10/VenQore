@@ -51,16 +51,7 @@ class PruneScanImagesCommand extends Command
             }
         }
 
-        // 2. Clear payload/base64 columns in raw AI events older than cutoff date if stored
-        $prunedDbRows = 0;
-        if (DB::getSchemaBuilder()->hasTable('ai_usage_events') && DB::getSchemaBuilder()->hasColumn('ai_usage_events', 'raw_payload')) {
-            $prunedDbRows = DB::table('ai_usage_events')
-                ->where('created_at', '<', $cutoff)
-                ->whereNotNull('raw_payload')
-                ->update(['raw_payload' => null]);
-        }
-
-        $msg = "PruneScanImages: Successfully deleted {$prunedFilesCount} image files and cleared raw payload from {$prunedDbRows} log records older than {$days} days.";
+        $msg = "PruneScanImages: Successfully deleted {$prunedFilesCount} image files older than {$days} days.";
         $this->info($msg);
         Log::info($msg);
 

@@ -18,22 +18,46 @@ class PlanDowngradeService
         $targetLimits = PlanRepository::getLimits($targetPlanSlug);
         $reasons = [];
 
-        // 1. Check open payables & receivables balance
-        $openReceivables = DB::table('parties')
-            ->where('tenant_id', $tenant->id)
+        // 1. Check open payables & receivables balance across all downgrades
+        $tenantId = $tenant->id;
+        $openReceivables = (float) DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('accounts.tenant_id', $tenantId)
+            ->where('accounts.code', '1200')
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
+            ->value('net');
+
+        $openPayables = (float) DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('accounts.tenant_id', $tenantId)
+            ->where('accounts.code', '2000')
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
+            ->value('net');
+
+        $partyReceivables = (float) DB::table('parties')
+            ->where('tenant_id', $tenantId)
             ->where('type', 'customer')
             ->where('current_balance', '>', 0)
             ->sum('current_balance');
 
-        $openPayables = DB::table('parties')
-            ->where('tenant_id', $tenant->id)
+        $partyPayables = (float) DB::table('parties')
+            ->where('tenant_id', $tenantId)
             ->where('type', 'supplier')
             ->where('current_balance', '>', 0)
             ->sum('current_balance');
 
-        $isTargetCounter = ($targetPlanSlug === 'counter');
-        if ($isTargetCounter && ($openReceivables > 0 || $openPayables > 0)) {
-            $reasons[] = "You have active receivables (Rs " . number_format($openReceivables, 2) . ") or payables (Rs " . number_format($openPayables, 2) . "). Settle or archive balances before downgrading to Counter.";
+        $openReceivables += $partyReceivables;
+        $openPayables += $partyPayables;
+
+        if (round(max(0, $openReceivables), 2) > 0 || round(max(0, $openPayables), 2) > 0) {
+            $totalOpen = max(0, $openReceivables) + max(0, $openPayables);
+            $reasons[] = "You have recorded open balances (Rs " . number_format($totalOpen, 2) . " of payables/receivables). Settle or archive all open balances before downgrading.";
         }
 
         // 2. Check SKU limit

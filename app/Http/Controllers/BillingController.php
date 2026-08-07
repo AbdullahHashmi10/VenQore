@@ -1036,7 +1036,8 @@ class BillingController extends Controller
             ];
 
             $tenant->update([
-                'plan_limits' => $limits,
+                'plan_limits'   => $limits,
+                'grace_ends_at' => $effectiveAt->copy()->addDays(30),
             ]);
 
             \App\Services\PlanRepository::invalidateTenantCache($tenant->id);

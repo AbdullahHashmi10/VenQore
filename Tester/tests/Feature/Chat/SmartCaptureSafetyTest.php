@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 /**
  * Guards the rule that a scan can never silently create something the user
  * cannot undo.

@@ -26,7 +26,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        $driver = DB::connection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             // ── 1. invoice_items.product_id → RESTRICT (was CASCADE) ──────────────
             if (Schema::hasTable('invoice_items') && Schema::hasColumn('invoice_items', 'product_id')) {
                 Schema::table('invoice_items', function (Blueprint $table) {

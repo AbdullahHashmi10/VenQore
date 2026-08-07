@@ -143,9 +143,12 @@ class StoreController extends Controller
         }
 
         $request->validate([
-            'name'     => 'required|string|max:100',
-            'plan'     => 'nullable|string|in:starter,growth,business',
-            'interval' => 'nullable|string|in:monthly,annual',
+            'name'          => 'required|string|max:100',
+            'plan'          => 'nullable|string|in:counter,starter,growth,business',
+            'interval'      => 'nullable|string|in:monthly,annual',
+            'terms_consent' => 'required|accepted',
+        ], [
+            'terms_consent.accepted' => 'You must agree to the Terms of Service and Privacy Policy to create a store.',
         ]);
 
         $user = Auth::user();
@@ -421,6 +424,18 @@ class StoreController extends Controller
     private function planCatalog(string $country): array
     {
         $meta = [
+            'counter' => [
+                'tagline'  => 'Simple checkout for fast-paced stalls and counters.',
+                'features' => [
+                    '1 Store Location',
+                    '1 Staff Account',
+                    '100 Product SKUs',
+                    'Basic POS Checkout',
+                    'Daily Sales Reports',
+                    'Community Support',
+                ],
+                'popular'  => false,
+            ],
             'starter' => [
                 'tagline'  => 'Single-location stores getting serious about POS & inventory.',
                 'features' => [

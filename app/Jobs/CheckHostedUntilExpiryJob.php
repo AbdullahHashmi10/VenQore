@@ -27,6 +27,16 @@ class CheckHostedUntilExpiryJob implements ShouldQueue
 
             if ($daysLeft === 60 || $daysLeft === 30 || $daysLeft === 7) {
                 Log::info("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting expires in {$daysLeft} days on {$tenant->hosted_until->toDateString()}.");
+                
+                $owner = \App\Models\User::where('tenant_id', $tenant->id)->orderBy('id')->first();
+                if ($owner && !empty($owner->email)) {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($owner->email)
+                            ->send(new \App\Mail\SubscriptionExpiryReminderMail($tenant, $owner, $daysLeft));
+                    } catch (\Throwable $e) {
+                        Log::error("CheckHostedUntilExpiryJob: Failed to send expiry email for tenant {$tenant->id}: " . $e->getMessage());
+                    }
+                }
             } elseif ($daysLeft <= 0) {
                 Log::warning("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting EXPIRED on {$tenant->hosted_until->toDateString()}. Write operations restricted.");
             }

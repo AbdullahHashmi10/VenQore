@@ -143,8 +143,8 @@ class QuotationToolTest extends TestCase
 
     public function test_quote_generation_is_free_and_requires_no_lead(): void
     {
-        // Core output must never be gated — no ToolLead should be required
-        // or created just to render a PDF.
+        \Illuminate\Support\Facades\DB::table('tool_lead_events')->delete();
+        \Illuminate\Support\Facades\DB::table('tool_leads')->delete();
         $this->assertDatabaseCount('tool_leads', 0);
         $this->postJson(route('tools.quote.render'), $this->payload())->assertOk();
         $this->assertDatabaseCount('tool_leads', 0);

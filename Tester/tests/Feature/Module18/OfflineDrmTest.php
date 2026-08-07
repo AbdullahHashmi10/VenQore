@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module18;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Feature\VenQoreTestCase;

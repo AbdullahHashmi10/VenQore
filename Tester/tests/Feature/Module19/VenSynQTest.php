@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module19;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use Tests\Feature\VenQoreTestCase;
 use App\Models\Product;
 use App\Models\Sale;

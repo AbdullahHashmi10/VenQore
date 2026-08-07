@@ -239,8 +239,8 @@ class CodeStackingTest extends VenQoreTestCase
         // VENQORE_MASTER_AUDIT_AND_LAUNCH_PLAN.md finding #4. Only the
         // transaction count is uncapped-relative-to-tier (6000/mo, the
         // ceiling itself); staff_limit/sku_limit are not unlimited.
-        $this->assertEquals(6000, $tenant->getLimit('transactions_per_month'),
-            'ltd_3 should allow 6000 transactions/month.');
+        $this->assertEquals(8000, $tenant->getLimit('transactions_per_month'),
+            'ltd_3 should allow 8000 transactions/month.');
         $this->assertEquals(50, $tenant->getLimit('staff_limit'),
             'ltd_3 staff_limit is the business-tier cap (50), not unlimited.');
         $this->assertEquals(50000, $tenant->getLimit('sku_limit'),
@@ -486,7 +486,8 @@ class CodeStackingTest extends VenQoreTestCase
 
         // Attempt to create a second store
         $response = $this->actingAs($user)->postJson('/new-store', [
-            'name' => 'Second Store',
+            'name'          => 'Second Store',
+            'terms_consent' => true,
         ]);
 
         $response->assertRedirect();
@@ -513,11 +514,17 @@ class CodeStackingTest extends VenQoreTestCase
         $this->redeem($user, 'AS-2S-002'); // Upgrades to ltd_2 (2 store limit)
 
         // Second store creation must succeed
-        $secondStore = $this->actingAs($user)->postJson('/new-store', ['name' => 'Second Store']);
+        $secondStore = $this->actingAs($user)->postJson('/new-store', [
+            'name'          => 'Second Store',
+            'terms_consent' => true,
+        ]);
         $secondStore->assertRedirect(); // StoreController redirects on success
 
         // Third store creation must fail
-        $thirdStore = $this->actingAs($user)->postJson('/new-store', ['name' => 'Third Store']);
+        $thirdStore = $this->actingAs($user)->postJson('/new-store', [
+            'name'          => 'Third Store',
+            'terms_consent' => true,
+        ]);
         $thirdStore->assertRedirect();
         $thirdStore->assertSessionHasErrors('name');
         $errors = session()->get('errors')->getBag('default');

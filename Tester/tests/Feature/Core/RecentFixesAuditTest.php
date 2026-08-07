@@ -70,8 +70,10 @@ class RecentFixesAuditTest extends VenQoreTestCase
         $tenant->refresh();
 
         // Verify the quotas match Pricing.jsx AI_OPTIONS (Lite: 200 queries / 150 scans)
+        // ai_scans_limit was renamed to ai_pages_limit — see
+        // database/migrations/2026_08_04_000005_rename_ai_scans_to_pages_in_tenants.php
         $this->assertEquals(200, $tenant->ai_queries_limit);
-        $this->assertEquals(150, $tenant->ai_scans_limit);
+        $this->assertEquals(150, $tenant->ai_pages_limit);
         $this->assertEquals('managed', $tenant->ai_status);
 
         // Verify the smart_capture override was granted

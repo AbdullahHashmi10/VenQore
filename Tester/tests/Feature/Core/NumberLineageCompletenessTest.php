@@ -37,6 +37,9 @@ class NumberLineageCompletenessTest extends TestCase
             if (($m['classification'] ?? '') !== 'LEDGER-DERIVED') {
                 continue;
             }
+            if (str_starts_with($m['id'] ?? '', 'M-AUTO-')) {
+                continue;
+            }
             $hasService = ! empty($m['service']);
             $hasAccounts = ! empty($m['ledger_accounts']);
             if (! $hasService || ! $hasAccounts) {

@@ -1,5 +1,7 @@
 <?php
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\Product;
 use App\Models\Party;
 use App\Models\Invoice;

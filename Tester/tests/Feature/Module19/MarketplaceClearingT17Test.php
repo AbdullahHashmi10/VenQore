@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Module19;
 
+uses(\Tests\Feature\VenQoreTestCase::class);
+
 use App\Models\EcommerceChannel;
 use App\Models\MarketplacePayout;
 use App\Models\Sale;

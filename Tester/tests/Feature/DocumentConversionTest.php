@@ -120,7 +120,7 @@ class DocumentConversionTest extends VenQoreTestCase
 
     public function test_proposal_conversion_to_presale_success(): void
     {
-        $tenant = $this->createTenant();
+        $tenant = $this->createTenant('proposal-tenant-1', 'business');
         $user = $this->createTenantUser($tenant, 'owner');
         $this->bindTenantContext($tenant, $user);
         $this->seedTenantDefaults($tenant);
@@ -253,7 +253,7 @@ class DocumentConversionTest extends VenQoreTestCase
 
     public function test_proposal_re_conversion_syncs_instead_of_duplicate(): void
     {
-        $tenant = $this->createTenant();
+        $tenant = $this->createTenant('proposal-tenant-2', 'business');
         $user = $this->createTenantUser($tenant, 'owner');
         $this->bindTenantContext($tenant, $user);
         $this->seedTenantDefaults($tenant);

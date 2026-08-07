@@ -33,6 +33,13 @@ return [
         'deepseek'  => 'deepseek-chat',
     ],
 
+    'feature_models' => [
+        'scan'           => env('SMART_CAPTURE_MODEL_SCAN', 'gemini-2.5-flash'),
+        'query'          => env('SMART_CAPTURE_MODEL_QUERY', 'gemini-2.5-flash-lite'),
+        'populate'       => env('SMART_CAPTURE_MODEL_POPULATE', 'gemini-2.5-flash-lite'),
+        'match_fallback' => env('SMART_CAPTURE_MODEL_FALLBACK', 'gemini-2.5-flash-lite'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Model substitution chain — MODEL-AVAILABILITY ERRORS ONLY

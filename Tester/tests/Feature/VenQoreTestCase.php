@@ -40,8 +40,8 @@ abstract class VenQoreTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // No SQLite shims needed: tests run on MySQL amd_pos_test (Tester-Fix-0).
-        // DB_CONNECTION=mysql is enforced by Tester/phpunit.xml and root .env.testing.
+        // No SQLite shims needed: tests run on MariaDB amd_pos_test (Tester-Fix-0).
+        // DB_CONNECTION=mariadb is enforced by Tester/phpunit.xml and root .env.testing.
     }
 
     /**
@@ -63,7 +63,15 @@ abstract class VenQoreTestCase extends TestCase
     protected function refreshTestDatabase()
     {
         if (! RefreshDatabaseState::$migrated) {
-            $this->artisan('migrate:fresh', $this->migrateFreshUsing());
+            $exitCode = $this->artisan('migrate:fresh', $this->migrateFreshUsing());
+            if ($exitCode instanceof \Illuminate\Testing\PendingCommand) {
+                $exitCode = $exitCode->run();
+            }
+            if ($exitCode !== 0) {
+                throw new \RuntimeException(
+                    "migrate:fresh failed with exit code {$exitCode} — refusing to mark the test DB as migrated."
+                );
+            }
 
             $this->app[Kernel::class]->setArtisan(null);
 

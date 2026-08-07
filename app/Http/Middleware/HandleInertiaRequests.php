@@ -213,6 +213,7 @@ class HandleInertiaRequests extends Middleware
             'report_tiers' => \App\Services\ReportTierGate::allTiers(),
             'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
             'pricing' => config('pricing'),
+            'turnstile_site_key' => config('services.cloudflare.turnstile_site_key', ''),
         ];
 
         return $shared;

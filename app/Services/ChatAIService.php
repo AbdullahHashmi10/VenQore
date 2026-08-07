@@ -172,10 +172,13 @@ class ChatAIService
                         Log::warning('Failed to record ChatAIService ai_usage_event: ' . $e->getMessage());
                     }
 
+                    $costUsd = app(\App\Services\Ai\AiUsageRecorder::class)->calculateCost($model, $promptTokens, $outputTokens, $cachedTokens);
+
                     return [
-                        'text' => trim($reply),
-                        'usage' => $data['usageMetadata'] ?? null,
-                        'model' => $model,
+                        'text'         => trim($reply),
+                        'usage'        => $data['usageMetadata'] ?? null,
+                        'model'        => $model,
+                        'cost_usd'     => $costUsd,
                         'api_key_type' => $apiKeyType,
                     ];
                 }

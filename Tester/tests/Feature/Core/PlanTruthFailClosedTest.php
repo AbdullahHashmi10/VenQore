@@ -89,7 +89,7 @@ class PlanTruthFailClosedTest extends VenQoreTestCase
         // Seeder writes string values ('1'/'0'/numeric strings); config used
         // PHP booleans/ints. String-typed values prove the table was the source.
         $this->assertNotEmpty($json, 'LTD snapshot must not be empty.');
-        $this->assertSame('2000', (string) ($json['transactions_per_month'] ?? null), 'ltd_2 tx cap must be 2000 (from seeded table).');
+        $this->assertSame('3000', (string) ($json['transactions_per_month'] ?? null), 'ltd_2 tx cap must be 3000 (from seeded table — see VENQORE_PRICING_AND_STRATEGY.md).');
         $this->assertArrayHasKey('recurring_invoices', $json, 'New seeded keys must be present in the LTD snapshot.');
     }
 }

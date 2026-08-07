@@ -42,6 +42,33 @@ class VisitorChatController extends Controller
             return response()->json(['error' => 'Store context not resolved.'], 400);
         }
 
+        // ── Turnstile Verification (T0-0) ──────────────────────────────────
+        $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
+        if (!empty($turnstileSecret)) {
+            $token = $request->input('turnstile_token');
+            if (empty($token)) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'CAPTCHA verification token required.',
+                    'reason'  => 'turnstile_missing',
+                ], 422);
+            }
+
+            $verifyRes = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret'   => $turnstileSecret,
+                'response' => $token,
+                'remoteip' => $request->ip(),
+            ]);
+
+            if (!$verifyRes->json('success')) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'CAPTCHA verification failed. Please try again.',
+                    'reason'  => 'turnstile_failed',
+                ], 422);
+            }
+        }
+
         // ── Plan Gate: Live Chat Widget ──────────────────────────────────
         if (app()->bound('current.tenant')) {
             PlanGate::enforce('live_chat_widget');
@@ -70,8 +97,6 @@ class VisitorChatController extends Controller
         }
 
         // Broadcast to agent inbox so Support Queue updates in real-time.
-        // Fires on new sessions AND session restores so the queue always reflects
-        // current visitor presence without agents needing to manually refresh.
         try {
             broadcast(new \App\Events\Chat\SessionStatusChanged($session));
         } catch (\Exception $e) {
@@ -126,24 +151,116 @@ class VisitorChatController extends Controller
             }
         }
 
-        // SECURITY (T0-0): this body is forwarded to an upstream LLM on the
-        // platform API key. 10,000 characters is ~2,500 input tokens per
-        // message from an unauthenticated caller. A support question does not
-        // need more than 500 characters.
+        // SECURITY (T0-0): max 500 characters
         $request->validate([
             'body' => 'required|string|max:500',
         ]);
 
         $body = $request->input('body');
 
+        // 1. Rate Limiter (T0-7) — bucket visitor_chat
+        $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
+        $rateCheck = $rateLimiter->tryAcquire('visitor_chat');
+        if (!$rateCheck['ok']) {
+            return response()->json([
+                'error' => 'Visitor chat is busy right now. Please wait a few seconds and try again.'
+            ], 429);
+        }
+
+        // 2. Spend Guard Pre-Check (T0-0 A3 & Fix 1) — realistic estimate ($0.001 per query)
+        $estimatedCost = 0.001;
+        $spendGuard = app(\App\Services\Ai\AiSpendGuard::class);
+        if (!$spendGuard->checkAndRecord('visitor_chat', $estimatedCost, 3.00)) {
+            $alertKey = 'visitor_chat_spend_alert_' . today()->toDateString();
+            if (!\Illuminate\Support\Facades\Cache::has($alertKey)) {
+                \Illuminate\Support\Facades\Cache::put($alertKey, true, 86400);
+                \Illuminate\Support\Facades\Log::emergency("ALERT: Visitor chat daily spend cap ($3.00) tripped. Switching to email capture fallback.");
+            }
+
+            $fallbackMsg = \App\Models\ChatMessage::create([
+                'tenant_id' => $tenant->id,
+                'chat_session_id' => $session->id,
+                'sender_type' => \App\Models\ChatMessage::SENDER_BOT,
+                'sender_name' => 'Support Assistant',
+                'body' => "Our AI assistant is temporarily busy right now. Please leave your email address and our team will get back to you shortly!",
+                'metadata' => ['fallback' => 'spend_cap'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id' => $fallbackMsg->id,
+                    'sender_type' => $fallbackMsg->sender_type,
+                    'sender_name' => $fallbackMsg->sender_name,
+                    'body' => $fallbackMsg->body,
+                    'metadata' => $fallbackMsg->metadata,
+                    'created_at' => $fallbackMsg->created_at->toIso8601String(),
+                ]
+            ]);
+        }
+
+        // 3. Answer Cache Lookup (T0-0 A5)
+        $normalizedQuestion = preg_replace('/\s+/', ' ', strtolower(trim($body)));
+        $questionHash = hash('sha256', $normalizedQuestion);
+
+        $cached = \Illuminate\Support\Facades\DB::table('visitor_chat_cached_answers')
+            ->where('store_id', $tenant->id)
+            ->where('question_hash', $questionHash)
+            ->first();
+
+        if ($cached) {
+            \Illuminate\Support\Facades\DB::table('visitor_chat_cached_answers')
+                ->where('id', $cached->id)
+                ->increment('hits');
+
+            // Reconcile spend counter: cache hit costs $0.00 AI spend
+            $spendGuard->reconcile('visitor_chat', $estimatedCost, 0.0);
+
+            $cachedMsg = \App\Models\ChatMessage::create([
+                'tenant_id' => $tenant->id,
+                'chat_session_id' => $session->id,
+                'sender_type' => \App\Models\ChatMessage::SENDER_BOT,
+                'sender_name' => 'Support Assistant',
+                'body' => $cached->answer,
+                'metadata' => ['cached' => true],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id' => $cachedMsg->id,
+                    'sender_type' => $cachedMsg->sender_type,
+                    'sender_name' => $cachedMsg->sender_name,
+                    'body' => $cachedMsg->body,
+                    'metadata' => $cachedMsg->metadata,
+                    'created_at' => $cachedMsg->created_at->toIso8601String(),
+                ]
+            ]);
+        }
+
         // vena_context is sent by ChatWidget from the /api/vena/context fetch.
-        // It is optional — the routing service degrades gracefully without it.
         $venaContext = $request->input('vena_context', []);
         if (!is_array($venaContext)) {
             $venaContext = [];
         }
 
         $message = $this->routingService->processVisitorMessage($session, $body, $venaContext);
+
+        // Reconcile spend counter with actual cost
+        $actualCost = (float) ($message->metadata['cost_usd'] ?? 0.0002);
+        $spendGuard->reconcile('visitor_chat', $estimatedCost, $actualCost);
+
+        // Store generated answer in cache for this store + hash
+        if ($message && $message->sender_type === \App\Models\ChatMessage::SENDER_BOT && !empty($message->body)) {
+            \Illuminate\Support\Facades\DB::table('visitor_chat_cached_answers')->insertOrIgnore([
+                'store_id'      => $tenant->id,
+                'question_hash' => $questionHash,
+                'answer'        => $message->body,
+                'hits'          => 1,
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,

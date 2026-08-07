@@ -40,6 +40,19 @@ class ResetAiUsageJob implements ShouldQueue
                 'ai_queries_used' => 0,
                 'updated_at'      => now(),
             ]);
+
+            try {
+                \App\Models\ActivityLog::create([
+                    'tenant_id'   => $tenant->id,
+                    'user_id'     => null,
+                    'log_name'    => 'ai_usage_reset',
+                    'description' => "Monthly AI page and query usage counters reset to 0 on anniversary day {$todayDay}.",
+                    'event'       => 'reset',
+                ]);
+            } catch (\Throwable $e) {
+                // Non-critical audit log fallback
+            }
+
             $count++;
         }
 

@@ -21,14 +21,15 @@ class EnforceHostedUntil
                 if (!in_array($request->method(), ['GET', 'HEAD'], true)) {
                     if ($request->expectsJson()) {
                         return response()->json([
-                            'error'            => 'Hosting period has expired. Please renew your $9/mo continuation subscription to perform write operations.',
+                            'error'            => 'Hosting period has expired. Please renew your continuation subscription to perform write operations.',
                             'code'             => 'HOSTING_EXPIRED',
                             'hosted_until'     => $hostedUntil->toIso8601String(),
-                            'continuation_url' => url('/settings/billing/continuation'),
+                            'continuation_url' => route('store.billing', ['store_slug' => $tenant->slug]),
                         ], 403);
                     }
 
-                    return redirect()->route('settings.billing')->with('error', 'Hosting period expired. Please renew your $9/mo continuation subscription.');
+                    return redirect()->route('store.billing', ['store_slug' => $tenant->slug])
+                        ->with('error', 'Hosting period expired. Please renew your continuation subscription.');
                 }
             }
         }

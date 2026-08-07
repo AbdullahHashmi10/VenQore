@@ -20,10 +20,10 @@
 
 PKR guidance: don't FX-convert (that yields ₨5,300/₨10,900/₨22,000 — too high). Price to local willingness-to-pay vs Vyapar (₨~200/mo equiv) and Marg AMC: Starter ₨2,900 positions as "serious but reachable." Revisit quarterly; geo layer already supports session override + caching.
 
-**Add-ons (env catalog already exists):** channels $9/mo each (Woo/Amazon/eBay/TikTok) · AI Starter $5 / Lite $9 / Pro $19 / Ultimate $39 / BYOK $5 · upload service one-time. Add-ons are margin protection: metered costs (AI tokens, sync API load) never hide inside flat plans.
+**Add-ons (env catalog already exists):** channels $10/mo each (Woo/Amazon/eBay/TikTok) · AI Spark $3 / Shop $6 / Pro $12 / Max $24 / BYOK $19 · upload service one-time. Add-ons are margin protection: metered costs (AI tokens, sync API load) never hide inside flat plans.
 
-## 2. AppSumo LTD (implemented: $49/$99/$179, stack 1/2/3)
-- Caps: 500/2,000/6,000 tx/mo (already enforced via `transactions_per_month`); hosting 2 years then $9/mo hosting fee (documented in plans config — surface it EXPLICITLY on the deal page to avoid refund storms).
+## 2. AppSumo LTD (implemented: $99/$199/$349, stack 1/2/3)
+- Caps: 1,000/3,000/8,000 tx/mo (already enforced via `transactions_per_month`); hosting 2 years then $9/mo hosting fee (documented in plans config — surface it EXPLICITLY on the deal page to avoid refund storms).
 - Economics: assume AppSumo takes ~60–70% net of refunds (10–15% typical refund rate in the category). Model: 1,500 codes × $79 avg × 35% net ≈ **$41k cash** + ~3–5% of LTD users convert to add-ons/hosting later. LTD is a *customer-acquisition + cash* event, not a business model.
 - Protections already built: tx caps, SKU/staff/location caps, AI excluded (add-on only), fail-closed flags, `scopeBillable` keeps MRR honest, grace→view-only instead of hard lock (retention-friendly). Add: LTD tier badge in-app + "stack one more code" upsell during the 60-day window.
 - **Tier-3 restraint:** never include API access + unlimited staff in LTD — API is the abuse vector (bots syncing marketplaces on a $179 lifetime plan). Current seeder should keep `api_access=false` on all LTD tiers. Verify before launch.

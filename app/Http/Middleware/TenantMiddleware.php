@@ -126,8 +126,9 @@ class TenantMiddleware
             && $tenant->subscription_ends_at !== null
             && $tenant->subscription_ends_at->isPast();
 
-        $shouldBeLocked = $overUsageLimit || $subscriptionExpired;
-        $isLocked       = $tenant->view_only_since !== null;
+        $downgradeGraceActive = $tenant->grace_ends_at !== null && $tenant->grace_ends_at->isFuture();
+        $shouldBeLocked       = !$downgradeGraceActive && ($overUsageLimit || $subscriptionExpired);
+        $isLocked             = $tenant->view_only_since !== null;
 
         if ($shouldBeLocked && !$isLocked) {
             $tenant->view_only_since = now();

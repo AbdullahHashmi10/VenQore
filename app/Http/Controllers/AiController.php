@@ -54,6 +54,14 @@ class AiController extends Controller
         // Asking the AI questions requires the AI add-on: managed usage bought
         // from us (metered), or the BYOK unlock + the store's own API key.
         // Plain database search (global-search route) stays free and unaffected.
+        $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
+        $rateCheck = $rateLimiter->tryAcquire('paid_key:query');
+        if (!$rateCheck['ok']) {
+            return response()->json([
+                'error' => 'AI Assistant is experiencing high traffic. Please wait a few seconds and try again.'
+            ], 429);
+        }
+
         $entitlement = app(\App\Services\SmartCapture\AiEntitlementService::class);
         $check = $entitlement->checkQuery();
         if (!$check['allowed']) {
