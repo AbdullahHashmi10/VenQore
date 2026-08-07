@@ -1,0 +1,6 @@
+{
+    "serverUrl": "http://127.0.0.1:8000",
+    "terminalId": 1,
+    "defaultPrinter": null,
+    "windowTitle": "VenQore Station"
+}

@@ -1,0 +1,61 @@
+AMD POS - Installation Guide
+
+Welcome to the AMD POS System. This software is designed for shared hosting environments using cPanel (DirectAdmin or similar).
+
+--------------------------------------------------------------------------------
+1. PREREQUISITES
+--------------------------------------------------------------------------------
+- PHP 8.2 or higher
+- MySQL Database
+- 500MB+ Disk Space
+
+--------------------------------------------------------------------------------
+2. INSTALLATION STEPS (The "Zero-Touch" Method)
+--------------------------------------------------------------------------------
+
+STEP 1: UPLOAD FILES
+   - Upload 'AMD_POS_Installer.zip' to your 'public_html' (or subdomain folder).
+   - Extract the ZIP file.
+   - IMPORTANT: Ensure all files are in the root of your domain/subdomain, not inside a subfolder like 'AMD_POS_Installer'.
+
+STEP 2: PREPARE DATABASE
+   - Go to cPanel > MySQL Database Wizard.
+   - Create a new Database (e.g., 'user_pos').
+   - Create a new User (e.g., 'user_admin').
+   - Assignment: Add User to Database with ALL PRIVILEGES.
+   - Copy the Database Name, Username, and Password.
+
+STEP 3: RUN THE INSTALLER
+   - Open your browser and go to your website URL (e.g., 'yourdomain.com').
+   - You should be redirected to the Installer.
+   - If you see a "500 Error", check permissions:
+     - 'storage' folder should be 775.
+     - 'bootstrap/cache' folder should be 775.
+
+STEP 4: FOLLOW ON-SCREEN INSTRUCTIONS
+   - Check Requirements (The installer will verify PHP version and extensions).
+   - License Verification (Enter your purchase code: 'AMD-DEMO-KEY' for testing).
+   - Database Setup (Enter the DB credentials you created in Step 2).
+   - One-Click Install (The system will migrate tables and seed data).
+   - Create Admin & Shop Settings.
+
+STEP 5: COMPLETE!
+   - You will be redirected to the Login page.
+   - Use the Admin credentials you just created.
+
+--------------------------------------------------------------------------------
+3. TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+- Images not showing?
+  Shared hosting often blocks symlinks. We have added a fallback handler, but if issues persist, contact support.
+
+- "Access Denied" errors?
+  Ensure your '.env' file is writable (Permission 644 or 664).
+
+- White Screen?
+  Check 'storage/logs/laravel.log' for error details.
+
+--------------------------------------------------------------------------------
+Support: support@amdpos.com
+Version: 2.5 (Midnight Nebula)

@@ -1,0 +1,29 @@
+{
+    "run_id": "20260806_230436_26440",
+    "schema": "venqore.run-ledger.v1",
+    "started_at": "2026-08-06T22:56:53+00:00",
+    "finished_at": "2026-08-06T23:04:36+00:00",
+    "duration_s": 463,
+    "total": 1434,
+    "counts": {
+        "passed": 1038,
+        "failed": 38,
+        "errored": 305,
+        "skipped": 7,
+        "incomplete": 46,
+        "risky": 0
+    },
+    "green": false,
+    "environment": {
+        "php": "8.2.23",
+        "os": "Windows",
+        "db_database": "amd_pos_test",
+        "git_sha": "8441b309",
+        "seed_checksum": "07b30e295cbb98e26c32f9e540e5329027e13326a822a7d120773507e2d12dad"
+    },
+    "argv": [
+        "vendor/bin/pest",
+        "FinalTester/tests/Feature",
+        "--configuration=FinalTester/phpunit.xml"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "venqore-golden-dashboard",
+  "version": "1.0.0",
+  "description": "VenQore Golden Verification Dashboard — Financial Integrity Suite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  }
+}

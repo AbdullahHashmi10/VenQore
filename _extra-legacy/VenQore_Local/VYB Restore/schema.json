@@ -1,0 +1,5392 @@
+{
+    "recycle_bin": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_deleted_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "txn_firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_data_json",
+            "type": "varchar",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "txn_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "sqlite_sequence": [
+        {
+            "cid": 0,
+            "name": "name",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 1,
+            "name": "seq",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_tcs_tax_rates": [
+        {
+            "cid": 0,
+            "name": "tcs_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "tcs_tax_name",
+            "type": "varchar(50)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "tcs_tax_percentage",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "tcs_tax_nature_of_collection_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        }
+    ],
+    "urp_users": [
+        {
+            "cid": 0,
+            "name": "user_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "user_name",
+            "type": "VARCHAR(64)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "user_role_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "user_passcode",
+            "type": "VARCHAR(64)",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "user_phone_or_emaill",
+            "type": "VARCHAR(256)",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "user_is_active",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "user_is_deleted",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "user_sync_enabled",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "user_sync_started",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "user_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "user_server_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "urp_activity": [
+        {
+            "cid": 0,
+            "name": "activity_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "activity_actor",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "activity_resource",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "activity_operation",
+            "type": "VARCHAR (128)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "activity_time",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "activity_creation_time",
+            "type": "bigint",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "activity_resource_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "activity_is_old",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_payment_terms": [
+        {
+            "cid": 0,
+            "name": "payment_term_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "term_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "term_days",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "is_default",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_party_groups": [
+        {
+            "cid": 0,
+            "name": "party_group_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "party_group_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_item_categories": [
+        {
+            "cid": 0,
+            "name": "item_category_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "item_category_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_names": [
+        {
+            "cid": 0,
+            "name": "name_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "full_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "phone_number",
+            "type": "varchar(11)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "email",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "date_remindon",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "date_sendsmson",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "date_ignoretill",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "address",
+            "type": "varchar(2000)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "name_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "name_group_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "name_tin_number",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "name_gstin_number",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "name_state",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "name_shipping_address",
+            "type": "VARCHAR(2000)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "name_customer_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "is_party_details_sent",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "name_last_txn_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "name_expense_type",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "name_verified_gstin",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "pincode",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "name_shipping_pincode",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "credit_limit",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 27,
+            "name": "credit_limit_enabled",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 28,
+            "name": "frequency_of_payment_reminder",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 29,
+            "name": "party_billing_name",
+            "type": "VARCHAR(50)",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 30,
+            "name": "name_is_active",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 31,
+            "name": "name_sub_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_images": [
+        {
+            "cid": 0,
+            "name": "image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "image_bitmap",
+            "type": "BLOB",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_paymentTypes": [
+        {
+            "cid": 0,
+            "name": "paymentType_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "paymentType_type",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "'BANK'",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "paymentType_name",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "paymentType_bankName",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "paymentType_accountNumber",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "paymentType_opening_balance",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "paymentType_opening_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "pt_bank_ifsc_code",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "pt_bank_account_holder_name",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "pt_bank_upi_id",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "pt_bank_ref_id",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "pt_bank_code",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "edc_deviceId",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "edc_vendor_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "edc_device_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "uuid",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_payment_gateway": [
+        {
+            "cid": 0,
+            "name": "paymentgateway_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "gstin",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "owner_pan_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "owner_pan_number",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "business_type",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "business_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "business_pan_number",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "business_pan_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "cin",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "owner_pan_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "addr_proof_front_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "addr_proof_back_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "business_pan_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "business_proof_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "misc_doc",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "revisit",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "error_fields",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "created_at",
+            "type": "datetime",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "updated_at",
+            "type": "datetime",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "link_auth_token",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "paymentgateway_uuid",
+            "type": "varchar(36)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "paymentgateway_account_id",
+            "type": "varchar(36)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "paymentType_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "addr_proof_type",
+            "type": "varchar(80)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "business_proof_doc_type",
+            "type": "varchar(80)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "misc_proof_type",
+            "type": "varchar(80)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_firms": [
+        {
+            "cid": 0,
+            "name": "firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "firm_name",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "firm_invoice_prefix",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "firm_invoice_number",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "firm_tax_invoice_prefix",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "firm_tax_invoice_number",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "firm_email",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "firm_phone",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "firm_address",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "firm_tin_number",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "firm_logo",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "firm_signature",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "firm_gstin_number",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "firm_state",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "firm_bank_name",
+            "type": "VARCHAR(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "firm_bank_account_number",
+            "type": "VARCHAR(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "firm_bank_ifsc_code",
+            "type": "VARCHAR(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "firm_estimate_prefix",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "firm_estimate_number",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "firm_cash_in_prefix",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "firm_delivery_challan_prefix",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "firm_upi_bank_account_number",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "firm_upi_bank_ifsc_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "firm_business_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "firm_business_category",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "firm_description",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "firm_visiting_card",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 27,
+            "name": "firm_invoice_printing_bank_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 28,
+            "name": "firm_collect_payment_bank_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 29,
+            "name": "firm_pincode",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 30,
+            "name": "firm_dispatch_address",
+            "type": "varchar(2000)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 31,
+            "name": "firm_dispatch_pincode",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 32,
+            "name": "firm_phone_secondary",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_tax_code": [
+        {
+            "cid": 0,
+            "name": "tax_code_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "tax_code_name",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "tax_rate",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "tax_code_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "tax_rate_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "4",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "tax_code_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "tax_code_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "kb_tax_mapping": [
+        {
+            "cid": 0,
+            "name": "tax_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "tax_mapping_group_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "tax_mapping_code_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "tax_mapping_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "tax_mapping_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "kb_prefix": [
+        {
+            "cid": 0,
+            "name": "prefix_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "prefix_firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "prefix_txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "prefix_value",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "prefix_is_default",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "tds_tax_rates": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "name",
+            "type": "varchar(250)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "percentage",
+            "type": "double",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "section_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "created_date",
+            "type": "datetime",
+            "notnull": 1,
+            "dflt_value": "current_timestamp",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "modified_date",
+            "type": "datetime",
+            "notnull": 1,
+            "dflt_value": "current_timestamp",
+            "pk": 0
+        }
+    ],
+    "stores": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "name",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "phone_number",
+            "type": "varchar(20)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "email",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "gstin",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "pincode",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "address",
+            "type": "varchar(2000)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "created_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "modified_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "store_transactions": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "from_store_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "to_store_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "created_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "sub_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "store_line_items": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "store_txn_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "quantity",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_transactions": [
+        {
+            "cid": 0,
+            "name": "txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "txn_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_name_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "txn_cash_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "txn_balance_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "txn_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "txn_discount_percent",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "txn_tax_percent",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "txn_discount_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "txn_tax_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "txn_due_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "txn_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "txn_image_path",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "txn_payment_type_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "txn_payment_reference",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "txn_ref_number_char",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "txn_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "txn_ac1_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "txn_ac2_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "txn_ac3_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "txn_firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "txn_sub_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "txn_invoice_prefix",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "txn_image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "txn_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 27,
+            "name": "txn_custom_field",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 28,
+            "name": "txn_display_name",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 29,
+            "name": "txn_reverse_charge",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 30,
+            "name": "txn_place_of_supply",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 31,
+            "name": "txn_round_off_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 32,
+            "name": "txn_itc_applicable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 33,
+            "name": "txn_po_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 34,
+            "name": "txn_po_ref_number",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 35,
+            "name": "txn_return_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 36,
+            "name": "txn_return_ref_number",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 37,
+            "name": "txn_eway_bill_number",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 38,
+            "name": "txn_current_balance",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 39,
+            "name": "txn_payment_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 40,
+            "name": "txn_payment_term_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 41,
+            "name": "txn_prefix_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 42,
+            "name": "txn_tax_inclusive",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "2",
+            "pk": 0
+        },
+        {
+            "cid": 43,
+            "name": "txn_billing_address",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 44,
+            "name": "txn_shipping_address",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 45,
+            "name": "txn_eway_bill_api_generated",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 46,
+            "name": "txn_eway_bill_generated_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 47,
+            "name": "txn_category_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 48,
+            "name": "txn_time",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 49,
+            "name": "txn_online_order_id",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 50,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 51,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 52,
+            "name": "txn_paymentgateway_paymenttype_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 53,
+            "name": "txn_paymentgateway_payment_txn_id",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 54,
+            "name": "txn_paymentgateway_link",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 55,
+            "name": "txn_paymentgateway_qr",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 56,
+            "name": "txn_tcs_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 57,
+            "name": "txn_tcs_tax_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 58,
+            "name": "txn_irn_number",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 59,
+            "name": "txn_einvoice_qr",
+            "type": "varchar",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 60,
+            "name": "txn_discount_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 61,
+            "name": "store_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 62,
+            "name": "ac1_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 63,
+            "name": "ac2_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 64,
+            "name": "ac3_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 65,
+            "name": "ac1_sac_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 66,
+            "name": "ac2_sac_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 67,
+            "name": "ac3_sac_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 68,
+            "name": "ac1_tax_amount",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 69,
+            "name": "ac2_tax_amount",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 70,
+            "name": "ac3_tax_amount",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 71,
+            "name": "ac1_itc_applicable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 72,
+            "name": "ac2_itc_applicable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 73,
+            "name": "ac3_itc_applicable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 74,
+            "name": "ac1_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 75,
+            "name": "ac2_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 76,
+            "name": "ac3_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 77,
+            "name": "mobile_no",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 78,
+            "name": "loyalty_amount",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 79,
+            "name": "cancelled_einvoice_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 80,
+            "name": "txn_tds_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 81,
+            "name": "txn_tds_tax_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0.0",
+            "pk": 0
+        },
+        {
+            "cid": 82,
+            "name": "payment_initiated_deviceId",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 83,
+            "name": "icf_names",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_closed_link_txn_table": [
+        {
+            "cid": 0,
+            "name": "closed_link_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "closed_link_txn_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "closed_link_txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "closed_link_txn_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "closed_link_txn_ref_number",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "txn_links_closed_txn_name_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "txn_links_closed_txn_category_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_txn_links": [
+        {
+            "cid": 0,
+            "name": "txn_links_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_links_txn_1_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "txn_links_txn_2_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_links_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "txn_links_txn_1_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "txn_links_txn_2_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "txn_links_closed_txn_ref_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_settings": [
+        {
+            "cid": 0,
+            "name": "setting_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "setting_key",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "setting_value",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_fts_vtable": [
+        {
+            "cid": 0,
+            "name": "fts_name_id",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 1,
+            "name": "fts_txn_id",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "fts_text",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_fts_vtable_content": [
+        {
+            "cid": 0,
+            "name": "docid",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "c0fts_name_id",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "c1fts_txn_id",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "c2fts_text",
+            "type": "",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_fts_vtable_segments": [
+        {
+            "cid": 0,
+            "name": "blockid",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "block",
+            "type": "BLOB",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_fts_vtable_segdir": [
+        {
+            "cid": 0,
+            "name": "level",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "idx",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 2
+        },
+        {
+            "cid": 2,
+            "name": "start_block",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "leaves_end_block",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "end_block",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "root",
+            "type": "BLOB",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_items": [
+        {
+            "cid": 0,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "item_name",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_sale_unit_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "item_purchase_unit_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "item_stock_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "item_min_stock_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "item_location",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "item_stock_value",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "item_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "item_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "item_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "category_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "item_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "base_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "secondary_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "unit_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "item_hsn_sac_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "item_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "item_tax_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "2",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "item_additional_cess_per_unit",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "item_description",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "item_is_active",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "item_ist_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "item_tax_type_purchase",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "2",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "item_catalogue_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "item_catalogue_sale_unit_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "item_catalogue_description",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 27,
+            "name": "item_discount_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 28,
+            "name": "item_discount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 29,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 30,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 31,
+            "name": "item_mrp",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 32,
+            "name": "item_dis_on_mrp_for_sp",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 33,
+            "name": "item_dis_on_mrp_for_wp",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 34,
+            "name": "item_wholesale_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 35,
+            "name": "item_min_wholesale_qty",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 36,
+            "name": "item_tax_type_wholesale_price",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "2",
+            "pk": 0
+        },
+        {
+            "cid": 37,
+            "name": "item_catalogue_stock_status",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 38,
+            "name": "service_reminder_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 39,
+            "name": "service_period",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 40,
+            "name": "icf_values",
+            "type": "varchar",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_item_categories_mapping": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "category_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_item_adjustments": [
+        {
+            "cid": 0,
+            "name": "item_adj_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "item_adj_item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_adj_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "item_adj_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "item_adj_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "item_adj_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "item_adj_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "item_adj_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "item_adj_atprice",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "-1",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "item_adj_ist_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "item_adj_is_serialized",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "item_adj_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "item_adj_unit_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "item_adj_ist_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "item_adj_mfg_adj_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "store_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "item_adj_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_party_item_rate": [
+        {
+            "cid": 0,
+            "name": "party_item_rate_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "party_item_rate_item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "party_item_rate_party_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "party_item_rate_sale_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "party_item_rate_purchase_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_bank_adjustments": [
+        {
+            "cid": 0,
+            "name": "bank_adj_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "bank_adj_bank_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "bank_adj_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "bank_adj_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "bank_adj_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "bank_adj_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "bank_adj_to_bank_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "bank_adj_image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_cash_adjustments": [
+        {
+            "cid": 0,
+            "name": "cash_adj_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "cash_adj_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "cash_adj_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "cash_adj_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "cash_adj_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        }
+    ],
+    "kb_cheque_status": [
+        {
+            "cid": 0,
+            "name": "cheque_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "cheque_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "cheque_current_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "cheque_transfer_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "cheque_close_desc",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "transferred_To_Account",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "2",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "check_creation_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "check_modification_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "cheque_closed_txn_ref_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "cheque_issued_date",
+            "type": "DATE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_txn_message_config": [
+        {
+            "cid": 0,
+            "name": "txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_field_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 2
+        },
+        {
+            "cid": 2,
+            "name": "txn_field_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_field_value",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_extra_charges": [
+        {
+            "cid": 0,
+            "name": "extra_charges_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "extra_charges_name",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "sac_code",
+            "type": "varchar(32)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "tax_enabled",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "enabled",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_item_units": [
+        {
+            "cid": 0,
+            "name": "unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "unit_name",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "unit_short_name",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "unit_full_name_editable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "unit_deletable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        }
+    ],
+    "kb_item_units_mapping": [
+        {
+            "cid": 0,
+            "name": "unit_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "base_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "secondary_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "conversion_rate",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "kb_item_stock_tracking": [
+        {
+            "cid": 0,
+            "name": "ist_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "ist_batch_number",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "ist_serial_number",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "ist_mrp",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "ist_expiry_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "ist_manufacturing_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "ist_size",
+            "type": "varchar(100)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "ist_item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "ist_current_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "ist_opening_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "ist_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_lineitems": [
+        {
+            "cid": 0,
+            "name": "lineitem_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "lineitem_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "priceperunit",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "total_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "lineitem_tax_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "lineitem_discount_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "lineitem_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "lineitem_unit_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "lineitem_tax_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "lineitem_mrp",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "lineitem_batch_number",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "lineitem_expiry_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "lineitem_manufacturing_date",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "lineitem_serial_number",
+            "type": "varchar(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 16,
+            "name": "lineitem_count",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 17,
+            "name": "lineitem_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 18,
+            "name": "lineitem_additional_cess",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 19,
+            "name": "lineitem_total_amount_edited",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 20,
+            "name": "lineitem_itc_applicable",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 21,
+            "name": "lineitem_size",
+            "type": "varchar(100)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 22,
+            "name": "lineitem_ist_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 23,
+            "name": "lineitem_free_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 24,
+            "name": "lineitem_is_serialized",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 25,
+            "name": "lineitem_discount_percent",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 26,
+            "name": "lineitem_fa_cost_price",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 27,
+            "name": "lineitem_discount_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 28,
+            "name": "lineitem_ref_id",
+            "type": "varchar(10)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 29,
+            "name": "lineitem_txn_po_ref_number",
+            "type": "varchar(50)",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 30,
+            "name": "icf_values",
+            "type": "varchar",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_custom_fields": [
+        {
+            "cid": 0,
+            "name": "custom_field_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "custom_field_display_name",
+            "type": "VARCHAR(32)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "custom_field_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "custom_field_visibility",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_log": [
+        {
+            "cid": 0,
+            "name": "log_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "reason",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "details",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        }
+    ],
+    "kb_udf_fields": [
+        {
+            "cid": 0,
+            "name": "udf_field_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "udf_field_name",
+            "type": "varchar(150)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "udf_field_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "udf_field_data_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "udf_field_data_format",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "udf_print_on_invoice",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "udf_txn_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "udf_field_no",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "udf_field_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "udf_firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_udf_values": [
+        {
+            "cid": 0,
+            "name": "udf_value_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "udf_value_field_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "udf_ref_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "udf_value",
+            "type": "varchar(150)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "udf_value_field_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_linked_transactions": [
+        {
+            "cid": 0,
+            "name": "linked_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_source_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "txn_destination_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txns_linked_date",
+            "type": "DATE",
+            "notnull": 1,
+            "dflt_value": "datetime('now')",
+            "pk": 0
+        }
+    ],
+    "loan_accounts": [
+        {
+            "cid": 0,
+            "name": "loan_account_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "loan_account_name",
+            "type": "TEXT",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "lender",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "account_number",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "firm_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "loan_desc",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "opening_bal",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "opening_date",
+            "type": "DATE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "loan_modified_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "loan_created_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "interest_rate",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "term_duration",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 14,
+            "name": "loan_account_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 15,
+            "name": "loan_application_num",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "loan_transactions": [
+        {
+            "cid": 0,
+            "name": "loan_txn_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "loan_account_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "loan_txn_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "principal_amount",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "interest_amount",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "payment_acc_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "txn_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "loan_txn_created_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "loan_txn_modified_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "txn_desc",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "txn_desc_image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_item_images": [
+        {
+            "cid": 0,
+            "name": "item_image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_image_bitmap",
+            "type": "BLOB",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "catalogue_item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "item_image_catalogue_sync_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "item_image_is_dirty",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_serial_details": [
+        {
+            "cid": 0,
+            "name": "serial_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "serial_item_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "serial_number",
+            "type": "varchar(256)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "serial_current_quantity",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "kb_serial_mapping": [
+        {
+            "cid": 0,
+            "name": "serial_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "serial_mapping_serial_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "serial_mapping_lineitem_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "serial_mapping_adj_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_adjustment_ist_mapping": [
+        {
+            "cid": 0,
+            "name": "adjustment_ist_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "adjustment_ist_mapping_ist_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "adjustment_ist_mapping_adjustment_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "adjustment_ist_mapping_qty",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        }
+    ],
+    "party_to_party_transfer": [
+        {
+            "cid": 0,
+            "name": "p_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "p_amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "p_received_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "p_paid_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "p_txn_date_created",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "p_txn_date_modified",
+            "type": "datetime",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "p_txn_description",
+            "type": "varchar(1024)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "p_txn_date",
+            "type": "date",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "p_txn_image_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "p_txn_firm_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        }
+    ],
+    "kb_address": [
+        {
+            "cid": 0,
+            "name": "address_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "name_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "address_type",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "address",
+            "type": "VARCHAR(2000)",
+            "notnull": 1,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "date_created",
+            "type": "DATETIME",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "date_modified",
+            "type": "DATETIME",
+            "notnull": 0,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "item_def_assembly": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "assembled_item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "def_assembly_item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "def_assembly_item_qty",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "def_assembly_item_unit_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "def_assembly_item_unit_mapping_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "def_assembly_created_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "def_assembly_updated_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "item_def_assembly_additional_costs": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "assembled_item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "def_assembly_payment_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "def_assembly_ac_1",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "def_assembly_ac_2",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "def_assembly_ac_3",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "def_assembly_ac_4",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "def_assembly_ac_5",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "item_mfg_assembly_additional_costs": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "mfg_adj_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "mfg_assembly_payment_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "1",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "mfg_assembly_payment_ref_no",
+            "type": "VARCHAR(50)",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "mfg_assembly_ac_1",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "mfg_assembly_ac_2",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "mfg_assembly_ac_3",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "mfg_assembly_ac_4",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "mfg_assembly_ac_5",
+            "type": "DOUBLE",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "mfg_txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "kb_bank_accounts": [
+        {
+            "cid": 0,
+            "name": "bank_account_seq_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "bank_account_ref_id",
+            "type": "VARCHAR(50)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "bank_account_number",
+            "type": "VARCHAR(30)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "bank_account_type",
+            "type": "VARCHAR(30)",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "paymentType_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "txn_payment_mapping": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "payment_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "cheque_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "null",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "txn_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "amount",
+            "type": "double",
+            "notnull": 0,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "payment_reference",
+            "type": "varchar",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "edc_payment_status",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "edc_payment_txnId",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "edc_payment_mode",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "edc_payment_initiationId",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "edc_card_last_digits",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "transaction_attachments": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "uuid",
+            "type": "VARCHAR(50)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "name",
+            "type": "VARCHAR(1024)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "loyalty_txn": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "party_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "mobile_no",
+            "type": "VARCHAR",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "point_rewarded",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "point_redeemed",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "amount",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "txn_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "redeemed_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "rewarded_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 10,
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 11,
+            "name": "updated_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 12,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 13,
+            "name": "updated_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "party_item_service_reminder": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "name_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "item_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "reminder_status",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "service_period",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "last_service_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "last_reminder_sent_date",
+            "type": "DATETIME",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ],
+    "audit_trails": [
+        {
+            "cid": 0,
+            "name": "audit_trail_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "txn_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "audit_trail_group",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "user_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "device_id",
+            "type": "VARCHAR(20)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "device_info",
+            "type": "VARCHAR(20)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "version_number",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "view_changelog",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "change_logs",
+            "type": "VARCHAR",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": "CURRENT_TIMESTAMP",
+            "pk": 0
+        }
+    ],
+    "other_accounts": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "name",
+            "type": "VARCHAR(256)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "opening_balance",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "opening_balance_date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "account_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "account_identifier",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": "0",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "modified_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 9,
+            "name": "modified_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "chart_of_accounts_mapping": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "parent_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "account_code",
+            "type": "VARCHAR(256)",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "foreign_account_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "foreign_account_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "journal_entry": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "journal_firm_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "reference_number",
+            "type": "VARCHAR(256)",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "date",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "description",
+            "type": "TEXT",
+            "notnull": 0,
+            "dflt_value": "''",
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "created_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "modified_by",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 7,
+            "name": "created_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 8,
+            "name": "modified_at",
+            "type": "DATETIME",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        }
+    ],
+    "journal_entry_line_items": [
+        {
+            "cid": 0,
+            "name": "id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": null,
+            "pk": 1
+        },
+        {
+            "cid": 1,
+            "name": "journal_entry_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 2,
+            "name": "account_id",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 3,
+            "name": "amount",
+            "type": "DOUBLE",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 4,
+            "name": "amount_type",
+            "type": "INTEGER",
+            "notnull": 1,
+            "dflt_value": null,
+            "pk": 0
+        },
+        {
+            "cid": 5,
+            "name": "reference_account_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        },
+        {
+            "cid": 6,
+            "name": "txn_link_id",
+            "type": "INTEGER",
+            "notnull": 0,
+            "dflt_value": "NULL",
+            "pk": 0
+        }
+    ]
+}

@@ -1,0 +1,134 @@
+[
+    {
+        "fixture": "handwritten_bill_02.json",
+        "accuracy": 100,
+        "latency_ms": 0.01,
+        "passed": true,
+        "expected": {
+            "action": "purchase",
+            "party": "Kiran Store",
+            "date": "2026-08-02",
+            "reference": null,
+            "items": [
+                {
+                    "name": "Sugar 5kg",
+                    "qty": 2,
+                    "unit_price": 750,
+                    "line_total": 1500
+                },
+                {
+                    "name": "Tea 900g",
+                    "qty": 1,
+                    "unit_price": 1200,
+                    "line_total": 1200
+                }
+            ]
+        },
+        "actual": {
+            "action": "purchase",
+            "party": "Kiran Store",
+            "items": [
+                {
+                    "name": "Sugar 5kg",
+                    "qty": 2,
+                    "unit_price": 750,
+                    "line_total": 1500
+                },
+                {
+                    "name": "Tea 900g",
+                    "qty": 1,
+                    "unit_price": 1200,
+                    "line_total": 1200
+                }
+            ]
+        }
+    },
+    {
+        "fixture": "printed_receipt_01.json",
+        "accuracy": 100,
+        "latency_ms": 0.04,
+        "passed": true,
+        "expected": {
+            "action": "purchase",
+            "party": "Metro Wholesale",
+            "date": "2026-08-01",
+            "reference": "INV-9021",
+            "items": [
+                {
+                    "name": "Coca Cola 1.5L",
+                    "qty": 12,
+                    "unit_price": 180,
+                    "line_total": 2160
+                },
+                {
+                    "name": "Nestle Pure Life 500ml",
+                    "qty": 24,
+                    "unit_price": 50,
+                    "line_total": 1200
+                }
+            ]
+        },
+        "actual": {
+            "action": "purchase",
+            "party": "Metro Wholesale",
+            "items": [
+                {
+                    "name": "Coca Cola 1.5L",
+                    "qty": 12,
+                    "unit_price": 180,
+                    "line_total": 2160
+                },
+                {
+                    "name": "Nestle Pure Life 500ml",
+                    "qty": 24,
+                    "unit_price": 50,
+                    "line_total": 1200
+                }
+            ]
+        }
+    },
+    {
+        "fixture": "urdu_receipt_05.json",
+        "accuracy": 100,
+        "latency_ms": 0,
+        "passed": true,
+        "expected": {
+            "action": "purchase",
+            "party": "Ali Traders",
+            "date": "2026-08-03",
+            "reference": null,
+            "items": [
+                {
+                    "name": "Milk 5L",
+                    "qty": 5,
+                    "unit_price": 200,
+                    "line_total": 1000
+                },
+                {
+                    "name": "Water Bottle",
+                    "qty": 2,
+                    "unit_price": 50,
+                    "line_total": 100
+                }
+            ]
+        },
+        "actual": {
+            "action": "purchase",
+            "party": "Ali Traders",
+            "items": [
+                {
+                    "name": "Milk 5L",
+                    "qty": 5,
+                    "unit_price": 200,
+                    "line_total": 1000
+                },
+                {
+                    "name": "Water Bottle",
+                    "qty": 2,
+                    "unit_price": 50,
+                    "line_total": 100
+                }
+            ]
+        }
+    }
+]

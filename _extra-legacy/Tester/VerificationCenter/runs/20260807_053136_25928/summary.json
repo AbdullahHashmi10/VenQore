@@ -1,0 +1,32 @@
+{
+    "run_id": "20260807_053136_25928",
+    "schema": "venqore.run-ledger.v1",
+    "started_at": "2026-08-07T05:30:15+05:00",
+    "finished_at": "2026-08-07T05:31:36+05:00",
+    "duration_s": 81.3,
+    "total": 36,
+    "counts": {
+        "passed": 2,
+        "failed": 0,
+        "errored": 34,
+        "skipped": 0,
+        "incomplete": 0,
+        "risky": 0
+    },
+    "green": false,
+    "environment": {
+        "php": "8.2.23",
+        "os": "Windows",
+        "db_database": "amd_pos_test",
+        "git_sha": "8441b309",
+        "seed_checksum": "07b30e295cbb98e26c32f9e540e5329027e13326a822a7d120773507e2d12dad"
+    },
+    "argv": [
+        "vendor/bin/pest",
+        "FinalTester/tests/Feature/Phase3FeatureGatesTest.php",
+        "FinalTester/tests/Feature/OwnersDailyPulseTest.php",
+        "FinalTester/tests/Feature/Money/ReportReconciliationTest.php",
+        "FinalTester/tests/Feature/Smoke/SerializationDragnetTest.php",
+        "--configuration=FinalTester/phpunit.xml"
+    ]
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Live Demo — VENQORE</title>
+<meta name="description" content="Try VENQORE live — no signup, no credit card. Guest login resets every 24 hours. Full POS, accounting, and inventory available to explore."/>
+<link rel="stylesheet" href="_nebula.css"/>
+<style>
+.step-number{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:white;flex-shrink:0;font-family:'Space Grotesk',sans-serif}
+</style>
+</head>
+<body>
+<div class="nebula-bg"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="grid-overlay"></div></div>
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><div class="nav-logo-icon"><div class="nav-logo-icon-inner"><img src="logo.svg" style="width:100%;height:100%;object-fit:contain;"></div></div>VENQORE</a>
+    <div class="nav-links">
+      <a href="features.html">Features</a><a href="demo.html" class="active">Demo</a>
+      <a href="reviews.html">Reviews</a><a href="pricing.html">Pricing</a><a href="docs.html">Docs</a>
+    </div>
+    <div class="nav-cta"><a href="demo.html" class="btn-ghost">Live Demo</a><a href="pricing.html" class="btn-primary">Buy Now →</a></div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="features.html">Features</a><a href="demo.html">Demo</a><a href="reviews.html">Reviews</a><a href="pricing.html">Pricing</a><a href="docs.html">Docs</a>
+  </div>
+</nav>
+<main>
+  <!-- Hero -->
+  <section style="padding:140px 0 60px;text-align:center"><div class="container">
+    <span class="badge badge-cyan fade-in" style="margin-bottom:28px">
+      <span class="pulse-dot"></span> Live instance — resets daily
+    </span>
+    <h1 class="section-title fade-in" data-delay="60" style="font-size:clamp(34px,5vw,64px);letter-spacing:-2.5px">
+      Try the full system<br><span class="grad-text">before you spend a dollar</span>
+    </h1>
+    <p class="section-sub fade-in" data-delay="100" style="margin:16px auto 40px">
+      A real VENQORE instance running on our VPS. Guest login. Full access.
+      No credit card. No signup. No time limit — just click and explore.
+    </p>
+    <div class="fade-in" data-delay="140">
+      <a href="https://demo.venqore.com" target="_blank" rel="noopener" id="launch-demo-btn"
+        class="btn-primary" style="padding:16px 40px;font-size:16px;font-weight:800;border-radius:14px;box-shadow:0 0 50px -8px rgba(6,182,212,0.6);background:linear-gradient(135deg,#06b6d4,#4f46e5)"
+        onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Launch Guest Demo
+      </a>
+    </div>
+    <p style="color:var(--text-4);font-size:12px;margin-top:16px" class="fade-in" data-delay="180">
+      Guest credentials are pre-filled. Session resets automatically every 24 hours.
+    </p>
+  </div></section>
+
+  <!-- Credentials card -->
+  <section><div class="container-sm">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+      <div class="fade-in glow-box" style="padding:32px 28px">
+        <div class="badge badge-cyan" style="margin-bottom:20px">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Guest Login Credentials
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">URL</div>
+            <div style="font-size:14px;color:var(--cyan-l);font-weight:600;font-family:monospace">demo.venqore.com</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Email</div>
+            <div style="font-size:14px;color:white;font-weight:600;font-family:monospace">guest@venqore.com</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Password</div>
+            <div style="font-size:14px;color:white;font-weight:600;font-family:monospace">guest123</div>
+          </div>
+        </div>
+        <p style="color:var(--text-4);font-size:11px;margin-top:16px;line-height:1.6">
+          ⏱ Guest data resets automatically every 24 hours. Feel free to create sales, products, and invoices.
+        </p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card fade-in" data-delay="60" style="padding:20px 22px">
+          <div style="font-size:12px;font-weight:700;color:var(--text-4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">What you can explore</div>
+          <ul class="check-list">
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Make a complete sale with receipt printing</li>
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Create a purchase order and receive stock</li>
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>View the P&amp;L and daily closing report</li>
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Browse 38 built-in reports</li>
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Test the AI growth engine dashboard</li>
+            <li><svg width="16" height="16" fill="none" stroke="#22d3ee" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Check multi-warehouse inventory transfers</li>
+          </ul>
+        </div>
+        <div class="card fade-in" data-delay="120" style="padding:20px 22px;background:rgba(79,70,229,0.06);border-color:rgba(79,70,229,0.2)">
+          <div style="font-size:13px;font-weight:700;color:white;margin-bottom:8px">
+            💡 Questions after the demo?
+          </div>
+          <p style="font-size:12px;color:var(--text-3);line-height:1.6;margin-bottom:14px">
+            Ready to buy, or want a guided walkthrough? Reach out directly —
+            we typically respond within 2 hours.
+          </p>
+          <a href="pricing.html" class="btn-primary" style="font-size:13px;padding:9px 18px">
+            View Pricing →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- How to navigate the demo -->
+  <section><div class="container-sm">
+    <div class="text-center mb-12">
+      <h2 class="hero-font fade-in" style="font-size:clamp(22px,3vw,34px);font-weight:900;color:white;letter-spacing:-0.5px">
+        3 screens to evaluate in 5 minutes
+      </h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card fade-in" data-delay="0" style="display:flex;align-items:flex-start;gap:18px;padding:24px 26px">
+        <div class="step-number">1</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:white;margin-bottom:6px">POS Screen → Make a sale</div>
+          <p style="font-size:13px;color:var(--text-3);line-height:1.65">Go to Sales → New Sale. Search for a product, add to cart, apply a discount, and complete the sale. Notice the keyboard shortcuts — this is how fast checkout happens at real busy stores.</p>
+        </div>
+      </div>
+      <div class="card fade-in" data-delay="80" style="display:flex;align-items:flex-start;gap:18px;padding:24px 26px">
+        <div class="step-number">2</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:white;margin-bottom:6px">Reports → Daily Closing</div>
+          <p style="font-size:13px;color:var(--text-3);line-height:1.65">Go to Reports → Daily Closing. One click gives you total sales, returns, margins, and cash balance for the day. This is the report shop owners check before going home.</p>
+        </div>
+      </div>
+      <div class="card fade-in" data-delay="160" style="display:flex;align-items:flex-start;gap:18px;padding:24px 26px">
+        <div class="step-number">3</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:white;margin-bottom:6px">Accounting → Trial Balance</div>
+          <p style="font-size:13px;color:var(--text-3);line-height:1.65">Go to Accounting → Trial Balance. Every transaction you made is reflected here. The V3 double-entry engine guarantees the balance is always zero — mathematically verified.</p>
+        </div>
+      </div>
+    </div>
+  </div></section>
+</main>
+
+<footer><div class="container">
+  <div class="footer-grid">
+    <div class="footer-brand"><a href="index.html" class="nav-logo"><div class="nav-logo-icon" style="width:30px;height:30px"><div class="nav-logo-icon-inner"><img src="logo.svg" style="width:100%;height:100%;object-fit:contain;"></div></div>VENQORE</a><p>Complete POS + ERP for retail businesses worldwide. 150+ currencies. Lifetime license.</p></div>
+    <div style="display:flex;gap:48px;flex-wrap:wrap">
+      <div class="footer-col"><h4>Product</h4><a href="features.html">Features</a><a href="pricing.html">Pricing</a><a href="demo.html">Live Demo</a><a href="docs.html">Docs</a></div>
+      <div class="footer-col"><h4>Reviews</h4><a href="https://g2.com" target="_blank" rel="noopener">G2.com</a><a href="https://softwaresuggest.com" target="_blank" rel="noopener">SoftwareSuggest</a><a href="https://capterra.com" target="_blank" rel="noopener">Capterra</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 VenQore. All rights reserved.</span><div style="display:flex;gap:20px"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Support</a></div></div>
+</div></footer>
+<script src="_nav.js"></script>
+</body>
+</html>

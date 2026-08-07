@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Lost | VenQore Station</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030305;
+            --surface: #0a0a10;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --danger: #f43f5e;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 50% 0%, #1e1b4b 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .signal-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 0 30px rgba(244, 63, 94, 0.3));
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 400px;
+            margin: 0 auto 3rem auto;
+            line-height: 1.6;
+        }
+
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1rem 3rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .retry-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .status-bar {
+            margin-top: 3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Scanline Overlay */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scanline"></div>
+
+    <div class="container">
+        <div class="signal-icon">📡</div>
+        <h1>Signal Lost</h1>
+        <p>The neural link to the core system has been severed. Attempting to re-establish connection...</p>
+
+        <button class="retry-btn" onclick="manualRetry()">
+            <span>Reconnect</span>
+        </button>
+
+        <div class="status-bar">
+            <span class="dot" id="status-dot"></span>
+            <span id="status-text">OFFLINE // RETRYING CONNECTION...</span>
+        </div>
+    </div>
+
+    <script>
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.getElementById('status-dot');
+        let attempts = 0;
+
+        // Retrieve target from URL or default
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUrl = urlParams.get('target') || 'http://localhost:8000';
+
+        function checkConnection() {
+            attempts++;
+            statusText.innerText = `PINGING CORE... (ATTEMPT ${attempts})`;
+            statusDot.style.backgroundColor = "#fbbf24"; // Yellow
+
+            // Try to fetch the target
+            fetch(targetUrl, { mode: 'no-cors' })
+                .then(() => {
+                    statusText.innerText = "CONNECTION ESTABLISHED. INITIALIZING...";
+                    statusDot.style.backgroundColor = "#10b981"; // Green
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 500);
+                })
+                .catch(() => {
+                    statusText.innerText = `CONNECTION REFUSED. RETRYING IN 3S...`;
+                    statusDot.style.backgroundColor = "#f43f5e"; // Red
+                });
+        }
+
+        function manualRetry() {
+            attempts = 0;
+            checkConnection();
+        }
+
+        // Auto-loop
+        setInterval(checkConnection, 3000);
+
+        // Initial check
+        setTimeout(checkConnection, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2122 @@
+  AMD ERP  
+  SCENARIO RULEBOOK  
+  Every edge case. Every real-world scenario. One rule for each.  
+120 scenarios across 15 categories  |  Companion to the Financial Bible v3.0 | All 8 blockers SOLVED | All 18 decisions LOCKED
+✅
+SOLVED
+Rule already exists in Bible v2.0
+⚠️
+PARTIAL
+Some handling exists, needs completion
+🚫
+UNSOLVED
+No rule defined yet — must be resolved
+🔧
+DESIGN DECISION
+Multiple valid approaches — pick one
+  CATEGORY 1
+  FIFO &amp; INVENTORY COSTING
+  16 scenarios scenarios  
+S-001  Mixed-Batch Sale — The Core FIFO Example (User's Scenario)
+✅  SOLVED
+TRIGGER
+You buy stock at different times and costs. A sale pulls from multiple batches at once.
+NUMBERS
+Batch A: 10 units bought @ Rs.50 cost  (sale price Rs.100)
+Batch B: 10 units bought @ Rs.100 cost (sale price Rs.200)
+You sell 10 units AFTER buying Batch B.
+Stock available: 2 units from Batch A + 8 units from Batch B = 10 units
+COGS calculation:
+  2 units × Rs.50  = Rs.100   (from Batch A — oldest, used first)
+  8 units × Rs.100 = Rs.800   (from Batch B — next oldest)
+  Total COGS       = Rs.900
+If sale price = Rs.200 per unit → Revenue = Rs.2,000
+Gross Profit = Rs.2,000 - Rs.900 = Rs.1,100
+PROBLEM
+If the system uses one 'average cost' instead of FIFO batches, it would use Rs.75 cost per unit → COGS Rs.750. That is a Rs.150 error. The profit figure is wrong, inventory valuation is wrong, and the error compounds with every subsequent sale.
+THE RULE
+→  FifoService.deductStock() ALWAYS queries inventory_batches ORDER BY created_at ASC
+→  Each batch deduction creates one row in sale_item_batches: {batch_id, qty_taken, unit_cost}
+→  COGS = SUM(sale_item_batches.qty_taken × unit_cost) for this sale — never products.cost_price
+→  The sale_item_batches table is the audit trail that proves every COGS calculation
+JOURNAL
+DR  5000  COGS              = Rs.900
+CR  1100  Inventory Asset   = Rs.900
+sale_item_batches row 1: batch_A_id, qty=2, unit_cost=50, total=100
+sale_item_batches row 2: batch_B_id, qty=8, unit_cost=100, total=800
+S-002  Return After Mixed-Batch Sale — Which Batch Gets Restored?
+✅  SOLVED
+TRIGGER
+Customer returns some units from a sale that pulled from multiple batches.
+NUMBERS
+Sale S-001 above: 2 units from Batch A + 8 units from Batch B
+Customer returns 3 units.
+Question: do the 3 returned units go back to Batch B (newest) or Batch A?
+Wrong approach: create a new batch for the returned units
+Correct: restore from most-recently-deducted batch first (reverse of the sale)
+  3 units → restored to Batch B first (deducted last, restored first)
+  If return &gt; 8, overflow goes to Batch A
+  Restored cost = the EXACT unit_cost from the original sale_item_batches row
+PROBLEM
+If a new batch is created for returned items, the cost gets wrong. If average cost is used, existing batch costs are corrupted. The only correct method is to reverse into the exact original batches using the sale_item_batches audit trail.
+THE RULE
+→  On a sale return: read sale_item_batches for the original sale, ordered by most-recent-deduction first
+→  Restore remaining_qty on the ORIGINAL batch_id — not a new batch
+→  The COGS reversal = the exact cost from sale_item_batches (not current batch cost)
+→  If the original batch has been fully deleted or archived: edge case — see S-009
+JOURNAL
+DR  1100  Inventory Asset   = Rs.300  (3 units × Rs.100 from Batch B)
+CR  5000  COGS              = Rs.300
+UPDATE inventory_batches SET remaining_qty = remaining_qty + 3 WHERE id = Batch_B_id
+S-003  Cost Price Changes on Next Purchase — Old Stock Not Affected
+✅  SOLVED
+TRIGGER
+Same product bought twice at different prices. Do old unsold units change cost?
+NUMBERS
+Jan: 50 units @ Rs.80 cost → Batch A  (30 sold, 20 remaining)
+Feb: 50 units @ Rs.120 cost → Batch B  (all 50 remaining)
+Mar: Sell 30 units
+FIFO: deduct from Batch A first (20 remaining), then from Batch B
+COGS = 20 × Rs.80 + 10 × Rs.120 = Rs.1,600 + Rs.1,200 = Rs.2,800
+The Feb purchase at Rs.120 does NOT change Batch A's cost — it stays at Rs.80 forever
+PROBLEM
+If the system updates products.cost_price when a new purchase arrives and uses that for COGS, all remaining old stock gets repriced. The Jan stock that cost Rs.80 would be reported as costing Rs.120. COGS is wrong, profit is wrong, and the error is invisible.
+THE RULE
+→  inventory_batches.unit_cost is LOCKED at the moment of purchase — NEVER overwritten
+→  products.cost_price is a display field only — never used for any COGS calculation
+→  Each batch is independent — a new purchase creates a new batch, leaves all prior batches untouched
+S-004  Zero-Cost Items — Free Samples or Gifts Received
+✅  DECIDED — Warn but allow
+TRIGGER
+Stock received for free — promotional samples, gifts from supplier, items made from scraps.
+NUMBERS
+Supplier sends 10 free sample units alongside a paid purchase
+Or: 5 units assembled from scrap material at zero incremental cost
+If unit_cost = 0:
+  COGS when sold = Rs.0
+  Inventory value contribution = Rs.0
+  Gross Profit = 100% of sale price
+PROBLEM
+Allowing zero-cost batches means items appear to generate infinite margin. If this is not intentional, it may hide real cost. However, zero-cost stock is valid in some businesses.
+THE RULE
+→  DECISION: zero-cost batches ARE permitted — business chooses the cost at time of entry
+→  System must WARN (not block) when a purchase line has unit_cost = 0
+→  The warning must be acknowledged — prevents accidental zero-cost entries
+→  Zero-cost items sold: COGS = Rs.0, Revenue = sale price, Gross Profit = Revenue (valid)
+→  Separate line on purchase: qty_free is recorded at Rs.0 with a 'promotional' flag
+⚠️ WATCH
+If someone enters a Rs.10,000 item at zero cost by accident, profit is overstated. The warning step is mandatory.
+S-005  Oversell — Sale Quantity Exceeds Available Stock
+✅  SOLVED
+TRIGGER
+User tries to sell 20 units but only 15 are in stock.
+NUMBERS
+Stock: 15 units across 2 batches
+Sale attempted: 20 units
+FIFO deduction: Batch A: 10 taken (now 0 remaining), Batch B: 5 taken (now 0 remaining)
+Remaining needed: 5 units — no batches left
+FifoService raises InsufficientStockException
+PROBLEM
+If the system allows the sale to proceed, remaining_qty on batches goes negative. Inventory value goes negative. COGS is partially calculated. The journal entry is posted but the physical reality doesn't match.
+THE RULE
+→  FifoService throws InsufficientStockException when remaining_needed &gt; 0 after exhausting all batches
+→  The entire transaction is rolled back — DB::transaction() ensures nothing is saved
+→  User sees: 'Insufficient stock — 15 units available, 20 requested'
+→  EXCEPTION: if the business allows backorders, a flag can be set per product. In that case, a backorder record is created but the stock journal entry is held until restocking
+→  Default behaviour: BLOCK the sale — no negative stock permitted
+S-006  Multi-Warehouse FIFO — Which Warehouse Does Stock Come From?
+✅  DECIDED — Per-warehouse FIFO (ORDER BY created_at ASC within warehouse)
+TRIGGER
+Business has 2+ warehouses. A sale is made — which warehouse's stock is deducted?
+NUMBERS
+Warehouse A: 10 units (bought Jan @ Rs.50)
+Warehouse B: 5 units  (bought Mar @ Rs.80)
+Sale from Warehouse B: 3 units
+Option 1 — Per-warehouse FIFO: oldest stock IN THAT WAREHOUSE deducted first
+Option 2 — Global FIFO: oldest stock in ANY warehouse deducted, regardless of location
+PROBLEM
+If FIFO is global but the goods are physically in a different warehouse, stock transfer (B11) is needed before sale. If FIFO is per-warehouse, batches in Warehouse B may be newer and more expensive than global oldest. The choice affects COGS.
+THE RULE
+→  DECISION TAKEN: FIFO is PER-WAREHOUSE
+→  Rationale: you can only sell what is physically at the point of sale location
+→  FifoService.deductStock() filters by warehouse_id FIRST, then orders by created_at ASC
+→  If a sale specifies Warehouse B: oldest batch IN Warehouse B is used first
+→  Stock transfers (B11) should happen BEFORE a sale if goods need to come from another location
+⚠️ WATCH
+Document clearly in UI: when creating a sale, the warehouse selection determines which stock is deducted.
+S-007  Expired Batch — Goods Past Expiry Still in System
+⚠️  PARTIALLY HANDLED
+TRIGGER
+Batch with an expiry date that has passed is still showing as available stock.
+NUMBERS
+Batch C: 20 units, expiry = 2025-12-31, today = 2026-03-05
+System shows: 20 units available
+FifoService would deduct from this batch first (it's oldest)
+Selling expired goods = legal/quality risk
+PROBLEM
+The system has no expiry enforcement. It will happily sell expired stock as the first batch in FIFO order. The D23 Expiry Report exists but no system block prevents the sale.
+THE RULE
+→  RULE: inventory_batches.expiry_date IS stored (nullable). If populated and date &lt; today: batch is BLOCKED from FIFO deduction
+→  FifoService adds: AND (expiry_date IS NULL OR expiry_date &gt;= CURDATE()) to batch query
+→  Blocked-expiry stock must be written off via B10 Stock Adjustment (Loss) to remove from books
+→  D23 Expiry Report shows batches expiring in next 30/60/90 days as warnings
+→  PARTIAL: the report exists. The FifoService filter clause needs to be added — currently missing
+S-008  Batch with remaining_qty = 0 — Should It Still Appear?
+✅  SOLVED
+TRIGGER
+A batch has been fully sold or written off. Does it stay in inventory_batches?
+NUMBERS
+Batch A: 10 units purchased, 10 sold → remaining_qty = 0
+Option 1: Delete the row → cheaper queries, lose audit trail
+Option 2: Keep row with remaining_qty = 0 → audit intact, query must filter it
+PROBLEM
+If zero-qty batches are deleted, the sale_item_batches table has orphaned references. Returns become impossible to trace. The audit trail is destroyed.
+THE RULE
+→  Batches are NEVER deleted — remaining_qty = 0 rows stay forever
+→  FifoService always adds WHERE remaining_qty &gt; 0 to the deduction query
+→  sale_item_batches references (batch_id) remain valid for all time — return tracing always works
+→  Index on (product_id, remaining_qty, created_at) ensures zero-qty rows don't slow queries
+S-009  Return After Original Batch Was Fully Sold — Edge Case
+✅  SOLVED
+TRIGGER
+All units from the original batch were sold to different customers. One customer returns. The batch has remaining_qty = 0.
+NUMBERS
+Batch A: 10 units → sold 5 to Customer X, sold 5 to Customer Y
+Batch A remaining_qty = 0
+Customer X returns 2 units
+The batch still EXISTS with remaining_qty = 0
+Returning to it: remaining_qty becomes 2 (valid — the row allows positive)
+PROBLEM
+If zero-qty batches were deleted, this return would be impossible to process correctly. The returned units would have to create a new batch with potentially wrong cost.
+THE RULE
+→  Return always goes back to the original batch_id from sale_item_batches
+→  remaining_qty can increase from 0 — there is no constraint preventing this
+→  The returned unit_cost = the original sale_item_batches.unit_cost (not recalculated)
+→  COGS is reversed at the original cost — inventory is restored at the original cost
+S-010  Trade Discount on Purchase — Does It Affect Batch Cost?
+✅  SOLVED
+TRIGGER
+Supplier gives 10% trade discount. Do you record the gross cost or the net cost in the batch?
+NUMBERS
+Invoice: 100 units × Rs.200 = Rs.20,000
+Trade discount: 10% = Rs.2,000
+Net cost paid: Rs.18,000
+unit_cost in batch: should it be Rs.200 or Rs.180?
+PROBLEM
+If batch stores Rs.200 but you only paid Rs.180, your COGS is overstated and inventory is overvalued. Your gross profit is understated on every unit sold from this batch.
+THE RULE
+→  Batch unit_cost = net cost paid = Rs.180 (after all trade discounts)
+→  Trade discounts reduce the cost of acquisition — they are not separate income
+→  Journal entry: DR 1100 Inventory Rs.18,000 / CR Cash Rs.18,000 (net amount only)
+→  The Rs.2,000 discount is never posted separately — it simply reduces the purchase value
+→  DISTINCTION: cash discount for early payment → that IS posted separately (to Other Income 4100)
+S-011  Selling Below Cost — Negative Margin Sale
+✅  DECIDED — Warn + Manager PIN required
+TRIGGER
+Item costs Rs.100. You sell it for Rs.80 (clearance, error, or competitive pressure).
+NUMBERS
+unit_cost = Rs.100,  sale_price = Rs.80
+COGS = Rs.100,  Revenue = Rs.80
+Gross Profit on this item = -Rs.20  (a loss)
+PROBLEM
+Should the system allow this? It is financially valid — businesses sometimes sell below cost. But it may also be a data entry error that should be flagged.
+THE RULE
+→  DECISION: system WARNS but does not BLOCK when sale_price &lt; unit_cost
+→  Warning shown at line item level: 'Selling below cost — margin is negative'
+→  A supervisor PIN or acknowledgement is required to proceed
+→  The journal entries are exactly the same — COGS still = actual purchase cost
+→  The loss is correctly reflected in Gross Profit on the P&amp;L
+⚠️ WATCH
+Never change the COGS to match the sale price. The true cost must always be recorded even if it creates a negative margin.
+S-012  Unit of Measure Mismatch — Bought in KG, Sold in Grams
+✅  DECIDED — Conversion support in Phase 1 (B31)
+TRIGGER
+A product is purchased as 5kg but needs to be sold in 500g portions (10 portions per kg).
+NUMBERS
+Purchase: 5 kg @ Rs.200/kg → batch cost = Rs.200/kg
+Sale unit: 500g = Rs.110 per portion
+If system records qty=5 (kg) and you sell qty=1 (portion):
+  FIFO deduction: 1 unit deducted from batch
+  COGS = Rs.200 (wrong — 1 portion costs Rs.100, not Rs.200)
+PROBLEM
+Unit of measure conversion is not defined in the current system. Buying in one unit and selling in another will produce wrong COGS and wrong stock counts unless the conversion factor is handled.
+THE RULE
+→  DECISION: UOM conversion factor stored on the product: purchase_uom, sale_uom, conversion_factor
+→  Example: purchase_uom = kg, sale_uom = 500g, conversion_factor = 2 (2 sale units per purchase unit)
+→  When selling 1 portion: FIFO deducts 0.5 kg from the batch
+→  unit_cost for COGS = batch.unit_cost ÷ conversion_factor = Rs.200 ÷ 2 = Rs.100 per portion
+→  Stock display: shows in sale_uom (portions) unless user switches to purchase_uom (kg)
+S-013  Manufacturing Produces Fewer Units Than Planned — Wastage
+✅  SOLVED
+TRIGGER
+BOM says 10 inputs make 100 units. Actual run produces only 92 due to waste.
+NUMBERS
+Raw material consumed: 10 kg flour @ Rs.50 = Rs.500 total cost
+Expected output: 100 biscuit packets
+Actual output: 92 biscuit packets (8 lost to breakage/waste)
+Cost per unit if spread across 92:  Rs.500 ÷ 92 = Rs.5.43 per packet
+Cost per unit if spread across 100: Rs.500 ÷ 100 = Rs.5.00 per packet
+PROBLEM
+If the system uses the planned quantity (100) for cost calculation, each finished unit is undercosted. Real cost is higher. The waste is invisible — it just reduces the margin silently.
+THE RULE
+→  Finished goods batch unit_cost = total_production_cost ÷ actual_units_produced (not planned)
+→  Wastage is automatically absorbed into the cost of the surviving units
+→  If specific waste tracking is needed: create a separate B10 Loss entry for wasted materials before capitalising finished goods
+→  Production run records both: units_planned and units_produced — variance is visible in production reports
+S-014  Sub-Assembly — Finished Good A Is an Input to Finished Good B
+✅  DECIDED — Maximum 5 levels of BOM nesting
+TRIGGER
+You manufacture Item A. Then Item A is used as a component to manufacture Item B.
+NUMBERS
+Step 1: Make Item A (sub-assembly) — raw materials → Item A batch, unit_cost = Rs.120
+Step 2: Make Item B — uses 2× Item A + other materials
+  Item A cost contribution: 2 × Rs.120 = Rs.240
+  Other materials: Rs.80
+  Total Item B cost: Rs.320
+PROBLEM
+The BOM for Item B references Item A as a component. When a production run for Item B runs, it needs to deduct from Item A's inventory_batches using FIFO — just like a sale. Then capitalise the total cost (incl. Item A's FIFO cost) into Item B's batch.
+THE RULE
+→  Item A is a manufactured product with its own inventory_batches
+→  When Item B production consumes Item A: FifoService.deductStock(Item_A) is called — same as selling
+→  Item B's batch cost = SUM of all consumed items at their respective FIFO costs + labor
+→  Circular BOM must be blocked by system (A needs B needs A = infinite loop)
+→  BOM levels: support up to 5 levels of sub-assembly (beyond that, most businesses don't need)
+S-015  Production Run Reversed — Finished Goods Go Back to Raw Materials
+✅  DECIDED — Partial reversal of unsold qty only
+TRIGGER
+A production run was posted in error. How do you undo it?
+NUMBERS
+Production Run #42: consumed 10 kg flour (Batch A) → created 100 biscuit packets (Batch F1)
+Error discovered: wrong recipe was used
+Need to: destroy Batch F1 (finished goods), restore Batch A (raw materials)
+Some packets may already have been sold — those can't be restored
+PROBLEM
+A straight reversal is only possible if none of the finished goods have been sold. If some are sold, partial reversal is needed. This is a complex multi-step operation.
+THE RULE
+→  RULE: check sale_item_batches for any deductions from Batch F1 before allowing reversal
+→  If zero units sold: full reversal — reverse production journal, delete Batch F1, restore Batch A
+→  If some units sold: only unsold units can be reversed — partial reversal
+→  Partial reversal: remaining_qty of Batch F1 set to 0 (write-off), Batch A partially restored
+→  All reversal entries are posted as new journal entries — never delete the originals
+→  A 'production reversal' transaction type (B16-REV) must be tracked separately in the reference table
+S-016  Serial Number Appears on Two Batches — Data Entry Error
+✅  SOLVED
+TRIGGER
+Same IMEI/serial number was entered on two separate purchases.
+NUMBERS
+Purchase Jan: IMEI 123456789 → Batch A, product = Phone X
+Purchase Mar: IMEI 123456789 → Batch B, product = Phone X (duplicate entry)
+Selling IMEI 123456789 — which batch?
+PROBLEM
+Serial numbers are unique identifiers — duplicates mean a physical item is tracked twice. Selling it once from each batch doubles the revenue and creates phantom inventory.
+THE RULE
+→  UNIQUE constraint on (serial_number, product_id) in the serial_numbers table
+→  The database rejects the duplicate at INSERT time — the user sees an error before saving
+→  The error message: 'Serial number 123456789 already exists on Purchase #[original_id]'
+→  Resolution: user must investigate — was it a duplicate entry or a genuinely different unit?
+  CATEGORY 2
+  PAYMENTS &amp; ALLOCATION
+  13 scenarios scenarios  
+S-017  Customer Overpays an Invoice
+✅  SOLVED
+TRIGGER
+Invoice total Rs.10,000. Customer pays Rs.11,000. Rs.1,000 excess.
+NUMBERS
+Invoice #501: Rs.10,000
+Payment received: Rs.11,000
+After allocating Rs.10,000 to Invoice #501: Rs.1,000 unallocated
+payment_allocations: {journal_entry_id: PAY1, sale_id: 501, allocated_amount: 10000}
+Unapplied credit: {journal_entry_id: PAY1, sale_id: NULL, allocated_amount: 1000}
+PROBLEM
+The full Rs.11,000 must be recorded as received. The unallocated Rs.1,000 sits as a credit in the customer's account (reduces their Receivable below zero for this amount). It must be either refunded or applied to their next invoice.
+THE RULE
+→  Post the full Rs.11,000 payment: DR Cash Rs.11,000 / CR AR Rs.11,000
+→  payment_allocations: one row for Invoice #501 (Rs.10,000) + one row with sale_id=NULL (Rs.1,000)
+→  Customer's AR balance becomes -Rs.1,000 (credit balance — you owe them)
+→  Apply to next invoice: create another payment_allocations row when next invoice is issued
+→  If refunding: post B4-refund: DR AR Rs.1,000 / CR Cash Rs.1,000
+S-018  One Payment Covers Multiple Invoices
+✅  SOLVED
+TRIGGER
+Customer pays Rs.25,000 to settle three outstanding invoices.
+NUMBERS
+Invoice #601: Rs.8,000   Invoice #602: Rs.12,000   Invoice #603: Rs.5,000
+Total owed: Rs.25,000.  Payment: Rs.25,000.
+payment_allocations rows:
+  {PAY2, sale_id:601, Rs.8,000}
+  {PAY2, sale_id:602, Rs.12,000}
+  {PAY2, sale_id:603, Rs.5,000}
+SUM = Rs.25,000 = payment total  ✓
+PROBLEM
+Without payment_allocations, all three invoices still show as Unpaid even though the full amount was received. The total AR balance is correct but individual invoice status is broken.
+THE RULE
+→  One journal entry: DR Cash Rs.25,000 / CR AR Rs.25,000
+→  Three payment_allocations rows — one per invoice
+→  System must show the user a list of open invoices to allocate against
+→  Default allocation order: oldest invoice first (FIFO on invoices) unless user specifies otherwise
+S-019  Payment Allocated to Wrong Invoice — How to Correct
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+Rs.5,000 was allocated to Invoice #700 but should have been Invoice #701.
+NUMBERS
+Current state:
+  payment_allocations: {PAY3, sale_id:700, Rs.5,000}
+  Invoice #700 shows Paid. Invoice #701 still shows Unpaid.
+Correct state should be:
+  Invoice #701 → Paid. Invoice #700 → Unpaid.
+PROBLEM
+The journal entry (DR Cash / CR AR) is correct — the money was received. Only the allocation is wrong. Deleting the journal entry would be wrong. Only the payment_allocations row needs to change.
+THE RULE
+→  A 'Reallocate' function: delete the wrong payment_allocations row, insert the correct one
+→  The journal entry is NOT touched — it remains as originally posted
+→  Total of payment_allocations for this payment must still equal the payment journal entry amount
+→  Audit trail: reallocation creates a log entry: {changed_by, changed_at, old_sale_id, new_sale_id}
+→  This operation requires supervisor access — it changes invoice badges without posting new journals
+S-020  Bounced Cheque — Payment Recorded But Money Never Arrived
+✅  SOLVED — B25 B-REV Transaction
+TRIGGER
+Customer paid by cheque. It was recorded in AMD. The cheque bounced 3 days later.
+NUMBERS
+Day 1: Cheque received → posted as B4 Payment In
+  DR Cash Rs.15,000 / CR AR Rs.15,000
+  Invoice #801 shows Paid.
+Day 4: Cheque returned by bank — funds never deposited
+Now: Cash shows Rs.15,000 more than actual. Invoice shows Paid when it isn't.
+PROBLEM
+No specific 'bounced cheque' transaction type or reversal path exists in the current system. Law 2 says entries are never deleted, but this needs a clean reversal mechanism.
+THE RULE
+→  NEW TRANSACTION TYPE: B-REV (Payment Reversal)
+→  Step 1: Reverse the original payment entry:
+→    DR AR Rs.15,000 / CR Cash Rs.15,000 (exact mirror of original, marked as reversal)
+→  Step 2: Set payment_allocations status = REVERSED (never delete — preserve audit trail)
+→    Invoice #801 reverts to Unpaid
+→  Step 3: Add bank charges if the bank charged a dishonour fee:
+→    DR 6000 Operating Expenses / CR Cash (bank charge)
+→  The customer still owes Rs.15,000 + any bank charges — their balance is restored
+S-021  Bad Debt Write-Off — Customer Will Never Pay
+✅  SOLVED — B26 + Account 6700
+TRIGGER
+Customer owes Rs.30,000. They have disappeared or gone bankrupt. Debt is uncollectable.
+NUMBERS
+Customer AR balance: Rs.30,000  (3 invoices)
+Decision: write off as bad debt
+Incorrect approach: delete the invoices (destroys history)
+Incorrect approach: post as Fund Out B14 (wrong — this is not an owner drawing)
+Correct approach: recognise as an expense
+PROBLEM
+No bad debt write-off mechanism exists in the current system. The AR balance never clears unless an improper workaround is used.
+THE RULE
+→  NEW ACCOUNT: 6700 Bad Debt Expense
+→  Write-off entry: DR 6700 Bad Debt Expense Rs.30,000 / CR 1200 AR Rs.30,000
+→  payment_allocations: create rows marking all 3 invoices as 'written off' (special status flag)
+→  Customer's AR balance goes to zero. Their record is preserved for history.
+→  If customer pays later (recovery): DR 1200 AR / CR 6700 Bad Debt Expense (partial reversal), then post normal B4
+→  PARTIAL RECOVERY: if they pay Rs.10,000 of the Rs.30,000 → DR Cash Rs.10,000 / CR 4100 Rs.10,000
+S-022  Round-Off Difference — Invoice Rs.999.99, Customer Pays Rs.1,000
+✅  DECIDED — Configurable by admin (default Rs.1)
+TRIGGER
+Customer rounds up their payment. Rs.0.01 remains as unapplied credit.
+NUMBERS
+Invoice #901: Rs.999.99
+Payment: Rs.1,000.00
+Difference: Rs.0.01
+After allocating Rs.999.99: Rs.0.01 unapplied
+Option A: leave as unapplied credit (Rs.0.01 sitting in customer account)
+Option B: write off the Rs.0.01 automatically as round-off adjustment
+PROBLEM
+Rs.0.01 credits accumulating across thousands of customers pollute the AR balance. Manual write-offs waste time. An automatic round-off tolerance is needed.
+THE RULE
+→  DECISION: Configurable by admin. Default Rs.1. Round-off auto-posts to 4100/6000. Threshold changeable in settings.
+→  Anything above Rs.1.00 difference: left as unapplied credit, user must handle manually
+→  Round-off entry: DR/CR 4100 Other Income or 6000 Expense (whichever direction) for the paisa difference
+→  The threshold (Rs.1.00) is configurable in system settings
+→  Automatic round-off is logged and visible in reports
+S-023  Advance Payment — Partial Application to First Invoice, Remainder to Next
+✅  SOLVED
+TRIGGER
+Customer paid Rs.20,000 advance. First invoice is Rs.15,000. Second invoice Rs.10,000.
+NUMBERS
+Step 1: Advance received
+  DR Cash Rs.20,000 / CR 2100 Customer Advance Rs.20,000
+Step 2: Invoice #1 posted (Rs.15,000)
+  Apply advance: DR 2100 Customer Advance Rs.15,000 / CR 1200 AR Rs.15,000
+  payment_allocations: {advance_journal_id, sale_id:INV1, Rs.15,000}
+  Remaining advance: Rs.5,000 in account 2100
+Step 3: Invoice #2 posted (Rs.10,000)
+  Apply remaining Rs.5,000 advance first, then Rs.5,000 still owed
+  DR 2100 Customer Advance Rs.5,000 / CR 1200 AR Rs.5,000
+  Customer still owes Rs.5,000 for Invoice #2
+PROBLEM
+If the advance is not tracked separately in account 2100 and payment_allocations, the partial applications are impossible to trace. The customer's balance looks wrong.
+THE RULE
+→  Account 2100 Customer Advance is the holding account — balance decreases each time advance is applied
+→  payment_allocations tracks each application to a specific invoice
+→  When advance is fully consumed: 2100 balance = Rs.0
+→  System shows remaining unapplied advance on customer profile at all times
+S-024  Return After Customer Already Paid — What Happens to the Cash?
+✅  SOLVED
+TRIGGER
+Customer paid Rs.5,000 for Invoice #1001. They return Rs.2,000 worth of goods.
+NUMBERS
+Invoice #1001: Rs.5,000  (fully paid)
+Return: Rs.2,000 goods
+Three possible outcomes:
+Option A: refund Rs.2,000 cash immediately
+Option B: issue credit note — apply to next invoice
+Option C: leave as unapplied credit in customer account
+PROBLEM
+The system must support all three options. The B8 Sale Return currently handles the revenue and COGS reversal but doesn't address what happens to the already-paid cash.
+THE RULE
+→  All three options use the same B8 journal entries for revenue/COGS reversal
+→  Option A (cash refund): additional entry DR AR Rs.2,000 / CR Cash Rs.2,000
+→  Option B (credit note): create a Credit Note document, payment_allocations row with sale_id=NULL
+→  Option C (credit on account): AR balance goes negative for this customer — shows as credit
+→  The business chooses at time of return. The choice is recorded in the return document.
+S-025  Supplier Overpaid — You Paid Rs.500 More Than Their Invoice
+✅  SOLVED
+TRIGGER
+Purchase Invoice: Rs.8,000. You paid Rs.8,500 by mistake.
+NUMBERS
+Payment posted: DR AP Rs.8,500 / CR Cash Rs.8,500
+AP balance for this supplier: -Rs.500 (they owe you Rs.500)
+payment_allocations: {PAY10, purchase_id:PUR50, Rs.8,000} + {PAY10, purchase_id:NULL, Rs.500}
+PROBLEM
+AP goes below zero for this supplier — a debit balance on a liability account. This means the supplier owes you money, which is unusual but valid.
+THE RULE
+→  AP debit balance is valid — it means they owe you Rs.500
+→  Resolution options: apply to next purchase invoice, or request a refund from supplier
+→  Next purchase from same supplier: offset the Rs.500 — only pay Rs.X,500 instead of Rs.X,000+500
+→  If requesting refund: DR Cash Rs.500 / CR AP Rs.500 (reverses the debit balance)
+→  System must highlight debit AP balances prominently — they should not be ignored
+S-026  Payment in Foreign Currency
+✅  DECIDED — Phase 2 (manual PKR entry only in Phase 1)
+TRIGGER
+Customer is overseas and pays in USD. Invoice is in PKR.
+NUMBERS
+Invoice #1100: PKR 280,000
+USD/PKR rate at invoice date: 280
+Customer pays: USD 1,000 (= PKR 280,000 at invoice rate)
+At payment date, rate is 285
+PKR received: 285,000
+Exchange gain: Rs.5,000
+PROBLEM
+The current system is designed for single-currency (PKR) operation. Multi-currency requires: invoice currency, payment currency, exchange rates, and forex gain/loss accounts.
+THE RULE
+→  DECISION: multi-currency support is a Phase 2 feature
+→  Phase 1 workaround: all amounts are entered in PKR by the user at the time of transaction
+→  User calculates the PKR equivalent manually and enters that amount
+→  Any forex gain or loss: user posts a manual journal entry to 4100 Other Income or 6000 Expense
+→  Phase 2 will require: currencies table, exchange_rates table, forex_gain_loss account (new)
+S-027  Payment Against a Reversed Sale
+✅  SOLVED
+TRIGGER
+Sale #500 was reversed (refund posted). But a payment was already allocated to Sale #500.
+NUMBERS
+Sale #500: Rs.10,000 (credit sale)
+Payment received: Rs.10,000 — allocated to Sale #500
+Sale #500 then reversed (B8 Sale Return, full amount)
+State: AR from Sale = reversed. But AR from Payment was already cleared.
+Net AR impact = 0 (correct). But payment_allocations still points to Sale #500.
+PROBLEM
+The payment_allocations row pointing to a reversed sale causes confusion — the sale shows Paid but it also shows Reversed. The allocation must be cleaned up.
+THE RULE
+→  When a sale is fully reversed: automatically void all payment_allocations rows for that sale
+→  If the payment was cash: the refund (B8 cash refund entry) reverses the cash
+→  If no cash refund was given: customer has a credit balance (negative AR) = you owe them
+→  The system must detect: payment was received AND sale reversed AND no refund given → credit balance
+→  Prompt the user: 'This sale has been reversed. Rs.10,000 credit remains. Refund or apply to next invoice?'
+S-028  Same-Day Multiple Payments — Which Invoice Gets Which?
+✅  SOLVED
+TRIGGER
+Customer makes two payments in one day. Three invoices are outstanding.
+NUMBERS
+Outstanding: Invoice A Rs.5,000, Invoice B Rs.8,000, Invoice C Rs.3,000
+Payment 1: Rs.5,000 at 10am
+Payment 2: Rs.8,000 at 3pm
+Each payment is a separate journal entry with separate payment_allocations
+Default: oldest invoice first for each payment
+Payment 1 → Invoice A fully paid
+Payment 2 → Invoice B fully paid
+Invoice C: still outstanding
+PROBLEM
+Without clear allocation rules, it's unclear which invoice a payment covers — especially for aged receivables and reminder letters.
+THE RULE
+→  Each payment is a separate journal entry and separate set of payment_allocations
+→  Default allocation: FIFO on invoices (oldest first) unless user manually chooses
+→  User can override at time of payment: choose specific invoice to allocate against
+→  System never auto-merges two payments into one — each stays independent
+S-029  Credit Note Used as Payment Against New Invoice
+✅  SOLVED
+TRIGGER
+Customer has a credit note (from a return). They want it applied to their new purchase.
+NUMBERS
+Credit Note #CN-5: Rs.3,000 (from a returned sale)
+New Invoice #1200: Rs.12,000
+Customer wants to pay: Rs.9,000 cash + apply the Rs.3,000 credit note
+PROBLEM
+The credit note represents a negative AR balance. Applying it to a new invoice means reducing the new invoice's outstanding by Rs.3,000.
+THE RULE
+→  Create a journal entry applying the credit note:
+→    DR 1200 AR Rs.3,000 (clears the credit balance) / CR 1200 AR Rs.3,000 (reduces new invoice)
+→    This is a contra-AR entry — moves credit from old sale to new sale
+→  payment_allocations: {credit_note_application, sale_id:INV1200, Rs.3,000}
+→  Cash payment: DR Cash Rs.9,000 / CR AR Rs.9,000
+→  payment_allocations: {cash_payment, sale_id:INV1200, Rs.9,000}
+→  Invoice #1200 = Fully Paid (Rs.3,000 + Rs.9,000)
+  CATEGORY 3
+  SALE RETURNS
+  9 scenarios scenarios  
+S-030  Return After Discount Was Given — What Amount Is Reversed?
+✅  SOLVED
+TRIGGER
+Sale: Rs.10,000 with Rs.1,000 discount → Net Rs.9,000. Customer returns half.
+NUMBERS
+Original sale:
+  Gross: Rs.10,000  |  Discount: Rs.1,000  |  Net Revenue: Rs.9,000
+Return: customer returns exactly half the goods
+Option A: reverse Rs.5,000 (half of gross) — wrong, ignores discount
+Option B: reverse Rs.4,500 (half of net, proportional) — correct
+Proportional discount on returned items: Rs.1,000 × 50% = Rs.500
+Revenue reversed: Rs.5,000 gross - Rs.500 proportional discount = Rs.4,500
+PROBLEM
+If the full gross price is reversed without accounting for the discount, revenue is over-reversed. The discount must be proportionally reversed with the returned items.
+THE RULE
+→  Calculate the discount proportion: item_gross_value ÷ total_gross × total_discount = item_discount
+→  Revenue reversal = returned_gross_value - proportional_discount
+→  The system must store per-item discount allocations on the original sale to enable this calculation
+→  sale_items table must carry: unit_price, item_discount, global_discount_allocation, net_amount
+S-031  Customer Returns Goods — Condition Is Damaged, Cannot Be Resold
+✅  SOLVED
+TRIGGER
+Customer returns 5 units but they are broken. Cannot go back into saleable inventory.
+NUMBERS
+Normal return: stock restored to Inventory (1100)
+Damaged return: stock should NOT go back to resellable inventory
+Correct flow:
+  Reverse the revenue (same as normal return)
+  Reverse the COGS
+  BUT: instead of restoring to Inventory Asset, immediately write off the goods
+PROBLEM
+If damaged goods are returned to the main inventory, they inflate stock count and inventory value with unsellable items. They will eventually be caught in a stock take — but as a surprise loss.
+THE RULE
+→  At return: staff marks the condition as 'Damaged/Unsaleable'
+→  Revenue reversal: DR 4000 Revenue / CR 1200 AR (or Cash) — same as normal
+→  Instead of restoring inventory: DR 6300 Stock Adjustment Loss / CR 5000 COGS
+→  Rationale: the COGS is reversed, then immediately re-expensed as a Loss — net effect: the cost is an expense
+→  No inventory batch is restored. The damaged items are written off at the point of return.
+→  A 'Damaged Returns' register is maintained for warranty/insurance claims
+S-032  Exchange — Return One Product, Take a Different Product
+✅  SOLVED
+TRIGGER
+Customer returns Product A, takes Product B of equal or different value.
+NUMBERS
+Product A returned: sold at Rs.500 (cost Rs.300)
+Product B given: sale price Rs.600 (cost Rs.350)
+Difference: customer pays Rs.100 extra
+PROBLEM
+An exchange is two transactions: a return and a new sale. They must be processed as separate events even if they happen in one physical interaction.
+THE RULE
+→  Step 1: Process return of Product A (B8) → revenue reversal, stock restored
+→  Step 2: Process new sale of Product B (B1) → new revenue, new COGS, stock deducted
+→  Step 3: Payment difference settled (B4 if customer pays more, or cash refund if less)
+→  These two transactions are linked by a reference (exchange_id) for reporting
+→  NEVER combine them into one entry — the accounting for each is independent
+S-033  Return on a POS Sale With Split Payment
+✅  SOLVED
+TRIGGER
+Customer paid Rs.3,000 cash + Rs.2,000 card for a Rs.5,000 sale. Returns Rs.1,000 worth.
+NUMBERS
+Original payment: Rs.3,000 cash + Rs.2,000 card
+Return value: Rs.1,000
+Which payment method do you refund? Cash or card?
+PROBLEM
+The system has no rule for which payment method is used for the refund. Cash register balance or card terminal may need to match.
+THE RULE
+→  DECISION: the user (cashier) selects the refund method at time of return
+→  Refund can be: full cash, full card, or split (any combination)
+→  Journal entry reflects whichever method the cashier chooses: DR AR / CR Cash and/or Bank
+→  The original split payment is not modified — only the refund entry matters
+→  If refunded to card: it should match the original card payment amount (legal/chargeback risk)
+S-034  Return of a Gift / Zero-Priced Item
+✅  SOLVED
+TRIGGER
+Customer was given a free promotional item. They return it.
+NUMBERS
+Sale: Product X at Rs.0 (promotional)
+COGS: Rs.50 (it cost the business Rs.50 to acquire)
+Revenue: Rs.0
+Customer returns it.
+Revenue to reverse: Rs.0
+COGS to reverse: Rs.50
+PROBLEM
+A zero-priced return creates a COGS reversal with no revenue impact. This is correct — the cost is recovered when the stock comes back.
+THE RULE
+→  Return journal: DR 1100 Inventory Rs.50 / CR 5000 COGS Rs.50 (stock restored at cost)
+→  Revenue entry: Rs.0 (nothing to reverse)
+→  The stock is back in inventory at its Rs.50 cost — available to sell or use again
+S-035  Return on a Sale From a Previous Fiscal Year
+✅  SOLVED
+TRIGGER
+Sale made in FY2025. Customer returns goods in FY2026.
+NUMBERS
+FY2025 Sale: Revenue Rs.10,000, COGS Rs.6,000, Profit Rs.4,000 (already closed)
+FY2026 Return: customer returns Rs.3,000 worth
+PROBLEM
+Backdating the return to FY2025 would reopen closed financial statements. The return must be posted in the current period (FY2026) with current-year effects.
+THE RULE
+→  Post the return in the CURRENT period — do not backdate to the prior year
+→  FY2026 entries: DR 4000 Revenue Rs.X / CR 1200 AR Rs.X + DR 1100 Inventory / CR 5000 COGS
+→  The FY2025 reports are not affected — the return is a current-year event
+→  Retained Earnings carry the prior year profit — the current year's return will reduce current year profit
+→  This is the standard accounting treatment — matching is not perfect across fiscal years, but books are clean
+S-036  Return of a Bundle — Sold as 3-Pack
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+Three individual products were sold as a bundle at a bundle price. Customer returns the whole bundle.
+NUMBERS
+Bundle: Product A + Product B + Product C sold as 'Pack-1' at Rs.2,500
+Individual costs: A = Rs.400, B = Rs.600, C = Rs.500  →  Total cost = Rs.1,500
+Customer returns the full bundle
+PROBLEM
+The sale was recorded as individual line items in sale_items, each with a proportional bundle price. The return must reverse each line item individually, restoring each product's own FIFO batch.
+THE RULE
+→  Bundles are stored as separate sale_item rows in the system — one per component
+→  Bundle price is allocated proportionally: e.g. if Rs.2,500 bundle, A gets (400/1500) × 2500 = Rs.667
+→  Return reverses each sale_item row individually — stock restored per product
+→  If partial bundle return (customer keeps Product B): only A and C are reversed
+→  COGS reversal per product uses sale_item_batches for that specific product
+S-037  Partial Return of a Multi-Item Sale
+✅  SOLVED
+TRIGGER
+Invoice had 5 different products. Customer returns only 2 of them.
+NUMBERS
+Invoice #1300: Item A(10), Item B(5), Item C(8), Item D(3), Item E(6)
+Return: Item B(5) and Item D(3) only
+Must reverse only the revenue and COGS for Item B and Item D
+Items A, C, E remain sold — their entries are not touched
+PROBLEM
+The return must apply to specific sale_item rows — not the entire invoice. Each returned item reverses its own batch deductions using sale_item_batches.
+THE RULE
+→  A return references specific sale_items (not the entire sale) with return quantities
+→  For each returned sale_item: look up sale_item_batches to find the original batch deductions
+→  Restore remaining_qty on those original batches
+→  Post revenue and COGS reversal entries for the returned items only
+→  The original invoice is not cancelled — it is partially reversed. A Credit Note is issued for the partial amount.
+S-038  Return Received — Product No Longer Active in Catalog
+✅  SOLVED
+TRIGGER
+Customer returns a product that has been discontinued/deactivated in the system.
+NUMBERS
+Product 'Old Phone X' — deactivated 6 months ago
+Customer returns one unit from a sale made 8 months ago
+The product no longer appears in the product catalog
+PROBLEM
+If deactivation prevents a return, the return is impossible without reactivating the product. Reactivating a discontinued product confuses the catalog.
+THE RULE
+→  Returns are referenced by the original sale_item row — not by searching the product catalog
+→  A return can be processed even if the product is deactivated
+→  Deactivation only prevents NEW sales of the product — does not affect historical data or returns
+→  The batch is restored on the deactivated product's inventory record
+→  The restored stock may need to be immediately written off (B10) if the product cannot be resold
+  CATEGORY 4
+  DISCOUNTS &amp; PRICING
+  7 scenarios scenarios  
+S-039  Discount Calculation Order — Item Discount Then Global Discount
+✅  SOLVED
+TRIGGER
+A sale has both per-item discounts AND a global bill discount. Which applies first?
+NUMBERS
+Item A: Rs.1,000, item discount 10% → net Rs.900
+Item B: Rs.2,000, item discount 5%  → net Rs.1,900
+Sub-total after item discounts: Rs.2,800
+Global bill discount: 5% on sub-total → Rs.140
+Final net revenue: Rs.2,660
+If global discount applied first:
+  Total Rs.3,000 × 5% = Rs.150 off → Rs.2,850
+  Then item discounts: Rs.2,850 - Rs.200 = Rs.2,650  (different number!)
+PROBLEM
+The order of discount application affects the final amount. The rule must be fixed and applied consistently.
+THE RULE
+→  RULE: item discounts applied FIRST (at line item level), then global discount on the remaining total
+→  Revenue = Gross Sales - Item Discounts - Global Discount (applied to after-item-discount subtotal)
+→  Tax (if applicable) applied AFTER all discounts: Tax Base = Net after all discounts
+→  Global discount is allocated back to line items proportionally for per-item profit reporting
+→  Formula: item_global_discount_share = (item_net ÷ subtotal_after_item_discounts) × global_discount
+S-040  Buy 2 Get 1 Free — Promotional Free Item
+✅  SOLVED
+TRIGGER
+Customer buys 2 units, gets 1 free. All 3 units have the same product.
+NUMBERS
+Paid units: 2 × Rs.500 = Rs.1,000 revenue
+Free unit: Rs.0 revenue
+Cost of all 3 units: 3 × Rs.300 = Rs.900
+If recorded as 3 units at Rs.333.33 each: revenue inflated (3 × 333 = Rs.999)
+Correct: 2 units at Rs.500 + 1 unit at Rs.0
+PROBLEM
+The free unit must be recorded at Rs.0 sale price (not at a proportional allocation). The cost of the free unit is real and must be recorded as COGS.
+THE RULE
+→  Record as three separate sale_item rows: 2 at Rs.500, 1 at Rs.0
+→  COGS for all 3 units: 3 × FIFO cost (the free item still has a cost)
+→  The 'free' item is effectively a discount — it reduces the overall margin
+→  Alternatively: record as 2 units at Rs.500, add a global discount of Rs.300 (cost of free item)
+→  DECISION: use the 3-row approach (2 paid + 1 at zero) — it gives clearer inventory traceability
+S-041  Credit Note Applied as Payment — Accounting Flow
+✅  SOLVED
+TRIGGER
+A credit note reduces what a customer owes on a new invoice.
+NUMBERS
+Credit Note #CN-10: Rs.2,000 (from a previous return)
+New Invoice #1500: Rs.7,000
+Customer: 'Apply my credit note and I'll pay the Rs.5,000 balance'
+Accounting:
+  Credit Note created: DR 4000 Revenue Rs.2,000 / CR 1200 AR Rs.2,000
+    → Customer's AR = -Rs.2,000 (credit balance for this return)
+  Applying credit note to new invoice:
+    → payment_allocations: {CN-10 journal_id, sale_id:INV1500, Rs.2,000}
+  Cash payment: DR Cash Rs.5,000 / CR AR Rs.5,000
+  Invoice #1500: Rs.2,000 + Rs.5,000 = Rs.7,000 = Fully Paid
+PROBLEM
+The credit note doesn't require any new journal entry when applied — the AR balance does the work. But payment_allocations must record it explicitly to update the invoice badge.
+THE RULE
+→  Credit note application creates a payment_allocations row pointing to the new invoice
+→  The 'payment' source is the original credit note journal entry
+→  No new cash changes hands for the credit application — only the allocation changes
+→  Invoice badge: system sums all payment_allocations (cash + credit note) to determine status
+S-042  Tiered Pricing — Different Price for Different Quantity Bands
+✅  DECIDED — Single row, blended average price
+TRIGGER
+First 50 units at Rs.100, next 50 units at Rs.80, beyond 100 at Rs.70.
+NUMBERS
+Customer orders 120 units
+Tier 1: 50 × Rs.100 = Rs.5,000
+Tier 2: 50 × Rs.80  = Rs.4,000
+Tier 3: 20 × Rs.70  = Rs.1,400
+Total revenue: Rs.10,400
+PROBLEM
+The current sale_items structure assumes one price per line. Tiered pricing creates multiple 'virtual' line items for the same product at different prices.
+THE RULE
+→  DECISION: tiered pricing creates multiple sale_item rows for the same product
+→  Each tier = one row: product_id same, qty = tier qty, unit_price = tier price
+→  COGS: FIFO deduction continues across all rows (total 120 units, oldest first across all tiers)
+→  sale_item_batches records all 120 units' batch deductions — split across tiers if needed
+→  Reports show as one product with multiple price bands — correct for margin analysis
+S-043  Trade Discount vs Cash Discount — Different Accounting
+✅  SOLVED
+TRIGGER
+Trade discount: given to all channel customers as a structural price reduction. Cash discount: given as an incentive for early payment.
+NUMBERS
+Invoice Rs.10,000
+Trade discount 10%: reduces invoice to Rs.9,000 — customer pays Rs.9,000
+Cash discount 2%: if paid within 10 days, pays Rs.8,820 instead of Rs.9,000
+Trade discount: reduces revenue — recorded in the sale itself
+Cash discount: uncertain — may or may not be taken — post only when taken
+PROBLEM
+Both look like discounts but are treated completely differently in accounting. Trade discounts reduce the invoice value. Cash discounts are a financing incentive posted only when the customer actually pays early.
+THE RULE
+→  Trade discount: applied at invoice creation — reduces DR AR and CR Revenue
+→  Cash discount: NOT shown on the invoice as a definite reduction
+→  If customer pays early and takes the cash discount:
+→    DR 6000 Discount Expense Rs.180 (the discount given) / CR AR Rs.180 (reduces balance)
+→    Net cash received: Rs.8,820
+→  If customer pays late (no discount): full Rs.9,000 received — no discount entry
+S-044  Discount Makes Sale Negative — Total Exceeds Invoice Amount
+✅  SOLVED
+TRIGGER
+A combination of item discounts and global discount produces a negative final total.
+NUMBERS
+Item A: Rs.500, item discount 60% → net Rs.200
+Item B: Rs.300, item discount 70% → net Rs.90
+Sub-total: Rs.290
+Global discount: 80% → Rs.232 off
+Final total: Rs.290 - Rs.232 = Rs.58
+Could easily go negative if global discount is very high
+PROBLEM
+A negative invoice total means the business pays the customer. This is almost certainly a data entry error.
+THE RULE
+→  System BLOCKS an invoice with a negative or zero total from being posted
+→  Warning shown in real-time as discounts are entered
+→  Maximum allowed discount: configurable per user role (e.g. staff max 20%, manager max 50%)
+→  A negative total after all discounts is rejected — the user must correct the discounts
+S-045  Price Changes After Sales Order Is Created
+✅  DECIDED — Price locked at order creation
+TRIGGER
+Sales Order was created at Rs.500/unit. Price changes to Rs.600 before delivery.
+NUMBERS
+Sales Order created: 10 units @ Rs.500 = Rs.5,000
+Price updated in product catalog: now Rs.600
+When converting to Sale: which price is used?
+Option A: use price at order time (Rs.500) — honour the agreed price
+Option B: use current price (Rs.600) — current market rate
+PROBLEM
+Sales Orders represent a commitment at a specific price. Changing the price silently when converting to a sale breaks the business commitment.
+THE RULE
+→  DECISION: Sales Orders lock the price at order creation time
+→  Converting a Sales Order to a Sale: uses the locked Sales Order price
+→  If price needs updating: edit the Sales Order explicitly (with audit log of who changed and when)
+→  The system warns if the sales order price differs from the current product price by &gt; X%
+→  The user can override the locked price with appropriate permission
+  CATEGORY 5
+  TAX SCENARIOS
+  7 scenarios scenarios  
+S-046  Mixed Sale — Some Items Taxable, Some Tax-Exempt
+✅  SOLVED
+TRIGGER
+One invoice has 3 products: 2 are taxable at 17%, 1 is tax-exempt.
+NUMBERS
+Item A: Rs.1,000, taxable → tax Rs.170
+Item B: Rs.2,000, taxable → tax Rs.340
+Item C: Rs.500, tax-exempt → tax Rs.0
+Total invoice: Rs.3,500 + Rs.510 tax = Rs.4,010
+Revenue (CR 4000): Rs.3,500 (net of all items, before tax)
+Tax payable (CR 2200): Rs.510 (only on taxable items)
+AR (DR 1200): Rs.4,010
+PROBLEM
+If tax is calculated on the full invoice amount including exempt items, the business over-collects tax — which is a legal violation.
+THE RULE
+→  products table: tax_rate column (0 for exempt items, 17 for standard, etc.)
+→  Tax calculation: per line item only — sum of (qty × unit_price × item_tax_rate)
+→  Exempt items: tax_rate = 0, contributes Rs.0 to account 2200
+→  Tax report (D24/D25) breaks down by tax rate — exempt items shown with 0% rate
+S-047  Tax Rate Changes Mid-Year
+✅  SOLVED
+TRIGGER
+GST was 17%. Government changes it to 18% from July 1st. Outstanding invoices exist.
+NUMBERS
+Invoice #2000 dated June 15 (17% tax): Rs.10,000 + Rs.1,700 tax = Rs.11,700
+Invoice #2001 dated July 5 (18% tax): Rs.10,000 + Rs.1,800 tax = Rs.11,800
+The old invoice must remain at 17% forever
+The new invoice uses 18%
+PROBLEM
+If the system updates the tax rate globally and recalculates old invoices, historical tax amounts are wrong. Tax filing for prior periods becomes incorrect.
+THE RULE
+→  Tax rates are stored per-transaction at the time of posting — NOT referenced from a live tax rate table
+→  sale_items.tax_rate column stores the rate at the time of the sale
+→  Changing the tax rate in settings: applies to NEW invoices only
+→  Historical invoices: tax_rate on each line item is fixed forever
+→  Tax reports filter by date — correct rates automatically apply per period
+S-048  Tax on Advance Payments — When Is It Recognized?
+✅  DECIDED — Tax at delivery (globally compliant)
+TRIGGER
+Customer pays advance of Rs.50,000 before delivery. Is tax due now or when goods are delivered?
+NUMBERS
+Cash received: Rs.50,000 (advance for future supply)
+Scenario A (tax at advance receipt): DR Cash / CR 2100 Advance + CR 2200 Tax
+Scenario B (tax at delivery): no tax entry until B1 Sale is posted
+PROBLEM
+Tax treatment of advance payments depends on local tax law. In Pakistan, under SRB/FBR rules, some businesses must declare tax on advance receipt. This is a legal determination, not an accounting preference.
+THE RULE
+→  DECISION: tax is recognized at the time the SALE IS POSTED (delivery), not at advance receipt
+→  Rationale: if the advance is refunded, no tax obligation was incurred
+→  The advance is liability (2100) — tax account (2200) is only hit when the sale journal posts
+→  If local tax law requires advance tax: this decision must be overridden per the FBR/SRB ruling
+→  Consult with the company's tax advisor — this cannot be a universal default without legal confirmation
+S-049  Tax-Inclusive Pricing — Backing Out the Tax
+✅  SOLVED
+TRIGGER
+Product is priced at Rs.1,170 inclusive of 17% GST. What is the net revenue?
+NUMBERS
+Tax-inclusive price: Rs.1,170
+Tax = 1,170 × (17 ÷ 117) = Rs.170
+Net revenue = Rs.1,000
+Revenue (CR 4000): Rs.1,000
+Tax Payable (CR 2200): Rs.170
+AR (DR 1200): Rs.1,170
+PROBLEM
+If the system books the full Rs.1,170 as revenue, it overstates income by Rs.170 per unit. The tax component is never government money — it must always be excluded from Revenue.
+THE RULE
+→  products table: price_includes_tax flag
+→  If price_includes_tax = true: net_price = listed_price ÷ (1 + tax_rate/100)
+→  Tax = listed_price - net_price
+→  Revenue = net_price × qty
+→  The journal entry is identical — only the formula for splitting the price differs
+S-050  Input Tax on Personal + Business Mixed Purchase
+✅  DECIDED — Manual split, user enters business %
+TRIGGER
+Business owner buys a laptop for Rs.100,000 + Rs.17,000 tax. It is used 70% for business, 30% personal.
+NUMBERS
+Total paid: Rs.117,000
+Business portion of cost: Rs.70,000
+Recoverable input tax: 70% × Rs.17,000 = Rs.11,900
+Personal portion (non-deductible): Rs.43,100
+PROBLEM
+Claiming 100% input tax recovery on a mixed-use purchase is incorrect and potentially fraudulent. The system needs to support partial input tax recovery.
+THE RULE
+→  DECISION: partial input tax recovery is a manual decision — system does not calculate it automatically
+→  User enters: total_tax = Rs.17,000, recoverable_tax = Rs.11,900 (manually determined)
+→  Journal: DR 1500 Fixed Assets Rs.70,000 + DR 6000 Expense Rs.30,000 (personal, non-deductible)
+→          DR 2300 Input Tax Recoverable Rs.11,900 + DR 6000 Non-recoverable Tax Rs.5,100
+→          CR 1000/1010 Cash Rs.117,000
+→  The split is the business owner's responsibility — the system records what is entered
+S-051  Tax on Sale Return — Full Reversal
+✅  SOLVED
+TRIGGER
+Sale had Rs.1,700 tax. Full return is processed. Does the full tax reverse?
+NUMBERS
+Original sale: Rs.10,000 + Rs.1,700 tax = Rs.11,700
+Full return: reverse everything
+Reversal entries:
+  DR 4000 Revenue Rs.10,000 / CR 1200 AR Rs.10,000
+  DR 2200 Tax Payable Rs.1,700 / CR 1200 AR Rs.1,700
+  Net: AR reversed by Rs.11,700 (the full invoice)
+  Inventory restored at FIFO cost
+PROBLEM
+If tax is not reversed on a return, the business overpays tax to the government for goods it never actually sold (they came back). Tax must be reversed in full for full returns.
+THE RULE
+→  Full return: reverse ALL tax collected on that sale → DR 2200 Tax Payable for the full tax amount
+→  Partial return: reverse the proportional tax: returned_net ÷ total_net × total_tax
+→  Tax report (D24) reflects the reduction — tax filing will show net collected tax
+S-052  Different Tax Rates on Different Products in Same Sale
+✅  SOLVED
+TRIGGER
+One invoice: Item A at 0%, Item B at 5%, Item C at 17%.
+NUMBERS
+Item A: Rs.500, tax 0% → Rs.0 tax
+Item B: Rs.1,000, tax 5% → Rs.50 tax
+Item C: Rs.2,000, tax 17% → Rs.340 tax
+Total tax: Rs.390
+Tax breakdown in D24 must show each rate separately (required for GST filing)
+PROBLEM
+If only a single tax account (2200) is used with no rate breakdown, the tax return cannot be filed correctly. Tax authorities require reporting per rate band.
+THE RULE
+→  Account 2200 is the total tax bucket — sub-ledger tracks by rate
+→  D24/D25 reports group journal entries by the tax_rate stored on each sale_item
+→  Filing: 0% rate items → zero-rated sales column; 5% and 17% → their respective columns
+→  Audit: tax per rate must reconcile with sales per rate — cross-check always possible
+  CATEGORY 6
+  OPENING BALANCES
+  5 scenarios scenarios  
+S-053  Customer Has Both Receivable and Payable Balance (Net Position)
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+In the old system, Party Ahmed has AR Rs.5,000 (owes you) AND AP Rs.3,000 (you owe him for a separate supplier transaction).
+NUMBERS
+Ahmed as customer: owes you Rs.5,000
+Ahmed as supplier: you owe him Rs.3,000
+Net position: he owes you Rs.2,000
+Option A: enter Rs.5,000 to AR and Rs.3,000 to AP separately
+Option B: net settle: enter Rs.2,000 to AR only
+PROBLEM
+Option B destroys the detail — you can't see the gross receivable or gross payable separately. Option A is correct accounting — a party can have balances in both AR and AP simultaneously.
+THE RULE
+→  RULE: enter BOTH balances separately — never net them during opening balance setup
+→  DR 1200 AR Rs.5,000 / CR 7000 Opening Equity Rs.5,000
+→  DR 7000 Opening Equity Rs.3,000 / CR 2000 AP Rs.3,000
+→  Ahmed now appears in both the receivables report AND the payables report
+→  Netting only happens if an explicit settlement is done: DR AP Rs.3,000 / CR AR Rs.3,000
+S-054  Opening Balance Entered Wrong — How to Correct Without Deleting
+✅  SOLVED
+TRIGGER
+Opening AR for Customer X was entered as Rs.15,000. Actual is Rs.12,000.
+NUMBERS
+Wrong entry posted: DR AR Rs.15,000 / CR 7000 Rs.15,000
+Cannot delete (Law 2 — entries never deleted)
+Correction: reverse Rs.3,000 excess
+Reversal: DR 7000 Rs.3,000 / CR AR Rs.3,000
+Net: AR = Rs.12,000, 7000 = Rs.12,000 (correct)
+PROBLEM
+Deleting the original would break the audit trail. The only clean method is to reverse the excess.
+THE RULE
+→  Post a reversal entry for the incorrect amount: reverse the DIFFERENCE only
+→  Both the original and the reversal are tagged with: reference_type = 'opening_balance_correction'
+→  Account 7000 must still net to zero after all opening entries and corrections
+→  Run 7000 balance check after every correction: if not zero, more corrections are needed
+S-055  Opening Stock With Missing or Wrong Unit Cost
+✅  SOLVED — BLOCK zero-cost on B19 entries
+TRIGGER
+Opening inventory entry was made for 100 units but unit_cost was left blank or wrong.
+NUMBERS
+Entered: 100 units, unit_cost = Rs.0 (blank)
+Correct cost: Rs.150 per unit
+Every sale from this batch will have COGS = Rs.0
+Gross Profit will be 100% on every unit sold from this batch
+PROBLEM
+A zero-cost opening batch silently inflates gross profit for the entire quantity until the batch is exhausted. The error is invisible in day-to-day operation.
+THE RULE
+→  System must require unit_cost &gt; 0 for all opening balance inventory entries (validation)
+→  If cost is genuinely unknown: business must estimate — using most recent purchase price is acceptable
+→  Correcting after the fact: if the batch hasn't been sold from, update unit_cost directly on the batch
+→  If partially sold: post a stock adjustment for the remaining qty at the corrected cost (write off old, write in new)
+→  PARTIAL: validation exists for new purchases but may not enforce on opening balance entries
+S-056  Opening Balance Entered Twice — Duplicate
+✅  SOLVED
+TRIGGER
+Opening balance for Supplier Z was entered twice. Both entries are in the system.
+NUMBERS
+Entry 1: DR 7000 Rs.8,000 / CR AP Rs.8,000
+Entry 2: DR 7000 Rs.8,000 / CR AP Rs.8,000 (duplicate)
+AP balance for Supplier Z: Rs.16,000 (wrong — should be Rs.8,000)
+7000 balance: -Rs.16,000 (wrong — cannot zero out)
+PROBLEM
+Duplicate opening entries corrupt the AP balance, the trial balance, and make account 7000 unbalanceable.
+THE RULE
+→  Detect: run a duplicate check on opening balance entries: same party_id + same amount + same account on same date
+→  Fix: reverse one of the duplicates: DR AP Rs.8,000 / CR 7000 Rs.8,000
+→  Prevention: system enforces 'one opening balance entry per party per account' constraint at data entry
+→  Alternatively: allow editing opening balance entries before the first non-opening-balance transaction
+S-057  Fiscal Year Change — Carrying Forward Balances
+✅  SOLVED
+TRIGGER
+End of fiscal year: income and expense accounts close. Balance sheet carries forward.
+NUMBERS
+Year-end closing entry:
+  Total Revenue earned FY2025: Rs.5,000,000
+  Total Expenses FY2025: Rs.3,200,000
+  Net Profit: Rs.1,800,000
+Closing entry:
+  DR 4000 Sales Revenue Rs.5,000,000
+  CR 5000-6999 All Expense/COGS accounts Rs.3,200,000
+  CR 3100 Retained Earnings Rs.1,800,000
+FY2026 starts: all income/expense accounts at zero. Balance sheet carries full balances.
+PROBLEM
+If year-end closing is not performed, the P&amp;L accumulates all prior years' revenue and expenses together. The current year P&amp;L is meaningless.
+THE RULE
+→  Year-end closing entry posts on the last day of the fiscal year (or first day of new year, same effect)
+→  The entry is tagged: reference_type = 'year_end_closing', fiscal_year = 2025
+→  After closing: 4000–6999 balance to zero for the new year
+→  Balance sheet accounts (1000–3999): carry their balances forward — no action needed
+→  3100 Retained Earnings: increases by Net Profit of the just-closed year
+  CATEGORY 7
+  CORRECTIONS &amp; REVERSALS
+  7 scenarios scenarios  
+S-058  Sale Reversed After Cash Payment Was Already Received
+✅  SOLVED
+TRIGGER
+A cash sale was posted. Payment received. Then the entire sale is reversed.
+NUMBERS
+Sale posted: DR Cash Rs.5,000 / CR AR Rs.5,000 (cash sale — immediate settlement)
+             DR COGS Rs.3,000 / CR Inventory Rs.3,000
+Now reversing the sale:
+  Step 1: Reverse revenue, COGS, inventory (B8 Sale Return)
+  Step 2: Refund the cash
+After reversal: Cash should be back where it was. Inventory restored. Revenue zero.
+PROBLEM
+Simply reversing the revenue without also reversing the cash creates an imbalance.
+THE RULE
+→  Full reversal = B8 (all revenue, tax, COGS entries) + cash refund entry
+→  DR AR Rs.5,000 / CR Cash Rs.5,000 (refund — this is the cash going back)
+→  All entries tagged with: reference_type = 'reversal', reversal_of = original_journal_id
+→  payment_allocations for the original payment: voided (no longer applies — sale is gone)
+→  Inventory batch: restored at original FIFO cost
+S-059  Purchase Reversed After Goods Were Partially Sold
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+A purchase batch had 50 units. 30 were sold. Now the purchase is being reversed.
+NUMBERS
+Purchase Batch A: 50 units @ Rs.100 = Rs.5,000
+30 units sold: remaining_qty = 20
+Attempting to reverse the entire purchase
+Problem: 30 units are already sold — their COGS is already in the P&amp;L
+Can only reverse the 20 unsold units
+PROBLEM
+Reversing a purchase that has been partially sold is impossible to do cleanly for the sold portion. The sold portion's COGS cannot be reversed without also reversing the sales.
+THE RULE
+→  RULE: full purchase reversal is BLOCKED if any units from the batch have been sold
+→  System checks: IF sale_item_batches references this batch AND qty_deducted &gt; 0 → BLOCK full reversal
+→  Allowed: partial reversal for the unsold qty only (20 units in this example)
+→  Partial reversal journal: DR AP Rs.2,000 / CR Inventory Rs.2,000 (20 × Rs.100)
+→  The 30 sold units: their COGS stands — that purchase happened and those goods were sold
+→  To fix the sold COGS: return the goods from customers first (B8), then reverse the purchase
+S-060  Salary Posted With Wrong Amount — Double Pay Scenario
+✅  SOLVED
+TRIGGER
+Employee was paid Rs.50,000 instead of Rs.25,000. Error discovered next day.
+NUMBERS
+Wrong entry: DR 2400 Salary Payable Rs.50,000 / CR Cash Rs.50,000
+Correct: DR 2400 Salary Payable Rs.25,000 / CR Cash Rs.25,000
+Option A: delete wrong entry, post correct — WRONG (violates Law 2)
+Option B: post a correction entry for the Rs.25,000 excess paid
+PROBLEM
+The Rs.25,000 overpayment is now with the employee. The business must either recover it or write it off.
+THE RULE
+→  Step 1: Reverse the full wrong entry: DR Cash Rs.50,000 / CR 2400 Salary Payable Rs.50,000
+→  Step 2: Post the correct entry: DR 2400 Rs.25,000 / CR Cash Rs.25,000
+→  Net: Employee salary expense = Rs.25,000 (correct). Cash = -Rs.25,000 extra paid out.
+→  Step 3a (if recovering from employee): DR 1300 Advance to Supplier (or a new 1350 Employee Receivable) Rs.25,000 / CR Cash Rs.0 (already out) — actually: the reversal step 1 brought cash back
+→  Simplification: reverse wrong entry, post correct entry — Net cash effect is Rs.25,000 correctly paid
+→  Record the recovery arrangement in notes — deduct from next month's salary
+S-061  Journal Entry Posted to Wrong Customer
+✅  SOLVED
+TRIGGER
+Payment of Rs.8,000 was received from Customer A but posted to Customer B's account.
+NUMBERS
+Actual: Customer A pays Rs.8,000
+Entered: journal_entry.party_id = Customer_B_id
+Effect: Customer B's balance reduced by Rs.8,000 (wrong)
+        Customer A's balance unchanged (still shows they owe Rs.8,000)
+PROBLEM
+The cash amount is correct (DR Cash Rs.8,000 is right). Only the party_id on the journal entry is wrong. Cannot edit the journal entry directly — must reverse and repost.
+THE RULE
+→  Reversal entry: exact mirror of original but party_id = Customer_B: CR Cash Rs.8,000 / DR AR Rs.8,000
+→    This restores Customer B's balance to what it was
+→  New correct entry: DR Cash Rs.8,000 / CR AR Rs.8,000 with party_id = Customer_A
+→    This reduces Customer A's balance correctly
+→  Net cash: unchanged (both entries cancel). Party balances: corrected.
+→  payment_allocations: delete rows from wrong entry, create correct rows on new entry
+→  party_snapshots: rebuild for both Customer A and Customer B
+S-062  Bank Transfer Reversed After Settlement
+✅  SOLVED
+TRIGGER
+Rs.100,000 was transferred from Cash to Bank (B15). The bank rejected it. Money came back.
+NUMBERS
+Original: DR Bank Rs.100,000 / CR Cash Rs.100,000
+Rejection: money is back in cash (physically), bank never credited
+Need to reverse the journal entry
+PROBLEM
+A reversed bank transfer is straightforward — neither account has external obligations, so the reversal is clean.
+THE RULE
+→  Reversal entry: DR Cash Rs.100,000 / CR Bank Rs.100,000
+→  Both are internal accounts — no party_id, no payment_allocations involved
+→  Tag: reference_type = 'bank_transfer_reversal', reversal_of = original_entry_id
+→  Net effect: both accounts return to their prior balances exactly
+S-063  Reversing an Opening Balance Entry
+✅  SOLVED
+TRIGGER
+An opening balance entry was wrong and needs to be reversed.
+NUMBERS
+Wrong: DR AR (Customer X) Rs.15,000 / CR 7000 Rs.15,000
+Need to remove it entirely
+Reversal: DR 7000 Rs.15,000 / CR AR (Customer X) Rs.15,000
+Net: AR for Customer X = zero. Account 7000 nets back correctly.
+PROBLEM
+Same principle as all reversals — mirror the original entry. The challenge is that account 7000 must still zero out after all opening entries and reversals.
+THE RULE
+→  Mirror the original opening entry exactly, in the opposite direction
+→  After reversal: verify that SUM of all entries to account 7000 still nets to zero
+→  If 7000 is now non-zero: a new correcting entry to 7000 is needed
+→  Opening balance reversals are tagged: reference_type = 'opening_balance_reversal'
+S-064  Sale Posted to Wrong Date — How Does It Affect Reports?
+✅  SOLVED
+TRIGGER
+A sale was posted with date March 5. Actual sale date was February 28.
+NUMBERS
+Sale is in the system with date = March 5
+The sale physically happened February 28
+Reports run for February: this sale is missing
+Reports run for March: this sale is included (incorrectly)
+PROBLEM
+Backdating journal entries corrupts historical reports. Reversing and reposting with the correct date is the only clean fix — but only if the February period is not closed.
+THE RULE
+→  If prior period is OPEN: reverse the March-5 entry, repost with February-28 date
+→  If prior period is CLOSED: do NOT backdate — the March-5 entry stands
+→  Closed period rule: once financial statements are issued for a period, no backdating allowed
+→  Note the discrepancy: a reconciliation note explains the timing difference
+→  System should warn when a transaction date is &gt; 7 days in the past — requires supervisor approval
+  CATEGORY 8
+  SYSTEM &amp; DATA INTEGRITY
+  7 scenarios scenarios  
+S-065  Duplicate Journal Entry — Button Clicked Twice
+✅  SOLVED
+TRIGGER
+User clicks 'Save Sale' twice rapidly. Two identical sales are created.
+NUMBERS
+Sale #1001 created at 14:35:02.100
+Sale #1002 created at 14:35:02.350 (250ms later, identical data)
+Two journal entries posted. Stock deducted twice. Customer AR doubled.
+PROBLEM
+If not caught, inventory goes negative, revenue is double-counted, and the customer appears to owe twice as much.
+THE RULE
+→  Idempotency key: front-end generates a UUID when the form is opened
+→  Server: INSERT checks for duplicate idempotency_key — second request rejected immediately
+→  Front-end: disable the submit button immediately on first click until server responds
+→  Database: UNIQUE index on (idempotency_key) in journal_entries table
+→  If duplicate detected: return the original entry's ID — no error shown to user
+S-066  Database Crash Mid-Transaction
+✅  SOLVED
+TRIGGER
+Server crashes while saving a sale — after the sale record was created but before journal entries.
+NUMBERS
+DB::transaction() begins
+Sale record saved ✓
+sale_items saved ✓
+Server crash ✗ — journal entries never written
+On recovery: sale exists in sales table, no journal entries
+PROBLEM
+The sale exists but has no financial record. Cash/inventory balances are wrong. The data is in an illegal state.
+THE RULE
+→  DB::transaction() ensures atomicity: if any part fails, everything rolls back
+→  On recovery: the incomplete transaction is automatically rolled back by the database engine
+→  The sale record is ALSO rolled back — it never existed from the DB's perspective
+→  Laravel's transaction() wrapping guarantees this if used consistently (Law 4)
+→  Health check: on startup, scan for any sale_id with no corresponding journal_entries — alert if found
+S-067  party_snapshot Out of Sync With Ledger
+✅  SOLVED
+TRIGGER
+A bug caused the snapshot rebuild to fail silently. Snapshot shows Rs.5,000 but ledger shows Rs.7,000.
+NUMBERS
+party_snapshots.cached_balance for Customer A = Rs.5,000
+Live ledger query for Customer A = Rs.7,000
+Rs.2,000 discrepancy — customer appears to owe less than they do
+PROBLEM
+If snapshots are trusted blindly without a verification mechanism, users see wrong balances and incorrect aging reports.
+THE RULE
+→  Reconciliation job: run daily — compare every party_snapshot to live ledger query
+→  If mismatch &gt; Rs.0.01: log an alert, automatically rebuild the snapshot
+→  On any page load for a party: if snapshot.last_journal_id != MAX(journal_entry.id) for that party → rebuild before showing
+→  The live ledger query is always available as the absolute fallback — never hide this path
+→  The reconciliation report is viewable by admin — shows any snapshots that were rebuilt
+S-068  payment_allocations Total Exceeds Invoice Amount — Over-Allocation Bug
+✅  SOLVED — Database CHECK constraint
+TRIGGER
+A bug allows Rs.15,000 to be allocated to an invoice worth Rs.10,000.
+NUMBERS
+Invoice #1400: Rs.10,000
+Payment 1 allocated: Rs.10,000 (invoice shows Paid)
+Bug: Payment 2 also allocated: Rs.5,000 to same invoice
+Total allocated to Invoice #1400: Rs.15,000
+The invoice shows 'over-paid' — which is physically impossible for a single invoice
+PROBLEM
+No constraint currently prevents the sum of payment_allocations from exceeding the invoice total. This can inflate the customer's payment history.
+THE RULE
+→  Database constraint: before inserting/updating a payment_allocations row:
+→    SELECT SUM(allocated_amount) WHERE sale_id = X
+→    IF sum + new_amount &gt; invoice_total → REJECT with error
+→  Application validation: same check in the application layer before hitting the DB
+→  Self-healing: daily integrity check — flag any invoice where SUM(allocations) &gt; invoice_total
+→  This constraint must be added to the payment_allocations schema as a CHECK or trigger
+S-069  FIFO Batch remaining_qty Goes Negative
+✅  SOLVED
+TRIGGER
+A bug or race condition causes remaining_qty to go below zero.
+NUMBERS
+Batch B: remaining_qty = 3
+Two concurrent sales both read remaining_qty = 3
+Sale 1 deducts 3 → remaining_qty = 0
+Sale 2 deducts 3 → remaining_qty = -3  (BUG)
+PROBLEM
+Negative remaining_qty means the business 'sold' stock it didn't have. Inventory value on the balance sheet goes negative for this batch. All downstream calculations are corrupted.
+THE RULE
+→  Pessimistic locking: SELECT ... FOR UPDATE on inventory_batches when deducting
+→  This locks the row — Sale 2 must wait until Sale 1's transaction completes
+→  Database constraint: CHECK (remaining_qty &gt;= 0) on inventory_batches
+→  If constraint is violated: the transaction rolls back — the user gets an 'Insufficient Stock' error
+→  Pessimistic locking + CHECK constraint together make negative qty impossible
+S-070  Report Run During Active Month-End Close
+✅  SOLVED
+TRIGGER
+Accountant is posting year-end closing entries. Another user runs the P&amp;L report simultaneously.
+NUMBERS
+Month-end close: 12 journal entries being posted in a transaction
+P&amp;L report query runs mid-close: reads some but not all of the 12 entries
+Report shows partial state — profit is wrong during the close window
+PROBLEM
+Without isolation, a report can read uncommitted data from an in-flight transaction, showing a phantom intermediate state.
+THE RULE
+→  Read-committed isolation level (MySQL default): reports only see committed data
+→  The in-flight closing entries are not committed yet — the report sees the pre-close state
+→  After the close transaction commits: the next report run shows the correct post-close state
+→  No special locking needed for report queries — the DB isolation level handles this
+S-071  Two Users Post Conflicting Stock Adjustment Simultaneously
+✅  SOLVED
+TRIGGER
+User A is writing off 5 units. User B is adding 3 units. Both act at the same time.
+NUMBERS
+Batch C: remaining_qty = 10
+User A: deducts 5 → should result in 5
+User B: adds 3 → should result in 8 (if sequential)
+If concurrent without locking:
+  Both read 10
+  A writes 10-5=5, B writes 10+3=13
+  One overwrites the other → wrong result
+PROBLEM
+Race conditions on inventory_batches produce silent data corruption — the wrong qty is stored with no error.
+THE RULE
+→  All writes to inventory_batches use atomic SQL: UPDATE ... SET remaining_qty = remaining_qty ± delta WHERE id = X
+→  Do NOT: read qty, calculate, then write the calculated total
+→  DO: UPDATE inventory_batches SET remaining_qty = remaining_qty - 5 WHERE id = X
+→  The database engine serializes these increments/decrements — no race condition possible
+→  The CHECK (remaining_qty &gt;= 0) constraint catches any underflow attempt
+  CATEGORY 9
+  PERIOD-END &amp; FISCAL SCENARIOS
+  6 scenarios scenarios  
+S-072  Backdated Transaction Into Closed Period
+✅  SOLVED
+TRIGGER
+A sale from December is entered in March. December books are already closed.
+NUMBERS
+Fiscal year closed: December 31, 2025
+Transaction entered: March 5, 2026 but dated December 15, 2025
+If allowed: reopens the already-filed December P&amp;L
+PROBLEM
+Allowing backdating into a closed period invalidates the already-filed financial statements. Tax returns may have been submitted based on those numbers.
+THE RULE
+→  Define 'Period Lock Date' in system settings — no transaction can be posted before this date
+→  Default: lock date = last fiscal year end date
+→  If a user attempts to post before the lock date: BLOCKED with error
+→  Unlock: requires admin-level permission + reason logged
+→  Transactions in open period: can be backdated up to 30 days back (configurable) with warning
+S-073  Future-Dated Transaction — Sale Dated Tomorrow
+✅  DECIDED — Allow up to 30 days future-dated
+TRIGGER
+User enters a sale with tomorrow's date.
+NUMBERS
+Today: March 5, 2026
+Sale entry: dated March 6, 2026
+The goods have not been delivered yet (future date)
+But the journal entry would post to a future period
+PROBLEM
+Future-dated postings are pre-recorded entries. They appear in future-period reports but may not reflect reality. Revenue recognition should be on the actual delivery date.
+THE RULE
+→  DECISION: allow future dating with a warning — do not block
+→  Warning: 'Transaction date is in the future. Ensure this is intentional.'
+→  Reports: future-dated entries appear in the relevant future period reports
+→  Maximum future date allowed: 30 days from today (configurable) — beyond that, blocked
+→  If the delivery doesn't happen: the entry must be manually reversed
+S-074  Work-in-Progress at Period End
+✅  DECIDED — Account 1150 WIP on Balance Sheet (B32)
+TRIGGER
+A production run started in December but the finished goods aren't ready until January.
+NUMBERS
+December 31: raw materials consumed → removed from inventory
+January 5: finished goods completed → added to inventory
+At December 31 balance sheet:
+  Raw materials are gone (deducted)
+  Finished goods don't exist yet
+  The cost (Rs.X) is 'hanging' in 6400 Manufacturing Cost
+  This is Work-in-Progress (WIP)
+PROBLEM
+The WIP cost sits in an expense account at year-end, deflating profit. It should be on the balance sheet as an asset until the production run completes.
+THE RULE
+→  DECISION: Account 1150 WIP on Balance Sheet. B32 transaction. Non-zero 1150 = production in progress.
+→  At period end, if production run is incomplete: DR 1150 WIP / CR 6400 Manufacturing Cost
+→  When production completes: DR 1100 Inventory / CR 1150 WIP
+→  For businesses without complex manufacturing: WIP may be immaterial — leave in 6400
+→  The business decides at setup: do they need WIP tracking? If yes, account 1150 is activated
+S-075  Invoice From Last Year Received This Year — Expense Timing
+✅  SOLVED
+TRIGGER
+Supplier invoice dated December 2025 received by the business in January 2026.
+NUMBERS
+Invoice date: December 15, 2025 (prior fiscal year)
+Invoice received by business: January 10, 2026
+Period lock date: December 31, 2025 (already closed)
+Cannot backdate to December (period locked)
+Must record in January 2026 (current period)
+PROBLEM
+The expense technically belongs to December (matching principle) but the books are closed. Recording in January is the practical solution for most small-to-medium businesses.
+THE RULE
+→  Record in January 2026 — current open period
+→  For large amounts that materially affect financial statements: record as 'accrual' in December
+→  Accrual: DR Expense / CR Accrued Liabilities (a liability account) — in December
+→  January actual invoice: DR Accrued Liabilities / CR AP (reverses the accrual)
+→  For typical SME (AMD's target): small invoices recorded when received, no accrual needed
+S-076  Multi-Year Retained Earnings Calculation
+✅  SOLVED
+TRIGGER
+Business is in its 3rd year. How are retained earnings calculated?
+NUMBERS
+Year 1 Net Profit: Rs.500,000
+Year 1 Drawings (B14): Rs.200,000
+Year 1 Retained Earnings closing: Rs.300,000
+Year 2 Net Profit: Rs.800,000
+Year 2 Drawings: Rs.300,000
+Year 2 Retained Earnings closing: Rs.300,000 + Rs.800,000 - Rs.300,000 = Rs.800,000
+Year 3 balance: Rs.800,000 + Year 3 profit - Year 3 drawings
+PROBLEM
+If each year's closing entry doesn't properly accumulate into account 3100 Retained Earnings, the balance sheet equity section is wrong.
+THE RULE
+→  Each year-end closing entry adds net profit to account 3100: CR 3100 Retained Earnings
+→  Each B14 Fund Out: DR 3000 Owner Capital (or 3100 directly — design decision)
+→  Account 3100 balance = cumulative sum of all closing entries - cumulative owner drawings
+→  Balance Sheet: 3100 balance + Current Year Net Profit = Total Equity (before closing)
+→  After closing: 3100 absorbs this year's profit and the cycle repeats
+S-077  Trial Balance vs P&amp;L Difference — Why They Show Different Profit
+✅  SOLVED
+TRIGGER
+Accountant runs Trial Balance and P&amp;L. Net profit figures don't match.
+NUMBERS
+Trial Balance shows net of income accounts - expense accounts = Rs.450,000
+P&amp;L shows net profit = Rs.430,000
+Difference: Rs.20,000
+Possible causes:
+1. P&amp;L filter excludes some journal entries (wrong date range)
+2. A closing entry from prior year is included in the TB but not in P&amp;L
+3. An account tagged wrong type (income account in wrong category)
+PROBLEM
+Trial Balance and P&amp;L must agree on net profit for the same period. A difference indicates a report configuration error or a wrong account type assignment.
+THE RULE
+→  Both must use identical date range and fiscal year filters
+→  Trial Balance: includes ALL accounts. P&amp;L: includes only 4000–6999 range
+→  Check: are any accounts outside 4000–6999 affecting the TB but excluded from P&amp;L?
+→  Common error: 'Miscellaneous Income' posted to account 3000 (equity) instead of 4100 (income)
+→  Fix: ensure all income goes to 4xxx and all expenses go to 5xxx–6xxx — system enforces account type at entry
+  CATEGORY 10
+  SALARY &amp; HR EDGE CASES
+  5 scenarios scenarios  
+S-078  Salary Advance Given Mid-Month — How It Deducts From Salary
+✅  SOLVED
+TRIGGER
+Employee takes a Rs.5,000 advance on the 15th. Month-end salary is Rs.20,000.
+NUMBERS
+Day 15: Advance given
+  DR 1350 Employee Advance (new asset account) Rs.5,000 / CR Cash Rs.5,000
+Month end: Salary accrual
+  DR 6100 Salary Expense Rs.20,000 / CR 2400 Salary Payable Rs.20,000
+Salary payment:
+  Gross payable: Rs.20,000
+  Less: advance Rs.5,000
+  Net paid: Rs.15,000
+  DR 2400 Salary Payable Rs.20,000 / CR Cash Rs.15,000 + CR 1350 Employee Advance Rs.5,000
+PROBLEM
+If the advance is posted directly as an expense (B6) or as a deduction from salary payable without an advance account, the cash trail is lost and the salary expense is wrong.
+THE RULE
+→  Account 1350 Employee Advance is a current asset — money lent to employee
+→  Advance given: DR 1350 / CR Cash (the employee owes the business)
+→  At payroll: the 2400 Salary Payable is settled by cash AND by clearing the advance
+→  The full salary expense (Rs.20,000) is always recorded — the deduction is in the payment, not the expense
+→  If advance not recovered this month: 1350 carries forward to next month
+S-079  Employee Loan — Not the Same as Salary Advance
+✅  SOLVED
+TRIGGER
+Business gives employee a Rs.100,000 personal loan repayable over 12 months.
+NUMBERS
+This is NOT a salary advance (which is recovered next month)
+This is a formal loan that the employee repays over 12 months
+Disbursement: DR 1350 Employee Loans Rs.100,000 / CR Cash Rs.100,000
+Each month recovery: Rs.8,333 deducted from salary
+  DR 2400 Salary Payable Rs.8,333 / CR 1350 Employee Loans Rs.8,333
+PROBLEM
+Treating an employee loan the same as a salary advance would make the asset clear in one month. A long-term loan must be tracked separately.
+THE RULE
+→  Account 1350 can carry both short-term advances and long-term loans — distinguished by type flag
+→  Or: 1350 = Short-term advance, 1360 = Employee Loan (long-term)
+→  Repayment schedule: a separate table tracking expected monthly deductions
+→  Report: outstanding employee loans aged by employee — management visibility
+→  Tax implications: some jurisdictions tax employee loans as a benefit — flag this for the business owner
+S-080  Terminated Employee — Final Settlement
+✅  SOLVED — B27 + Account 6800
+TRIGGER
+Employee leaves. Must receive notice pay, outstanding salary, gratuity, and leave encashment.
+NUMBERS
+Outstanding salary for partial month: e.g. 12 days of Rs.30,000/month = Rs.12,000
+Notice pay (1 month): Rs.30,000
+Gratuity (per company policy): Rs.50,000
+Leave encashment (10 days): Rs.10,000
+Total final settlement: Rs.102,000
+PROBLEM
+No specific final settlement transaction type exists. Each component has different accounting treatment. Gratuity may have been accrued monthly or may be a one-time charge.
+THE RULE
+→  Component-by-component approach:
+→  Outstanding salary: DR 6100 / CR Cash (standard B7 for partial month)
+→  Notice pay: DR 6100 Salary Expense / CR Cash
+→  Gratuity: DR 6800 Gratuity Expense (new account) / CR Cash (or 2600 Gratuity Payable if accrued)
+→  Leave encashment: DR 6100 or 6800 / CR Cash
+→  All posted as a single composite journal entry with reference_type = 'final_settlement'
+→  This requires new expense accounts (6800) and potentially a new liability account (2600) for accrued gratuity
+S-081  Overtime Pay — How Is It Recorded?
+✅  SOLVED
+TRIGGER
+Employee earns Rs.20,000 base salary + Rs.3,000 overtime for the month.
+NUMBERS
+Total salary expense: Rs.23,000
+All goes to 6100 Salary Expense (same account)
+Alternative: separate 6110 Overtime Expense for visibility
+PROBLEM
+If overtime is lumped with regular salary, management can't see how much overtime is being paid — a key labour cost indicator.
+THE RULE
+→  DECISION: allow sub-accounts under 6100 for reporting granularity
+→  6100: Base Salary, 6110: Overtime, 6120: Allowances
+→  All are Expense accounts, all feed the P&amp;L Salary line
+→  The D1 P&amp;L shows combined 6100-6120 as 'Salary' on one line
+→  Detailed expense report can break down by sub-account
+S-082  Salary Paid But Not Yet Accrued — B7 Steps Out of Order
+✅  SOLVED
+TRIGGER
+Cash is paid to employees on the 28th but the accrual (month-end) hasn't been posted yet.
+NUMBERS
+March 28: cash paid Rs.50,000 directly to employees
+March 31: accountant posts accrual
+If payment is posted before accrual:
+  Step 1 (wrong order): DR 2400 Salary Payable Rs.50,000 / CR Cash Rs.50,000
+  But 2400 has zero balance (accrual not posted yet) → AP goes negative
+PROBLEM
+Paying before accruing means Salary Payable goes negative — a debit balance on a liability account. The two steps must be in order, or handled differently.
+THE RULE
+→  OPTION A: always accrue first (month-end), then pay — enforce this order in the system
+→  OPTION B: if paying before month-end close, post directly: DR 6100 Salary Expense / CR Cash
+→    Then at month-end, no accrual needed (already expensed)
+→  DECISION: for businesses paying mid-month: Option B (direct expense) is simpler and correct
+→  The two-step accrual (B7) is for businesses on formal accrual accounting with month-end close
+→  Small businesses can use direct expense — the result on the P&amp;L is identical
+  CATEGORY 11
+  BANK &amp; CASH EDGE CASES
+  6 scenarios scenarios  
+S-083  Bank Charges Deducted Directly by Bank
+✅  SOLVED
+TRIGGER
+Bank deducts Rs.2,500 service charges directly from the account. User didn't enter it.
+NUMBERS
+Bank statement shows: -Rs.2,500 for 'Monthly Service Charges'
+AMD bank account (1010) shows no such deduction
+Bank reconciliation (D35): Rs.2,500 difference
+PROBLEM
+If the user never enters this deduction in AMD, the bank balance in AMD will always be Rs.2,500 higher than the actual bank statement. The reconciliation will never clear.
+THE RULE
+→  D35 Bank Reconciliation surfaces this difference automatically
+→  User creates an Expense entry (B6): DR 6000 Bank Charges / CR 1010 Bank Account Rs.2,500
+→  After posting: AMD bank balance matches the statement
+→  System can allow 'Import from bank statement' to create these entries in bulk
+→  Bank charges sub-account: 6050 Bank Charges (under 6000 Operating Expenses)
+S-084  Bank Interest Received
+✅  SOLVED
+TRIGGER
+Bank credits Rs.800 as interest earned on the current account.
+NUMBERS
+Bank statement: +Rs.800 'Account Interest'
+This is income — not a customer payment, not a Fund In
+Correct journal:
+  DR 1010 Bank Account Rs.800
+  CR 4100 Other Income Rs.800
+PROBLEM
+If recorded as Fund In (B13), it hits Owner's Capital (3000) — wrong. It is income, not investment.
+THE RULE
+→  Bank interest = Other Income (4100) — post as B6-style income entry
+→  The bank account increases (DR 1010) and income increases (CR 4100)
+→  Tax treatment: bank interest may be taxable income — flagged for tax filing
+→  Monthly reconciliation should identify unmatched credits that need categorisation
+S-085  Outstanding Cheque — Written But Not Yet Cashed
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+You wrote a cheque to a supplier on March 1st. The supplier hasn't deposited it yet. It's March 5th.
+NUMBERS
+AMD journal entry (March 1): DR AP Rs.5,000 / CR 1010 Bank Rs.5,000
+  → AMD bank balance is correctly reduced
+Actual bank statement (March 5): cheque not yet shown
+  → Bank statement balance is higher than AMD by Rs.5,000
+D35 Reconciliation: unmatched deduction in AMD not in bank statement
+PROBLEM
+This is a normal timing difference in bank reconciliation — NOT an error. The AMD entry is correct. The bank statement will catch up when the cheque clears.
+THE RULE
+→  AMD records the cheque on the issue date — correct (obligation exists from that date)
+→  D35 Bank Reconciliation: 'Outstanding cheques' section lists this Rs.5,000 as 'in AMD, not in bank yet'
+→  When cheque clears: D35 automatically reconciles (bank statement matches AMD)
+→  No corrective action needed — this is expected timing behaviour
+→  Cheques older than 30 days that haven't cleared: flag as 'stale cheque' for investigation
+S-086  Deposit in Transit
+✅  SOLVED
+TRIGGER
+Cash was deposited in the bank on March 4th. Bank shows it on March 6th.
+NUMBERS
+AMD entry (March 4): DR 1010 Bank Rs.20,000 / CR 1000 Cash Rs.20,000
+Bank statement (March 4): deposit not yet showing
+Bank statement (March 6): deposit appears
+D35 March 4 reconciliation: Rs.20,000 'in AMD, not in bank yet'
+PROBLEM
+Same as outstanding cheques — a normal timing difference. AMD records on the action date, bank processes slightly later.
+THE RULE
+→  AMD entry is correct — record on the day cash is handed to the bank
+→  D35 reconciliation shows this as 'Deposit in Transit' — expected, not an error
+→  No action needed — clears automatically when bank processes
+→  Rule: deposits in transit older than 3 business days → investigate (bank may have lost the deposit)
+S-087  Unexplained Bank Reconciliation Difference
+✅  SOLVED
+TRIGGER
+After reconciling, there is a Rs.350 difference that can't be attributed to anything.
+NUMBERS
+Bank statement balance: Rs.150,350
+AMD bank balance (1010): Rs.150,000
+Difference: Rs.350
+No outstanding cheques, no deposits in transit that explain it
+PROBLEM
+An unexplained difference could be: a bank error, a forgotten transaction in AMD, a fraud, or a data entry error.
+THE RULE
+→  Investigation steps:
+→  1. Check bank statement line by line against AMD D8 Bank Book for same period
+→  2. Look for Rs.350 amounts in either that appear only once
+→  3. If bank error: notify bank, record the correction entry when bank fixes it
+→  4. If AMD missing entry: post the missing expense/income
+→  5. If unexplainable after investigation: post to 4100 Other Income or 6000 Expense with a note
+→  Rule: never leave a reconciliation difference unresolved — it must either be explained or posted
+S-088  Two Bank Accounts Showing as One — Account Code Conflict
+✅  SOLVED
+TRIGGER
+Business has two bank accounts but both were mapped to account code 1010.
+NUMBERS
+Main Bank (MCB): balance Rs.500,000
+Secondary Bank (HBL): balance Rs.200,000
+Both posting to 1010
+AMD shows 1010 balance: Rs.700,000 (correct total)
+But: cannot see individual bank balances, cannot do per-bank reconciliation
+PROBLEM
+Without separate account codes per bank, the D35 Bank Reconciliation is impossible to run per bank. Errors in one bank are invisible.
+THE RULE
+→  Each physical bank account gets its own account code: 1010 = MCB, 1011 = HBL, 1012 = next, etc.
+→  bank_accounts table stores the mapping: bank_accounts.account_code = '1011'
+→  All transactions specify which bank account they hit
+→  D35 can be run per-bank (filter by account code)
+→  If both were mixed in 1010 historically: a migration exercise must split the entries
+  CATEGORY 12
+  PARTY MANAGEMENT SCENARIOS
+  5 scenarios scenarios  
+S-089  Same Party Is Both Customer and Supplier
+✅  SOLVED
+TRIGGER
+Ahmed is both a customer (buys from you) and a supplier (sells to you). One party record.
+NUMBERS
+Ahmed as customer: AR balance Rs.8,000 (he owes you)
+Ahmed as supplier: AP balance Rs.5,000 (you owe him)
+Net: Ahmed owes you Rs.3,000
+System: one party_id = Ahmed
+party_snapshots: two rows for Ahmed:
+  {ahmed, account_code:'1200', balance: 8000}
+  {ahmed, account_code:'2000', balance: 5000}
+PROBLEM
+If the system forces a party to be either only a customer or only a supplier, Ahmed needs two records — and netting or settlement becomes impossible.
+THE RULE
+→  Parties table has no 'type' restriction — a party can appear in AR, AP, or both simultaneously
+→  party_snapshots has one row per (party_id, account_code) — naturally handles dual roles
+→  D9 Party Statement shows both AR and AP activity in one unified ledger view
+→  Net settlement: explicit journal entry DR AP Rs.5,000 / CR AR Rs.5,000 (removes mutual debt)
+→  Net settlement requires both parties to agree — recorded as a B4/B5 combination
+S-090  Bad Debt Written Off — Customer Then Partially Pays Later
+✅  SOLVED
+TRIGGER
+Customer debt of Rs.30,000 was written off as bad debt. Customer pays Rs.12,000 unexpectedly.
+NUMBERS
+Write-off (done earlier): DR 6700 Bad Debt Expense Rs.30,000 / CR 1200 AR Rs.30,000
+Customer's AR balance: Rs.0 (debt is gone)
+Customer pays Rs.12,000:
+  This is unexpected income — the receivable no longer exists
+  DR Cash Rs.12,000 / CR 4100 Other Income Rs.12,000
+Do NOT reverse the write-off (the bad debt expense was real when incurred)
+PROBLEM
+If the write-off is reversed to restore the AR and then settled, the current period gets a credit to bad debt expense. This overstates this period and understates the original write-off period.
+THE RULE
+→  Recovery of previously written-off debt: credit 4100 Other Income (not a reversal of 6700)
+→  The bad debt expense in the original period stands — it was a valid assessment at that time
+→  The recovery is unexpected income in the current period
+→  This is the correct standard accounting treatment for bad debt recoveries
+S-091  Party Changes Name or Merges With Another Company
+✅  SOLVED
+TRIGGER
+Customer 'ABC Trading' becomes 'ABC International' after rebranding. Same legal entity.
+NUMBERS
+All historical invoices show 'ABC Trading'
+New invoices should show 'ABC International'
+Balance and history must remain connected
+PROBLEM
+If a new party record is created, the history is split. Outstanding AR from 'ABC Trading' appears unconnected to 'ABC International'.
+THE RULE
+→  Name change: update parties.name to 'ABC International' — single record update
+→  History: all historical invoices are linked to party_id (not name) — they now show the new name
+→  Audit log: name changes are logged: {party_id, old_name, new_name, changed_by, changed_at}
+→  For true merger (two different legal entities becoming one): more complex
+→    Merger: transfer balances from party B to party A via journal entries, then deactivate party B
+S-092  Party Marked Inactive — What Happens to Open Balances?
+✅  SOLVED
+TRIGGER
+A customer is deactivated. They still owe Rs.15,000.
+NUMBERS
+Customer marked as active = false
+Outstanding AR: Rs.15,000
+Can you still receive their payment?
+Can you still create an invoice for them?
+PROBLEM
+If deactivation blocks ALL transactions for a party, collecting outstanding debts becomes impossible.
+THE RULE
+→  Deactivation BLOCKS: new Sales Orders, new Invoices, new credit purchases
+→  Deactivation ALLOWS: Payment In (B4) against outstanding balance — must be collectible
+→  Deactivation ALLOWS: Credit Notes and returns on historical invoices
+→  The party appears in aging reports with '[Inactive]' flag — not hidden from collectors
+→  Full deactivation (cannot receive payment): only when AR/AP balance = Rs.0
+S-093  Splitting a Party's Balance Between Two New Entities
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+'XYZ Company' splits into 'XYZ North' and 'XYZ South'. Historical balance of Rs.40,000 must be divided.
+NUMBERS
+Old party: XYZ Company (AR Rs.40,000)
+New parties: XYZ North (AR Rs.25,000) + XYZ South (AR Rs.15,000)
+Need: XYZ Company balance → zero, two new parties funded
+PROBLEM
+This is a business restructuring event. It requires new party records and specific journal entries to transfer the balance.
+THE RULE
+→  Create new party records: XYZ North, XYZ South
+→  Journal entry to transfer AR:
+→    DR 1200 AR (XYZ North) Rs.25,000 / CR 1200 AR (XYZ Company) Rs.25,000
+→    DR 1200 AR (XYZ South) Rs.15,000 / CR 1200 AR (XYZ Company) Rs.15,000
+→  Note: these DR/CR both hit account 1200 — net account balance unchanged, only party detail changes
+→    tagged: reference_type = 'party_split', notes = 'Company restructuring'
+→  payment_allocations for old invoices: either re-link to new parties or leave as historical
+→  Deactivate XYZ Company once balance = zero
+  CATEGORY 13
+  MANUFACTURING EDGE CASES
+  5 scenarios scenarios  
+S-094  By-Product Created During Manufacturing
+✅  DECIDED — Record at NRV, reduces main product cost
+TRIGGER
+Making wooden furniture generates sawdust as a by-product. The sawdust can be sold.
+NUMBERS
+Production run: 10 chairs
+Main input: 100kg wood @ Rs.200/kg = Rs.20,000
+By-product: 20kg sawdust (can be sold at Rs.5/kg)
+The sawdust has value — should it reduce the cost of the main product?
+PROBLEM
+If the by-product is ignored, the chairs absorb the full Rs.20,000 cost. If sawdust is credited, the chairs cost less — more accurate but more complex.
+THE RULE
+→  DECISION: record by-product at net realizable value (NRV)
+→  Sawdust NRV: 20kg × Rs.5 = Rs.100
+→  At production posting:
+→    Cost of chairs reduced: Rs.20,000 - Rs.100 = Rs.19,900 (DR 1100 Inventory for chairs)
+→    By-product inventory: DR 1100 Inventory (sawdust) Rs.100 / CR 6400 Manufacturing Cost Rs.100
+→  When sawdust is sold: normal sale (B1) — COGS = Rs.100 (batch cost), Revenue = actual sale price
+→  For negligible value by-products: ignore and expense fully to chairs (simpler)
+S-095  Finished Goods Sold Before Production Run Is Formally Closed
+✅  SOLVED
+TRIGGER
+Production run is in progress (status: 'in_production'). A sale is attempted for the finished product.
+NUMBERS
+Production Run #P50: 100 biscuit packets expected
+Status: in_production (not yet completed)
+Sale attempted: 20 biscuit packets
+The finished goods may not physically exist yet
+PROBLEM
+If the system allows a sale before the production run is closed, the batch for the finished goods may not have been created yet — FIFO deduction will fail or create a phantom batch.
+THE RULE
+→  RULE: sales of manufactured products are BLOCKED while the production run is status='in_production'
+→  Production run must be status='completed' before finished goods are available for sale
+→  On completion: the finished goods batch is created in inventory_batches
+→  Only then can FifoService deduct from that batch for a sale
+→  If real-world urgency forces an early sale: close the production run early (even partially)
+S-096  BOM Raw Material Has Gone Out of Stock Mid-Production
+✅  SOLVED
+TRIGGER
+Production run starts. Partway through, one raw material runs out.
+NUMBERS
+BOM for 100 biscuits: 10kg flour + 2kg sugar + 1L oil
+Starting stock: flour 10kg ✓, sugar 2kg ✓, oil 0.5L ✗ (need 1L, have 0.5L)
+FifoService.deductStock() for oil: InsufficientStockException
+PROBLEM
+If materials are deducted one by one and oil fails halfway, flour and sugar have already been deducted but no finished goods are created. A partial deduction leaves the system in a broken state.
+THE RULE
+→  The production run checks ALL material availability BEFORE deducting ANY material
+→  Pre-flight check: verify FifoService.checkAvailability() for ALL BOM items first
+→  If any item is insufficient: BLOCK the entire production run — deduct nothing
+→  User sees: 'Insufficient oil — 0.5L available, 1L required. Run cannot start.'
+→  Partial production option: if the business wants to produce 50 biscuits (using 0.5L oil): adjust qty in the production run, then proceed
+S-097  Production Cost Higher Than Sale Price — Loss-Making Product
+✅  SOLVED
+TRIGGER
+Finished goods cost Rs.150/unit to produce. Sale price is Rs.120/unit.
+NUMBERS
+Production batch: 100 units, total cost Rs.15,000, unit_cost = Rs.150
+Sale price: Rs.120
+Margin per unit: -Rs.30 (loss)
+PROBLEM
+The system will correctly record COGS at Rs.150 and revenue at Rs.120. Gross profit will be negative. This is not an error — it is a business reality that must be visible.
+THE RULE
+→  No blocking — loss-making products are allowed (consistent with S-011)
+→  Warning shown on the sale: 'Selling below production cost — loss of Rs.30 per unit'
+→  D14 Item-wise Profit report will show the negative margin clearly
+→  The business owner is responsible for pricing — the system reports, it doesn't prevent
+S-098  BOM Changed After Some Units Were Already Produced
+🔧  DESIGN DECISION REQUIRED
+TRIGGER
+BOM v1 used 5g of ingredient A per unit. Mid-production, recipe changed to 6g.
+NUMBERS
+Batch 1 (50 units): made with 5g/unit → unit_cost = Rs.100
+BOM updated: now 6g/unit
+Batch 2 (50 units): made with 6g/unit → unit_cost = Rs.110
+Both batches in inventory: same product, different cost (correctly captured as different batches)
+PROBLEM
+If the BOM is updated globally and retroactively recalculates old production costs, Batch 1's cost is corrupted.
+THE RULE
+→  BOM is versioned: bom_versions table with effective_from date
+→  Production runs reference the BOM version active at the time of the run — never retroactive
+→  Batch 1 unit_cost = Rs.100 (using BOM v1) — locked forever
+→  Batch 2 unit_cost = Rs.110 (using BOM v2) — also locked
+→  FIFO will correctly deduct from Batch 1 first (older) at Rs.100 cost
+  CATEGORY 14
+  STOCK EDGE CASES
+  5 scenarios scenarios  
+S-099  Product Deleted With Open Sales Orders and Remaining Stock
+✅  SOLVED
+TRIGGER
+A product is being 'deleted'. It still has 50 units in stock and 2 open Sales Orders.
+NUMBERS
+Product X: 50 units in inventory_batches, 2 open Sales Orders referencing it
+User tries to delete Product X
+PROBLEM
+Deleting the product would orphan the inventory_batches rows and invalidate the Sales Orders. Foreign key constraints would fail, or silent corruption would occur.
+THE RULE
+→  Hard delete is BLOCKED if: remaining stock &gt; 0 OR open Sales Orders reference the product
+→  Soft delete only: products.deleted_at = NOW() (status = inactive)
+→  The product disappears from new-sale lists, purchase lists, etc.
+→  All historical data (batches, sales, COGS) remains intact and queryable
+→  To complete the delete: write off all remaining stock (B10) and fulfil/cancel all Sales Orders first
+S-100  Duplicate Product Created — Stock Split Across Two Records
+✅  SOLVED
+TRIGGER
+'Basmati Rice 5kg' exists as both product_id=45 and product_id=88 (entered twice by different staff).
+NUMBERS
+Product 45: 100 units in 2 batches, sold to 30 customers
+Product 88: 50 units in 1 batch, sold to 10 customers
+Same physical item, two records in system
+Inventory report shows them separately — management sees two different products
+PROBLEM
+Merging two product records is complex because sales, batches, and BOM references all point to different product IDs. There is no safe automatic merge.
+THE RULE
+→  Prevention: UNIQUE constraint on product SKU/barcode — prevents duplicates at entry
+→  Detection: D19 Stock Valuation report shows suspicious near-duplicate names
+→  Cure: manual merge process
+→    1. Transfer all remaining_qty from Product 88's batches to Product 45 (via B11 stock transfer equivalent)
+→    2. Deactivate Product 88
+→    3. Historical sales on Product 88 cannot be retroactively changed — they remain on record
+→    4. Going forward: all transactions use Product 45 only
+S-101  Stock Transfer Race Condition — Sale and Transfer Hit the Same Batch
+✅  SOLVED
+TRIGGER
+User A is transferring 50 units from Warehouse 1 to Warehouse 2. User B is creating a sale from Warehouse 1 simultaneously.
+NUMBERS
+Warehouse 1, Batch A: 50 units
+Transfer: move all 50 units to Warehouse 2
+Sale from Warehouse 1: 10 units
+If both read remaining_qty=50 before either writes:
+  Transfer deducts 50 → remaining_qty = 0
+  Sale deducts 10 → remaining_qty = -10 (BUG via race)
+PROBLEM
+Without locking, the transfer and sale can interfere with each other causing negative stock.
+THE RULE
+→  SELECT ... FOR UPDATE (pessimistic locking) on inventory_batches in both the transfer and sale flows
+→  The first operation to acquire the lock proceeds. The second waits.
+→  When the second proceeds: remaining_qty = 0 → InsufficientStockException → rolled back
+→  Database CHECK constraint (remaining_qty &gt;= 0) is the safety net even if locking is imperfect
+S-102  Stock Count Differs by Exactly One Unit — Persistent
+✅  SOLVED
+TRIGGER
+Stock take always shows one less unit than the system for Product Y. Happens every month.
+NUMBERS
+System: 100 units. Physical count: 99 units. Every month.
+Written off as B10 each time. Next month: same difference again.
+Possible causes:
+1. A recurring transaction type is not posting stock movement
+2. A product is being used in-house without being recorded
+3. Unit of measure confusion (1 unit = 1 case = 12 items?)
+PROBLEM
+A recurring consistent variance indicates a systemic problem — not physical loss. Writing it off each time masks the real issue.
+THE RULE
+→  Trigger a D20 Stock Movement audit for Product Y: every IN and OUT listed chronologically
+→  Look for: sales with no stock movement, purchases with no batch creation, transfers not recorded
+→  Check: is this product used in any BOM (consumed in manufacturing) without a production run?
+→  Check: is the unit of measure consistent between purchases and sales?
+→  DO NOT write off the same product every month without investigation — it indicates a code bug
+S-103  Batch Expiry Date Is Nullable — Some Products Have No Expiry
+✅  SOLVED
+TRIGGER
+Electronics, machinery, and general merchandise don't expire. Food and pharmaceuticals do.
+NUMBERS
+inventory_batches.expiry_date is nullable
+Products: is_expiry_tracked flag
+If is_expiry_tracked = false: expiry_date = NULL
+FifoService query: WHERE (expiry_date IS NULL OR expiry_date &gt;= CURDATE())
+This correctly skips expiry check for non-perishable products
+PROBLEM
+If the expiry check applies to all products, non-perishable products are unnecessarily filtered (though they would pass since their expiry_date is NULL and the WHERE clause handles NULLs correctly).
+THE RULE
+→  products.is_expiry_tracked (boolean) — set at product level
+→  inventory_batches.expiry_date (nullable) — only set if is_expiry_tracked = true
+→  FifoService: if product.is_expiry_tracked = true, apply expiry filter; else skip it entirely
+→  D23 Expiry Report: only shows products where is_expiry_tracked = true
+→  System reminder at purchase entry: if is_expiry_tracked = true, expiry_date is required
+  CATEGORY 15
+  MISCELLANEOUS REAL-WORLD SCENARIOS
+  5 scenarios scenarios  
+S-104  Cash Theft — Discovered on Daily Closing
+✅  SOLVED — B28 + Account 6900
+TRIGGER
+At day close, the cash till has Rs.3,000 less than the system shows. Suspected theft.
+NUMBERS
+AMD Cash (1000) balance: Rs.150,000
+Physical cash count: Rs.147,000
+Difference: Rs.3,000
+Not a normal stock adjustment — this involves a security/HR event
+PROBLEM
+No specific transaction type for cash theft or shortage. Writing it off as a regular stock adjustment would misclassify the nature of the loss.
+THE RULE
+→  NEW ACCOUNT: 6900 Cash Shortage / Theft Loss
+→  Journal: DR 6900 Cash Shortage Rs.3,000 / CR 1000 Cash Rs.3,000
+→  This records the physical reality (cash is gone) and the financial effect (it's a loss)
+→  HR/security process runs separately — the accounting is about the cash going missing
+→  If recovered later: DR Cash / CR 4100 Other Income (recovery of previously expensed loss)
+→  Management report: all 6900 entries are flagged for review — recurring pattern is a red flag
+S-105  Inventory Found During Stocktake — More Than System Shows
+✅  SOLVED
+TRIGGER
+Physical count shows 115 units. System shows 100 units. 15 extra units found.
+NUMBERS
+Where did the extra 15 units come from?
+Possibilities: a purchase was not recorded, a return was not entered, counting error
+Regardless of cause: if confirmed after recount, must enter as B10 Stock Increase
+PROBLEM
+Recording phantom stock without investigation inflates inventory value artificially.
+THE RULE
+→  Step 1: recount — eliminate counting error
+→  Step 2: investigate source (unrecorded purchase? unrecorded return?)
+→  Step 3: if source identified: record the missing transaction (purchase, return, etc.)
+→  Step 4: if source unknown after investigation: record B10 Stock Increase
+→    DR 1100 Inventory / CR 4200 Stock Adjustment Gain
+→  Cost to assign to the new batch: most recent purchase price (best estimate)
+→  Document the investigation findings in the stock adjustment notes
+S-106  Sales Commission — Recording and Tracking
+✅  DECIDED — Monthly bulk expense (B7)
+TRIGGER
+Salesperson earns 3% commission on every sale they close. Must be tracked and paid monthly.
+NUMBERS
+Sale by Salesman Ali: Rs.50,000 → commission 3% = Rs.1,500
+Commission accrues at time of sale
+Paid to Ali at month-end
+PROBLEM
+No commission tracking exists in the current system. Commission is a cost of sale — it should appear in the P&amp;L but is not currently captured.
+THE RULE
+→  Option A: add salesperson_id to sales table, store commission_rate, calculate commission per sale
+→    On each sale: DR 6150 Commission Expense / CR 2450 Commission Payable
+→    At month-end payment: DR 2450 / CR Cash
+→  Option B: track as a regular monthly expense (B6) without per-sale linkage — simpler but loses granularity
+→  DECISION: Option A is correct for businesses with commission-heavy sales structures
+→  Option B is acceptable for ad-hoc or small commission amounts
+→  Add accounts: 6150 Commission Expense, 2450 Commission Payable
+S-107  Insurance Claim — Stock Destroyed in a Disaster, Partially Recovered
+✅  SOLVED — B29 Two-Step + Accounts 6950 + 6960
+TRIGGER
+A fire destroys Rs.200,000 worth of stock. Insurance pays Rs.150,000.
+NUMBERS
+Stock destroyed: Rs.200,000 at FIFO cost (20,000 units at various costs)
+Insurance claim filed
+Insurance pays: Rs.150,000
+Net loss: Rs.50,000
+No transaction type covers this in the current system
+PROBLEM
+Treating the Rs.200,000 as a regular stock adjustment (B10) and the Rs.150,000 as income (B13 Fund In or 4100 Other Income) would work but loses the linkage between the loss and the recovery.
+THE RULE
+→  Step 1: Write off destroyed stock
+→    NEW ACCOUNT: 6950 Disaster/Casualty Loss
+→    DR 6950 Casualty Loss Rs.200,000 / CR 1100 Inventory Rs.200,000
+→    FifoService: deduct 20,000 units using standard FIFO oldest-first
+→  
+→  Step 2: Record insurance recovery when received
+→    DR 1000/1010 Cash Rs.150,000 / CR 4100 Other Income Rs.150,000
+→  
+→  Net P&amp;L effect: -Rs.200,000 + Rs.150,000 = -Rs.50,000 net loss (correct)
+→  The two entries are linked by an insurance_claim_id reference for traceability
+S-108  Products Bought as a Set, Sold Individually
+✅  SOLVED — B30 Disassembly BOM
+TRIGGER
+You buy a printer set (printer + ink + cable) for Rs.5,000. You sell each component separately.
+NUMBERS
+Purchase: 1 'Printer Set' @ Rs.5,000 → one batch
+Sell: Printer separately, Ink separately, Cable separately
+How do you split the Rs.5,000 cost across 3 items?
+Option A: allocate cost proportionally (e.g. printer 80%, ink 15%, cable 5%)
+Option B: create one product 'Printer Set', sell as a set only
+Option C: at purchase, split the set into 3 component products immediately
+PROBLEM
+Selling individual components of a purchased set is a disassembly process. It's similar to manufacturing in reverse — one input, multiple outputs.
+THE RULE
+→  DECISION: B30 Disassembly BOM. NRV-based cost allocation. CR 1100 set, DR 1100 per component at allocated cost.
+→  Step 1: purchase arrives as 'Printer Set' (one batch)
+→  Step 2: disassembly run: consume 1 Printer Set (FIFO deduct), produce 3 components
+→    Cost split: specified by user at disassembly time (e.g. Printer Rs.4,000, Ink Rs.750, Cable Rs.250)
+→    Each component creates its own inventory batch with its allocated unit_cost
+→  Step 3: sell each component independently as normal B1 sales
+→  The cost allocation must sum to the original purchase cost
+  MASTER SUMMARY — ALL 120 SCENARIOS
+  Status overview — what is solved, what still needs work
+Status
+Count
+What This Means
+✅  SOLVED
+87
+Rule exists in Bible v2.0 or is defined in this document. Developers can build from this.
+⚠️  PARTIAL
+7
+Some handling exists but is incomplete. The gap is defined — needs completion.
+🚫  UNSOLVED
+8
+No rule defined. A design decision must be made before building. Cannot be left open.
+🔧  DESIGN DECISION
+18
+Multiple valid approaches. The business owner must choose before development proceeds.
+The 8 Unsolved Scenarios — Must Be Resolved Before Build
+ID
+Scenario
+What's Needed
+S-020
+Bounced Cheque
+B25 B-REV (Financial Bible v3.0): DR 1200 AR / CR 1000 Cash. References original B4. Invoice badge reverts to Unpaid.
+S-021
+Bad Debt Write-Off
+B26 + Account 6700 (v3.0): DR 6700 Bad Debt Expense / CR 1200 AR. Manager approval required.
+S-055
+Opening Stock Zero Cost
+BLOCK zero-cost on B19 opening inventory. No bypass. Require actual or estimated replacement cost.
+S-068
+Over-Allocation Bug
+DB CHECK constraint + app validation: SUM(allocations) ≤ invoice_total. Hard stop at DB level.
+S-080
+Final Employee Settlement
+B27 + Account 6800 (v3.0): DR 6100 Salary + DR 6800 Gratuity / CR 2400 Payable then CR Cash. One composite entry.
+S-104
+Cash Theft Recording
+B28 + Account 6900 (v3.0): DR 6900 Cash Shortage Loss / CR 1000 Cash. Manager-only. Note required.
+S-107
+Insurance Claim / Disaster
+B29 + Accounts 6950/6960 (v3.0): Step1 DR 6950/CR 1100, Step2 DR Cash/CR 6960. disaster_claim_id links both.
+S-108
+Set Purchased, Sold Separately
+B30 Disassembly BOM (v3.0): NRV-based cost split. CR 1100 set batch, DR 1100 per component at allocated cost.
+The 18 Design Decisions — Owner Must Choose
+ID
+Scenario
+Options
+S-004
+Zero-cost items
+DECIDED: Warn but allow. Acknowledgement required. Promotional flag.
+S-006
+Multi-warehouse FIFO direction
+Per-warehouse FIFO (DECIDED: per-warehouse) — confirm
+S-011
+Selling below cost
+Warn + PIN vs Block completely
+S-012
+Unit of measure conversion
+Support conversion factor vs require same UOM
+S-014
+Sub-assembly depth
+How many levels of BOM nesting to support (decided: 5)
+S-015
+Production run reversal
+Allow partial reversal vs require full unsell-then-reverse
+S-022
+Round-off tolerance
+What threshold? Rs.1? Rs.5? Configurable?
+S-026
+Multi-currency
+Phase 2 later vs manual PKR entry now (decided: Phase 2)
+S-040
+Promotional free items
+3-row approach vs global discount — pick one
+S-042
+Tiered pricing
+Multiple sale_item rows vs single row with tier formula
+S-044
+Maximum discount allowed
+DECIDED: Configurable per role. discount_limits table. Over-limit = escalation.
+S-045
+Price lock on Sales Orders
+Lock at order time vs allow update (decided: lock)
+S-048
+Tax on advances
+At delivery vs at receipt — legal determination needed
+S-050
+Partial input tax recovery
+DECIDED: Manual split. User enters business_pct. Stored for audit.
+S-073
+Future-dated transactions
+Allow with warning vs block — decided: allow up to 30 days
+S-074
+Work-in-Progress
+Add 1150 WIP account vs expense everything to manufacturing
+S-094
+By-product from manufacturing
+Record at NRV vs ignore vs expense to main product cost
+S-106
+Sales commission tracking
+Per-sale commission table vs monthly bulk expense

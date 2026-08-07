@@ -1,0 +1,613 @@
+Master Architecture Rollout Plan
+This is the phased roadmap for rebuilding the system's mathematical and reporting logic from the ground up. We will cover one sub-phase at a time.
+Phase 1: Core Sales & Revenue Mechanics
+Goal: Define exactly what happens when money is supposed to come in.
+* Phase 1.1: The Gross Sale vs. Net Sale. Defining the top line, handling discounts, and calculating the true invoice value.
+* Phase 1.2: Revenue Recognition. When does a sale actually count as revenue? (Accrual vs. Cash basis in your system).
+Phase 2: The Cost & Inventory Engine (FIFO)
+Goal: Solve the "50 vs 100 rupee" cost problem definitively.
+* Phase 2.1: The Inventory Batching Concept. How to structure the database to remember individual purchase prices.
+* Phase 2.2: FIFO Deduction Logic. The exact math of pulling from old stock first during a sale.
+* Phase 2.3: Inventory Valuation. Calculating the real-time asset value of unsold goods sitting on the shelf.
+Phase 3: Profitability & Margins
+Goal: Calculating the money you actually keep.
+* Phase 3.1: Cost of Goods Sold (COGS). Tying the FIFO engine to the specific sale to get the true cost.
+* Phase 3.2: Gross Profit Calculation. The mathematical relationship between Net Sales and COGS.
+* Phase 3.3: Operating Expenses & Net Profit. Deducting overhead to find the absolute bottom line.
+Phase 4: Cashflow, Debt, & Ledger Integrity
+Goal: Tracking who owes who, and where the liquid cash is.
+* Phase 4.1: Receivables (Customers owing you). How invoices create debt and how payments reduce it without using status flags.
+* Phase 4.2: Payables (You owing suppliers). Managing vendor bills and outgoing payments.
+* Phase 4.3: The General Ledger Link. Ensuring the Dashboard Outstanding numbers always match the Party logic perfectly.
+Phase 5: The 38 Reports Encyclopedia
+Goal: Applying the logic from Phases 1-4 to every single report in the system.
+* Phase 5.1: High-Level Dashboards. (Main Dashboard, Sales Dashboard).
+* Phase 5.2: Core Accounting Reports. (Profit & Loss, Balance Sheet, Trial Balance).
+* Phase 5.3: Inventory Reports. (Stock Valuation, Stock Aging, Item-wise Profit).
+* Phase 5.4: Cash & Tax Reports. (Bank Statement, Cash Flow, Tax Liability).
+* Phase 5.5: Entity & Relationship Reports. (Party Statements, Aging Summaries, Volume Analysis).
+
+
+
+
+
+
+Phase 1.1: The Gross Sale vs. Net Sale
+To build a world-class ERP, you must stop treating a sale as a single number. A sale is a mathematical waterfall. It starts with the theoretical value of the goods, strips away concessions, adds external liabilities (taxes), and ends with the final debt the customer owes you.
+You must mandate these exact definitions across your UI, your backend controllers, and your database schema.
+1. The Immutable Definitions
+* Gross Sales: The absolute total value of the items sold at their base selling price, before any discounts or taxes are applied. This tells you the volume of product moved at retail value.
+* Discounts: The total amount of money you surrendered to close the deal. This must be tracked specifically. If you hide discounts, you cannot analyze why your margins are shrinking.
+* Net Sales: Gross Sales - Discounts. This is your true Revenue. When your dashboard says "Monthly Revenue," this is the exact number it must display. Do not include taxes here.
+* Taxes (Output Tax): The tax applied to the Net Sale. This is money you are collecting for the government. It goes straight to a Liability account (Tax Payable). It is NEVER revenue.
+* Total Invoice Value (Accounts Receivable): Net Sales + Taxes + Shipping/Other Fees. This is the final amount the customer actually owes you. This number dictates what goes into your Receivables ledger.
+2. The Database Blueprint
+Your tables must explicitly store every step of this waterfall. Do not calculate these on the fly in your views. Store them to ensure historical accuracy if tax rates or prices change later.
+Table: sale_items (The Line Level) Every row in a receipt must calculate its own math.
+* quantity: (e.g., 2)
+* unit_price: (e.g., 500)
+* gross_amount: quantity * unit_price (e.g., 1000)
+* discount_amount: (e.g., 100)
+* net_amount: gross_amount - discount_amount (e.g., 900)
+* tax_rate: (e.g., 10%)
+* tax_amount: net_amount * (tax_rate / 100) (e.g., 90)
+* line_total: net_amount + tax_amount (e.g., 990)
+Table: sales (The Header Level) The main invoice record aggregates the line items and applies any global invoice-level discounts.
+* subtotal_gross: SUM of all item gross_amounts.
+* total_item_discounts: SUM of all item discount_amounts.
+* global_discount: A discount applied to the whole bill.
+* net_sales: subtotal_gross - total_item_discounts - global_discount. (This is your Top-Line Revenue).
+* total_tax: SUM of all item tax_amounts.
+* shipping_charges: Extra fees.
+* invoice_total: net_sales + total_tax + shipping_charges. (This is what the customer pays).
+3. Real-World Mathematical Example
+Let us apply this to a concrete scenario to prove the logic.
+The Scenario: A customer buys two items. Item A: 2 units at 500 each. You give a 100 discount on this specific item. Tax is 10%. Item B: 1 unit at 2000. No item discount. Tax is 5%. Before paying, the cashier gives a global "Loyalty Discount" of 200 on the whole bill.
+Step 1: Line Item Math (sale_items table)
+* Item A:
+o Gross Amount: 2 * 500 = 1,000
+o Item Discount: 100
+o Net Amount: 900
+o Tax Amount (10% of 900): 90
+o Line Total: 990
+* Item B:
+o Gross Amount: 1 * 2000 = 2,000
+o Item Discount: 0
+o Net Amount: 2,000
+o Tax Amount (5% of 2000): 100
+o Line Total: 2,100
+Step 2: Invoice Header Math (sales table)
+* subtotal_gross: 1,000 (A) + 2,000 (B) = 3,000
+* total_item_discounts: 100 (A) + 0 (B) = 100
+* global_discount: 200
+* net_sales (Revenue): 3,000 - 100 - 200 = 2,700
+* total_tax (Liability): 90 (A) + 100 (B) = 190
+* invoice_total (Receivable): 2,700 + 190 = 2,890
+4. How This Fixes Your Dashboard
+Under your old logic, your system would likely call the 2,890 "Total Sales" or "Monthly Revenue." That is a lie. If you report 2,890 as Revenue, your margins will look artificially high, and you will be treating tax money as your own profit.
+With this new architecture:
+* Your Dashboard "Revenue" displays 2,700.
+* Your General Ledger automatically credits 2,700 to the Sales Income account.
+* Your General Ledger automatically credits 190 to the Tax Payable liability account.
+* Your General Ledger automatically debits 2,890 to Accounts Receivable.
+The math is perfectly balanced. It is undeniable.
+Phase 1.2: Revenue Recognition (Accrual vs. Cash)
+In Phase 1.1, we defined the exact amount of Revenue (Net Sales). Now we must define the exact moment that Revenue actually exists in your system.
+Many amateur developers assume Revenue is recorded when the customer hands over the cash. That is fundamentally wrong for a B2B or complex retail system. If you build your ERP to only recognize revenue upon payment, you will blind your clients to their own performance and liabilities.
+You must build this system on Accrual Accounting principles.
+1. The Core Principle: Accrual Accounting
+* The Rule: Revenue is recognized the moment the transaction is legally finalized and the goods or services change hands, regardless of when the cash is actually collected.
+* The Reason: If a client sells 100,000 worth of goods on credit in November, but gets paid in December, their November Profit and Loss report must show 100,000 in Revenue. If it shows zero, they cannot accurately measure November's business performance.
+2. The System Trigger (The "Posted" Status)
+Your system cannot automatically recognize revenue just because a user starts typing an invoice. You need a strict lock down mechanism.
+The Database State: Your sales table needs a status column that dictates financial reality.
+* Draft: The invoice is being built. Zero impact on the ledger. No revenue recognized. No inventory deducted.
+* Posted (or Finalized): The invoice is locked. This is the trigger. The exact millisecond this status is hit, the system fires the accounting entries.
+3. The Exact Ledger Movements (The Journal Entry)
+Let us use the 2,700 Net Sale from our previous example. The moment the invoice status changes to Posted, your system must automatically generate the following locked Journal Entry in the background.
+System Automated Journal Entry (Upon Posting):
+* Debit: Accounts Receivable (Account 1200) for 2,890. (The customer now owes this full amount).
+* Credit: Sales Revenue (Account 4000) for 2,700. (Your Top-Line Revenue is officially recognized).
+* Credit: Tax Payable (Account 2000) for 190. (You legally owe this to the government now).
+Notice that Cash is not mentioned here. The revenue is recognized entirely independently of the payment.
+4. Handling Payments (The Disconnect)
+You must physically and mathematically separate the sales table logic from the payments table logic.
+Scenario: The customer pays 1,000 upfront on that 2,890 invoice.
+* Does your Revenue change? Absolutely not. It stays at 2,700.
+* Does your Tax Liability change? No.
+When the payment is recorded, a completely separate automated Journal Entry fires:
+* Debit: Cash/Bank (Account 1000) for 1,000. (Your liquid cash goes up).
+* Credit: Accounts Receivable (Account 1200) for 1,000. (The customer's debt drops from 2,890 to 1,890).
+5. Summary of the Architecture Fix
+If you do not build this strict separation, your system will mix up profitability with cash flow. A business can be highly profitable (high Revenue) but completely broke (zero Cash Collected). Your ERP must be able to show both realities clearly.
+* The sales table dictates Profitability (Revenue and COGS).
+* The payments table dictates Liquidity (Cash on hand).
+Never mix the two in your backend logic.
+Phase 2.1: The Inventory Batching Concept
+We are now fixing the most fatal flaw in your current architecture.
+In your old system, you had a single column in your products table called cost_price. When a user bought new stock at a higher price, you simply updated that one column.
+That is not an ERP. That is a calculator built by someone who does not understand how physical goods work. When you overwrite that cost price, you mathematically destroy the historical value of the older stock still sitting on the shelf. You lie to your database, and your database lies to your Profit and Loss report.
+To solve your exact scenario (buying at 50, then buying at 100), the system must have a memory. It must track every single delivery of goods as an independent entity. We call this Inventory Batching.
+1. The Core Principle: Batches, Not Products
+When a user looks at a shelf, they see 12 identical items. When your database looks at a shelf, it must see two distinct groups of items:
+* Group A: 2 items that cost 50 each.
+* Group B: 10 items that cost 100 each.
+To achieve this, the products table is no longer allowed to dictate the cost of goods sold. The products table only holds the name, SKU, and target selling price.
+The actual financial value of your inventory will now live in a completely new table called inventory_batches.
+2. The Database Blueprint: inventory_batches
+Every time a purchase invoice is marked as "Received" or "Posted", your system must create a new row in this table.
+Table: inventory_batches
+* id: Primary Key.
+* product_id: Links back to the master product.
+* purchase_invoice_id: Links to the vendor bill (crucial for audits).
+* original_qty: The amount you bought in this specific delivery.
+* remaining_qty: The amount from this delivery still sitting on the shelf. (This is the most critical column).
+* unit_cost: The exact cost of one item in this specific delivery.
+* created_at: The timestamp. (Crucial for FIFO: First-In, First-Out sorting).
+3. Real-World Example: Stocking the Shelves
+Let us walk through the exact scenario you gave me earlier.
+Action 1: You buy 2 units of Item X at 50 rupees. The system records the purchase invoice, and then creates this batch record:
+* Batch ID: 101
+* Product: Item X
+* Original Qty: 2
+* Remaining Qty: 2
+* Unit Cost: 50
+* Date: Jan 1st
+Action 2: You buy 10 units of Item X at 100 rupees. The system records the new vendor bill, and creates a second batch record:
+* Batch ID: 102
+* Product: Item X
+* Original Qty: 10
+* Remaining Qty: 10
+* Unit Cost: 100
+* Date: Jan 15th
+4. Calculating Inventory Value (The Asset)
+Under your old system, if someone asked for the total Inventory Value, the system would multiply the total quantity (12) by the newest cost (100) and report 1,200. That is factually incorrect. It inflates the company's assets.
+Under this new architecture, your "Stock Valuation" report loops through the inventory_batches table where remaining_qty > 0.
+The True Math:
+* Batch 101 Value: 2 units * 50 = 100
+* Batch 102 Value: 10 units * 100 = 1,000
+* True Total Inventory Value: 1,100
+You are no longer guessing. You are no longer overwriting history. Every single rupee tied up in physical stock is accounted for.
+This is the foundation. Without this table, Phase 2.2 (the actual FIFO deduction during a sale) is mathematically impossible.
+Phase 2.2: FIFO Deduction Logic
+In Phase 2.1, we created the inventory_batches table to give your system a memory of what items cost. Now, we must build the logic that consumes those batches when a sale happens.
+FIFO stands for First-In, First-Out. When you sell an item, the system must assume you are handing the customer the oldest physical box sitting on the shelf. This ensures your Cost of Goods Sold (COGS) reflects reality, and your remaining inventory value is based on current market prices.
+1. The Missing Link: sale_item_batches
+You cannot simply deduct the remaining_qty in the batch table and walk away. You must leave a permanent paper trail connecting the exact sale to the exact batch it was pulled from. If a customer returns an item, how will the system know whether to refund 50 or 100 to the inventory asset account?
+You must create a junction table.
+Table: sale_item_batches Every time a sale_item pulls from an inventory_batch, a record goes here.
+* id: Primary Key.
+* sale_item_id: Links to the line item on the invoice.
+* inventory_batch_id: Links to the specific batch consumed.
+* qty_deducted: How many units were taken from this specific batch.
+* unit_cost: The cost locked in from the batch (e.g., 50 or 100).
+* total_cogs: qty_deducted * unit_cost.
+2. The Execution Algorithm (The Backend Loop)
+When an invoice status changes to "Posted", your backend must run this exact sequence for every single line item on the receipt.
+The Scenario: Customer is buying 10 units of Item X.
+* Available Batch 101: 2 units at 50 cost.
+* Available Batch 102: 10 units at 100 cost.
+The Loop:
+1. Identify Need: The system sees a need for 10 units of Item X.
+2. Query Oldest Stock: Query inventory_batches where product_id = X AND remaining_qty > 0. Order by created_at ASCENDING.
+3. Process Batch 101 (Oldest):
+o It has 2 units. You need 10.
+o The system takes all 2 units.
+o Updates Batch 101 remaining_qty to 0.
+o Creates a row in sale_item_batches: (Qty: 2, Cost: 50, Total: 100).
+o Remaining need is now 8 units.
+4. Process Batch 102 (Next Oldest):
+o It has 10 units. You need 8.
+o The system takes 8 units.
+o Updates Batch 102 remaining_qty from 10 down to 2.
+o Creates a row in sale_item_batches: (Qty: 8, Cost: 100, Total: 800).
+o Remaining need is now 0 units. The loop terminates.
+3. The Mathematical Proof
+Let us look at the financial result of that algorithm. You sold those 10 units for 150 each. Total Net Sales = 1,500.
+Calculating True COGS: The system queries the sale_item_batches table for this specific invoice line.
+* Row 1: 100 cost.
+* Row 2: 800 cost.
+* Total COGS: 900.
+Calculating True Gross Profit:
+* Net Sales (1,500) minus COGS (900) = 600 Gross Profit.
+Under your old system architecture, you were calculating 10 * 100 cost, yielding 1,000 COGS and 500 Gross Profit. You were literally erasing 100 of actual margin from your business metrics because your database was too lazy to look at the older stock.
+4. Crucial Safeguards
+* Negative Stock Prevention: If the loop runs out of batches and the "Remaining need" is still greater than 0, the system MUST abort the entire transaction and throw an error. You cannot sell what you do not have in an ERP.
+* Database Transactions: Steps 2, 3, and 4 must happen inside an SQL Transaction. If the server crashes at Step 3, the whole checkout process must roll back. Otherwise, your batches will be permanently corrupted.
+Phase 2.3: Inventory Valuation (The Real Asset Value)
+In Phase 2.2, we used the inventory_batches table to calculate the exact Cost of Goods Sold when an item leaves your warehouse. Now, we must use that exact same table to calculate the value of what is still sitting on your shelves.
+Under your previous architecture, your system calculated inventory value by taking the total quantity of an item and multiplying it by the newest cost_price in the products table.
+That is accounting fraud. If you bought 1,000 units of a product last year at 10 rupees, and 100 units today at 50 rupees, your old system would value all 1,100 units at 50 rupees. It would magically inflate the company's assets by tens of thousands of rupees out of nowhere. You cannot deploy software that does this.
+Here is the objective, mathematically perfect way to calculate your stock valuation.
+1. The Three Core Valuation Metrics
+You must provide three distinct numbers on your Stock Valuation report. You must never mix their definitions.
+A. Inventory Cost Value (The Actual Asset) This is the absolute, ground-truth amount of money tied up in physical goods. This is the exact number that goes onto the company's Balance Sheet.
+* The Math: SUM(remaining_qty * unit_cost) from the inventory_batches table.
+* The Rule: You completely ignore the products table for this calculation. The product table does not know what you actually paid.
+B. Inventory Retail Value (The Theoretical Forecast) This is the amount of money the business would collect if they sold every single item on the shelf today at the current retail price.
+* The Math: SUM(inventory_batches.remaining_qty * products.current_selling_price).
+* The Rule: This is a forecasting tool. It never goes on a formal financial statement because the money does not exist yet.
+C. Projected Margin (Formerly "Potential Profit") You must stop calling this "Potential Profit". Profit implies you have already deducted operating expenses. This is simply the gross margin sitting on your shelves.
+* The Math: Inventory Retail Value - Inventory Cost Value.
+2. The Execution Algorithm (The SQL Logic)
+When a user clicks on the "Stock Valuation" report, your backend cannot rely on cached summaries. It must calculate the real-time value straight from the batches.
+The Logic for a Single Product (e.g., Item X):
+1. Query all rows in inventory_batches where product_id = X and remaining_qty > 0.
+2. Multiply the remaining_qty by the unit_cost for each row.
+3. Sum those row totals together.
+Example Calculation:
+* Batch 101: 50 units remaining at 10 cost (Row Value: 500)
+* Batch 102: 100 units remaining at 12 cost (Row Value: 1,200)
+* Batch 105: 20 units remaining at 15 cost (Row Value: 300)
+* True Inventory Cost Value for Item X: 2,000.
+If your user looks at Item X in the report, they see 170 total units, valued exactly at 2,000. If they divide 2,000 by 170, they get a moving average cost of 11.76.
+This is the only correct way to display average cost. You derive it dynamically from the batches. You do not store a static average cost column that gets manually updated.
+3. The Shrinkage Problem (Stock Adjustments)
+Because your system is now strictly tied to batches, you have to handle physical theft or damage (shrinkage) differently.
+If a warehouse worker drops a box and destroys 5 units of Item X, you cannot just change the total quantity from 170 to 165.
+You must execute a "Stock Adjustment" transaction that triggers the exact same FIFO logic as a sale (Phase 2.2). The system must deduct those 5 lost units from the oldest available batch, calculate the exact financial cost of those specific 5 units, and post a Journal Entry debiting "Inventory Loss" (an expense) and crediting "Inventory Asset".
+If you skip this step, your physical shelves will be empty, but your balance sheet will still claim you have the asset.
+4. The Bottom Line
+Abdullah, the inventory_batches table is the beating heart of your ERP. It controls the COGS (Profitability) and the Inventory Valuation (Net Worth).
+If you build your reports to read directly from these batches, your software will be bulletproof. An auditor could walk into your client's business, pick any item off the shelf, and trace its exact financial value back to the vendor invoice. That is the standard you must build to.
+Phase 3.1: Cost of Goods Sold (COGS)
+You have successfully mapped out the FIFO deduction logic in Phase 2.2. When a sale happens, your system now knows exactly which batches were consumed and exactly what they cost.
+Now, we must define what your financial system actually does with that number.
+You must stop thinking of COGS as a standard "Expense". Rent is an expense. Electricity is an expense. You pay cash, and the money is gone.
+COGS is different. COGS is the conversion of an Asset (Inventory) into an Expense (Cost of Sale). You already spent the cash weeks ago when you bought the stock. Now, you are finally recognizing that cost against the revenue you just earned.
+1. The Core Principle: Perpetual Inventory Accounting
+Your system must use the "Perpetual Inventory" method. This means your General Ledger updates in real-time with every single transaction.
+You do not wait until the end of the month to calculate what you sold. The exact millisecond an invoice is marked as "Posted", the system must recognize the cost. This ensures that if a manager pulls a P&L report at 2:00 PM on a Tuesday, the Gross Profit is 100% accurate up to that exact minute.
+2. The Link Between Batches and the Ledger
+In Phase 2.2, we created the sale_item_batches table. This table calculated the exact total cost of the specific physical items handed to the customer.
+Let us return to our previous example:
+* You sold 10 units of Item X.
+* The FIFO engine pulled 2 units at 50 cost (100) and 8 units at 100 cost (800).
+* Total sale_item_batches value for this invoice line: 900.
+This number (900) is your COGS for this specific sale.
+3. The Automated Journal Entry (The Accounting Trigger)
+At the exact moment the sale is finalized, your system must automatically fire a double-entry journal transaction in the background. If this transaction fails to post, your financial reports will instantly desync from your inventory records.
+The Mandatory COGS Journal Entry:
+* Debit: Cost of Goods Sold (Account 5000 - Expense) for 900.
+* Credit: Inventory Asset (Account 1200 - Asset) for 900.
+Why this matters:
+1. The Debit to COGS increases your expenses for the day, which accurately lowers your Net Profit on the P&L statement.
+2. The Credit to Inventory physically removes 900 of value from your Balance Sheet. This guarantees that your General Ledger Inventory Balance perfectly matches the "Inventory Cost Value" we designed in Phase 2.3.
+4. The Critical Architecture Check
+Abdullah, look at your current codebase.
+Does your current system fire a journal entry that credits your Inventory Asset account every time a sale is made?
+If the answer is no, your accounting module is entirely fake. It means your Balance Sheet thinks you still own every item you have ever purchased since the company opened. It means your system requires a human to do manual math at the end of the year to fix the ledger.
+That is not an ERP. That is a glorified spreadsheet.
+By tying the FIFO batch engine directly to this automated COGS Journal Entry, you eliminate human error. The system becomes self-balancing.
+Phase 3.2: Gross Profit Calculation
+Abdullah, this is where the survival of the business is measured. If this number is wrong, the entire company is flying blind.
+In Phase 1.1, we locked down your Net Sales (the money coming in). In Phase 3.1, we locked down your COGS (the exact asset value you surrendered to get that money). Gross Profit is simply the collision of these two numbers.
+1. The Absolute Formula
+Net Sales - COGS = Gross Profit
+There is no room for interpretation here. You cannot add marketing costs. You cannot subtract software subscriptions. Gross Profit only cares about the direct relationship between what a customer paid for an item and what you paid for that exact same item.
+2. Why This Metric Dictates Survival
+Gross Profit tells a business owner one brutally honest thing: Does your pricing model actually work?
+If you buy a product for 100 and sell it for 105, your Gross Profit is 5. It does not matter if you sell a million units; a 5% margin will almost never cover the rent, payroll, and taxes (Operating Expenses). A business with a healthy top line but a microscopic Gross Profit is bleeding out, and the owner will not know why until it is too late.
+3. Fixing Your System's Critical Flaw
+Look back at the original system audit you provided me.
+Your Main Dashboard Performance Card:
+* Label: Revenue
+* Logic: Total Sales - COGS
+This is the most dangerous labeling error in your entire application. You are literally calling Gross Profit "Revenue".
+If a user sees "Revenue: 50,000" on their dashboard, they assume they sold 50,000 worth of goods. If that number is actually their Gross Profit, it means they probably sold 150,000 worth of goods. Your system is feeding them massive financial hallucinations.
+The Fix:
+1. The label on that dashboard card MUST be changed to Gross Profit.
+2. The formula MUST be Net Sales (from Phase 1.1) - FIFO COGS (from Phase 3.1).
+4. Gross Margin Percentage
+While Gross Profit is a raw currency number, you must also provide the Gross Margin Percentage on your reports. Business owners need to know their margins to set future prices.
+The Formula: (Gross Profit / Net Sales) * 100 = Gross Margin %
+Example:
+* Net Sales: 1,500
+* COGS: 900
+* Gross Profit: 600
+* Gross Margin %: (600 / 1500) * 100 = 40%
+This means for every 100 rupees of sales, the business keeps 40 rupees to cover overhead and eventually turn a Net Profit.
+5. The Architecture Rule
+Never store Gross Profit as a static column in your database. It must always be calculated dynamically on the fly in your reporting layer by querying the Net Sales and the FIFO COGS. If you hardcode it, and a previous batch cost needs adjusting later due to a vendor audit, your static Gross Profit number will become permanently corrupted.
+Phase 3.3: Operating Expenses & Net Profit
+Abdullah, this is the final reality check. You can have massive sales volume and incredible gross margins, but if your overhead is too high, the business will still bleed to death.
+Gross Profit tells you if your product pricing works. Net Profit tells you if your entire company works.
+1. Defining Operating Expenses (OpEx)
+You must strictly separate Operating Expenses from Cost of Goods Sold (COGS).
+* COGS (Phase 3.1): The direct cost of the physical item sold. If you sell zero items, your COGS is zero.
+* Operating Expenses: The cost of keeping the lights on. Rent, salaries, marketing, internet, software subscriptions. If you sell zero items this month, your rent is still due.
+Your system must classify these in the General Ledger under distinct Account Types (e.g., 6000-series accounts). If a user accidentally codes a warehouse rent payment as COGS, their gross margin reports will be ruined.
+2. The Absolute Formula
+Gross Profit - Operating Expenses = Net Profit
+To be perfectly accurate to accounting standards, the full waterfall looks like this:
+1. Net Sales
+2. Minus: COGS
+3. Equals: Gross Profit
+4. Minus: Operating Expenses (Rent, Payroll, Marketing)
+5. Plus: Other Non-Operating Income (Interest earned, selling an old company vehicle)
+6. Minus: Other Non-Operating Expenses (Interest paid on loans, taxes)
+7. Equals: Net Profit (The Bottom Line)
+3. Fixing Your System's Net Profit Dashboard
+Looking back at your original audit, your Main Dashboard has this logic:
+* Logic: Total Income (4xxx) - Total Expenses (5xxx + Exp)
+This is technically correct in a broad sense, but it is entirely useless to a business owner if it is presented as a single lump calculation.
+If a business owner sees a Net Profit of 10,000, they need to know why. Is it because sales were high? Is it because COGS were low? Or did they just cut their marketing budget?
+The Architecture Fix: Your "Net Profit" card must be a gateway into the exact Profit and Loss statement we just built. Do not just show a single number.
+* It must show Net Sales.
+* It must show COGS.
+* It must show Gross Profit.
+* It must show Total Operating Expenses.
+* Finally, it shows Net Profit.
+4. The General Ledger Rule
+Net Profit is never stored in a table. It does not exist as a standalone number in a database column. It is simply the mathematical result of summing all Income accounts and subtracting all Expense accounts within a specific date range.
+If your codebase attempts to save "Monthly Profit" into a caching table to save loading time, you are risking massive data corruption. When a user retroactively voids a vendor bill from two weeks ago, your cached profit number becomes a lie. Calculate it dynamically from the ledger every single time.
+Phase 4.1: Accounts Receivable (The Lifeblood)
+Abdullah, we are done looking at theoretical profit. Now we look at actual survival. If your business cannot collect cash, it dies, regardless of how high the Net Profit is on paper.
+Look at your original audit for the Sales History page. You wrote that "Total Paid" is calculated by combining partial payments and sales with a "paid" status flag. That is a ticking time bomb.
+If a developer manually changes a status flag to "paid" in the database, or if a software bug triggers the flag early, your system suddenly tells the business owner they have cash they do not actually possess. You are trusting a fragile text string to handle the most critical asset a company has.
+1. The Death of Status Flags
+You must rip out any mathematical logic that relies on a status column like "paid", "unpaid", or "partial".
+Statuses are purely cosmetic. They exist solely to put a green or red badge on the UI for the user. They have absolutely zero weight in the financial engine.
+The only thing that dictates whether a customer owes you money is the General Ledger.
+2. The Invoice Mechanics (Creating Debt)
+As we established in Phase 1.2, the moment an invoice is locked and "Posted", the system fires an automated journal entry.
+* Debit: Accounts Receivable (Account 1200) for the Total Invoice Value.
+* Credit: Sales Revenue and Tax Payable.
+The exact millisecond that Debit hits Account 1200, the customer's legal debt to you is officially recorded.
+3. The Payment Mechanics (Destroying Debt)
+When a customer hands you cash, you create a Payment Receipt. This is a completely separate database entity from the Sale.
+When the payment is saved, it fires its own journal entry.
+* Debit: Cash/Bank Account (Account 1000) for the exact amount received.
+* Credit: Accounts Receivable (Account 1200) for the exact amount received.
+The Credit to Account 1200 physically and legally reduces the debt.
+4. Calculating the True Outstanding Balance
+If you want to know how much a specific customer owes you, you do not look at their invoices. You do not look at their party record current_balance column (which you noted as a mismatch risk in your original audit).
+You ask the General Ledger one simple question. "What is the sum of all Debits minus the sum of all Credits for this specific Party inside Account 1200?"
+If Debits equal 10,000 and Credits equal 8,000, the customer owes you 2,000. It is mathematically impossible for this number to be wrong as long as your double-entry ledger is balanced.
+5. The Architecture Fix
+Your "Receivables" metric on the Main Dashboard and the "Total Unpaid" metric on the Sales List must pull from this exact Ledger calculation.
+If you decide to keep the current_balance column on the Party table just to make pages load faster, it must be updated exclusively by a background job or database trigger that reads the Ledger. It must never be updated by isolated application logic. If you let the application update that column directly, it will eventually desync from reality.
+Phase 4.2: Accounts Payable (Your Liabilities)
+Abdullah, Accounts Payable is the exact mathematical inverse of Accounts Receivable. If you understood the logic in 4.1, this is the exact same engine running in reverse.
+Look at your original audit for the Purchases List. You noted that "Total Due" uses a paid_amount column on the invoices table. This is the exact same fatal flaw we just ripped out of the Sales side. If a user deletes a payment record but the database fails to update that paid_amount column on the invoice, your system will tell the business owner they have zero debt when they actually owe thousands.
+1. The End of Invoice Level Balances
+You must stop storing the "amount due" on the invoice record itself.
+A vendor bill simply states what the vendor asked for on a specific date. It does not dictate reality. The General Ledger dictates reality.
+2. The Purchase Mechanics (Creating Liability)
+When a Purchase Invoice (Vendor Bill) is locked and marked as "Posted", the system must fire the following automated journal entry.
+* Debit: Inventory Asset (Account 1200) for the value of the goods. (This ties directly into Phase 2.1).
+* Credit: Accounts Payable (Account 2000) for the Total Invoice Value.
+The exact millisecond that Credit hits Account 2000, your company legally recognizes the debt to that supplier.
+3. The Payment Mechanics (Destroying Liability)
+When you cut a check or send a bank transfer to your supplier, you create a Payment Out record. This is strictly a money movement transaction.
+When this outgoing payment is saved, it fires this journal entry:
+* Debit: Accounts Payable (Account 2000) for the exact amount sent.
+* Credit: Cash/Bank Account (Account 1000) for the exact amount sent.
+The Debit to Account 2000 physically destroys the debt in your system.
+4. Calculating True Vendor Debt
+If a business owner asks, "How much do we owe Supplier X?", your system must not scan the invoices table. It must not look at a cached current_balance on the Supplier's profile.
+You ask the General Ledger: "What is the sum of all Credits minus the sum of all Debits for this specific Supplier inside Account 2000?"
+If Credits (Bills) equal 50,000 and Debits (Payments) equal 40,000, you owe them 10,000. It is absolute mathematical law.
+5. The Architecture Fix
+Your "Payables" metric on the Main Dashboard and the "Total Due" metric on the Purchases List must be completely rewired to pull from this Account 2000 ledger calculation.
+Any metric labeled "Total Due" should be renamed to Payables or Outstanding Payables to maintain absolute consistency with the dashboard. Do not use different words for the exact same metric.
+Phase 5.1: High-Level Dashboards (The Command Center)
+Abdullah, your dashboards are the first thing a user sees. If the terminology here is ambiguous, the user loses trust immediately. We are eliminating casual slang. Every widget on these two screens must now act as a direct window into the architectural engines we built in Phases 1 through 4.
+1. Page: Main Dashboard (/dashboard)
+This page dictates the overall health of the entire company. You must hardcode these exact labels and logic.
+Card 1: Performance (The Income Engine)
+* Label: Net Sales (Replaces "Sales")
+o Logic: Gross Sales - Discounts. Do not include taxes.
+o Source: Aggregated from the sales table (Phase 1.1).
+* Label: Gross Profit (Replaces the fatally flawed "Revenue" label)
+o Logic: Net Sales - FIFO COGS.
+o Source: Requires the sale_item_batches table calculation (Phase 3.2). This proves if their markup is actually working.
+Card 2: Cashflow & Debt (The Survival Engine)
+* Label: Receivables
+o Logic: The exact mathematical balance of General Ledger Account 1200.
+o Source: Real-time query or strictly reconciled cache (Phase 4.3). Do not sum invoice totals.
+* Label: Payables
+o Logic: The exact mathematical balance of General Ledger Account 2000.
+o Source: Real-time query against the Ledger (Phase 4.2).
+Card 3: The Bottom Line
+* Label: Net Profit
+o Logic: Gross Profit - Operating Expenses.
+o Source: dynamically calculated from all Income and Expense accounts in the General Ledger (Phase 3.3). Never cache this number.
+Card 4: Assets
+* Label: Inventory Value (Cost)
+o Logic: SUM(remaining_qty * unit_cost).
+o Source: Look strictly at the inventory_batches table (Phase 2.3). Completely ignore the static cost_price in the products table.
+2. Page: Sales Dashboard (/sales/dashboard)
+This page zeroes in on sales performance. The biggest trap here is confusing transaction volume with actual business value.
+Section: Performance Pulse
+* Label: Sales Today
+o Logic: SUM(Net Sales) for today. Again, strip out the taxes. If you show tax inclusive numbers here, the sales team will think they hit their quota when they actually fell short.
+* Label: Monthly Net Sales (Replaces "Monthly Revenue")
+o Logic: SUM(Net Sales) for the month.
+* Label: Average Order Value (AOV)
+o Logic: Monthly Net Sales / Count of Invoices.
+Card: Top Selling Today (The Reality Check)
+Your original system ranked top sellers by "Volume" and "Revenue". That is dangerous. A product might sell 100 units and generate massive revenue, but if the margin is 1%, it is a waste of warehouse space. You must add a third column to force reality onto the user.
+* Column 1: Product Name
+* Column 2: Volume Sold (SUM(qty))
+* Column 3: Net Sales Generated
+* Column 4 (NEW MANDATORY): Gross Profit Generated
+o Logic: Net Sales - FIFO COGS for this specific item today. This tells the sales manager which items are actually keeping the lights on.
+3. The Execution Mandate
+Abdullah, passing these UI changes to your frontend team is the easy part. The hard part is ensuring your backend developers do not cheat.
+If a developer changes the label to "Gross Profit" but leaves the old Total Bill - static product cost query in place, you have accomplished nothing. You must mandate that every metric on these dashboards is wired directly into the FIFO engine and the General Ledger queries we designed.
+Phase 5.2: Core Accounting Reports (The Audit Trail)
+Abdullah, this is the legal heartbeat of the business. You cannot "hack" these reports together with clever SQL joins across your sales and purchases tables. These reports must pull exclusively from the journal_entries table. If a transaction is not in the ledger, it does not exist. Period.
+1. Profit & Loss (Income Statement)
+This is the expanded, itemized version of the "Net Profit" card from your dashboard. It proves exactly where the money came from and where it burned.
+The Architecture Rule: Group by Account Type. Do not hardcode specific expenses.
+* Revenue (Account 4000 series): SUM of all Credits minus Debits. This perfectly matches your Net Sales from Phase 1.1.
+* Cost of Goods Sold (Account 5000 series): SUM of all Debits minus Credits. This proves your FIFO engine from Phase 3.1 is actually writing to the ledger.
+* Gross Profit: Revenue minus COGS.
+* Operating Expenses (Account 6000 series): SUM of all Debits minus Credits, grouped by individual account (e.g., Rent, Payroll, Marketing).
+* Net Profit: Gross Profit minus Total Operating Expenses.
+If a developer tries to calculate Revenue here by summing up the sales table instead of reading the ledger, you need to rewrite their code. The ledger is the only truth.
+2. The Balance Sheet (Net Worth)
+Your original audit barely described the mechanics of the Balance Sheet. This tells me you were treating it as an afterthought. The Balance Sheet is the ultimate lie detector. It proves if your business actually owns what it claims to own.
+The Absolute Law: Assets MUST equal Liabilities plus Equity. If your report shows them off by even one cent, your double-entry engine is corrupted.
+Assets (What you own or are owed):
+* Cash/Bank (1000 series): Liquid cash balances.
+* Accounts Receivable (1200): From Phase 4.1. The exact mathematical debt customers owe.
+* Inventory Asset (1300): From Phase 2.3. The exact FIFO cost value of unsold stock sitting on the shelves.
+Liabilities (What you owe):
+* Accounts Payable (2000): From Phase 4.2. The exact debt you owe to vendors.
+* Tax Payable (2200): Unpaid government taxes collected on sales.
+Equity (The Owner's Claim):
+* Retained Earnings: This is your historical Net Profit rolling over into the business.
+3. The Trial Balance (The Developer's Lie Detector)
+This report is not for the CEO. It is for the accountant and for you, the system architect.
+The Trial Balance simply lists every single account in the General Ledger and sums up its total Debits and total Credits for a given period.
+The Rule: Total Debits MUST perfectly equal Total Credits at the bottom of the page.
+If they do not match, your automated journal entries are broken. It means your system is writing one-sided transactions. If your Trial Balance fails, you must stop writing new features and fix your core accounting engine immediately. You have no business selling an ERP if your ledger does not balance.
+Phase 5.3: Inventory Reports (The Physical Cash)
+Abdullah, inventory is not a list of boxes. It is your client's cash, frozen in physical form. If your system cannot track the exact age, movement, and value of every single box, you are enabling operational failure.
+Because we built the inventory_batches table in Phase 2.1, you now have the architecture to generate absolute, irrefutable inventory analytics.
+1. Stock Valuation (The Real Asset)
+We covered the core math in Phase 2.3, but here is how the report must be structured for the user.
+The Architecture Rule: The report must group by Product, but the math must calculate row by row from the Batches.
+* Quantity on Hand: SUM(remaining_qty) from all active batches for the product.
+* Total Cost Value: SUM(remaining_qty * unit_cost) from all active batches. This is the exact number that ties to the Balance Sheet.
+* Average Cost: Total Cost Value / Quantity on Hand. This is a calculated display metric, never a stored database column.
+* Retail Value: Quantity on Hand * current_selling_price.
+* Projected Margin: Retail Value - Total Cost Value.
+If you allow a user to manually override the "Total Cost Value" on this screen without posting a formal Stock Adjustment, you ruin the integrity of the ERP. Lock it down.
+2. Item-Wise Profit (The Reality of Margins)
+Your original system calculated this by taking the invoice total and subtracting (Qty * static product cost). That hides the truth.
+The Architecture Rule: This report must read from the sale_item_batches table we designed in Phase 2.2.
+* Net Sales: SUM(Net Amount) for the specific item across the date range.
+* True COGS: SUM(total_cogs) from the sale_item_batches table for those specific sales.
+* Gross Profit: Net Sales - True COGS.
+* Margin %: (Gross Profit / Net Sales) * 100.
+This report will definitively tell the business owner which products are making them rich and which are wasting warehouse space.
+3. Stock Movement (The Audit Trail)
+A business owner needs to know exactly why an item is missing. "Stock Movement" is not just a log of numbers going up and down. It is a forensic trail.
+The Architecture Rule: Every single deduction or addition of stock MUST link to a strict financial document.
+* Type: Purchase, Sale, Return, or Adjustment.
+* Document ID: The Invoice Number or the Adjustment Log ID.
+* Batch Affected: Which specific inventory_batch was touched.
+* Quantity Changed: The positive or negative movement.
+* Financial Impact: The actual rupee value of that movement.
+If a warehouse worker adjusts stock by -5 units, this report must show exactly which 5 units were removed (based on FIFO) and how much money was wiped off the Balance Sheet.
+4. Stock Aging & Expiry (The Ticking Clock)
+Without the inventory_batches table, these reports are impossible to build accurately. A static products table does not know how old an item is.
+Stock Aging:
+* Logic: Calculate Current Date - inventory_batches.created_at.
+* Buckets: Group the remaining value of batches into 0-30 days, 30-90 days, 90-180 days, and 180+ days.
+* Purpose: Dead stock is dead cash. This tells the owner exactly how much money is trapped in items that refuse to sell.
+Expiry Report:
+* Logic: If the business sells perishables or FMCG, the inventory_batches table must include an expiry_date column.
+* The Rule: The report filters batches where expiry_date is approaching within X days. It alerts the owner to discount those specific batches immediately before they become a total write-off.
+5. The Bottom Line for Developers
+Tell your team this: Inventory reports are not about counting items. They are about tracking value. If the numbers on the Stock Valuation report do not mathematically equal the Inventory Asset account on the Balance Sheet, the code is broken and must be rejected.
+Phase 5.4: Cash and Tax Reports (Liquidity and Liability)
+Abdullah, this phase separates theoretical wealth from actual survival. Business owners look at the Profit and Loss to see if their business model works. They look at the Cash Flow and Bank statements to see if they can make payroll on Friday.
+If your software blurs the line between a finalized invoice and collected cash, you are actively driving your clients into a brick wall.
+1. The Bank Statement (Absolute Liquidity)
+Your original audit stated the Bank Statement is Opening Balance + Deposits - Withdrawals. That is fundamentally correct, but the execution in your backend is where developers usually cheat.
+The Architecture Rule: This report must completely ignore the sales and purchases tables. It only cares about the payments table and the General Ledger Cash/Bank accounts (Account 1000 series).
+* Opening Balance: The ledger balance of the selected bank account at 11:59 PM on the day before the report starts.
+* Inflows: SUM of all Debits to Account 1000 during the date range.
+* Outflows: SUM of all Credits to Account 1000 during the date range.
+* Closing Balance: Opening Balance + Inflows - Outflows.
+If a user posts a 100,000 rupee sale on credit, this report does not move a single cent. It must remain blind to accruals.
+2. The Cash Flow Statement (The Survival Metric)
+This is the hardest report for amateur developers to build, which is why most lightweight ERPs skip it. You cannot skip it. Net Profit lies about liquidity because it includes non-cash expenses like depreciation and ignores loan principal payments.
+The Architecture Rule: You must categorize cash movements into three strict buckets based on the offsetting ledger accounts.
+* Operating Activities: Cash generated from your core business. Cash received from customers (Accounts Receivable payments) minus cash paid to suppliers (Accounts Payable payments) and operating expenses.
+* Investing Activities: Cash spent on buying long-term assets like vehicles, computers, or property.
+* Financing Activities: Cash from taking out bank loans or owner equity injections, minus loan principal repayments.
+The Net Cash Flow: The sum of all three buckets. This final number must perfectly match the change in the Bank Statement balance over the same period. If it does not, your ledger is leaking data.
+3. The Tax Report (The Legal Minefield)
+Never calculate tax on a report by multiplying Total Sales * Tax Rate. That is how you get sued. If a user manually overrides a tax amount on a specific invoice, the strict multiplication formula will ignore their override and report the wrong number to the government.
+The Architecture Rule: The Tax Report must pull exclusively from the Tax Liability accounts in the General Ledger.
+* Output Tax (Tax Collected): This is the tax you charged customers. It is found by summing the Credits to your Tax Payable account (Account 2200).
+* Input Tax (Tax Paid): This is the tax you paid to your vendors on purchases. It is found by summing the Debits to your Tax Receivable or Tax Clearing account.
+* Net Tax Liability: Output Tax - Input Tax. This is the exact rupee amount the business must wire to the government.
+If you calculate this directly from the ledger, it automatically accounts for refunds, returns, and manual invoice adjustments. It becomes legally bulletproof.
+4. The Developer Reality Check
+Abdullah, tell your engineering team to stop trying to be clever with SQL joins across operational tables. Cash and Tax reports are purely financial outputs. If a transaction did not hit the General Ledger, it never happened. Build these reports directly on top of the journal_entries table and they will never break.
+Phase 5.5: Entity and Relationship Reports (The Human Element)
+Abdullah, business is ultimately done with people. Customers and suppliers. If your software calculates global profit accurately but fails to attribute it correctly to specific entities, your clients will fire their best customers and over-invest in their worst ones.
+Your original audit showed a superficial understanding of party relationships. Summing up sales or balances on a party profile is the absolute bare minimum, and as we established, highly prone to data drift. We are enforcing strict ledger-based logic here.
+1. The Party Statement (The Individual Ledger)
+A Party Statement is exactly what a bank gives you at the end of the month. It is a chronological log of debt created and debt destroyed.
+The Architecture Rule: The Party Statement must be a filtered view of the General Ledger. It must never read the sales, purchases, or payments tables directly for its math.
+* Target Account: For a Customer, filter journal_entries for Account 1200 (Accounts Receivable). For a Supplier, filter Account 2000 (Accounts Payable).
+* Target Entity: Filter the query where party_id equals the specific person.
+* The Columns: Date, Description (Invoice/Receipt number), Debit, Credit, and a Running Balance.
+If a customer disputes a balance, the business owner must be able to hand them this statement. If this statement does not mathematically sum up to the exact number on the Main Dashboard, your software loses all credibility.
+2. Party Aging Summary (The Debt Clock)
+Knowing a customer owes 100,000 rupees is not enough. The business owner must know how long that money has been owed. Debt that is 90 days old is practically worthless.
+The Architecture Rule: You must cross-reference the open balance in the ledger with the due_date of the original source documents.
+* Current: Balances from invoices that are not yet due.
+* 1 to 30 Days Past Due: The invoice deadline has passed by up to a month.
+* 31 to 60 Days Past Due: The danger zone.
+* 61 to 90+ Days Past Due: Debt that is likely going into default.
+If your system does not force users to set a strict due_date on every credit sale, this report will fail. Enforce it at the database level.
+3. Party-Wise Profitability (The Truth About Customers)
+This is the most strategic report in the entire ERP.
+In your original audit, you tracked "Party Volume" (Total Sales vs Total Purchases). Volume is a vanity metric. A customer who buys 1,000,000 rupees of product at a 2% margin is vastly inferior to a customer who buys 100,000 rupees at a 40% margin. The high-volume customer is burning your warehouse labor and shipping costs for pennies.
+The Architecture Rule: You must calculate Gross Profit per Customer using the FIFO engine.
+* Logic: SUM(Net Sales to Customer X) minus SUM(FIFO COGS tied to Customer X's sales).
+* Output: The exact rupee amount of Gross Profit generated by that specific human being.
+This forces the business owner to see reality. It allows them to fire the high-maintenance, low-margin clients and focus completely on the highly profitable ones.
+4. The Final Audit Checklist
+Abdullah, we have completely rebuilt your system's architecture across 5 distinct phases. Before you deploy a single line of this code to a live environment, run this final test:
+1. Create a purchase of 10 items at 50 rupees.
+2. Create a purchase of 10 items at 100 rupees.
+3. Sell 15 items to Customer A at 150 rupees on credit.
+4. Receive a partial payment of 500 rupees from Customer A.
+If your Trial Balance perfectly zeroes out, your FIFO COGS accurately calculates 1000 rupees (10x50 + 5x100), your Gross Profit shows 1250 rupees, your Inventory Value drops to 500, and your Cash Flow shows +500, your ERP is ready.
+If any of those numbers are off by a single cent, go back to Phase 1 and start over. Math does not lie.
+The 38 Reports: Architectural Mapping
+Abdullah, every report in your system now falls into one of three categories: 1. Ledger-Driven: Must be calculated from journal_entries. 2. FIFO-Driven: Must be calculated from inventory_batches and sale_item_batches. 3. Basic CRUD: Simple lists that read directly from operational tables without complex financial math.
+Here is exactly how your developers must build all 38 reports you listed in your audit.
+Category 1: Sales & Income Reports
+1. Sales Report: (Basic CRUD) Read the sales table. Show Gross Sales and Net Sales. Cash collected must read from payments, not a status flag.
+2. Sales Analytics: (Basic CRUD) Graph the Net Sales from the sales table over time.
+3. Profit & Loss: (Ledger-Driven) Phase 5.2. Do not calculate this from the sales table. Read the General Ledger strictly.
+4. Item-wise Profit: (FIFO-Driven) Phase 5.3. Net Sales from sale_items minus COGS from sale_item_batches.
+5. Bill-wise Profit: (FIFO-Driven) Same as above, but group the sale_item_batches sum by the sales invoice ID.
+6. Discount Report: (Basic CRUD) Sum the discount_amount and global_discount columns from the sales and sale_items tables.
+7. Sale Aging: (Ledger-Driven) Phase 5.5. Read Account 1200 (Receivables). Cross-reference open journal entries with the invoice due_date.
+8. Sales Orders: (Basic CRUD) List invoices where type is sales_order. No financial impact until posted.
+9. Sale Order Items: (Basic CRUD) List items inside the above orders.
+Category 2: Inventory & Purchase Reports
+10. Purchase Report: (Basic CRUD) List invoices (vendor bills). Outstanding balance must come from Ledger Account 2000, not the bill itself.
+11. Stock Valuation: (FIFO-Driven) Phase 5.3. Read inventory_batches where remaining_qty > 0.
+12. Low Stock Report: (Basic CRUD) SUM(remaining_qty) from batches compared to the alert_quantity on the product profile.
+13. Stock Movement: (FIFO-Driven) Phase 5.3. A complete log of every transaction that touched the inventory_batches table.
+14. Stock Aging: (FIFO-Driven) Phase 5.3. Group remaining_qty by the created_at date of the batch.
+15. Stock Summary: (FIFO-Driven) Same as Stock Valuation, just grouped by Product Category.
+16. Item Detail Report: (Basic CRUD) A dump of the products table.
+17. Expiry Report: (FIFO-Driven) Phase 5.3. Read inventory_batches where expiry_date is near.
+Category 3: Finance & Tax Reports
+18. Balance Sheet: (Ledger-Driven) Phase 5.2. The ultimate test. Assets = Liabilities + Equity.
+19. Trial Balance: (Ledger-Driven) Phase 5.2. Total Debits must equal Total Credits.
+20. Cash Flow: (Ledger-Driven) Phase 5.4. Read movements in and out of Account 1000, categorized by the offsetting account.
+21. Bank Statement: (Ledger-Driven) Phase 5.4. Filter journal_entries for the specific Bank Account.
+22. Expense Report: (Ledger-Driven) Read journal_entries for the 6000-series Expense accounts. Do not mix with COGS.
+23. Expense Category: (Ledger-Driven) Same as above, grouped by the specific expense account name.
+24. Tax Report: (Ledger-Driven) Phase 5.4. Read the Tax Payable (Account 2200) and Tax Receivable ledger accounts.
+25. Tax Rate Report: (Basic CRUD) Group the sale_items table by the tax_rate applied.
+26. Item Wise Discounts: (Basic CRUD) Sum the discount_amount column in the sale_items table, grouped by product.
+Category 4: Accounting & Ledgers
+27. Chart of Accounts: (Basic CRUD) List the accounts table.
+28. Journal Entries: (Ledger-Driven) List the journal_entries table.
+29. Day Book: (Ledger-Driven) List all journal_entries posted on a specific date.
+30. All Transactions: (Basic CRUD) Global search across sales, purchases, payments, and journal_entries.
+Category 5: Parties & Relationships
+31. All Parties: (Ledger-Driven) Phase 4.3. List parties with their exact balance pulled from Accounts 1200 or 2000.
+32. Party Statement: (Ledger-Driven) Phase 5.5. The chronological ledger for a specific party.
+33. Party-wise P&L: (FIFO-Driven) Phase 5.5. Net Sales to the party minus FIFO COGS for those specific sales.
+34. Party Volume: (Basic CRUD) Sum of Gross Sales vs Sum of Purchases for a specific party.
+35. Item Report by Party: (Basic CRUD) Join sale_items with sales and group by Party, then Product.
+36. Party Report by Item: (Basic CRUD) Same as above, reverse the grouping.
+37. Loan Statement: (Ledger-Driven) Read journal_entries for the specific Liability or Asset loan account.
+38. Party Group Analysis: (Ledger-Driven) Group the balances from Account 1200 and 2000 by the party's category (Retail, Wholesale, Supplier).
+

@@ -1,0 +1,1 @@
+function o(e){return l("stop_sale_negative_stock",e)}function l(e,n){const t=n?.[e];return t==="1"||t===!0||t===1||t==="true"}function r(e){return l("wholesale_price_enabled",e)}function c(e,n,t,s=!1){if(r(t)){const i=e?.wholesale_price,a=e?.wholesale_min_quantity||1;if(i&&(n>=a||s))return parseFloat(i)}return parseFloat(e?.price||e?.selling_price||0)}export{c as g,o as s};

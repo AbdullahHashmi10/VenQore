@@ -1,0 +1,29 @@
+{
+    "run_id": "20260806_220033_20860",
+    "schema": "venqore.run-ledger.v1",
+    "started_at": "2026-08-06T22:00:32+00:00",
+    "finished_at": "2026-08-06T22:00:33+00:00",
+    "duration_s": 2,
+    "total": 2,
+    "counts": {
+        "passed": 0,
+        "failed": 0,
+        "errored": 2,
+        "skipped": 0,
+        "incomplete": 0,
+        "risky": 0
+    },
+    "green": false,
+    "environment": {
+        "php": "8.2.23",
+        "os": "Windows",
+        "db_database": "amd_pos_test",
+        "git_sha": "8441b309",
+        "seed_checksum": "07b30e295cbb98e26c32f9e540e5329027e13326a822a7d120773507e2d12dad"
+    },
+    "argv": [
+        "vendor/bin/pest",
+        "FinalTester/tests/Feature/Guardrails/MassAssignmentGuardTest.php",
+        "--configuration=FinalTester/phpunit.xml"
+    ]
+}
