@@ -6,8 +6,8 @@
 #  Builds the pure Electron hardware bridge.
 #
 #  Usage: .\build_desktop.ps1
-#  Output: amd-station\dist\VenQore Station Setup x.x.x.exe
-#          amd-station\dist\VenQore Station x.x.x.exe  (portable)
+#  Output: app-code\windows-app\dist\VenQore Station Setup x.x.x.exe
+#          app-code\windows-app\dist\VenQore Station x.x.x.exe  (portable)
 # ============================================================
 
 $ErrorActionPreference = "Stop"
@@ -26,19 +26,19 @@ if (-not (Get-Command "node" -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-if (-not (Test-Path ".\amd-station\main.js")) {
+if (-not (Test-Path ".\app-code\windows-app\main.js")) {
     Write-Host "  [ERROR] Run this script from the project root directory." -ForegroundColor Red
     exit 1
 }
 
 Write-Host "  [OK] Node.js: $(node --version)" -ForegroundColor Green
-Write-Host "  [OK] amd-station directory found" -ForegroundColor Green
+Write-Host "  [OK] app-code\windows-app directory found" -ForegroundColor Green
 
 # --- Step 1: Install dependencies --------------------------
 Write-Host ""
 Write-Host "[1/4] Installing Electron dependencies..." -ForegroundColor Yellow
 
-Push-Location ".\amd-station"
+Push-Location ".\app-code\windows-app"
 
 npm install
 if ($LASTEXITCODE -ne 0) {
@@ -54,7 +54,7 @@ Pop-Location
 Write-Host ""
 Write-Host "[2/4] Converting icon..." -ForegroundColor Yellow
 
-Push-Location ".\amd-station"
+Push-Location ".\app-code\windows-app"
 
 if (Test-Path "assets\icon.png") {
     node convert-icon.js 2>$null
@@ -74,12 +74,12 @@ Write-Host ""
 Write-Host "[3/4] Verifying build files..." -ForegroundColor Yellow
 
 $required = @(
-    "amd-station\main.js",
-    "amd-station\preload.js",
-    "amd-station\shell.html",
-    "amd-station\shell.css",
-    "amd-station\shell-renderer.js",
-    "amd-station\assets\icon.ico"
+    "app-code\windows-app\main.js",
+    "app-code\windows-app\preload.js",
+    "app-code\windows-app\shell.html",
+    "app-code\windows-app\shell.css",
+    "app-code\windows-app\shell-renderer.js",
+    "app-code\windows-app\assets\icon.ico"
 )
 
 $allOK = $true
@@ -103,7 +103,7 @@ Write-Host ""
 Write-Host "[4/4] Building Windows Installer (NSIS + Portable)..." -ForegroundColor Yellow
 Write-Host "  This may take 3-5 minutes..." -ForegroundColor Gray
 
-Push-Location ".\amd-station"
+Push-Location ".\app-code\windows-app"
 npm run build:win
 $result = $LASTEXITCODE
 Pop-Location
@@ -112,7 +112,7 @@ Pop-Location
 Write-Host ""
 
 if ($result -eq 0) {
-    $distDir = ".\amd-station\dist"
+    $distDir = ".\app-code\windows-app\dist"
     $files   = Get-ChildItem $distDir -Filter "*.exe" | Sort-Object LastWriteTime -Descending
 
     Write-Host "============================================================" -ForegroundColor Green
@@ -146,7 +146,7 @@ if ($result -eq 0) {
     Write-Host "============================================================" -ForegroundColor Red
     Write-Host ""
     Write-Host "  Common fixes:" -ForegroundColor Yellow
-    Write-Host "    - Delete node_modules and retry: cd amd-station; rm -rf node_modules; npm install" -ForegroundColor White
-    Write-Host "    - Make sure icon.ico exists in amd-station/assets/" -ForegroundColor White
+    Write-Host "    - Delete node_modules and retry: cd app-code\windows-app; rm -rf node_modules; npm install" -ForegroundColor White
+    Write-Host "    - Make sure icon.ico exists in app-code\windows-app/assets/" -ForegroundColor White
     exit 1
 }
