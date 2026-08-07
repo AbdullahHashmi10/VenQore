@@ -31,6 +31,10 @@ jobs:
       matrix:
         php: ["8.3"]
 
+    defaults:
+      run:
+        working-directory: app-code/main-app
+
     steps:
       # ── Checkout ────────────────────────────────────────────────────────
       - name: Checkout code
@@ -116,5 +120,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pest-failure-log-php${{ matrix.php }}
-          path: storage/logs/laravel.log
+          path: app-code/main-app/storage/logs/laravel.log
           retention-days: 7

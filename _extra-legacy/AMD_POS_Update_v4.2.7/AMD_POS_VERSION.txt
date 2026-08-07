@@ -1,0 +1,3 @@
+﻿AMD_POS_VERSION=4.2.7
+RELEASED=2026-07-03
+TYPE=update_package

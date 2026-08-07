@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore — Demo (preview)</title>
+<link rel="stylesheet" href="./preview.css">
+<link rel="icon" href="./logo.png">
+</head>
+<body class="font-sans antialiased">
+<div id="app" data-page='{"component":"Demo/Landing","props":{"settings":{},"flash":{}},"url":"/demo","version":""}'></div>
+<script>
+// preview-only: fix absolute asset paths for file:// viewing
+(function(){var n=0,t=setInterval(function(){document.querySelectorAll('img[src^="/images/"]').forEach(function(i){i.src='./logo.png';});if(++n>20)clearInterval(t);},400);})();
+</script>
+<script src="./preview.js"></script>
+</body>
+</html>

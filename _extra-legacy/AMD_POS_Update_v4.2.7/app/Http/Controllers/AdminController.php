@@ -1,0 +1,909 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use App\Helpers\SettingsHelper;
+use App\Models\TenantUser;
+use App\Services\PlanGate;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
+class AdminController extends Controller
+{
+    public function index()
+    {
+        return \Inertia\Inertia::render('Admin/Dashboard', [
+            'mode' => 'admin',
+            'stats' => [
+                'total_users' => \App\Models\User::count(),
+                'active_sessions' => \App\Models\StaffAttendance::whereNull('check_out')->count(),
+                'security_logs' => 0, // Placeholder
+            ]
+        ]);
+    }
+
+    public function dashboard()
+    {
+        // 1. Critical Cash Flow KPIs (Real-time V3 Journal)
+        $financeSvc = app(\App\Services\FinancialReportingService::class);
+        
+        // Today's snapshot for the Right Panel
+        $todayFlow = $financeSvc->getCashFlowReport(now()->startOfDay()->toDateString(), now()->endOfDay()->toDateString());
+        $todayMovement = [
+            'cash_in'  => $todayFlow['operating_inflow'],
+            'cash_out' => $todayFlow['operating_outflow'],
+            'net'      => $todayFlow['net_cash_flow'],
+        ];
+        
+        // MTD (Month to Date) for the main KPI tiles
+        $mtdFlow = $financeSvc->getCashFlowReport(now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
+        $mtdMovement = [
+            'cash_in'  => $mtdFlow['operating_inflow'],
+            'cash_out' => $mtdFlow['operating_outflow'],
+            'net'      => $mtdFlow['net_cash_flow'],
+        ];
+        
+        $totalRevenue = $mtdMovement['cash_in'];
+        $totalExpenses = $mtdMovement['cash_out'];
+        $netProfit = $mtdMovement['net'];
+
+        // V3 Accounts Receivable (1200) - Real-time
+        $overduePayments = $financeSvc->getReceivables();
+
+        // 3. Staff Logic: Count UNIQUE users with an active session today
+        $activeStaffCount = \App\Models\StaffAttendance::whereNull('check_out')
+            ->whereDate('check_in', now()->toDateString())
+            ->distinct('user_id')
+            ->count('user_id');
+        
+        $tenant = app('current.tenant');
+        $totalStaffCount = 0;
+        
+        if ($tenant) {
+            $totalStaffCount = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                ->whereNotIn('role', ['platform_admin', 'admin'])
+                ->count();
+        } else {
+            // Fallback for when no tenant is bound (should not happen in store context)
+            $totalStaffCount = \App\Models\User::count();
+        }
+
+        // 4. Last Backup: Fetch real timestamp from disk
+        $lastBackupStr = 'Never';
+        $backupFiles = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
+        if (!empty($backupFiles)) {
+            $lastBackupFile = collect($backupFiles)->sortByDesc(function($file) {
+                return \Illuminate\Support\Facades\Storage::disk('local')->lastModified($file);
+            })->first();
+            
+            $lastBackupTime = \Illuminate\Support\Facades\Storage::disk('local')->lastModified($lastBackupFile);
+            $lastBackupStr = \Carbon\Carbon::createFromTimestamp($lastBackupTime)->diffForHumans();
+        }
+
+        // 2. Profitability Trend (Last 6 Months) - Now using Cash Basis
+        $profitData = collect(range(5, 0))->map(function ($i) use ($financeSvc, $tenant) {
+            $date = now()->subMonths($i);
+            $monthName = $date->format('M');
+            
+            $start = $date->copy()->startOfMonth();
+            $end = $date->copy()->endOfMonth();
+            
+            $flow = $financeSvc->getCashFlowReport($start->toDateString(), $end->toDateString());
+            $movement = [
+                'cash_in'  => $flow['operating_inflow'],
+                'cash_out' => $flow['operating_outflow'],
+                'net'      => $flow['net_cash_flow'],
+            ];
+            
+            $purchases = \App\Models\Invoice::where('type', 'purchase')
+                ->where('tenant_id', $tenant->id ?? null)
+                ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+                ->sum('total_amount');
+
+            return [
+                'month' => $monthName,
+                'profit' => $movement['net'],
+                'expenses' => $movement['cash_out'],
+                'revenue' => $movement['cash_in'],
+                'purchases' => (float) $purchases
+            ];
+        })->values();
+
+        // 3. Staff Performance (Top 5 by Current Month Sales)
+        $frs            = app(\App\Services\FinancialReportingService::class);
+        $monthStart     = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd       = now()->endOfMonth()->format('Y-m-d');
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd);
+
+        $staffPerformance = \App\Models\User::whereHas('memberships', function($q) use ($tenant) {
+                if ($tenant) $q->where('tenant_id', $tenant->id);
+            })
+            ->get()
+            ->map(function ($user) use ($tenant, $netByUserMonth) {
+                $mtdSales = (float) ($netByUserMonth[$user->id] ?? 0);
+
+                $totalHours = \App\Models\StaffDailySummary::where('user_id', $user->id)
+                    ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
+                    ->sum('total_hours') ?? 0;
+
+                // Get role from membership
+                $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
+                $displayRole = $membership ? $membership->role : ($user->role ?? 'Staff');
+
+                return [
+                    'name' => $user->name,
+                    'role' => ucfirst($displayRole),
+                    'sales' => (float)$mtdSales,
+                    'hours' => round($totalHours, 1),
+                    'efficiency' => $totalHours > 0 ? min(100, round(($mtdSales / $totalHours) / 10)) : 0
+                ];
+            })
+            ->sortByDesc('sales')
+            ->take(5)
+            ->values();
+
+        // 4. Inventory Health (Synchronized with Catalog/stocks table for real-time accuracy)
+        $products = \App\Models\Product::query()->get()->map(function ($product) {
+             // Use the same logic as InventoryController@index to ensure "Real Data" consistency
+             $product->stock_quantity = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+             return $product;
+        });
+
+        $lowStockThreshold = (int) \App\Helpers\SettingsHelper::getLowStockThreshold();
+
+        $outOfStockCount = $products->where('stock_quantity', '<=', 0)->count();
+        $lowStockCount = $products->filter(function ($p) use ($lowStockThreshold) {
+            $threshold = $p->alert_quantity > 0 ? $p->alert_quantity : $lowStockThreshold;
+            return $p->stock_quantity > 0 && $p->stock_quantity <= $threshold;
+        })->count();
+
+        $totalProducts = $products->count();
+
+        // Healthy: Everything else (stock > threshold)
+        $healthyStockCount = $totalProducts - $lowStockCount - $outOfStockCount;
+
+        // Ensure no negative values
+        $healthyStockCount = max(0, $healthyStockCount);
+
+        // Calculate percentages
+        $inventoryHealth = [
+            'healthy' => $totalProducts > 0 ? round(($healthyStockCount / $totalProducts) * 100) : 100,
+            'lowStock' => $totalProducts > 0 ? round(($lowStockCount / $totalProducts) * 100) : 0,
+            'outOfStock' => $totalProducts > 0 ? round(($outOfStockCount / $totalProducts) * 100) : 0,
+            'lowStockCount' => $lowStockCount,
+            'outOfStockCount' => $outOfStockCount,
+            'deadStock' => 0,
+        ];
+
+        // 5. Payment Methods
+        // DRAGNET-FIX: Use DB::table() instead of Sale::select()->groupBy().
+        // Sale has $appends=['paid_amount','total_amount']. Selecting without 'id'
+        // produces poisoned model objects whose accessors silently return 0.
+        $tenantIdForPm = app('current.tenant')->id;
+        $paymentMethods = DB::table('sales')
+            ->select('payment_method', DB::raw('count(*) as count'))
+            ->where('tenant_id', $tenantIdForPm)
+            ->whereIn('status', ['posted', 'returned'])
+            ->groupBy('payment_method')
+            ->orderByDesc('count')
+            ->get()
+            ->map(function ($item, $index) {
+                $colors = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444'];
+                return [
+                    'name'  => ucfirst($item->payment_method ?? 'Other'),
+                    'value' => (int) $item->count,
+                    'color' => $colors[$index % count($colors)]
+                ];
+            });
+
+        // Get Currency Symbol
+        $currencySymbol = SettingsHelper::getCurrencySymbol();
+
+        // 6. Recent Activity (PHYSICAL CASH FLOW ONLY)
+        $activities = \App\Models\Payment::where('method', 'cash')
+            ->where('amount', '>', 0)
+            ->with(['sale', 'party'])
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($pmt) {
+                $isPlus = $pmt->type === 'in';
+                $isPurchase = strpos($pmt->reference, 'PUR-') === 0 || ($pmt->notes && strpos($pmt->notes, 'Purchase') !== false);
+                
+                $reason = 'Cash Payment';
+                if ($pmt->sale) $reason = 'Sale #' . $pmt->sale->reference_number;
+                elseif ($isPurchase) $reason = 'Purchase #' . ($pmt->reference ?: 'Ref');
+                
+                if ($pmt->party) $reason .= ' (' . $pmt->party->name . ')';
+
+                return [
+                    'id' => $pmt->id,
+                    'type' => $pmt->sale ? 'sale' : ($isPurchase ? 'purchase' : 'payment'),
+                    'title' => $reason,
+                    'subtitle' => $pmt->notes ?? '',
+                    'amount' => ($isPlus ? '+' : '-') . \App\Helpers\SettingsHelper::formatCurrency($pmt->amount),
+                    'time' => $pmt->created_at->diffForHumans(),
+                    'is_plus' => $isPlus
+                ];
+            });
+
+        return \Inertia\Inertia::render('Admin/ExecutiveDashboard', [
+            'mode' => 'admin',
+            'currencySymbol' => $currencySymbol, // Pass symbol to frontend
+            'stats' => [
+                'net_profit' => $netProfit,
+                'total_revenue' => $totalRevenue,
+                'total_expenses' => $totalExpenses,
+                'active_staff' => $activeStaffCount,
+                'total_staff' => $totalStaffCount,
+                'overdue_payments' => $overduePayments,
+                'today_in' => $todayMovement['cash_in'],
+                'today_out' => $todayMovement['cash_out'],
+                'today_net' => $todayMovement['today_net'] ?? $todayMovement['net'],
+                'net_balance' => (function() {
+                    try {
+                        $accSvc = app(\App\Services\V3\AccountingService::class);
+                        return $accSvc->getBalance('1000') + $accSvc->getBalance('1010');
+                    } catch (\Exception $e) {
+                        return 0.00;
+                    }
+                })(),
+                'last_backup' => $lastBackupStr,
+            ],
+            'profitData' => $profitData,
+            'staffPerformance' => $staffPerformance,
+            'recentActivity' => $activities,
+            'inventoryHealth' => $inventoryHealth,
+            'topProducts' => (function() {
+                // DRAGNET-FIX: Use DB::table() instead of SaleItem::selectRaw()->groupBy().
+                // Eloquent aggregate queries without 'id' are fragile when models define
+                // computed attributes or $appends. Using flat DB query + manual joins
+                // is the established safe pattern for aggregate data sent to Inertia.
+                $tenantId = app('current.tenant')->id;
+                return DB::table('sale_items')
+                    ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+                    ->join('products', 'products.id', '=', 'sale_items.product_id')
+                    ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                    ->where('sales.tenant_id', $tenantId)
+                    ->where('sales.status', 'posted')
+                    ->whereNull('sale_items.deleted_at')
+                    ->select(
+                        'products.name as product_name',
+                        'categories.name as category_name',
+                        DB::raw('SUM(sale_items.quantity) as sold_qty'),
+                        DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal)) as revenue')
+                    )
+                    ->groupBy('products.id', 'products.name', 'categories.id', 'categories.name')
+                    ->orderByDesc('revenue')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'name'  => $item->product_name ?? 'Unknown Product',
+                            'cat'   => $item->category_name ?? 'General',
+                            'sales' => (float) $item->revenue,
+                            'stock' => 0, // omitted — stock_quantity not available in flat join
+                        ];
+                    });
+            })(),
+            'expenseData' => (function() {
+                 $colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+                 $tenant = app('current.tenant');
+                 return DB::table('journal_items as ji')
+                     ->join('journal_entries as je', 'je.id', '=', 'ji.journal_entry_id')
+                     ->join('accounts as a', 'a.id', '=', 'ji.account_id')
+                     ->where('je.tenant_id', $tenant->id)
+                     ->where('a.type', 'expense')
+                     ->where('a.code', '!=', '5000') // Exclude COGS from the "Expenses" card for clarity
+                     ->where('je.is_reversed', 0)
+                     ->whereBetween('je.date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+                     ->selectRaw('a.name as category, SUM(ji.debit - ji.credit) as value')
+                     ->groupBy('a.name')
+                     ->orderByDesc('value')
+                     ->take(6)
+                     ->get()
+                     ->map(function($item, $index) use ($colors) {
+                         return [
+                             'name' => $item->category,
+                             'value' => (float)$item->value,
+                             'color' => $colors[$index % count($colors)]
+                         ];
+                     });
+            })(),
+            'paymentMethods' => $paymentMethods
+        ]);
+    }
+
+    public function users()
+    {
+        $tenant = app('current.tenant');
+        $users  = $tenant->users;
+
+        // Get attendance data for each user
+        $attendance = \App\Models\StaffAttendance::with('user')
+            ->orderBy('check_in', 'desc')
+            ->get()
+            ->groupBy('user_id');
+
+        $staffUsers = \App\Models\User::whereHas('memberships', function($q) use ($tenant) {
+            if ($tenant) $q->where('tenant_id', $tenant->id);
+        })->get();
+
+        $frs        = app(\App\Services\FinancialReportingService::class);
+        $allStart   = '1970-01-01';
+        $allEnd     = now()->format('Y-m-d');
+        $monthStart = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd   = now()->endOfMonth()->format('Y-m-d');
+
+        $netByUserAll   = $frs->getNetRevenueByUser($allStart, $allEnd);     // [user_id => net]
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd); // [user_id => net]
+
+        // Posted-scope transaction counts per user (ONE grouped query, same status scope as the engine)
+        $txnCounts = \App\Models\Sale::query()
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id'); // [user_id => count]
+
+        $staffData = $staffUsers->map(function ($user) use ($tenant, $netByUserAll, $netByUserMonth, $txnCounts) {
+            $totalSales       = (float) ($netByUserAll[$user->id]   ?? 0);
+            $monthSales       = (float) ($netByUserMonth[$user->id] ?? 0);
+            $transactionCount = (int)   ($txnCounts[$user->id]      ?? 0);
+            $avgTransaction   = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+
+            $lastSale = \App\Models\Sale::where('user_id', $user->id)
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->latest('posted_at')->first();
+            $lastActive = $lastSale ? $lastSale->posted_at->diffForHumans() : 'Never';
+
+            // Get role from membership
+            $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
+            $displayRole = $membership ? $membership->role : ($user->role ?? 'Staff');
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => ucfirst($displayRole),
+                'totalSales' => (float) $totalSales,
+                'transactionCount' => $transactionCount,
+                'avgTransaction' => (float) $avgTransaction,
+                'monthSales' => (float) $monthSales,
+                'lastActive' => $lastActive,
+            ];
+        })->sortByDesc('totalSales')->values()->toArray();
+
+        return \Inertia\Inertia::render('Admin/Users', [
+            'mode' => 'admin',
+            'users' => $users,
+            'attendance' => $attendance,
+            'staffData' => $staffData,
+        ]);
+    }
+
+    public function settings()
+    {
+        $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
+
+        // Fetch Backups
+        $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
+        $backups = [];
+        foreach ($files as $file) {
+            $backups[] = [
+                'name' => basename($file),
+                'size' => number_format(\Illuminate\Support\Facades\Storage::disk('local')->size($file) / 1024, 2) . ' KB',
+                'date' => date('Y-m-d H:i:s', \Illuminate\Support\Facades\Storage::disk('local')->lastModified($file)),
+            ];
+        }
+        // Sort newest first
+        usort($backups, function($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+
+        return \Inertia\Inertia::render('Admin/Settings', [
+            'mode' => 'admin',
+            'settings' => $settings,
+            'backups' => $backups
+        ]);
+    }
+
+    public function updateSettings(\Illuminate\Http\Request $request)
+    {
+        $settingsData = $request->except(['_token', 'print_logo_file']);
+
+        // Handle Logo Upload
+        if ($request->hasFile('print_logo_file')) {
+            $file = $request->file('print_logo_file');
+            $path = $file->store('system', 'public');
+            
+            // Update or Create the logo path setting
+            \App\Models\Setting::updateOrCreate(
+                ['key' => 'print_logo_path'],
+                ['value' => '/storage/' . $path]
+            );
+            
+            // IMPORTANT: Remove from loop data so we don't overwrite with local blob URL
+            unset($settingsData['print_logo_path']); 
+        }
+
+        foreach ($settingsData as $key => $value) {
+            if (is_bool($value)) {
+                $value = $value ? '1' : '0';
+            }
+            \App\Models\Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => is_array($value) ? json_encode($value) : (string) $value]
+            );
+        }
+
+        // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
+        // Some settings (like currency) are mirrored on the 'tenants' table for 
+        // high-performance routing and metadata access.
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            $syncNeeded = false;
+            
+            if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
+                $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
+                $syncNeeded = true;
+            }
+            
+            if (isset($settingsData['currency_symbol'])) {
+                $tenant->currency_symbol = $settingsData['currency_symbol'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['store_name'])) {
+                $tenant->name = $settingsData['store_name'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['timezone'])) {
+                $tenant->timezone = $settingsData['timezone'];
+                $syncNeeded = true;
+            }
+
+            if ($syncNeeded) {
+                $tenant->save();
+            }
+        }
+
+        // Clear settings cache
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
+        SettingsHelper::clearCache();
+
+        return redirect()->back()->with('success', 'Settings updated successfully');
+    }
+
+    public function logs()
+    {
+        $logs = \App\Models\ActivityLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(500)
+            ->get();
+
+        return \Inertia\Inertia::render('Admin/Logs', [
+            'mode' => 'admin',
+            'logs' => $logs
+        ]);
+    }
+
+    public function database()
+    {
+        // 1. Get DB Stats
+        try {
+            $dbName = \Illuminate\Support\Facades\DB::getDatabaseName();
+            // MySQL specific query for size
+            $sizeResult = \Illuminate\Support\Facades\DB::select("SELECT Round(Sum(data_length + index_length) / 1024 / 1024, 2) as size FROM information_schema.tables WHERE table_schema = ?", [$dbName]);
+            $dbSize = $sizeResult[0]->size ?? 0;
+            
+            $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+            $tableCount = count($tables);
+        } catch (\Exception $e) {
+            $dbSize = 0;
+            $tableCount = 0;
+            $dbName = 'Unknown';
+        }
+
+        // 2. Get Backups
+        $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
+        $backups = [];
+        foreach ($files as $file) {
+            $bytes = \Illuminate\Support\Facades\Storage::disk('local')->size($file);
+            $units = ['B', 'KB', 'MB', 'GB'];
+            $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+            $formattedSize = number_format($bytes / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
+
+            $backups[] = [
+                'name' => basename($file),
+                'size' => $formattedSize,
+                'date' => date('Y-m-d H:i:s', \Illuminate\Support\Facades\Storage::disk('local')->lastModified($file)),
+            ];
+        }
+        
+        // Sort newest first
+        usort($backups, function($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+
+        return \Inertia\Inertia::render('Admin/Database', [
+            'mode' => 'admin',
+            'stats' => [
+                'size' => $dbSize . ' MB',
+                'tables' => $tableCount,
+                'db_name' => $dbName,
+                'driver' => \Illuminate\Support\Facades\DB::connection()->getDriverName()
+            ],
+            'backups' => $backups
+        ]);
+    }
+
+    public function storeUser(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role' => 'nullable|string|in:platform_admin,admin,manager,cashier,inventory_staff,accountant,custom',
+            'permissions' => 'nullable|array',
+            'passcode' => [
+                'nullable',
+                'string',
+                'min:4',
+                'max:6',
+                function ($attribute, $value, $fail) {
+                    $tenant = app('current.tenant');
+                    $exists = false;
+                    if ($tenant) {
+                        $exists = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                            ->whereNotNull('pos_pin')
+                            ->get()->first(function($tu) use ($value) {
+                                return \Illuminate\Support\Facades\Hash::check($value, $tu->pos_pin);
+                            });
+                    }
+                    if ($exists) {
+                        $phrases = [
+                            "That's a bit too simple, try another.",
+                            "Common pattern detected, please choose something unique.",
+                            "Security check failed, try a different combination.",
+                            "This sequence is reserved, pick another.",
+                            "Too easy to guess, make it harder.",
+                            "System suggests choosing a different PIN."
+                        ];
+                        $fail($phrases[array_rand($phrases)]);
+                    }
+                },
+            ],
+        ]);
+
+        // ── Phase 4.3: Staff Limit Gate ────────────────────────────────────
+        // Count all non-platform_admin staff for this tenant before creating
+        if (app()->bound('current.tenant')) {
+            $staffCount = \App\Models\User::whereNotIn('role', ['platform_admin'])->count();
+            PlanGate::enforce('staff_limit', $staffCount);
+        }
+
+        $permissions = $validated['permissions'] ?? [];
+        $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+        if (!$isOwner) {
+            $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+        }
+
+        $user = \App\Models\User::create([
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'password'      => bcrypt($validated['password']),
+            'role'          => $validated['role'] ?? 'cashier',
+            'permissions'   => $permissions,
+            'passcode'      => $validated['passcode'] ?? null,
+            'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
+        ]);
+
+        if (app()->bound('current.tenant')) {
+            $tenant  = app('current.tenant');
+            $newRole = $validated['role'] ?? 'cashier';
+            \App\Models\TenantUser::create([
+                'tenant_id'    => $tenant->id,
+                'user_id'      => $user->id,
+                'role'         => $newRole,
+                'status'       => 'active',
+                'display_name' => $user->name,
+                'joined_at'    => now(),
+                'pos_pin'      => $user->passcode,
+                'permissions'  => $permissions,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'User created successfully');
+    }
+
+    public function updateUser(\Illuminate\Http\Request $request, $id)
+    {
+        $user = \App\Models\User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email,' . $id,
+            'password'    => 'nullable|string|min:6',
+            // Include ALL valid store roles so the value is never silently dropped
+            'role'        => 'nullable|string|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,cashier,viewer,custom,platform_admin',
+            'permissions' => 'nullable|array',
+            'passcode' => [
+                'nullable',
+                'string',
+                'min:4',
+                'max:6',
+                function ($attribute, $value, $fail) use ($id) {
+                    $tenant = app('current.tenant');
+                    $exists = false;
+                    if ($tenant) {
+                        $exists = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                            ->where('user_id', '!=', $id)
+                            ->whereNotNull('pos_pin')
+                            ->get()->first(function($tu) use ($value) {
+                                return \Illuminate\Support\Facades\Hash::check($value, $tu->pos_pin);
+                            });
+                    }
+                    if ($exists) {
+                        $phrases = [
+                            "That's a bit too simple, try another.",
+                            "Common pattern detected, please choose something unique.",
+                            "Security check failed, try a different combination.",
+                            "This sequence is reserved, pick another.",
+                            "Too easy to guess, make it harder.",
+                            "System suggests choosing a different PIN."
+                        ];
+                        $fail($phrases[array_rand($phrases)]);
+                    }
+                },
+            ],
+        ]);
+
+        $user->name  = $validated['name'];
+        $user->email = $validated['email'];
+        if (!empty($validated['password'])) {
+            $user->password = bcrypt($validated['password']);
+        }
+        $user->passcode = $validated['passcode'] ?? $user->passcode;
+
+        // ── CRITICAL FIX ──────────────────────────────────────────────────────
+        // Store the new role in a local variable BEFORE calling $user->save().
+        // After save(), calling $user->role triggers getRoleAttribute() which
+        // queries tenant_users and returns the OLD role — causing TenantUser to
+        // be updated with the wrong (old) role.
+        // We always write the new role to both tables explicitly.
+        $newRole        = $validated['role'] ?? null;
+        $newPermissions = $validated['permissions'] ?? null;
+        if ($newPermissions !== null) {
+            $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+            if (!$isOwner) {
+                $newPermissions = array_filter($newPermissions, fn($p) => $p !== 'admin.billing_store');
+            }
+        }
+
+        // Update the legacy users column only if a role was provided
+        if ($newRole !== null) {
+            $user->getAttributes()['role'] ?? null; // ensure attribute is fresh
+            $user->setAttribute('role', $newRole);
+        }
+        if ($newPermissions !== null) {
+            $user->setAttribute('permissions', json_encode($newPermissions));
+        }
+
+        $user->save();
+
+        // Update the canonical store-level membership in tenant_users directly
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+
+            // Get the existing membership to preserve fields we're not changing
+            $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $updateData = ['pos_pin' => $user->passcode];
+            if ($newRole !== null) {
+                $updateData['role'] = $newRole;
+            }
+            if ($newPermissions !== null) {
+                $updateData['permissions'] = $newPermissions;
+            }
+
+            if ($membership) {
+                $membership->update($updateData);
+            } else {
+                \App\Models\TenantUser::create(array_merge($updateData, [
+                    'tenant_id'    => $tenant->id,
+                    'user_id'      => $user->id,
+                    'role'         => $newRole ?? 'cashier',
+                    'status'       => 'active',
+                    'display_name' => $user->name,
+                    'joined_at'    => now(),
+                ]));
+            }
+        }
+
+        return redirect()->back()->with('success', 'User updated successfully');
+    }
+
+    public function staffSummaries()
+    {
+        $tenant = app('current.tenant');
+        $users = \App\Models\User::whereHas('memberships', function($q) use ($tenant) {
+            if ($tenant) $q->where('tenant_id', $tenant->id);
+        })->get();
+
+        $frs        = app(\App\Services\FinancialReportingService::class);
+        $allStart   = '1970-01-01';
+        $allEnd     = now()->format('Y-m-d');
+        $monthStart = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd   = now()->endOfMonth()->format('Y-m-d');
+
+        $netByUserAll   = $frs->getNetRevenueByUser($allStart, $allEnd);     // [user_id => net]
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd); // [user_id => net]
+
+        // Posted-scope transaction counts per user (ONE grouped query, same status scope as the engine)
+        $txnCounts = \App\Models\Sale::query()
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id'); // [user_id => count]
+
+        $staffData = $users->map(function ($user) use ($tenant, $netByUserAll, $netByUserMonth, $txnCounts) {
+            $totalSales       = (float) ($netByUserAll[$user->id]   ?? 0);
+            $monthSales       = (float) ($netByUserMonth[$user->id] ?? 0);
+            $transactionCount = (int)   ($txnCounts[$user->id]      ?? 0);
+            $avgTransaction   = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+
+            $lastSale = \App\Models\Sale::where('user_id', $user->id)
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->latest('posted_at')->first();
+            $lastActive = $lastSale ? $lastSale->posted_at->diffForHumans() : 'Never';
+
+            // Get role from membership
+            $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
+            $displayRole = $membership ? $membership->role : ($user->role ?? 'Staff');
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => ucfirst($displayRole),
+                'totalSales' => (float) $totalSales,
+                'transactionCount' => $transactionCount,
+                'avgTransaction' => (float) $avgTransaction,
+                'monthSales' => (float) $monthSales,
+                'lastActive' => $lastActive,
+            ];
+        })->sortByDesc('totalSales')->values();
+
+        return \Inertia\Inertia::render('Admin/StaffSummaries', [
+            'mode' => 'admin',
+            'staffData' => $staffData
+        ]);
+    }
+
+    public function destroyUser($id)
+    {
+        $user = \App\Models\User::findOrFail($id);
+
+        // Prevent deleting self
+        if ($user->id === \Illuminate\Support\Facades\Auth::id()) {
+            return redirect()->back()->with('error', 'You cannot delete yourself');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User deleted successfully');
+    }
+    // ─── Member Management (Single Source of Truth) ──────────────────────────
+
+    /**
+     * Update a store member's role, permissions, display name, status, or passcode.
+     * Operates on TenantUser directly — the canonical record for store access.
+     */
+    public function updateMember(Request $request, TenantUser $member)
+    {
+        try {
+            $this->authorizeMemberAction($member);
+
+            $request->validate([
+                'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
+                'display_name'     => 'nullable|string|max:50',
+                'custom_role_name' => 'nullable|string|max:30',
+                'status'           => 'nullable|in:active,suspended',
+                'permissions'  => 'nullable|array',
+                'passcode'     => [
+                    'nullable', 'string', 'min:4', 'max:6',
+                    function ($attribute, $value, $fail) use ($member) {
+                        $tenant = app('current.tenant');
+                        if ($tenant) {
+                            $exists = TenantUser::where('tenant_id', $tenant->id)
+                                ->where('user_id', '!=', $member->user_id)
+                                ->whereNotNull('pos_pin')
+                                ->get()->first(fn($tu) => Hash::check($value, $tu->pos_pin));
+                            if ($exists) {
+                                $fail('This passcode is already in use. Please choose a different one.');
+                            }
+                        }
+                    },
+                ],
+            ]);
+
+            // Owner role is locked — cannot be changed
+            if ($member->role === 'owner' && $request->has('role')) {
+                abort(403, 'Owner role cannot be changed.');
+            }
+
+            $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
+            \Log::info('updateMember data: ' . json_encode($updateData));
+            if ($request->has('permissions')) {
+                $permissions = $request->input('permissions') ?? [];
+                $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+                if (!$isOwner) {
+                    $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+                }
+                $updateData['permissions'] = array_values($permissions);
+            }
+            $member->update($updateData);
+
+            if ($request->filled('passcode')) {
+                $member->update(['pos_pin' => Hash::make($request->passcode)]);
+                $user = $member->user;
+                if ($user) {
+                    $user->passcode = $request->passcode;
+                    $user->save();
+                }
+            }
+
+            return back()->with('success', 'Member updated.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('updateMember error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove a member from the store (deletes their TenantUser record).
+     */
+    public function removeMember(TenantUser $member): RedirectResponse
+    {
+        $this->authorizeMemberAction($member);
+
+        if ($member->role === 'owner') {
+            abort(403, 'Owner cannot be removed from a store.');
+        }
+
+        $member->delete();
+
+        return back()->with('success', 'Member removed.');
+    }
+
+    /**
+     * Ensure the acting user is owner or admin of the same store.
+     */
+    private function authorizeMemberAction(TenantUser $member): void
+    {
+        $tenant = app('current.tenant');
+
+        if ($member->tenant_id !== $tenant->id) {
+            abort(403);
+        }
+
+        $myMembership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (!in_array($myMembership->role, ['owner', 'admin'])) {
+            abort(403);
+        }
+    }
+}

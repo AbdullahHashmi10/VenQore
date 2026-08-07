@@ -1,0 +1,553 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Party;
+use App\Models\Invoice;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Services\LedgerService;
+
+class PartyController extends Controller
+{
+    public function search(Request $request)
+    {
+        $query = Party::query();
+
+        // Check input first, then route parameter (for defaults)
+        $type = $request->input('type') ?? $request->route('type');
+
+        if ($type && $type !== 'all') {
+            $query->where('type', $type);
+        }
+
+        $searchTerm = $request->input('search') ?? $request->input('query');
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('email', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $limit = $request->search ? 20 : 50;
+        $parties = $query->orderBy('name')->limit($limit)->get();
+
+        // Enrich with V3 balances so search dropdowns can show live balance
+        $arAccount = \App\Models\Account::where('code', '1200')->value('id');
+        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+
+        $parties = $parties->map(function ($party) {
+            $netBalance = LedgerService::partyNetBalance(
+                $party->id,
+                $party->tenant_id,
+                $party->type
+            );
+
+            if (round(abs($netBalance), 2) < 0.01) {
+                $direction = 'Settled';
+            } else {
+                // Direction label (For React logic): Positive = To Receive (Customer), To Pay (Supplier)
+                // However, LedgerService returns:
+                // For Customers: Positive = they owe us (+AR debit) -> To Receive
+                // For Suppliers: Positive = we owe them (+AP credit) -> To Receive (Assets/Dr-Cr is positive if we overpaid suppliers)
+                // Wait, let's keep the exact logic for direction:
+                // If customer: netBalance > 0 -> they owe us -> To Receive
+                // If supplier: netBalance > 0 -> we owe them -> To Pay
+                if ($party->type === 'customer') {
+                    $direction = $netBalance > 0 ? 'To Receive' : 'To Pay';
+                } else {
+                    $direction = $netBalance > 0 ? 'To Pay' : 'To Receive';
+                }
+            }
+
+            $party->current_balance = $netBalance;
+            $party->balance_direction = $direction;
+            return $party;
+        });
+
+        return response()->json($parties);
+    }
+
+    public function index(Request $request)
+    {
+        $arAccount = \App\Models\Account::where('code', '1200')->value('id');
+        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+
+        $query = Party::query()
+            ->select('parties.*')
+            ->selectSub(function($q) use ($arAccount) {
+                $q->from('journal_items')
+                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->whereColumn('journal_entries.party_id', 'parties.id')
+                    ->where('journal_entries.is_reversed', 0)
+                    ->where('journal_items.account_id', $arAccount)
+                    ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)');
+            }, 'net_ar')
+            ->selectSub(function($q) use ($apAccount) {
+                $q->from('journal_items')
+                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->whereColumn('journal_entries.party_id', 'parties.id')
+                    ->where('journal_entries.is_reversed', 0)
+                    ->where('journal_items.account_id', $apAccount)
+                    ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)');
+            }, 'net_ap');
+
+        // Apply Filters
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('phone', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Apply Sorting
+        $sortBy = $request->input('sort_by', 'name');
+        $sortDir = $request->input('sort_dir', 'asc');
+
+        if ($sortBy === 'balance') {
+            // Sort by absolute net position Since UI shows Absolute values
+            $query->orderByRaw('ABS(COALESCE(net_ar,0) - COALESCE(net_ap,0)) ' . $sortDir);
+        } else {
+            $query->orderBy($sortBy, $sortDir);
+        }
+
+        $tenantId = app('current.tenant')->id;
+        $receivables = (float) DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('accounts.tenant_id', $tenantId)
+            ->where('accounts.code', '1200')
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
+            ->value('net');
+
+        $payables = (float) DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('accounts.tenant_id', $tenantId)
+            ->where('accounts.code', '2000')
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
+            ->value('net');
+
+        $stats = [
+            'total'       => Party::count(),
+            'customers'   => Party::where('type', 'customer')->count(),
+            'suppliers'   => Party::where('type', 'supplier')->count(),
+            'receivables' => max(0, $receivables),
+            'payables'    => max(0, $payables),
+        ];
+
+        $parties = $query->paginate(200)->withQueryString();
+
+        $arAccount = \App\Models\Account::where('code', '1200')->value('id');
+        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+
+        $parties->getCollection()->transform(function($party) {
+            $netBalance = LedgerService::partyNetBalance(
+                $party->id,
+                $party->tenant_id,
+                $party->type
+            );
+
+            $party->balance = $netBalance;
+
+            if (round(abs($netBalance), 2) < 0.01) {
+                $party->balance_direction = 'Settled';
+            } else {
+                if ($party->type === 'customer') {
+                    $party->balance_direction = $netBalance > 0 ? 'To Receive' : 'To Pay';
+                } else {
+                    $party->balance_direction = $netBalance > 0 ? 'To Pay' : 'To Receive';
+                }
+            }
+
+            $party->current_balance = $netBalance;
+            
+            return $party;
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json($parties);
+        }
+
+        return Inertia::render('Parties/PartiesList', [
+            'parties' => $parties,
+            'stats'   => $stats
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'type' => 'required|in:customer,supplier',
+            'opening_balance' => 'nullable|numeric',
+            'credit_limit' => 'nullable|numeric',
+            'payment_terms' => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'opening_balance_type' => 'required|in:receivable,payable',
+            'default_discount' => 'nullable|numeric|between:0,100'
+        ]);
+
+
+        $ob = floatval($validated['opening_balance'] ?? 0);
+        $validated['current_balance'] = $validated['opening_balance_type'] === 'receivable' ? abs($ob) : -abs($ob);
+
+        // For suppliers, 'payable' is positive balance, 'receivable' is negative balance
+        if ($validated['type'] === 'supplier') {
+            $validated['current_balance'] = -$validated['current_balance'];
+        }
+
+        $party = DB::transaction(function() use ($validated, $ob) {
+            $party = Party::create($validated);
+
+            if ($ob > 0) {
+                $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+                $historicalAcct = \App\Models\Account::where('code', '7000')->firstOrCreate(
+                    ['code' => '7000'],
+                    ['name' => 'Historical Balances', 'type' => 'equity', 'is_active' => true]
+                );
+
+                $isCustomer = $validated['type'] === 'customer';
+                $isReceivable = $validated['opening_balance_type'] === 'receivable';
+
+                $tradeAcctId = \App\Models\Account::where('code', $isCustomer ? '1200' : '2000')->value('id');
+
+                if ($isReceivable) {
+                    // We are owed money
+                    $lines = [
+                        ['account_id' => $tradeAcctId, 'debit' => $ob, 'credit' => 0, 'party_id' => $party->id],
+                        ['account_id' => $historicalAcct->id, 'debit' => 0, 'credit' => $ob, 'party_id' => $party->id],
+                    ];
+                } else {
+                    // We owe money
+                    $lines = [
+                        ['account_id' => $tradeAcctId, 'debit' => 0, 'credit' => $ob, 'party_id' => $party->id],
+                        ['account_id' => $historicalAcct->id, 'debit' => $ob, 'credit' => 0, 'party_id' => $party->id],
+                    ];
+                }
+
+                $accountSvc->createEntry([
+                    'date'     => now()->format('Y-m-d'),
+                    'reference_type' => 'opening_balance_migration',
+                    'reference'   => $party->id,
+                    'party_id'       => $party->id,
+                    'description'    => 'Opening Balance: ' . $party->name,
+                    'created_by'     => auth()->id(),
+                ], $lines);
+            }
+            return $party;
+        });
+
+        // Sync with Suppliers table if type is supplier
+        if ($validated['type'] === 'supplier') {
+            \App\Models\Supplier::create([
+                'name' => $party->name,
+                'email' => $party->email,
+                'phone' => $party->phone,
+                'address' => $party->address,
+                'notes' => $party->notes,
+                'party_id' => $party->id
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Party created successfully',
+            'party' => $party
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $party = Party::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'type' => 'required|in:customer,supplier',
+            'opening_balance' => 'nullable|numeric',
+            'credit_limit' => 'nullable|numeric',
+            'payment_terms' => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'opening_balance_type' => 'required|in:receivable,payable',
+            'default_discount' => 'nullable|numeric|between:0,100'
+        ]);
+
+        // Handle current_balance recalculation
+        $ob = floatval($validated['opening_balance'] ?? 0);
+        $new_ob_val = $validated['opening_balance_type'] === 'receivable' ? abs($ob) : -abs($ob);
+        if ($validated['type'] === 'supplier') {
+            $new_ob_val = -$new_ob_val;
+        }
+
+        $old_ob = floatval($party->opening_balance ?? 0);
+        $old_ob_val = $party->opening_balance_type === 'receivable' ? abs($old_ob) : -abs($old_ob);
+        if ($party->type === 'supplier') {
+            $old_ob_val = -$old_ob_val;
+        }
+
+        $new_current_balance = $party->current_balance;
+        if ($party->type !== $validated['type']) {
+            $new_current_balance = -$new_current_balance;
+        }
+        
+        $new_current_balance = $new_current_balance - $old_ob_val + $new_ob_val;
+        $validated['current_balance'] = $new_current_balance;
+        
+        $changedOB = ($ob != $old_ob) || ($validated['opening_balance_type'] !== $party->opening_balance_type) || ($validated['type'] !== $party->type);
+
+        DB::transaction(function() use ($party, $validated, $changedOB, $ob) {
+            $party->update($validated);
+            
+            if ($changedOB) {
+                $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+    
+                // Step 1: Find and reverse existing opening balance entries for this party
+                $oldEntries = \App\Models\JournalEntry::whereIn('reference_type', ['opening_balance_migration', 'opening_balance'])
+                    ->where('is_reversed', 0)
+                    ->where(function ($query) use ($party) {
+                        $query->where('reference', $party->id)
+                              ->orWhere('idempotency_key', 'ob_migrate_' . $party->id)
+                              ->orWhere('narration', "Legacy Opening Balance Seeding for {$party->name}")
+                              ->orWhere('party_id', $party->id);
+                    })
+                    ->get();
+
+                foreach ($oldEntries as $oldE) {
+                    $accountSvc->reverseEntry($oldE->id, 'Opening balance altered during party update');
+                }
+    
+                // Step 2: Create new opening balance entry if > 0
+                if ($ob > 0) {
+                    $historicalAcct = \App\Models\Account::where('code', '7000')->firstOrCreate(
+                        ['code' => '7000'],
+                        ['name' => 'Historical Balances', 'type' => 'equity', 'is_active' => true]
+                    );
+    
+                    $isCustomer = $validated['type'] === 'customer';
+                    $isReceivable = $validated['opening_balance_type'] === 'receivable';
+    
+                    $tradeAcctId = \App\Models\Account::where('code', $isCustomer ? '1200' : '2000')->value('id');
+    
+                    if ($isReceivable) {
+                        $lines = [
+                            ['account_id' => $tradeAcctId, 'debit' => $ob, 'credit' => 0, 'party_id' => $party->id],
+                            ['account_id' => $historicalAcct->id, 'debit' => 0, 'credit' => $ob, 'party_id' => $party->id],
+                        ];
+                    } else {
+                        $lines = [
+                            ['account_id' => $tradeAcctId, 'debit' => 0, 'credit' => $ob, 'party_id' => $party->id],
+                            ['account_id' => $historicalAcct->id, 'debit' => $ob, 'credit' => 0, 'party_id' => $party->id],
+                        ];
+                    }
+    
+                    $accountSvc->createEntry([
+                        'date'     => now()->format('Y-m-d'),
+                        'reference_type' => 'opening_balance_migration',
+                        'reference'   => $party->id,
+                        'party_id'       => $party->id,
+                        'description'    => 'Opening Balance Updated: ' . $party->name,
+                        'created_by'     => auth()->id(),
+                    ], $lines);
+                }
+            }
+        });
+
+        // Sync with Suppliers table if type is supplier
+        if ($validated['type'] === 'supplier') {
+            $supplier = \App\Models\Supplier::withTrashed()->where('party_id', $party->id)->first();
+            if ($supplier) {
+                if ($supplier->trashed()) {
+                    $supplier->restore();
+                }
+                if (
+                    $supplier->name !== $party->name ||
+                    $supplier->email !== $party->email ||
+                    $supplier->phone !== $party->phone ||
+                    $supplier->address !== $party->address ||
+                    $supplier->notes !== $party->notes
+                ) {
+                    $supplier->update([
+                        'name' => $party->name,
+                        'email' => $party->email,
+                        'phone' => $party->phone,
+                        'address' => $party->address,
+                        'notes' => $party->notes,
+                    ]);
+                }
+            } else {
+                // Auto-heal: Create missing supplier record
+                \App\Models\Supplier::create([
+                    'name' => $party->name,
+                    'email' => $party->email,
+                    'phone' => $party->phone,
+                    'address' => $party->address,
+                    'notes' => $party->notes,
+                    'party_id' => $party->id
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Party updated successfully',
+            'party' => $party
+        ]);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $party = Party::findOrFail($id);
+
+        $tenantId = app('current.tenant')->id;
+
+        $hasLedgerEntries = DB::table('journal_entries')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('journal_items')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('payments')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('sales')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('purchases')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists();
+
+        if ($hasLedgerEntries) {
+            return response()->json([
+                'message' => 'Cannot delete party with existing journal entries, payments, or sales/purchases.'
+            ], 422);
+        }
+
+        $party->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Party deleted successfully'
+        ]);
+    }
+
+    /**
+     * Bulk delete multiple parties at once.
+     * Requires passcode if ANY of the parties has a non-zero balance.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids'      => 'required|array|min:1',
+            'ids.*'    => 'string',
+            'passcode' => 'nullable|string',
+        ]);
+
+        // Always require PIN for bulk delete
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->input('passcode', ''), $membership->security_pin)) {
+            return response()->json(['message' => 'Security PIN required for bulk delete.'], 403);
+        }
+
+        $tenantId = app('current.tenant')->id;
+        $ids = $request->input('ids');
+
+        $parties = Party::whereIn('id', $ids)->get();
+
+        if ($parties->isEmpty()) {
+            return response()->json(['message' => 'No matching parties found.'], 404);
+        }
+
+        $hasLedgerEntries = DB::table('journal_entries')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('journal_items')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('payments')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('sales')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('purchases')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists();
+
+        if ($hasLedgerEntries) {
+            return response()->json([
+                'message' => 'Cannot delete parties with existing journal entries, payments, or sales/purchases.'
+            ], 422);
+        }
+
+        $deleted = Party::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "{$deleted} contact(s) deleted successfully."
+        ]);
+    }
+
+
+    public function ledger($id)
+    {
+        $party = Party::findOrFail($id);
+
+        $arAccount = \App\Models\Account::where('code', '1200')->first();
+        $apAccount = \App\Models\Account::where('code', '2000')->first();
+
+        // Determine which account to use based on party type
+        $accountId = ($party->type === 'supplier')
+            ? ($apAccount ? $apAccount->id : null)
+            : ($arAccount ? $arAccount->id : null);
+
+        $transactions = collect();
+        $runningBalance = 0;
+
+        if ($accountId) {
+            $rows = DB::table('journal_items')
+                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->where('journal_items.account_id', $accountId)
+                ->where('journal_entries.party_id', $id)
+                ->select(
+                    'journal_entries.date',
+                    'journal_entries.reference as reference',
+                    'journal_entries.description as description',
+                    'journal_items.debit',
+                    'journal_items.credit'
+                )
+                ->orderBy('journal_entries.date', 'asc')
+                ->orderBy('journal_entries.id', 'asc')
+                ->get();
+
+            $transactions = $rows->map(function ($r) use (&$runningBalance) {
+                $runningBalance += ($r->debit - $r->credit);
+                return (object)[
+                    'date'        => $r->date,
+                    'type'        => $r->debit > 0 ? 'Debit' : 'Credit',
+                    'reference'   => $r->reference ?? 'Journal',
+                    'description' => $r->description ?? 'Journal Entry',
+                    'debit'       => (float) $r->debit,
+                    'credit'      => (float) $r->credit,
+                    'balance'     => $runningBalance,
+                ];
+            });
+        }
+
+        $transactions = $transactions->reverse()->values();
+
+        $stats = [
+            'opening_balance' => 0, // V3 source of truth removes denormalized opening_balance column
+            'total_debit' => $transactions->sum('debit'),
+            'total_credit' => $transactions->sum('credit'),
+            'final_balance' => $runningBalance
+        ];
+
+        return Inertia::render('Parties/Ledger', [
+            'party' => $party,
+            'transactions' => $transactions,
+            'stats' => $stats
+        ]);
+    }
+}

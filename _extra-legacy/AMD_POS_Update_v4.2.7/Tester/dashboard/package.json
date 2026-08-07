@@ -1,0 +1,12 @@
+{
+  "name": "venqore-test-runner",
+  "version": "1.0.0",
+  "description": "VenQore automated test dashboard",
+  "main": "test-runner.js",
+  "scripts": {
+    "start": "node test-runner.js"
+  },
+  "dependencies": {
+    "ws": "^8.17.0"
+  }
+}

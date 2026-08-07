@@ -10,6 +10,10 @@ jobs:
   php-tests:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: app-code/main-app
+
     services:
       mysql:
         image: mysql:8.0
@@ -79,6 +83,10 @@ jobs:
 
   js-build:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: app-code/main-app
 
     steps:
       - name: Checkout Code

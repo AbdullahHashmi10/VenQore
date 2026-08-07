@@ -1,0 +1,43 @@
+# VenQore robots.txt — updated 2026-07-03
+# Human search engines and AI assistants are both explicitly welcome.
+# Machine-readable product summary for LLMs: https://venqore.com/llms.txt
+
+User-agent: *
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /api/
+Disallow: /installer
+
+# AI / LLM crawlers — deliberately allowed (GEO/AEO decision, 2026-07-03)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+Sitemap: https://venqore.com/sitemap.xml
