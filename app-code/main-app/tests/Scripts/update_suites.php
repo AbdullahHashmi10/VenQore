@@ -3,8 +3,22 @@
 require 'vendor/autoload.php';
 use Symfony\Component\Yaml\Yaml;
 
-$registryPath = 'Tester/VerificationCenter/registry/suites.yaml';
+$registryPath = 'tests/VerificationCenter/registry/suites.yaml';
 $data = Yaml::parseFile($registryPath);
+
+// Deduplicate existing members by file path
+foreach ($data['suites'] as &$suite) {
+    if (isset($suite['members']) && is_array($suite['members'])) {
+        $unique = [];
+        foreach ($suite['members'] as $m) {
+            if (isset($m['file']) && !isset($unique[$m['file']])) {
+                $unique[$m['file']] = $m;
+            }
+        }
+        $suite['members'] = array_values($unique);
+    }
+}
+unset($suite);
 
 function countMethods($file) {
     $s = (string) file_get_contents($file);
@@ -23,12 +37,12 @@ function rglob($pattern) {
     return $files;
 }
 
-$root = 'Tester/tests';
+$root = 'tests/tests';
 $all = rglob($root . '/*Test.php');
 $liveFiles = array_values(array_filter($all, fn ($f) => strpos(str_replace('\\', '/', $f), '/_archive/') === false));
 
 foreach ($liveFiles as $fullPath) {
-    $rel = str_replace('\\', '/', substr($fullPath, strlen('Tester/')));
+    $rel = str_replace('\\', '/', substr($fullPath, strlen('tests/')));
     $methods = countMethods($fullPath);
     
     // Find matching suite by matching suite path
@@ -66,7 +80,6 @@ foreach ($liveFiles as $fullPath) {
 }
 
 // Recalculate member methods and files count for each suite
-$actualTotal = 0;
 foreach ($data['suites'] as &$suite) {
     if (!isset($suite['members']) || !is_array($suite['members'])) {
         $suite['members'] = [];
@@ -79,7 +92,11 @@ foreach ($data['suites'] as &$suite) {
     }
     $suite['files'] = $suiteFiles;
     $suite['test_methods'] = $suiteMethods;
-    $actualTotal += $suiteMethods;
+}
+
+$actualTotal = 0;
+foreach ($liveFiles as $f) {
+    $actualTotal += countMethods($f);
 }
 
 $data['meta']['phpunit_test_methods_total'] = $actualTotal;

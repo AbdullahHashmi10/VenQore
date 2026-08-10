@@ -652,7 +652,8 @@ class AiController extends Controller
                 return json_encode(['error' => 'Party not found']);
             }
 
-            return json_encode(['party_name' => $party->name, 'balance' => $party->current_balance ?? 0, 'type' => $party->type ?? 'customer']);
+            $balance = \App\Services\LedgerService::partyNetBalance($party->id, $party->tenant_id, $party->type);
+            return json_encode(['party_name' => $party->name, 'balance' => $balance, 'type' => $party->type ?? 'customer']);
         }
 
         // Cash Reconciliation Helper - analyzes transactions to find discrepancies
@@ -1106,14 +1107,44 @@ class AiController extends Controller
                 'summary' => 'Low Stock Items: ' . Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->count() . ' products requiring reorder.',
                 'records' => Product::whereColumn('stock_quantity', '<=', 'alert_quantity')->take(10)->get(['id', 'name', 'stock_quantity', 'alert_quantity'])->toArray(),
             ],
-            'receivables' => [
-                'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->sum('current_balance'), 2) . ' across ' . \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->count() . ' customers.',
-                'records' => \App\Models\Party::where('type', 'customer')->where('current_balance', '>', 0)->take(10)->get(['id', 'name', 'current_balance'])->toArray(),
-            ],
-            'payables' => [
-                'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->sum('current_balance'), 2) . ' across ' . \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->count() . ' suppliers.',
-                'records' => \App\Models\Party::where('type', 'supplier')->where('current_balance', '>', 0)->take(10)->get(['id', 'name', 'current_balance'])->toArray(),
-            ],
+            'receivables' => (function () {
+                $tenantId = app('current.tenant')->id;
+                $rows = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                    ->join('parties as p', 'ji.party_id', '=', 'p.id')
+                    ->where('je.tenant_id', $tenantId)
+                    ->where('je.is_reversed', 0)
+                    ->where('a.code', '1200')
+                    ->groupBy('p.id', 'p.name')
+                    ->havingRaw('SUM(ji.debit) - SUM(ji.credit) > 0')
+                    ->selectRaw('p.id, p.name, (SUM(ji.debit) - SUM(ji.credit)) as current_balance')
+                    ->get();
+                $sum = $rows->sum('current_balance');
+                return [
+                    'summary' => 'Pending Customer Receivables: PKR ' . number_format((float) $sum, 2) . ' across ' . $rows->count() . ' customers.',
+                    'records' => $rows->take(10)->map(fn($r) => (array)$r)->toArray(),
+                ];
+            })(),
+            'payables' => (function () {
+                $tenantId = app('current.tenant')->id;
+                $rows = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                    ->join('parties as p', 'ji.party_id', '=', 'p.id')
+                    ->where('je.tenant_id', $tenantId)
+                    ->where('je.is_reversed', 0)
+                    ->where('a.code', '2000')
+                    ->groupBy('p.id', 'p.name')
+                    ->havingRaw('SUM(ji.credit) - SUM(ji.debit) > 0')
+                    ->selectRaw('p.id, p.name, (SUM(ji.credit) - SUM(ji.debit)) as current_balance')
+                    ->get();
+                $sum = $rows->sum('current_balance');
+                return [
+                    'summary' => 'Pending Supplier Payables: PKR ' . number_format((float) $sum, 2) . ' across ' . $rows->count() . ' suppliers.',
+                    'records' => $rows->take(10)->map(fn($r) => (array)$r)->toArray(),
+                ];
+            })(),
             'top_sellers' => [
                 'summary' => 'Top Selling Products by Quantity Sold',
                 'records' => \App\Models\SaleItem::select('product_id', DB::raw('SUM(quantity) as total_qty'))

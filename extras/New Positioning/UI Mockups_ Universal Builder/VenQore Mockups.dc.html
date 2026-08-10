@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>body{margin:0;background:#eceae4;font-family:'Instrument Sans',system-ui,sans-serif}a{color:#0e6b4f}a:hover{color:#0a4f3a}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 'Instrument Sans',sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'Instrument Sans',sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#0e6b4f;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 'Instrument Sans',sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">VenQore — master mockups. 01 Landing page.</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Landing — “One core. Every business.” The hero itself is the product demo: pick a business, watch the same shell re-label</div>
+<div class="dv-card" style="width:1440px;background:#eceae4">
+
+<div style="display:flex;align-items:center;gap:14px;padding:20px 56px;background:#eceae4;border-bottom:1px solid #dfdcd2">
+<div style="width:24px;height:24px;border-radius:7px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">V</div>
+<span style="font:600 15px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.01em">VenQore</span>
+<div style="display:flex;gap:26px;margin-left:34px">
+<span style="font:400 13.5px 'Instrument Sans',sans-serif;color:#5c594e">Platform</span>
+<span style="font:400 13.5px 'Instrument Sans',sans-serif;color:#5c594e">How it adapts</span>
+<span style="font:400 13.5px 'Instrument Sans',sans-serif;color:#5c594e">Capabilities</span>
+<span style="font:400 13.5px 'Instrument Sans',sans-serif;color:#5c594e">Pricing</span>
+</div>
+<div style="flex:1"></div>
+<span style="font:400 13.5px 'Instrument Sans',sans-serif;color:#5c594e">Sign in</span>
+<span style="height:36px;padding:0 17px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 13px 'Instrument Sans',sans-serif">Describe your business</span>
+</div>
+
+<div style="padding:76px 56px 0;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start">
+<div>
+<div style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.14em;text-transform:uppercase">Universal Business OS</div>
+<h1 style="margin:20px 0 0;font:400 68px/1.02 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.035em;text-wrap:balance">One core.<br>Every business.</h1>
+<p style="margin:26px 0 0;max-width:460px;font:400 17px/1.55 'Instrument Sans',sans-serif;color:#5c594e;text-wrap:pretty">Every business runs on the same handful of things — people, money, work, resources, records. VenQore already holds all of them. You just tell it what you do, and it arranges itself around your business.</p>
+<div style="display:flex;gap:10px;margin-top:32px">
+<span style="height:46px;padding:0 22px;border-radius:11px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 14.5px 'Instrument Sans',sans-serif">Describe your business →</span>
+<span style="height:46px;padding:0 20px;border-radius:11px;border:1px solid #cfcbbd;color:#16150f;display:flex;align-items:center;font:500 14.5px 'Instrument Sans',sans-serif">Watch it build one</span>
+</div>
+<div style="display:flex;align-items:center;gap:16px;margin-top:26px;font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">
+<span>No modules to choose</span><span style="width:3px;height:3px;border-radius:99px;background:#c2beb0"></span><span>No implementation partner</span><span style="width:3px;height:3px;border-radius:99px;background:#c2beb0"></span><span>Ready in minutes</span>
+</div>
+</div>
+
+<div>
+<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+<sc-for list="{{ industries }}" as="ind" hint-placeholder-count="5">
+<span style="padding:7px 14px;border-radius:99px;font:500 12.5px 'Instrument Sans',sans-serif;cursor:pointer;background:{{ ind.bg }};color:{{ ind.fg }};border:1px solid {{ ind.bd }}" onClick="{{ ind.pick }}">{{ ind.name }}</span>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #e0ddd2;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px -22px rgba(22,21,15,.32)">
+<div style="display:flex;align-items:center;gap:9px;padding:11px 16px;border-bottom:1px solid #eeece5">
+<span style="width:20px;height:20px;border-radius:6px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 10px 'Instrument Sans',sans-serif">V</span>
+<span style="font:600 12.5px 'Instrument Sans',sans-serif;color:#16150f">{{ cur.org }}</span>
+<span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#a9a596;background:#f5f4f0;border-radius:99px;padding:3px 8px">{{ cur.tag }}</span>
+<div style="flex:1"></div>
+<span style="width:20px;height:20px;border-radius:99px;background:#dfe7e2"></span>
+</div>
+<div style="display:grid;grid-template-columns:132px 1fr">
+<div style="border-right:1px solid #eeece5;padding:14px 10px;background:#faf9f6;display:flex;flex-direction:column;gap:2px;min-height:326px">
+<sc-for list="{{ cur.nav }}" as="n" hint-placeholder-count="7">
+<span style="padding:7px 10px;border-radius:8px;font:500 12px 'Instrument Sans',sans-serif;color:{{ n.fg }};background:{{ n.bg }}">{{ n.label }}</span>
+</sc-for>
+<div style="flex:1"></div>
+<span style="padding:7px 10px;font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">same shell · new words</span>
+</div>
+<div style="padding:16px 18px">
+<div style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">{{ cur.today }}</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+<sc-for list="{{ cur.stats }}" as="s" hint-placeholder-count="3">
+<div style="border:1px solid #eeece5;border-radius:11px;padding:11px 12px">
+<div style="font:400 11px 'Instrument Sans',sans-serif;color:#8b877a">{{ s.l }}</div>
+<div style="font:500 19px 'Instrument Sans',sans-serif;color:#16150f;margin-top:3px;letter-spacing:-.02em">{{ s.v }}</div>
+</div>
+</sc-for>
+</div>
+<div style="background:#16150f;border-radius:12px;padding:13px 15px;margin-top:9px;color:#fff">
+<div style="font:400 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Needs you today</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:9px">
+<sc-for list="{{ cur.needs }}" as="d" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:9px"><span style="width:5px;height:5px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif">{{ d.t }}</span><span style="font:500 11.5px 'Instrument Sans',sans-serif;color:#9fd4bd">{{ d.a }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:9px;margin-top:9px;border:1px solid #e0ddd2;border-radius:10px;padding:10px 13px">
+<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#9a9689" stroke-width="1.5"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#a9a596">{{ cur.ask }}</span>
+</div>
+</div>
+</div>
+</div>
+<div style="margin-top:11px;font:400 12px/1.5 'Instrument Sans',sans-serif;color:#8b877a;max-width:520px">Not five products. One system — the navigation, the logic and the design never change. Only the words, the priorities and the numbers do.</div>
+</div>
+</div>
+
+<div style="margin:84px 56px 0;border-top:1px solid #dfdcd2;padding-top:52px">
+<div style="display:flex;align-items:baseline;gap:14px">
+<span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.14em;text-transform:uppercase">One core → infinite businesses</span>
+<span style="flex:1;height:1px;background:#dfdcd2"></span>
+</div>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:56px;margin-top:34px;align-items:center">
+<div>
+<h2 style="margin:0;font:400 34px/1.15 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Complexity underneath.<br>Simplicity above.</h2>
+<p style="margin:16px 0 0;font:400 14.5px/1.6 'Instrument Sans',sans-serif;color:#5c594e">Eleven primitives sit under every VenQore workspace. Your business only ever sees the handful it needs — named the way you already talk.</p>
+</div>
+<div>
+<div style="display:flex;flex-wrap:wrap;gap:7px">
+<sc-for list="{{ primitives }}" as="p" hint-placeholder-count="11">
+<span style="padding:9px 16px;border-radius:99px;border:1px solid #cfcbbd;font:500 13px 'Instrument Sans',sans-serif;color:#3c3a33;background:rgba(255,255,255,.55)">{{ p }}</span>
+</sc-for>
+</div>
+<div style="height:34px;display:flex;justify-content:center;align-items:center"><span style="width:1px;height:34px;background:#cfcbbd"></span></div>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+<sc-for list="{{ configs }}" as="c" hint-placeholder-count="5">
+<div style="background:#fff;border:1px solid #e0ddd2;border-radius:13px;padding:14px 15px">
+<div style="font:600 13px 'Instrument Sans',sans-serif;color:#16150f">{{ c.name }}</div>
+<div style="margin-top:9px;display:flex;flex-direction:column;gap:5px">
+<sc-for list="{{ c.words }}" as="w" hint-placeholder-count="4">
+<span style="font:400 12px 'Instrument Sans',sans-serif;color:#6f6c61">{{ w }}</span>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<div style="margin:80px 56px 0;background:#16150f;border-radius:20px;padding:48px 56px;color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center">
+<div>
+<div style="font:400 11.5px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.45);letter-spacing:.14em;text-transform:uppercase">And when the business changes</div>
+<h2 style="margin:18px 0 0;font:400 38px/1.15 'Instrument Sans',sans-serif;letter-spacing:-.03em">Just tell it.<br>VenQore changes with you.</h2>
+<p style="margin:18px 0 0;max-width:400px;font:400 14.5px/1.6 'Instrument Sans',sans-serif;color:rgba(255,255,255,.6)">New service line, new branch, new way of working — say it in a sentence. The capability is already built; it just has to be turned toward you.</p>
+</div>
+<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px 22px">
+<div style="font:400 14.5px 'Instrument Sans',sans-serif;color:#fff">“We're starting equipment rentals.”</div>
+<div style="height:1px;background:rgba(255,255,255,.12);margin:16px 0"></div>
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">I can add rental management to your workspace:</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+<sc-for list="{{ rental }}" as="r" hint-placeholder-count="8">
+<span style="padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.1);font:400 12px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.86)">{{ r }}</span>
+</sc-for>
+</div>
+<div style="display:flex;gap:9px;margin-top:20px">
+<span style="height:38px;padding:0 18px;border-radius:9px;background:#fff;color:#16150f;display:flex;align-items:center;font:500 13px 'Instrument Sans',sans-serif">Add to workspace</span>
+<span style="height:38px;padding:0 16px;border-radius:9px;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.8);display:flex;align-items:center;font:500 13px 'Instrument Sans',sans-serif">Show me first</span>
+</div>
+</div>
+</div>
+
+<div style="padding:56px 56px 60px;display:flex;align-items:flex-end;justify-content:space-between">
+<div>
+<h2 style="margin:0;font:400 40px/1.1 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Tell us what you do.</h2>
+<p style="margin:12px 0 0;font:400 15px 'Instrument Sans',sans-serif;color:#5c594e">We'll build the software around you — today, and every time you change.</p>
+</div>
+<span style="height:50px;padding:0 26px;border-radius:12px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 15px 'Instrument Sans',sans-serif">Start with a sentence →</span>
+</div>
+
+</div>
+</div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>02 — AI onboarding. One sentence in; a whole workspace out. Read left to right</div>
+<div class="dv-card" style="width:1440px;background:#eceae4">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+
+<div style="padding:54px 42px;border-right:1px solid #dfdcd2">
+<div style="font:400 11px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.14em;text-transform:uppercase">Step 1 · You talk</div>
+<h2 style="margin:22px 0 0;font:400 34px/1.15 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">What does your<br>business do?</h2>
+<p style="margin:12px 0 0;font:400 14px/1.55 'Instrument Sans',sans-serif;color:#8b877a">In your own words. No menus, no module list.</p>
+<div style="margin-top:26px;background:#fff;border:1px solid #e0ddd2;border-radius:14px;padding:20px 22px;box-shadow:0 10px 28px -20px rgba(22,21,15,.4)">
+<div style="font:400 16px/1.6 'Instrument Sans',sans-serif;color:#16150f">I run a three-location restaurant. We do dine-in, takeaway and delivery, we have 25 employees, and we make our own food.<span style="display:inline-block;width:2px;height:18px;background:#0e6b4f;vertical-align:-3px;margin-left:2px"></span></div>
+</div>
+<div style="display:flex;align-items:center;gap:9px;margin-top:14px">
+<span style="height:38px;padding:0 18px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 13px 'Instrument Sans',sans-serif">Continue</span>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">or speak it · or upload last year's accounts</span>
+</div>
+<div style="margin-top:34px;border-top:1px solid #dfdcd2;padding-top:18px">
+<div style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">Two questions back</div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+<div style="background:rgba(255,255,255,.6);border:1px solid #e0ddd2;border-radius:11px;padding:12px 14px"><div style="font:400 13.5px 'Instrument Sans',sans-serif;color:#16150f">Do the three locations share one kitchen, or cook separately?</div><div style="display:flex;gap:6px;margin-top:9px"><span style="padding:5px 12px;border-radius:99px;background:#16150f;color:#fff;font:500 12px 'Instrument Sans',sans-serif">Separately</span><span style="padding:5px 12px;border-radius:99px;border:1px solid #cfcbbd;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">One kitchen</span></div></div>
+<div style="background:rgba(255,255,255,.6);border:1px solid #e0ddd2;border-radius:11px;padding:12px 14px"><div style="font:400 13.5px 'Instrument Sans',sans-serif;color:#16150f">Do you want staff to clock in and out here?</div><div style="display:flex;gap:6px;margin-top:9px"><span style="padding:5px 12px;border-radius:99px;background:#16150f;color:#fff;font:500 12px 'Instrument Sans',sans-serif">Yes</span><span style="padding:5px 12px;border-radius:99px;border:1px solid #cfcbbd;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">Not for now</span></div></div>
+</div>
+</div>
+</div>
+
+<div style="padding:54px 42px;border-right:1px solid #dfdcd2;background:rgba(255,255,255,.4)">
+<div style="font:400 11px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.14em;text-transform:uppercase">Step 2 · It understands</div>
+<h2 style="margin:22px 0 0;font:400 34px/1.15 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Here's what<br>I've understood.</h2>
+<div style="margin-top:24px;display:flex;flex-direction:column;gap:1px;background:#e6e3da;border:1px solid #e6e3da;border-radius:12px;overflow:hidden">
+<sc-for list="{{ understood }}" as="u" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;gap:12px;background:#fff;padding:12px 15px">
+<span style="width:104px;font:400 11.5px 'IBM Plex Mono',monospace;color:#a9a596">{{ u.k }}</span>
+<span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:#16150f">{{ u.v }}</span>
+<span style="font:500 11.5px 'Instrument Sans',sans-serif;color:#0e6b4f">Edit</span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:26px;font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">So I'll build you</div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ willBuild }}" as="b" hint-placeholder-count="6">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:11px;padding:11px 14px;display:flex;gap:11px;align-items:flex-start">
+<span style="width:15px;height:15px;border-radius:5px;background:#0e6b4f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 9px 'Instrument Sans',sans-serif;margin-top:2px">✓</span>
+<span style="flex:1"><span style="display:block;font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">{{ b.t }}</span><span style="display:block;font:400 12px/1.45 'Instrument Sans',sans-serif;color:#8b877a;margin-top:2px">{{ b.d }}</span></span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:18px;padding:13px 15px;border:1px dashed #cfcbbd;border-radius:11px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#6f6c61">Left out for now — one sentence brings any of them back:</div>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px">
+<sc-for list="{{ skipped }}" as="s" hint-placeholder-count="5">
+<span style="padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.05);font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">{{ s }}</span>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="padding:54px 42px;background:#16150f;color:#fff">
+<div style="font:400 11px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.42);letter-spacing:.14em;text-transform:uppercase">Step 3 · It builds</div>
+<h2 style="margin:22px 0 0;font:400 34px/1.15 'Instrument Sans',sans-serif;letter-spacing:-.03em">Your workspace<br>is ready.</h2>
+<div style="margin-top:26px;display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:center;gap:11px"><span style="width:15px;height:15px;border-radius:99px;border:1.5px solid #9fd4bd;display:flex;align-items:center;justify-content:center;font:600 8px 'Instrument Sans',sans-serif;color:#9fd4bd">✓</span><span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.9)">Named everything the way you do</span><span style="font:400 11px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.35)">guest, dish, cover</span></div>
+<div style="display:flex;align-items:center;gap:11px"><span style="width:15px;height:15px;border-radius:99px;border:1.5px solid #9fd4bd;display:flex;align-items:center;justify-content:center;font:600 8px 'Instrument Sans',sans-serif;color:#9fd4bd">✓</span><span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.9)">Set up 3 locations and one ledger</span><span style="font:400 11px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.35)">done</span></div>
+<div style="display:flex;align-items:center;gap:11px"><span style="width:15px;height:15px;border-radius:99px;border:1.5px solid #9fd4bd;display:flex;align-items:center;justify-content:center;font:600 8px 'Instrument Sans',sans-serif;color:#9fd4bd">✓</span><span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.9)">Built the kitchen and delivery flow</span><span style="font:400 11px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.35)">done</span></div>
+<div style="display:flex;align-items:center;gap:11px"><span style="width:15px;height:15px;border-radius:99px;border:1.5px solid rgba(255,255,255,.3)"></span><span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Waiting on you: 25 staff names</span><span style="font:500 11.5px 'Instrument Sans',sans-serif;color:#9fd4bd">Import</span></div>
+</div>
+<div style="margin-top:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
+<span style="width:18px;height:18px;border-radius:6px;background:#fff;color:#16150f;display:flex;align-items:center;justify-content:center;font:600 9px 'Instrument Sans',sans-serif">V</span>
+<span style="font:600 12px 'Instrument Sans',sans-serif">Table Nine</span>
+<span style="font:400 10px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.4);margin-left:auto">preview</span>
+</div>
+<div style="display:grid;grid-template-columns:96px 1fr;min-height:172px">
+<div style="border-right:1px solid rgba(255,255,255,.1);padding:11px 8px;display:flex;flex-direction:column;gap:2px">
+<span style="padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.12);font:500 11px 'Instrument Sans',sans-serif">Home</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Orders</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Tables</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Kitchen</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Recipes</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Staff</span>
+<span style="padding:5px 8px;font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Money</span>
+</div>
+<div style="padding:13px 15px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+<div style="border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 11px"><div style="font:400 10.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.45)">Covers tonight</div><div style="font:500 17px 'Instrument Sans',sans-serif;margin-top:2px">182</div></div>
+<div style="border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 11px"><div style="font:400 10.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.45)">Open tickets</div><div style="font:500 17px 'Instrument Sans',sans-serif;margin-top:2px">11</div></div>
+</div>
+<div style="margin-top:7px;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:10px 11px">
+<div style="font:400 10.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.45)">Kitchen</div>
+<div style="display:flex;gap:4px;margin-top:8px"><span style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.5)"></span><span style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.32)"></span><span style="flex:2;height:5px;border-radius:99px;background:rgba(255,255,255,.16)"></span></div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:9px;margin-top:22px">
+<span style="height:44px;padding:0 22px;border-radius:11px;background:#fff;color:#16150f;display:flex;align-items:center;font:500 14px 'Instrument Sans',sans-serif">Enter your workspace →</span>
+<span style="height:44px;padding:0 18px;border-radius:11px;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.82);display:flex;align-items:center;font:500 14px 'Instrument Sans',sans-serif">Change something</span>
+</div>
+<p style="margin:16px 0 0;font:400 12.5px/1.55 'Instrument Sans',sans-serif;color:rgba(255,255,255,.45)">Nothing here is permanent. Anything you add, rename or remove later takes one sentence.</p>
+</div>
+
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>03 — The universal dashboard. Nine words of navigation, one command bar, seven cards. Nothing else</div>
+<div class="dv-card" style="width:1440px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 26px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">V</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">Noor Mart</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Owner</span>
+<div style="flex:1"></div>
+<span style="font:400 12.5px 'IBM Plex Mono',monospace;color:#a9a596">Tuesday, 8 August</span>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">AK</div>
+</div>
+<div style="display:grid;grid-template-columns:190px 1fr">
+<div style="border-right:1px solid #e6e3da;background:#fff;padding:16px 12px;display:flex;flex-direction:column;gap:2px;min-height:780px">
+<sc-for list="{{ uNav }}" as="n" hint-placeholder-count="9">
+<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px" style-hover="background:#f5f4f0">
+<span style="width:5px;height:5px;border-radius:2px;background:#c2beb0"></span>
+<span style="flex:1;font:500 13.5px 'Instrument Sans',sans-serif;color:#3c3a33">{{ n.n }}</span>
+<span style="font:400 11px 'IBM Plex Mono',monospace;color:#b3af9f">{{ n.s }}</span>
+</div>
+</sc-for>
+<div style="flex:1"></div>
+<div style="padding:12px;border:1px dashed #d3cfc1;border-radius:11px">
+<div style="font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Add a capability</div>
+<div style="font:400 11.5px/1.45 'Instrument Sans',sans-serif;color:#8b877a;margin-top:3px">Say what you've started doing. It appears here.</div>
+</div>
+</div>
+<div style="padding:26px 30px 34px">
+
+<div style="background:#fff;border:1px solid #e0ddd2;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:13px;box-shadow:0 8px 22px -18px rgba(22,21,15,.5)">
+<svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="#16150f" stroke-width="1.4"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="flex:1;font:400 17px 'Instrument Sans',sans-serif;color:#a9a596">Ask VenQore anything — or tell it to do something</span>
+<span style="font:400 11px 'IBM Plex Mono',monospace;color:#b3af9f;border:1px solid #e6e3da;border-radius:6px;padding:4px 8px">⌘K</span>
+</div>
+<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+<span style="padding:6px 13px;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid #e0ddd2;font:400 12.5px 'Instrument Sans',sans-serif;color:#5c594e">How much did we sell yesterday?</span>
+<span style="padding:6px 13px;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid #e0ddd2;font:400 12.5px 'Instrument Sans',sans-serif;color:#5c594e">Who owes us money?</span>
+<span style="padding:6px 13px;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid #e0ddd2;font:400 12.5px 'Instrument Sans',sans-serif;color:#5c594e">Create a quotation for Ahmed Traders</span>
+<span style="padding:6px 13px;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid #e0ddd2;font:400 12.5px 'Instrument Sans',sans-serif;color:#5c594e">Make a dashboard for my ops manager</span>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px">
+<sc-for list="{{ uStats }}" as="s" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:17px 19px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">{{ s.l }}</div>
+<div style="font:500 25px 'Instrument Sans',sans-serif;color:#16150f;margin-top:6px;letter-spacing:-.03em">{{ s.v }}</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">{{ s.n }}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 380px;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:20px 22px 14px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Money through the day</div><div style="font:500 30px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.03em">Rs 214,380</div></div>
+<div style="display:flex;padding:3px;border-radius:9px;background:#f1efe9;gap:2px"><span style="padding:6px 12px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.07);font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Today</span><span style="padding:6px 12px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Week</span><span style="padding:6px 12px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Month</span></div>
+</div>
+<svg viewBox="0 0 760 170" style="width:100%;height:170px;margin-top:16px;display:block" preserveAspectRatio="none">
+<line x1="0" y1="158" x2="760" y2="158" stroke="#e6e3da"></line>
+<g fill="#e2e6dd"><rect x="8" y="132" width="40" height="26" rx="3"></rect><rect x="62" y="118" width="40" height="40" rx="3"></rect><rect x="116" y="102" width="40" height="56" rx="3"></rect></g>
+<g fill="#16150f"><rect x="170" y="76" width="40" height="82" rx="3"></rect><rect x="224" y="58" width="40" height="100" rx="3"></rect><rect x="278" y="30" width="40" height="128" rx="3"></rect><rect x="332" y="48" width="40" height="110" rx="3"></rect><rect x="386" y="66" width="40" height="92" rx="3"></rect><rect x="440" y="40" width="40" height="118" rx="3"></rect><rect x="494" y="84" width="40" height="74" rx="3"></rect></g>
+<g fill="#eeece5"><rect x="548" y="110" width="40" height="48" rx="3"></rect><rect x="602" y="120" width="40" height="38" rx="3"></rect><rect x="656" y="130" width="40" height="28" rx="3"></rect><rect x="710" y="140" width="40" height="18" rx="3"></rect></g>
+</svg>
+<div style="display:flex;justify-content:space-between;font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;padding:2px 0 8px"><span>08</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span><span>20</span><span>22</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#16150f;border-radius:16px;padding:19px 21px;color:#fff">
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Needs you today</div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:11px">
+<sc-for list="{{ uNeeds }}" as="d" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:{{ d.c }}"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif">{{ d.t }}</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#9fd4bd">{{ d.a }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="flex:1;background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:19px 21px">
+<div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:5px;background:#dfe7e2"></span><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">What VenQore noticed</span></div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:13px">
+<sc-for list="{{ uInsight }}" as="t" hint-placeholder-count="2">
+<div style="font:400 13px/1.55 'Instrument Sans',sans-serif;color:#3c3a33;padding-left:11px;border-left:2px solid #dfe7e2">{{ t }}</div>
+</sc-for>
+</div>
+<div style="margin-top:14px;font:500 12.5px 'Instrument Sans',sans-serif;color:#0e6b4f">Show me the numbers →</div>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Recent activity</div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ uActivity }}" as="a" hint-placeholder-count="4">
+<div style="display:flex;align-items:baseline;gap:8px"><span style="flex:1;font:400 12.5px/1.45 'Instrument Sans',sans-serif;color:#3c3a33"><span style="color:#16150f;font-weight:500">{{ a.w }}</span> {{ a.t }}</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">{{ a.a }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Running by itself</div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:99px;background:#0e6b4f"></span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">Reorder when stock hits minimum</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">4 today</span></div>
+<div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:99px;background:#0e6b4f"></span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">Chase invoices at 30 days</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">9 sent</span></div>
+<div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">Expenses over Rs 20k need approval</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">3 waiting</span></div>
+</div>
+</div>
+<div style="border:1px dashed #d3cfc1;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.4);min-height:130px">
+<span style="font:400 18px 'Instrument Sans',sans-serif;color:#8b877a;line-height:1">+</span>
+<span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">Add a card</span>
+<span style="font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">or just describe the one you want</span>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>04 — Same system, five businesses. Identical chrome, grid and logic; only the words and priorities move</div>
+<div class="dv-card" style="width:1440px;background:#eceae4;padding:36px 34px 40px">
+<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:6px">
+<h2 style="margin:0;font:400 30px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">One system. Five businesses.</h2>
+<span style="flex:1;height:1px;background:#dfdcd2"></span>
+<span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.1em;text-transform:uppercase">Same build · different words</span>
+</div>
+<p style="margin:0 0 24px;font:400 14px 'Instrument Sans',sans-serif;color:#5c594e;max-width:760px">Every panel below is the same screen from the same product. Nothing was redesigned — the navigation, layout and rules are identical. Only the vocabulary, the metrics that matter and the first action changed.</p>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+<sc-for list="{{ variants }}" as="v" hint-placeholder-count="5">
+<div style="background:#fff;border:1px solid #e0ddd2;border-radius:14px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:7px;padding:10px 12px;border-bottom:1px solid #eeece5">
+<span style="width:18px;height:18px;border-radius:6px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 9px 'Instrument Sans',sans-serif">V</span>
+<span style="font:600 12px 'Instrument Sans',sans-serif;color:#16150f">{{ v.org }}</span>
+</div>
+<div style="padding:7px 10px;border-bottom:1px solid #eeece5;background:#faf9f6;font:400 10px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">{{ v.kind }}</div>
+<div style="display:flex;flex-wrap:wrap;gap:3px;padding:9px 10px;border-bottom:1px solid #eeece5">
+<sc-for list="{{ v.nav }}" as="n" hint-placeholder-count="7">
+<span style="padding:4px 8px;border-radius:6px;background:#f5f4f0;font:500 10.5px 'Instrument Sans',sans-serif;color:#5c594e">{{ n }}</span>
+</sc-for>
+</div>
+<div style="padding:12px 13px">
+<div style="display:flex;flex-direction:column;gap:7px">
+<sc-for list="{{ v.stats }}" as="s" hint-placeholder-count="2">
+<div style="border:1px solid #eeece5;border-radius:10px;padding:9px 11px">
+<div style="font:400 10.5px 'Instrument Sans',sans-serif;color:#8b877a">{{ s.l }}</div>
+<div style="font:500 18px 'Instrument Sans',sans-serif;color:#16150f;margin-top:2px;letter-spacing:-.02em">{{ s.v }}</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:11px;font:400 10px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">{{ v.listT }}</div>
+<div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ v.list }}" as="l" hint-placeholder-count="3">
+<div style="display:flex;gap:7px;align-items:flex-start"><span style="width:5px;height:5px;border-radius:99px;background:#e0a758;margin-top:5px"></span><span style="flex:1;font:400 11.5px/1.4 'Instrument Sans',sans-serif;color:#3c3a33">{{ l }}</span></div>
+</sc-for>
+</div>
+<div style="margin-top:13px;height:32px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:500 11.5px 'Instrument Sans',sans-serif">{{ v.act }}</div>
+<div style="margin-top:8px;border:1px solid #e6e3da;border-radius:8px;padding:8px 10px;font:400 10.5px 'Instrument Sans',sans-serif;color:#a9a596">{{ v.ask }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<div style="background:rgba(255,255,255,.55);border:1px solid #e0ddd2;border-radius:12px;padding:15px 17px"><div style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">What never changes</div><div style="margin-top:6px;font:400 12.5px/1.5 'Instrument Sans',sans-serif;color:#6f6c61">Design language · navigation shape · records · money and the ledger · permissions · search · reports · automations · AI.</div></div>
+<div style="background:rgba(255,255,255,.55);border:1px solid #e0ddd2;border-radius:12px;padding:15px 17px"><div style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">What always changes</div><div style="margin-top:6px;font:400 12.5px/1.5 'Instrument Sans',sans-serif;color:#6f6c61">Vocabulary · which metrics lead · what “needs you today” means · the first action · forms · workflows · density.</div></div>
+<div style="background:#16150f;border-radius:12px;padding:15px 17px;color:#fff"><div style="font:500 13px 'Instrument Sans',sans-serif">Why it matters</div><div style="margin-top:6px;font:400 12.5px/1.5 'Instrument Sans',sans-serif;color:rgba(255,255,255,.65)">A school never feels like a shop with the word “customer” swapped out — and it never feels like a different product either.</div></div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>05 — Desktop and phone, same business. The phone is a decision device, not a shrunken dashboard</div>
+<div class="dv-card" style="width:1440px;background:#eceae4;padding:36px 34px 40px">
+<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:24px">
+<h2 style="margin:0;font:400 30px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Noor Mart, on both.</h2>
+<span style="flex:1;height:1px;background:#dfdcd2"></span>
+<span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#8b877a;letter-spacing:.1em;text-transform:uppercase">One business · always in sync</span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 344px;gap:34px;align-items:start">
+
+<div style="background:#f5f4f0;border:1px solid #e0ddd2;border-radius:16px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 18px;background:#fff;border-bottom:1px solid #e6e3da">
+<span style="width:22px;height:22px;border-radius:7px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 11px 'Instrument Sans',sans-serif">V</span>
+<span style="font:600 12.5px 'Instrument Sans',sans-serif;color:#16150f">Noor Mart</span>
+<div style="flex:1"></div>
+<span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#a9a596">⌘K</span>
+<span style="width:22px;height:22px;border-radius:99px;background:#dfe7e2"></span>
+</div>
+<div style="display:grid;grid-template-columns:140px 1fr;min-height:470px">
+<div style="border-right:1px solid #e6e3da;background:#fff;padding:13px 9px;display:flex;flex-direction:column;gap:2px">
+<span style="padding:7px 10px;border-radius:8px;background:#eeece5;font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Home</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">People</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Work</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Resources</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Money</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Documents</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Calendar</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Reports</span>
+<span style="padding:7px 10px;font:500 12px 'Instrument Sans',sans-serif;color:#6f6c61">Automations</span>
+</div>
+<div style="padding:18px 20px">
+<div style="background:#fff;border:1px solid #e0ddd2;border-radius:11px;padding:12px 15px;display:flex;align-items:center;gap:10px">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#16150f" stroke-width="1.4"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="flex:1;font:400 14px 'Instrument Sans',sans-serif;color:#a9a596">Ask VenQore anything…</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:13px 15px"><div style="font:400 11px 'Instrument Sans',sans-serif;color:#8b877a">Money in today</div><div style="font:500 21px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px;letter-spacing:-.02em">Rs 214k</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:13px 15px"><div style="font:400 11px 'Instrument Sans',sans-serif;color:#8b877a">Owed to you</div><div style="font:500 21px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px;letter-spacing:-.02em">Rs 1.84M</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:13px 15px"><div style="font:400 11px 'Instrument Sans',sans-serif;color:#8b877a">People at work</div><div style="font:500 21px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px;letter-spacing:-.02em">38 / 42</div></div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px;margin-top:9px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Money through the day</div>
+<svg viewBox="0 0 620 120" style="width:100%;height:120px;margin-top:12px;display:block" preserveAspectRatio="none">
+<line x1="0" y1="112" x2="620" y2="112" stroke="#e6e3da"></line>
+<g fill="#16150f"><rect x="10" y="86" width="34" height="26" rx="3"></rect><rect x="58" y="70" width="34" height="42" rx="3"></rect><rect x="106" y="52" width="34" height="60" rx="3"></rect><rect x="154" y="30" width="34" height="82" rx="3"></rect><rect x="202" y="20" width="34" height="92" rx="3"></rect><rect x="250" y="42" width="34" height="70" rx="3"></rect><rect x="298" y="34" width="34" height="78" rx="3"></rect></g>
+<g fill="#eeece5"><rect x="346" y="66" width="34" height="46" rx="3"></rect><rect x="394" y="78" width="34" height="34" rx="3"></rect><rect x="442" y="84" width="34" height="28" rx="3"></rect><rect x="490" y="92" width="34" height="20" rx="3"></rect><rect x="538" y="98" width="34" height="14" rx="3"></rect><rect x="586" y="102" width="24" height="10" rx="3"></rect></g>
+</svg>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px">
+<div style="background:#16150f;border-radius:12px;padding:14px 16px;color:#fff"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Needs you today</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:9px"><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:99px;background:#e2705c"></span><span style="flex:1;font:400 12px 'Instrument Sans',sans-serif">9 invoices past due</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 12px 'Instrument Sans',sans-serif">3 expenses to approve</span></div><div style="display:flex;align-items:center;gap:8px"><span style="width:5px;height:5px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 12px 'Instrument Sans',sans-serif">6 items to reorder</span></div></div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:14px 16px"><div style="font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Recent activity</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:9px"><div style="font:400 11.5px/1.4 'Instrument Sans',sans-serif;color:#3c3a33"><span style="font-weight:500;color:#16150f">Ayesha K.</span> closed Branch 2</div><div style="font:400 11.5px/1.4 'Instrument Sans',sans-serif;color:#3c3a33"><span style="font-weight:500;color:#16150f">System</span> raised PO-2291</div><div style="font:400 11.5px/1.4 'Instrument Sans',sans-serif;color:#3c3a33"><span style="font-weight:500;color:#16150f">Noor Traders</span> paid INV-8842</div></div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="background:#16150f;border-radius:38px;padding:9px">
+<div style="background:#f5f4f0;border-radius:31px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 20px 6px;font:500 11px 'Instrument Sans',sans-serif;color:#16150f"><span>9:41</span><span style="display:flex;gap:4px"><span style="width:14px;height:8px;border-radius:2px;background:#16150f;opacity:.75"></span><span style="width:9px;height:8px;border-radius:2px;background:#16150f;opacity:.4"></span></span></div>
+<div style="padding:8px 18px 0">
+<div style="display:flex;align-items:center;gap:9px">
+<span style="width:22px;height:22px;border-radius:7px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 10px 'Instrument Sans',sans-serif">V</span>
+<span style="font:600 13px 'Instrument Sans',sans-serif;color:#16150f">Noor Mart</span>
+<div style="flex:1"></div>
+<span style="width:22px;height:22px;border-radius:99px;background:#dfe7e2"></span>
+</div>
+<div style="margin-top:14px;font:400 10.5px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">Waiting on you · 3</div>
+<div style="margin-top:9px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ mHome }}" as="m" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:13px 15px">
+<div style="display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border-radius:99px;background:{{ m.b }}"></span><span style="flex:1;font:500 14px 'Instrument Sans',sans-serif;color:#16150f">{{ m.t }}</span></div>
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:4px;padding-left:14px">{{ m.s }}</div>
+<div style="display:flex;gap:7px;margin-top:11px">
+<span style="flex:1;height:38px;border-radius:10px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:500 13px 'Instrument Sans',sans-serif">Approve</span>
+<span style="flex:1;height:38px;border-radius:10px;border:1px solid #e0ddd2;color:#5c594e;display:flex;align-items:center;justify-content:center;font:500 13px 'Instrument Sans',sans-serif">Open</span>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:16px;font:400 10.5px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">Today</div>
+<div style="margin-top:9px;background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:14px 15px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Money in</span><span style="font:400 11px 'IBM Plex Mono',monospace;color:#0e6b4f">+12%</span></div>
+<div style="font:500 26px 'Instrument Sans',sans-serif;color:#16150f;margin-top:3px;letter-spacing:-.03em">Rs 214,380</div>
+<div style="display:flex;gap:3px;align-items:flex-end;height:38px;margin-top:11px">
+<span style="flex:1;height:34%;border-radius:2px;background:#eeece5"></span><span style="flex:1;height:52%;border-radius:2px;background:#eeece5"></span><span style="flex:1;height:70%;border-radius:2px;background:#16150f"></span><span style="flex:1;height:92%;border-radius:2px;background:#16150f"></span><span style="flex:1;height:76%;border-radius:2px;background:#16150f"></span><span style="flex:1;height:58%;border-radius:2px;background:#eeece5"></span><span style="flex:1;height:40%;border-radius:2px;background:#eeece5"></span><span style="flex:1;height:26%;border-radius:2px;background:#eeece5"></span>
+</div>
+</div>
+<div style="margin-top:9px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ mFeed }}" as="f" hint-placeholder-count="3">
+<div style="background:rgba(255,255,255,.65);border:1px solid #e6e3da;border-radius:12px;padding:11px 14px;display:flex;align-items:baseline;gap:8px">
+<span style="flex:1"><span style="display:block;font:500 13px 'Instrument Sans',sans-serif;color:#16150f">{{ f.t }}</span><span style="display:block;font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:2px">{{ f.s }}</span></span>
+<span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">{{ f.a }}</span>
+</div>
+</sc-for>
+</div>
+<div style="height:14px"></div>
+</div>
+<div style="position:sticky;bottom:0;background:linear-gradient(180deg,rgba(245,244,240,0),#f5f4f0 34%);padding:14px 18px 8px">
+<div style="height:50px;border-radius:15px;background:#16150f;display:flex;align-items:center;gap:10px;padding:0 16px;box-shadow:0 8px 20px -12px rgba(22,21,15,.9)">
+<svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="flex:1;font:400 14.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Ask or tell VenQore…</span>
+<span style="width:26px;height:26px;border-radius:99px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><span style="width:9px;height:12px;border-radius:99px;background:rgba(255,255,255,.7)"></span></span>
+</div>
+<div style="display:flex;justify-content:space-between;padding:12px 12px 4px">
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#16150f">Home</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#a9a596">Work</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#a9a596">Money</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#a9a596">People</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#a9a596">More</span>
+</div>
+<div style="height:4px;width:110px;border-radius:99px;background:#d3cfc1;margin:6px auto 8px"></div>
+</div>
+</div>
+</div>
+<div style="background:rgba(255,255,255,.55);border:1px solid #e0ddd2;border-radius:12px;padding:14px 16px">
+<div style="font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">The phone gets a different job</div>
+<div style="margin-top:6px;font:400 12px/1.55 'Instrument Sans',sans-serif;color:#6f6c61">Desktop is where you run the business. The phone is where you unblock it: approve, sign off, answer, act — three decisions and a command bar, everything else one tap deeper.</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Coming next in this file: <a class="dv-oid" href="#1a">02</a> AI onboarding · 03 universal dashboard · 04 five business configurations · 05 desktop + mobile. Try: “make the hero darker” · “swap the demo panel for a bigger dashboard” · “show me a second landing direction”</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { pick: 0 };
+  renderVals() {
+    const SET = [
+      { name: 'Supermarket', org: 'Noor Mart', tag: '3 branches', today: 'Tuesday · Main branch',
+        nav: ['Home','Sales','Products','Suppliers','Cash','Branches','Reports'],
+        stats: [{l:'Sales today',v:'Rs 214k'},{l:'Baskets',v:'1,204'},{l:'Cash in drawer',v:'Rs 38k'}],
+        needs: [{t:'6 lines below reorder point',a:'Order'},{t:'Branch 2 cash not closed',a:'Review'}],
+        ask: 'Ask VenQore — “what sold worst this week?”' },
+      { name: 'Restaurant', org: 'Table Nine', tag: '3 locations', today: 'Tuesday · Dinner service',
+        nav: ['Home','Orders','Tables','Kitchen','Recipes','Staff','Reports'],
+        stats: [{l:'Covers tonight',v:'182'},{l:'Open tickets',v:'11'},{l:'Avg ticket',v:'Rs 1,940'}],
+        needs: [{t:'Chicken stock runs out at 9pm',a:'Order'},{t:'2 delivery riders unassigned',a:'Assign'}],
+        ask: 'Ask VenQore — “which dish loses us money?”' },
+      { name: 'School', org: 'Beacon Academy', tag: '1,140 students', today: 'Tuesday · Term 2',
+        nav: ['Home','Students','Staff','Classes','Fees','Timetable','Reports'],
+        stats: [{l:'Present today',v:'1,086'},{l:'Fees due',v:'Rs 4.2M'},{l:'Classes running',v:'42'}],
+        needs: [{t:'3 teachers absent, periods uncovered',a:'Cover'},{t:'Grade 7 fee reminders ready',a:'Send'}],
+        ask: 'Ask VenQore — “who is behind on fees?”' },
+      { name: 'Software agency', org: 'Kernel Studio', tag: '24 people', today: 'Tuesday · Sprint 14',
+        nav: ['Home','Projects','Clients','People','Time','Invoices','Reports'],
+        stats: [{l:'Billable this week',v:'612 h'},{l:'Unbilled',v:'Rs 1.8M'},{l:'Projects at risk',v:'2'}],
+        needs: [{t:'Atlas retainer renews in 6 days',a:'Renew'},{t:'9 timesheets unsubmitted',a:'Nudge'}],
+        ask: 'Ask VenQore — “which project is losing margin?”' },
+      { name: 'Manufacturer', org: 'Rehman Steel', tag: '2 plants', today: 'Tuesday · Shift A',
+        nav: ['Home','Production','Materials','Orders','Machines','Quality','Reports'],
+        stats: [{l:'Output today',v:'8.4 t'},{l:'On-time',v:'94%'},{l:'Scrap',v:'1.9%'}],
+        needs: [{t:'Line 2 down 40 min — no operator',a:'Assign'},{t:'Billet stock covers 3 days',a:'Order'}],
+        ask: 'Ask VenQore — “why did scrap go up?”' },
+    ];
+    const i = this.state.pick;
+    const c = SET[i];
+    return {
+      cur: {
+        org: c.org, tag: c.tag, today: c.today, ask: c.ask, stats: c.stats, needs: c.needs,
+        nav: c.nav.map((label, k) => ({ label, fg: k === 0 ? '#16150f' : '#6f6c61', bg: k === 0 ? '#eeece5' : 'transparent' })),
+      },
+      industries: SET.map((s, k) => ({
+        name: s.name,
+        bg: k === i ? '#16150f' : 'rgba(255,255,255,.5)',
+        fg: k === i ? '#fff' : '#5c594e',
+        bd: k === i ? '#16150f' : '#cfcbbd',
+        pick: () => this.setState({ pick: k }),
+      })),
+      primitives: ['People','Money','Work','Resources','Records','Events','Schedules','Rules','Documents','Reports','Automations'],
+      configs: [
+        { name: 'Supermarket', words: ['Customer','Product','Branch','Supplier'] },
+        { name: 'Restaurant', words: ['Guest','Dish','Location','Ingredient'] },
+        { name: 'School', words: ['Student','Class','Campus','Vendor'] },
+        { name: 'Agency', words: ['Client','Project','Team','Contractor'] },
+        { name: 'Factory', words: ['Buyer','Batch','Plant','Material'] },
+      ],
+      rental: ['Equipment','Rental periods','Availability','Deposits','Contracts','Returns','Late fees','Payments'],
+
+      understood: [
+        {k:'Business type',v:'Restaurant'},{k:'Locations',v:'3'},{k:'Service',v:'Dine-in · Takeaway · Delivery'},
+        {k:'People',v:'25 employees'},{k:'Production',v:'Cooks its own food'},{k:'Money',v:'Cash · Card · Online'},
+      ],
+      willBuild: [
+        {t:'Orders & tables', d:'Dine-in tickets, takeaway queue, delivery dispatch'},
+        {t:'Kitchen', d:'Ticket flow, prep times, station load'},
+        {t:'Recipes & ingredients', d:'Costed recipes, auto stock deduction'},
+        {t:'Purchasing', d:'Suppliers, reorder points, goods received'},
+        {t:'People', d:'25 staff, rotas, hours, tips'},
+        {t:'Money', d:'Daily takings, expenses, full double-entry ledger'},
+      ],
+      skipped: ['Manufacturing lines','Serial tracking','Warehouses','Field service','Rentals'],
+
+      uNav: [
+        {n:'Home',s:''},{n:'People',s:'42'},{n:'Work',s:'8'},{n:'Resources',s:''},
+        {n:'Money',s:''},{n:'Documents',s:''},{n:'Calendar',s:''},{n:'Reports',s:''},{n:'Automations',s:'3'},
+      ],
+      uStats: [
+        {l:'Money in today',v:'Rs 214,380',n:'+12% vs last Tuesday'},
+        {l:'Owed to you',v:'Rs 1.84M',n:'9 accounts overdue'},
+        {l:'Work in progress',v:'23',n:'4 blocked'},
+        {l:'People at work',v:'38 / 42',n:'2 unplanned absences'},
+      ],
+      uActivity: [
+        {w:'Ayesha K.',t:'closed the day for Branch 2',a:'14 min ago'},
+        {w:'System',t:'raised purchase order PO-2291',a:'40 min ago'},
+        {w:'Rahim S.',t:'approved 3 expenses (Rs 18,400)',a:'1 h ago'},
+        {w:'Noor Traders',t:'paid invoice INV-8842',a:'2 h ago'},
+      ],
+      uNeeds: [
+        {t:'9 invoices are past due',a:'Chase',c:'#e2705c'},
+        {t:'2 people absent, shifts uncovered',a:'Cover',c:'#e0a758'},
+        {t:'6 items below reorder point',a:'Order',c:'#e0a758'},
+      ],
+      uInsight: [
+        'Margin fell 3.1 points this month — almost all of it from one supplier raising prices on 4 lines.',
+        'Tuesdays are your quietest day but carry full staffing. Moving 2 shifts would save ~Rs 46k a month.',
+      ],
+
+      variants: [
+        {org:'Noor Mart', kind:'Supermarket', nav:['Home','Sales','Products','Suppliers','Cash','Branches','Reports'],
+         stats:[{l:'Sales today',v:'Rs 214k'},{l:'Baskets',v:'1,204'}],
+         list:['Cumfrey 200g — 2 left','BMC — out of stock','Vitamix 40g — 3 left'], listT:'Below reorder point',
+         act:'New sale', ask:'“What sold worst this week?”'},
+        {org:'Table Nine', kind:'Restaurant', nav:['Home','Orders','Tables','Kitchen','Recipes','Staff','Reports'],
+         stats:[{l:'Covers tonight',v:'182'},{l:'Open tickets',v:'11'}],
+         list:['Table 12 — 34 min, no mains','Delivery #882 — rider unassigned','Table 4 — bill requested'], listT:'Service floor',
+         act:'New order', ask:'“Which dish loses us money?”'},
+        {org:'Beacon Academy', kind:'School', nav:['Home','Students','Staff','Classes','Fees','Timetable','Reports'],
+         stats:[{l:'Present today',v:'1,086'},{l:'Fees due',v:'Rs 4.2M'}],
+         list:['Grade 7B — no teacher, period 4','12 absentees unexplained','Grade 9 fee reminders ready'], listT:'Today at school',
+         act:'Enrol student', ask:'“Who is behind on fees?”'},
+        {org:'Kernel Studio', kind:'Software agency', nav:['Home','Projects','Clients','People','Time','Invoices','Reports'],
+         stats:[{l:'Billable this week',v:'612 h'},{l:'Unbilled',v:'Rs 1.8M'}],
+         list:['Atlas — 18% over budget','Meridian — retainer ends in 6 days','9 timesheets unsubmitted'], listT:'Projects needing you',
+         act:'New project', ask:'“Which project is losing margin?”'},
+        {org:'Rehman Steel', kind:'Manufacturer', nav:['Home','Production','Materials','Orders','Machines','Quality','Reports'],
+         stats:[{l:'Output today',v:'8.4 t'},{l:'On-time',v:'94%'}],
+         list:['Line 2 down 40 min — no operator','Billet stock covers 3 days','Batch B-1188 failed QC'], listT:'Plant floor',
+         act:'Start run', ask:'“Why did scrap go up?”'},
+      ],
+
+      mHome: [
+        {t:'Approve 3 expenses', s:'Rs 18,400 · Rahim, Ayesha', b:'#e0a758'},
+        {t:'Sign off Branch 2 cash', s:'Short by Rs 240', b:'#e2705c'},
+        {t:'Confirm PO-2291', s:'Noor Traders · Rs 96,000', b:'#e0a758'},
+      ],
+      mFeed: [
+        {t:'Day closed — Branch 1', s:'Rs 214,380 · 1,204 baskets', a:'6:02 pm'},
+        {t:'Invoice INV-8842 paid', s:'Noor Traders · Rs 340,000', a:'4:18 pm'},
+        {t:'Stock received', s:'14 lines · PO-2284', a:'11:40 am'},
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

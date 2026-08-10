@@ -66,6 +66,69 @@ class LedgerService
     }
 
     /**
+     * The party's AR-minus-AP balance EXCLUDING every journal entry raised by
+     * one source document. This is the true "previous balance" for a print:
+     * it is derived from the ledger, so returns, discounts, round-off,
+     * ledger-credit refunds and manual journals are all accounted for
+     * automatically — and it cannot race with the posting transaction.
+     *
+     * @param int|string  $partyId    UUID or integer primary key
+     * @param int|string  $tenantId   UUID or integer primary key
+     * @param string      $documentId The sales.id / invoices.id used as journal_entries.reference
+     * @param string|null $partyType  'customer'|'supplier'|null
+     * @return float
+     */
+    public static function partyBalanceExcludingDocument(
+        int|string $partyId,
+        int|string $tenantId,
+        string $documentId,
+        ?string $partyType = null
+    ): float {
+        if ($partyType === null) {
+            $partyType = DB::table('parties')
+                ->where('id', $partyId)
+                ->where('tenant_id', $tenantId)
+                ->value('type') ?? 'customer';
+        }
+
+        [$arCode, $apCode] = static::accountCodes($tenantId);
+
+        $arBalance = (float) (DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('je.is_reversed', 0)
+            ->where('ji.party_id', $partyId)
+            ->where('a.code', $arCode)
+            ->where(function ($q) use ($documentId) {
+                $q->whereNull('je.reference')
+                  ->orWhere('je.reference', '!=', (string) $documentId);
+            })
+            ->selectRaw('COALESCE(SUM(ji.debit),0) - COALESCE(SUM(ji.credit),0) as net')
+            ->value('net') ?? 0);
+
+        $apBalance = (float) (DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('je.is_reversed', 0)
+            ->where('ji.party_id', $partyId)
+            ->where('a.code', $apCode)
+            ->where(function ($q) use ($documentId) {
+                $q->whereNull('je.reference')
+                  ->orWhere('je.reference', '!=', (string) $documentId);
+            })
+            ->selectRaw('COALESCE(SUM(ji.credit),0) - COALESCE(SUM(ji.debit),0) as net')
+            ->value('net') ?? 0);
+
+        if ($partyType === 'supplier') {
+            return (float) ($apBalance - $arBalance);
+        }
+
+        return (float) ($arBalance - $apBalance);
+    }
+
+    /**
      * Resolve AR and AP account codes for the tenant.
      * Cached in static array to avoid N+1 on list pages.
      */

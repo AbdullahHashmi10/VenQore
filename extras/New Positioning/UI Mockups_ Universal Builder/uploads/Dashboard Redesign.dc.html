@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>body{margin:0;background:#eceae4;font-family:'Instrument Sans',system-ui,sans-serif}a{color:#0e6b4f}a:hover{color:#0a4f3a}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 'Instrument Sans',sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'Instrument Sans',sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#0e6b4f;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 'Instrument Sans',sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">The system: one grid, resizable cards, and a complete dashboard for every role</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a"><div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Quick actions — the third button, as a keyboard-first sheet instead of a pastel icon grid</div>
+<div class="dv-card" style="width:520px">
+<div style="padding:18px 22px 14px;border-bottom:1px solid #eeece5;display:flex;align-items:center;gap:10px">
+<svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="#9a9689" stroke-width="1.5"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="font:400 15px 'Instrument Sans',sans-serif;color:#a9a596">Type a command or search…</span>
+<span style="margin-left:auto;font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f;border:1px solid #e6e3da;border-radius:5px;padding:3px 6px">esc</span>
+</div>
+<div style="padding:8px 10px 14px;max-height:420px;overflow:hidden">
+<sc-for list="{{ actions }}" as="grp" hint-placeholder-count="3">
+<div style="padding:10px 12px 4px;font:400 10.5px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">{{ grp.g }}</div>
+<sc-for list="{{ grp.items }}" as="a" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer" style-hover="background:#f5f4f0">
+<span style="width:22px;height:22px;border-radius:7px;border:1px solid #e6e3da;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:2px;border:1.2px solid #8b877a"></span></span>
+<span style="flex:1;font:400 13.5px 'Instrument Sans',sans-serif;color:#16150f">{{ a.n }}</span>
+<span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">{{ a.k }}</span>
+</div>
+</sc-for>
+</sc-for>
+</div>
+<div style="padding:11px 22px;border-top:1px solid #eeece5;background:#faf9f6;font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Only shows what your role can do — nothing greyed out, nothing locked.</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b"><div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Edit mode — a 12-column grid, four card sizes, pinned cards that can't be moved</div>
+<div class="dv-card" style="width:620px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:#16150f;color:#fff">
+<span style="font:500 13px 'Instrument Sans',sans-serif">Editing layout</span>
+<span style="font:400 12px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5)">Drag to move · pull the corner to resize</span>
+<span style="margin-left:auto;font:500 12.5px 'Instrument Sans',sans-serif;background:#fff;color:#16150f;border-radius:7px;padding:6px 12px">Done</span>
+</div>
+<div style="padding:16px;background-image:linear-gradient(#e7e4dc 1px,transparent 1px),linear-gradient(90deg,#e7e4dc 1px,transparent 1px);background-size:48.6px 48.6px;background-position:16px 16px">
+<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:8px">
+<div style="grid-column:span 12;background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#16150f" stroke-width="1.4"><path d="M7 2v10M7 2L4.4 4.6M7 2l2.6 2.6"></path><path d="M2.5 12.5h9"></path></svg>
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Revenue</span>
+<span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">pinned · 12×2</span>
+<span style="margin-left:auto;font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Always first. Size fixed.</span>
+</div>
+<div style="grid-column:span 6;background:#fff;border:1.5px solid #16150f;border-radius:12px;padding:12px 14px;position:relative">
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Recent activity</span>
+<div style="display:flex;gap:5px;margin-top:9px">
+<span style="font:500 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:6px;background:#f1efe9;color:#6f6c61">3</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:6px;background:#16150f;color:#fff">6</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:6px;background:#f1efe9;color:#6f6c61">9</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;padding:4px 9px;border-radius:6px;background:#f1efe9;color:#6f6c61">Full width</span>
+</div>
+<span style="position:absolute;right:-4px;bottom:-4px;width:11px;height:11px;border-radius:3px;background:#16150f;border:2px solid #fff"></span>
+</div>
+<div style="grid-column:span 3;background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:12px 14px"><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Cash</span><div style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;margin-top:6px">3×1</div></div>
+<div style="grid-column:span 3;background:rgba(255,255,255,.5);border:1px dashed #cfcbbd;border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:62px;font:500 12.5px 'Instrument Sans',sans-serif;color:#8b877a">+ Add</div>
+</div>
+</div>
+<div style="padding:12px 18px;border-top:1px solid #e6e3da;background:#faf9f6;font:400 11.5px/1.5 'Instrument Sans',sans-serif;color:#6f6c61">Cards snap to 3, 6, 9 or 12 columns and 1 or 2 rows high — so no layout can ever look broken. Revenue and “Needs you today” are pinned by default; everything else moves.</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2c"><div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Manager — ops and team, no finance. Reads as its own complete dashboard, not a stripped one</div>
+<div class="dv-card" style="width:1180px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Manager</span>
+<div style="flex:1"></div>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#9a9689">Search ⌘K</span>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">SK</div>
+</div>
+<div style="padding:24px 28px 28px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px">
+<div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#9a9689;letter-spacing:.06em;text-transform:uppercase">Friday, 8 August</div><h2 style="margin:5px 0 0;font:500 24px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">Store floor</h2></div>
+<div style="display:flex;gap:8px"><span style="height:34px;padding:0 14px;border-radius:9px;border:1px solid #e0ddd2;background:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Actions</span><span style="height:34px;padding:0 15px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif">New sale</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ mgrStats }}" as="s" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">{{ s.l }}</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">{{ s.v }}</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">{{ s.n }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:20px 22px 10px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Sales through the day</div><div style="font:500 28px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.03em">Rs 14,382</div></div>
+<div style="display:flex;padding:3px;border-radius:9px;background:#f1efe9;gap:2px"><span style="padding:6px 12px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.07);font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Today</span><span style="padding:6px 12px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Week</span><span style="padding:6px 12px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Month</span></div>
+</div>
+<svg viewBox="0 0 700 150" style="width:100%;height:150px;margin-top:14px;display:block" preserveAspectRatio="none">
+<line x1="0" y1="140" x2="700" y2="140" stroke="#e6e3da"></line>
+<g fill="#dfe3d9"><rect x="10" y="118" width="34" height="22" rx="3"></rect><rect x="60" y="104" width="34" height="36" rx="3"></rect><rect x="110" y="92" width="34" height="48" rx="3"></rect><rect x="160" y="70" width="34" height="70" rx="3"></rect><rect x="210" y="58" width="34" height="82" rx="3"></rect></g>
+<g fill="#16150f"><rect x="260" y="30" width="34" height="110" rx="3"></rect><rect x="310" y="48" width="34" height="92" rx="3"></rect><rect x="360" y="66" width="34" height="74" rx="3"></rect><rect x="410" y="40" width="34" height="100" rx="3"></rect><rect x="460" y="82" width="34" height="58" rx="3"></rect></g>
+<g fill="#eeece5"><rect x="510" y="106" width="34" height="34" rx="3"></rect><rect x="560" y="112" width="34" height="28" rx="3"></rect><rect x="610" y="120" width="34" height="20" rx="3"></rect></g>
+</svg>
+<div style="display:flex;justify-content:space-between;font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;padding:2px 0 12px"><span>09</span><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span><span>21</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#16150f;border-radius:16px;padding:18px 20px;color:#fff">
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Needs you today</div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#e2705c"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif">BMC out of stock</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#9fd4bd">Order</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif">2 returns to approve</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#9fd4bd">Review</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#e0a758"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif">Shift gap at 6pm</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#9fd4bd">Assign</span></div>
+</div>
+</div>
+<div style="flex:1;background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Team today</div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ mgrTeam }}" as="t" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:11px">
+<span style="width:26px;height:26px;border-radius:99px;background:#f1efe9"></span>
+<span style="flex:1"><span style="display:block;font:400 13px 'Instrument Sans',sans-serif;color:#16150f">{{ t.a }}</span><span style="display:block;font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">{{ t.b }}</span></span>
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">{{ t.c }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;margin:24px 0 12px"><span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">More on your day</span><span style="flex:1;height:1px;background:#e3e0d7"></span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px"><div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Top products</div><div style="margin-top:13px;display:flex;flex-direction:column;gap:11px"><div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>Cumfrey</span><span style="color:#16150f;font-weight:500">Rs 14,382</span></div><div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>BMC</span><span style="color:#16150f;font-weight:500">Rs 3,120</span></div><div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>Vitamix 40g</span><span style="color:#16150f;font-weight:500">Rs 990</span></div></div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px"><div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Low stock</div><div style="margin-top:13px;display:flex;flex-direction:column;gap:11px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">BMC <span style="color:#a9a596">0 / 5</span></span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Order</span></div><div style="display:flex;justify-content:space-between;align-items:center"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Cumfrey 200g <span style="color:#a9a596">2 / 10</span></span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Order</span></div><div style="display:flex;justify-content:space-between;align-items:center"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Vitamix 40g <span style="color:#a9a596">3 / 12</span></span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Order</span></div></div></div>
+<div style="border:1px dashed #d3cfc1;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.4);min-height:120px"><span style="font:400 18px 'Instrument Sans',sans-serif;color:#8b877a;line-height:1">+</span><span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">Add a card</span><span style="font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">9 available for managers</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2d"><div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Cashier — a shift screen, not an empty dashboard. No “contact your manager” apology</div>
+<div class="dv-card" style="width:1180px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Cashier</span>
+<div style="flex:1"></div>
+<span style="font:400 12.5px 'IBM Plex Mono',monospace;color:#8b877a">On shift · 4h 20m</span>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">FM</div>
+</div>
+<div style="padding:26px 28px 28px;display:grid;grid-template-columns:1fr 360px;gap:14px">
+<div>
+<h2 style="margin:0 0 4px;font:500 24px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">Good morning, Fatima</h2>
+<div style="font:400 13px 'Instrument Sans',sans-serif;color:#8b877a;margin-bottom:18px">Register 2 · clocked in at 09:05</div>
+<div style="background:#16150f;border-radius:18px;padding:26px 28px;color:#fff;display:flex;align-items:center;gap:20px">
+<div style="flex:1">
+<div style="font:500 24px 'Instrument Sans',sans-serif;letter-spacing:-.02em">Open POS terminal</div>
+<div style="font:400 13px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55);margin-top:5px">Sales, payments and returns</div>
+</div>
+<span style="width:44px;height:44px;border-radius:99px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.6"><path d="M3 8h9M8.6 4.6L12 8l-3.4 3.4"></path></svg></span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Sales this session</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 8,120</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">23 transactions</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Cash in drawer</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 3,540</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Opening float Rs 1,000</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Avg basket</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 353</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Up from Rs 310</div></div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px;margin-top:12px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Your last transactions</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">View all</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">13:04</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">SAL-070826-0023 · card</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Rs 1,240</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Receipt</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">12:51</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">SAL-070826-0022 · cash</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Rs 420</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Receipt</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">12:38</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">RET-070826-0004 · refund</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">−Rs 300</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Receipt</span></div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:56px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Shift</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:8px"><span style="font:500 26px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">4h 20m</span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">of 8h</span></div>
+<div style="height:5px;border-radius:99px;background:#f1efe9;margin-top:12px;overflow:hidden"><div style="width:54%;height:100%;background:#16150f"></div></div>
+<div style="display:flex;gap:8px;margin-top:14px"><span style="flex:1;text-align:center;padding:9px 0;border-radius:9px;border:1px solid #e0ddd2;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Break</span><span style="flex:1;text-align:center;padding:9px 0;border-radius:9px;border:1px solid #e0ddd2;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Clock out</span></div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Quick actions</div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;background:#f7f6f2"><span style="width:6px;height:6px;border-radius:2px;background:#8b877a"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Process a return</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">R</span></div>
+<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;background:#f7f6f2"><span style="width:6px;height:6px;border-radius:2px;background:#8b877a"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Reprint last receipt</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">P</span></div>
+<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;background:#f7f6f2"><span style="width:6px;height:6px;border-radius:2px;background:#8b877a"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Cash drop</span><span style="font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">D</span></div>
+</div>
+</div>
+<div style="border:1px dashed #d3cfc1;border-radius:16px;background:rgba(255,255,255,.4);padding:20px;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font:400 18px 'Instrument Sans',sans-serif;color:#8b877a;line-height:1">+</span><span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">Add a card</span><span style="font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">Targets, attendance, tips</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2e"><div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Accountant — the books, front and centre</div>
+<div class="dv-card" style="width:1180px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Accountant</span>
+<div style="flex:1"></div>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#9a9689">Period · August 2026</span>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">RA</div>
+</div>
+<div style="padding:24px 28px 28px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px">
+<div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#9a9689;letter-spacing:.06em;text-transform:uppercase">Month to date</div><h2 style="margin:5px 0 0;font:500 24px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">The books</h2></div>
+<div style="display:flex;gap:8px"><span style="height:34px;padding:0 14px;border-radius:9px;border:1px solid #e0ddd2;background:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Journal entry</span><span style="height:34px;padding:0 15px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif">Reconcile</span></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:20px 22px 10px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Cash flow · last 6 months</div><div style="display:flex;align-items:baseline;gap:12px;margin-top:6px"><span style="font:500 32px/1 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Rs 5,922</span><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">net position</span></div></div>
+<div style="display:flex;gap:16px;font:400 12px 'Instrument Sans',sans-serif;color:#6f6c61"><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#16150f"></span>Income</span><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#d9d5c9"></span>Expenses</span></div>
+</div>
+<svg viewBox="0 0 700 170" style="width:100%;height:170px;margin-top:16px;display:block" preserveAspectRatio="none">
+<line x1="0" y1="120" x2="700" y2="120" stroke="#e6e3da"></line>
+<g fill="#16150f"><rect x="24" y="66" width="26" height="54" rx="3"></rect><rect x="136" y="48" width="26" height="72" rx="3"></rect><rect x="248" y="58" width="26" height="62" rx="3"></rect><rect x="360" y="30" width="26" height="90" rx="3"></rect><rect x="472" y="44" width="26" height="76" rx="3"></rect><rect x="584" y="22" width="26" height="98" rx="3"></rect></g>
+<g fill="#d9d5c9"><rect x="54" y="120" width="26" height="30" rx="3"></rect><rect x="166" y="120" width="26" height="44" rx="3"></rect><rect x="278" y="120" width="26" height="26" rx="3"></rect><rect x="390" y="120" width="26" height="52" rx="3"></rect><rect x="502" y="120" width="26" height="34" rx="3"></rect><rect x="614" y="120" width="26" height="40" rx="3"></rect></g>
+</svg>
+<div style="display:flex;justify-content:space-between;font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;padding:6px 0 12px"><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#16150f;border-radius:16px;padding:18px 20px;color:#fff">
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Net profit · month</div>
+<div style="font:500 28px 'Instrument Sans',sans-serif;margin-top:6px;letter-spacing:-.03em">Rs 1,428</div>
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.5);margin-top:6px">Revenue Rs 14,382 · expenses Rs 12,954</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Receivables</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 8,460</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Rs 2,000 over 30 days</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Payables</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 3,240</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Rs 1,100 due in 7 days</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Receivables ageing</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ acctAging }}" as="r" hint-placeholder-count="4">
+<div>
+<div style="display:flex;justify-content:space-between;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33"><span>{{ r.l }}</span><span style="color:#16150f;font-weight:500">{{ r.v }}</span></div>
+<div style="height:4px;border-radius:99px;background:#f1efe9;margin-top:6px;overflow:hidden"><div style="width:{{ r.w }};height:100%;background:#16150f"></div></div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Recent journal entries</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">View all</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ acctJournal }}" as="j" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">{{ j.a }}</span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">{{ j.b }}</span><span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">{{ j.c }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Statements</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:#f7f6f2"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Profit &amp; loss</span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">→</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:#f7f6f2"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Balance sheet</span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">→</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:#f7f6f2"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Bank reconciliation</span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">→</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;background:#f7f6f2"><span style="font:400 13px 'Instrument Sans',sans-serif;color:#16150f">Trial balance</span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">→</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2f"><div class="dv-olabel"><a class="dv-oid" href="#2f">2f</a>Purchasing officer — orders, deliveries, reorder</div>
+<div class="dv-card" style="width:1180px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Purchasing</span>
+<div style="flex:1"></div>
+<span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#9a9689">Search ⌘K</span>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">HN</div>
+</div>
+<div style="padding:24px 28px 28px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px">
+<div><div style="font:400 12px 'IBM Plex Mono',monospace;color:#9a9689;letter-spacing:.06em;text-transform:uppercase">Friday, 8 August</div><h2 style="margin:5px 0 0;font:500 24px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">Procurement</h2></div>
+<div style="display:flex;gap:8px"><span style="height:34px;padding:0 14px;border-radius:9px;border:1px solid #e0ddd2;background:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Add supplier</span><span style="height:34px;padding:0 15px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;font:500 12.5px 'Instrument Sans',sans-serif">New purchase order</span></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:20px 22px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Spend this month</div><div style="display:flex;align-items:baseline;gap:12px;margin-top:6px"><span style="font:500 32px/1 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Rs 12,954</span><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">of Rs 20,000 budget</span></div></div>
+<div style="display:flex;padding:3px;border-radius:9px;background:#f1efe9;gap:2px"><span style="padding:6px 12px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.07);font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Month</span><span style="padding:6px 12px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Quarter</span></div>
+</div>
+<div style="height:6px;border-radius:99px;background:#f1efe9;margin-top:16px;overflow:hidden"><div style="width:65%;height:100%;background:#16150f"></div></div>
+<div style="display:flex;justify-content:space-between;font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:8px"><span>65% used</span><span>Rs 7,046 left</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px">
+<div style="border:1px solid #eeece5;border-radius:12px;padding:14px 16px"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Open POs</div><div style="font:500 20px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px">6</div></div>
+<div style="border:1px solid #eeece5;border-radius:12px;padding:14px 16px"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Pending delivery</div><div style="font:500 20px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px">3</div></div>
+<div style="border:1px solid #eeece5;border-radius:12px;padding:14px 16px"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Supplier payables</div><div style="font:500 20px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px">Rs 3,240</div></div>
+</div>
+</div>
+<div style="background:#16150f;border-radius:16px;padding:18px 20px;color:#fff">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Reorder now</span><span style="font:500 11px 'IBM Plex Mono',monospace;background:rgba(255,255,255,.14);border-radius:99px;padding:3px 8px">3</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:13px">
+<sc-for list="{{ poReorder }}" as="p" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:10px"><span style="flex:1"><span style="display:block;font:400 13px 'Instrument Sans',sans-serif">{{ p.a }}</span><span style="display:block;font:400 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.45)">{{ p.b }}</span></span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#9fd4bd">Order</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Recent purchase orders</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">View all</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ poOrders }}" as="o" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">{{ o.a }}</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">{{ o.b }}</span><span style="font:500 11.5px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">{{ o.c }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="border:1px dashed #d3cfc1;border-radius:14px;background:rgba(255,255,255,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:120px"><span style="font:400 18px 'Instrument Sans',sans-serif;color:#8b877a;line-height:1">+</span><span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">Add a card</span><span style="font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">Lead times, supplier scores</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2g"><div class="dv-olabel"><a class="dv-oid" href="#2g">2g</a>Viewer — a reading room. Read-only stated once, quietly, as a mode</div>
+<div class="dv-card" style="width:760px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#fff;border-bottom:1px solid #e6e3da">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:#6f6c61;background:#f1efe9;border-radius:99px;padding:4px 10px">Reading mode</span>
+<div style="flex:1"></div>
+<div style="width:26px;height:26px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 10.5px 'Instrument Sans',sans-serif;color:#0e6b4f">TQ</div>
+</div>
+<div style="padding:24px 28px 28px">
+<h2 style="margin:0 0 3px;font:500 24px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">August at a glance</h2>
+<div style="font:400 13px 'Instrument Sans',sans-serif;color:#8b877a;margin-bottom:18px">Figures update live. Export any view as PDF.</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:22px 24px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px">
+<div><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Income</div><div style="font:500 26px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 14,382</div></div>
+<div><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Expenses</div><div style="font:500 26px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 12,954</div></div>
+<div><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Net profit</div><div style="font:500 26px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 1,428</div></div>
+</div>
+<svg viewBox="0 0 660 120" style="width:100%;height:120px;margin-top:18px;display:block" preserveAspectRatio="none">
+<defs><linearGradient id="rg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16150f" stop-opacity=".12"></stop><stop offset="1" stop-color="#16150f" stop-opacity="0"></stop></linearGradient></defs>
+<path d="M0 100 C70 96 110 88 170 76 C240 62 280 70 340 58 C410 44 450 16 520 20 C580 24 620 44 660 40" fill="none" stroke="#16150f" stroke-width="2"></path>
+<path d="M0 100 C70 96 110 88 170 76 C240 62 280 70 340 58 C410 44 450 16 520 20 C580 24 620 44 660 40 L660 112 L0 112 Z" fill="url(#rg3)"></path>
+</svg>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px;margin-top:12px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Reports</div>
+<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<sc-for list="{{ viewerReports }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:#f7f6f2"><span><span style="display:block;font:400 13px 'Instrument Sans',sans-serif;color:#16150f">{{ r.a }}</span><span style="display:block;font:400 11px 'Instrument Sans',sans-serif;color:#a9a596">{{ r.b }}</span></span><span style="font:400 12px 'Instrument Sans',sans-serif;color:#a9a596">→</span></div>
+</sc-for>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Inventory value</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">Rs 73,346</div></div>
+<div style="border:1px dashed #d3cfc1;border-radius:14px;background:rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;gap:8px;font:500 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">+ Add a card</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2h"><div class="dv-olabel"><a class="dv-oid" href="#2h">2h</a>Admin panel — the executive screen from your screenshot, calmed down</div>
+<div class="dv-card" style="width:1180px;background:#f5f4f0">
+<div style="display:flex;align-items:center;gap:16px;padding:13px 24px;background:#16150f">
+<div style="width:26px;height:26px;border-radius:8px;background:#fff;color:#16150f;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 13.5px 'Instrument Sans',sans-serif;color:#fff">Admin panel</span>
+<span style="font:500 11px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.7);background:rgba(255,255,255,.12);border-radius:99px;padding:4px 10px">Owner</span>
+<div style="flex:1"></div>
+<span style="font:500 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.65)">Back to store →</span>
+</div>
+<div style="padding:24px 28px 28px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Pending actions</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">0</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Nothing needs approval</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Profit margin</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">9.9%</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">Net profit / revenue</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Active staff</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">4 of 5</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#a9a596;margin-top:4px">7 roles configured</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px"><div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Last backup</div><div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px">3 weeks ago</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#b4600a;margin-top:4px">Run one now</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:20px 22px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Inventory health</div><div style="font:500 28px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.03em">75% healthy</div></div><span style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">128 items</span></div>
+<div style="display:flex;height:10px;border-radius:99px;overflow:hidden;margin-top:18px"><div style="width:75%;background:#16150f"></div><div style="width:12%;background:#c9c4b4"></div><div style="width:13%;background:#e2705c"></div></div>
+<div style="display:flex;gap:20px;margin-top:12px;font:400 12px 'Instrument Sans',sans-serif;color:#6f6c61"><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#16150f"></span>Healthy 96</span><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#c9c4b4"></span>Low 15</span><span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:#e2705c"></span>Out 17</span></div>
+<div style="height:1px;background:#eeece5;margin:20px 0"></div>
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Purchases trend · 6 months</div>
+<svg viewBox="0 0 660 110" style="width:100%;height:110px;margin-top:12px;display:block" preserveAspectRatio="none">
+<line x1="0" y1="96" x2="660" y2="96" stroke="#e6e3da"></line>
+<path d="M0 78 C80 74 120 60 200 56 C280 52 320 70 400 62 C480 54 520 26 660 34" fill="none" stroke="#16150f" stroke-width="2"></path>
+</svg>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">System</div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>Status</span><span style="color:#0e6b4f;font-weight:500">Operational</span></div>
+<div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>Storage</span><span style="color:#16150f;font-weight:500">2.4 GB</span></div>
+<div style="display:flex;justify-content:space-between;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33"><span>Plan</span><span style="color:#16150f;font-weight:500">Trial · 14 days</span></div>
+</div>
+</div>
+<div style="flex:1;background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Activity log</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">View all</span></div>
+<div style="margin-top:13px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:10px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">09:12</span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">Fatima M. opened register 2</span></div>
+<div style="display:flex;gap:10px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">08:55</span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">Role changed · Bilal K. → Cashier</span></div>
+<div style="display:flex;gap:10px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">Yest.</span><span style="flex:1;font:400 12.5px 'Instrument Sans',sans-serif;color:#3c3a33">New user invited · accountant</span></div>
+</div>
+</div>
+<div style="display:flex;gap:8px"><span style="flex:1;text-align:center;padding:11px 0;border-radius:10px;border:1px solid #e0ddd2;background:#fff;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Users &amp; roles</span><span style="flex:1;text-align:center;padding:11px 0;border-radius:10px;border:1px solid #e0ddd2;background:#fff;font:500 12.5px 'Instrument Sans',sans-serif;color:#16150f">Security</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: “show the mobile version of <a class="dv-oid" href="#2c">2c</a> and <a class="dv-oid" href="#2d">2d</a>” · “add the owner’s card library filtered per role” · “show what a manager sees when they open the add-card sheet”</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Overview, rebuilt around progressive disclosure — start small, scroll for more, add what you need</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Desktop · 1440 — one hero metric, four essentials, everything else earned by scrolling</div>
+<div class="dv-card" style="width:1240px;background:#f5f4f0">
+
+<div style="display:flex;align-items:center;gap:20px;padding:14px 28px;background:rgba(255,255,255,.86);border-bottom:1px solid #e6e3da;backdrop-filter:blur(8px)">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="width:26px;height:26px;border-radius:8px;background:#16150f;display:flex;align-items:center;justify-content:center;color:#fff;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<span style="font:600 14px 'Instrument Sans',sans-serif;color:#16150f">My Business Store</span>
+<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#8b877a" stroke-width="1.4"><path d="M2 4l3 3 3-3"></path></svg>
+</div>
+<div style="flex:1;display:flex;align-items:center;gap:9px;max-width:420px;height:34px;padding:0 12px;border-radius:9px;background:#efedE7;border:1px solid #e6e3da">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#9a9689" stroke-width="1.5"><circle cx="6.2" cy="6.2" r="4.2"></circle><path d="M9.4 9.4L12.5 12.5"></path></svg>
+<span style="font:400 13px 'Instrument Sans',sans-serif;color:#9a9689">Search invoices, products, people</span>
+<span style="margin-left:auto;font:400 10.5px 'IBM Plex Mono',monospace;color:#b3af9f">⌘K</span>
+</div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+<span style="font:500 11.5px 'Instrument Sans',sans-serif;color:#8a6a12;background:#fbf3dc;border-radius:99px;padding:5px 11px">14 days left</span>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5f5c52" stroke-width="1.4"><path d="M8 2.5a3.6 3.6 0 013.6 3.6c0 3 1.2 4.2 1.2 4.2H3.2s1.2-1.2 1.2-4.2A3.6 3.6 0 018 2.5z"></path><path d="M6.6 12.6a1.5 1.5 0 002.8 0"></path></svg>
+<div style="width:28px;height:28px;border-radius:99px;background:#dfe7e2;border:1px solid #cdd8d2;display:flex;align-items:center;justify-content:center;font:600 11px 'Instrument Sans',sans-serif;color:#0e6b4f">BU</div>
+</div>
+</div>
+
+<div style="display:flex;align-items:stretch">
+<div style="width:60px;flex:none;background:#f0eee8;border-right:1px solid #e6e3da;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 0">
+<div style="width:34px;height:34px;border-radius:10px;background:#16150f;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.5"><rect x="2.2" y="2.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="9.2" y="2.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="2.2" y="9.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="9.2" y="9.2" width="4.6" height="4.6" rx="1.2"></rect></svg></div>
+<div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7d7a6e" stroke-width="1.5"><path d="M2.5 6.5L8 2.5l5.5 4v6.2a.8.8 0 01-.8.8H3.3a.8.8 0 01-.8-.8z"></path></svg></div>
+<div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7d7a6e" stroke-width="1.5"><path d="M2.5 3h2l1.6 7.2h6.2l1.2-5H5"></path><circle cx="7" cy="13" r="1"></circle><circle cx="11.6" cy="13" r="1"></circle></svg></div>
+<div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7d7a6e" stroke-width="1.5"><path d="M2.6 5.4L8 2.6l5.4 2.8v5.2L8 13.4 2.6 10.6z"></path></svg></div>
+<div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7d7a6e" stroke-width="1.5"><circle cx="6" cy="6" r="2.4"></circle><path d="M2.2 13c.5-2.2 2-3.4 3.8-3.4S9.3 10.8 9.8 13"></path><path d="M11 5.2a2 2 0 010 3.6"></path></svg></div>
+<div style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7d7a6e" stroke-width="1.5"><path d="M2.4 11.4l3.4-4 2.6 2.4 5.2-6"></path></svg></div>
+<div style="margin-top:auto;width:34px;height:34px;border-radius:10px;border:1px dashed #cfcbbd;display:flex;align-items:center;justify-content:center;color:#a9a596;font:400 15px 'Instrument Sans',sans-serif">+</div>
+</div>
+
+<div style="flex:1;min-width:0;padding:26px 30px 0;max-height:960px;overflow:hidden;position:relative">
+
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px">
+<div>
+<div style="font:400 12px 'IBM Plex Mono',monospace;color:#9a9689;letter-spacing:.06em;text-transform:uppercase">Friday, 8 August</div>
+<h1 style="margin:5px 0 0;font:500 27px/1.15 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.02em">Good morning, Aisha</h1>
+</div>
+<div style="display:flex;gap:8px">
+<button style="height:36px;padding:0 15px;border-radius:9px;border:1px solid #e0ddd2;background:#fff;color:#16150f;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer" style-hover="background:#f7f6f2">New purchase</button>
+<button style="height:36px;padding:0 16px;border-radius:9px;border:none;background:#16150f;color:#fff;font:500 13px 'Instrument Sans',sans-serif;cursor:pointer" style-hover="background:#2a2820">New sale</button>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:22px 24px 12px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div>
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Revenue this month</div>
+<div style="display:flex;align-items:baseline;gap:12px;margin-top:6px">
+<span style="font:500 38px/1 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Rs 14,382</span>
+<span style="font:500 12.5px 'Instrument Sans',sans-serif;color:#0e6b4f;background:#e7f2ec;border-radius:99px;padding:4px 9px">+18.4%</span>
+</div>
+<div style="margin-top:8px;display:flex;gap:18px;font:400 12.5px 'Instrument Sans',sans-serif;color:#6f6c61">
+<span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:99px;background:#16150f"></span>Sales</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:99px;background:#8fbfa9"></span>Gross profit Rs 1,428</span>
+</div>
+</div>
+<div style="display:flex;padding:3px;border-radius:9px;background:#f1efe9;gap:2px">
+<span style="padding:6px 12px;border-radius:7px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Today</span>
+<span style="padding:6px 12px;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.07);font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Month</span>
+<span style="padding:6px 12px;border-radius:7px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Year</span>
+</div>
+</div>
+<svg viewBox="0 0 820 210" style="width:100%;height:212px;margin-top:14px;display:block" preserveAspectRatio="none">
+<defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16150f" stop-opacity=".14"></stop><stop offset="1" stop-color="#16150f" stop-opacity="0"></stop></linearGradient></defs>
+<line x1="0" y1="40" x2="820" y2="40" stroke="#efece4"></line><line x1="0" y1="95" x2="820" y2="95" stroke="#efece4"></line><line x1="0" y1="150" x2="820" y2="150" stroke="#efece4"></line><line x1="0" y1="196" x2="820" y2="196" stroke="#e6e3da"></line>
+<path d="M0 176 C70 172 110 168 160 158 C215 147 250 120 300 112 C355 103 390 128 440 118 C500 106 530 52 585 40 C640 28 680 78 730 92 C780 105 800 96 820 90" fill="none" stroke="#16150f" stroke-width="2" stroke-linecap="round"></path>
+<path d="M0 176 C70 172 110 168 160 158 C215 147 250 120 300 112 C355 103 390 128 440 118 C500 106 530 52 585 40 C640 28 680 78 730 92 C780 105 800 96 820 90 L820 196 L0 196 Z" fill="url(#rg)"></path>
+<path d="M0 190 C80 188 140 186 200 183 C280 179 320 174 400 175 C480 176 520 168 585 163 C660 157 720 166 820 161" fill="none" stroke="#8fbfa9" stroke-width="2" stroke-linecap="round"></path>
+<circle cx="585" cy="40" r="4.5" fill="#16150f"></circle><circle cx="585" cy="40" r="9" fill="none" stroke="#16150f" stroke-opacity=".2"></circle>
+</svg>
+<div style="display:flex;justify-content:space-between;font:400 11px 'IBM Plex Mono',monospace;color:#a9a596;padding:2px 0 12px">
+<span>01 Aug</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08 Aug</span>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#16150f;border-radius:16px;padding:20px 22px;color:#fff">
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Cash in hand</div>
+<div style="font:500 30px/1 'Instrument Sans',sans-serif;margin-top:7px;letter-spacing:-.03em">Rs 5,922</div>
+<div style="margin-top:16px;display:flex;gap:8px">
+<button style="flex:1;height:36px;border-radius:9px;border:none;background:rgba(255,255,255,.12);color:#fff;font:500 12.5px 'Instrument Sans',sans-serif;cursor:pointer" style-hover="background:rgba(255,255,255,.2)">Money in</button>
+<button style="flex:1;height:36px;border-radius:9px;border:none;background:rgba(255,255,255,.12);color:#fff;font:500 12.5px 'Instrument Sans',sans-serif;cursor:pointer" style-hover="background:rgba(255,255,255,.2)">Money out</button>
+</div>
+</div>
+<div style="flex:1;background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:18px 20px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Needs you today</span>
+<span style="font:500 11px 'IBM Plex Mono',monospace;color:#a8321e;background:#fbeceA;border-radius:99px;padding:3px 8px">3</span>
+</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#a8321e"></span><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33;flex:1">BMC out of stock</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Order</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#b4600a"></span><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33;flex:1">Rs 8,460 overdue</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Remind</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#b4600a"></span><span style="font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33;flex:1">2 invoices unsent</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Send</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">To receive</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 8,460</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#b4600a;margin-top:4px">4 customers · 2 overdue</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">To pay</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 0</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:4px">All settled</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Stock value</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 73,346</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:4px">128 items</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:16px 18px">
+<div style="font:400 12px 'Instrument Sans',sans-serif;color:#8b877a">Net profit</div>
+<div style="font:500 22px 'Instrument Sans',sans-serif;color:#16150f;margin-top:5px;letter-spacing:-.02em">Rs 1,428</div>
+<div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#0e6b4f;margin-top:4px">Healthy margin</div>
+</div>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;margin:26px 0 14px">
+<span style="font:400 11.5px 'IBM Plex Mono',monospace;color:#a9a596;letter-spacing:.08em;text-transform:uppercase">More on your day</span>
+<span style="flex:1;height:1px;background:#e3e0d7"></span>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Top products</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">This month</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:8px;background:#f1efe9"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Cumfrey</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Rs 14,382</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:8px;background:#f1efe9"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">BMC</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Rs 3,120</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:28px;height:28px;border-radius:8px;background:#f1efe9"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Vitamix 40g</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">Rs 990</span></div>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:14px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Recent activity</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">View all</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">09:12</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Sale · Cumfrey ×17</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#0e6b4f">+Rs 14,382</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">08:40</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Purchase · Supplier A</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">−Rs 12,954</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font:400 11px 'IBM Plex Mono',monospace;color:#a9a596">Yest.</span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Payment received</span><span style="font:500 13px 'Instrument Sans',sans-serif;color:#0e6b4f">+Rs 2,400</span></div>
+</div>
+</div>
+</div>
+
+<div onClick="{{ openSheet }}" style="margin-top:12px;height:88px;border:1px dashed #d3cfc1;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:rgba(255,255,255,.4)" style-hover="border-color:#16150f;background:#fff">
+<span style="font:400 20px 'Instrument Sans',sans-serif;color:#8b877a;line-height:1">+</span>
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#6f6c61">Add a card — cash flow, GST, staff, AI opportunities and 12 more</span>
+</div>
+<div style="height:26px"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Add-a-card sheet — the library lives behind one “+”, not on the page</div>
+<div class="dv-card" style="width:520px;background:#f5f4f0;padding:0">
+<div style="padding:22px 24px 20px;background:#fff">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div><div style="font:500 17px 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.01em">Add a card</div><div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:3px">Pick what matters to you. Drag to reorder later.</div></div>
+<div style="width:28px;height:28px;border-radius:8px;background:#f1efe9;display:flex;align-items:center;justify-content:center;color:#6f6c61;font:400 14px 'Instrument Sans',sans-serif">×</div>
+</div>
+<div style="display:flex;gap:7px;margin-top:16px">
+<span style="padding:6px 12px;border-radius:99px;background:#16150f;color:#fff;font:500 12px 'Instrument Sans',sans-serif">All</span>
+<span style="padding:6px 12px;border-radius:99px;background:#f1efe9;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">Money</span>
+<span style="padding:6px 12px;border-radius:99px;background:#f1efe9;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">Stock</span>
+<span style="padding:6px 12px;border-radius:99px;background:#f1efe9;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">People</span>
+<span style="padding:6px 12px;border-radius:99px;background:#f1efe9;color:#6f6c61;font:500 12px 'Instrument Sans',sans-serif">Growth</span>
+</div>
+</div>
+<div style="padding:16px 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<sc-for list="{{ library }}" as="c" hint-placeholder-count="6">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:12px;padding:14px 15px;display:flex;flex-direction:column;gap:6px" style-hover="border-color:#16150f">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font:500 13px 'Instrument Sans',sans-serif;color:#16150f">{{ c.name }}</span>
+<span style="width:20px;height:20px;border-radius:6px;background:#f1efe9;display:flex;align-items:center;justify-content:center;font:400 13px 'Instrument Sans',sans-serif;color:#6f6c61">+</span>
+</div>
+<span style="font:400 11.5px/1.4 'Instrument Sans',sans-serif;color:#8b877a">{{ c.desc }}</span>
+<span style="height:26px;border-radius:6px;background:#f5f4f0;margin-top:2px"></span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Mobile · 390 — same order of thinking, one column, thumb-reachable actions</div>
+<div class="dv-card" style="width:390px;background:#f5f4f0;border-radius:26px">
+<div style="display:flex;justify-content:space-between;padding:12px 22px 2px;font:500 12px 'IBM Plex Mono',monospace;color:#16150f"><span>9:41</span><span>▮▮▮</span></div>
+<div style="padding:10px 18px 8px;display:flex;align-items:center;gap:10px">
+<div style="width:30px;height:30px;border-radius:9px;background:#16150f;color:#fff;display:flex;align-items:center;justify-content:center;font:600 12px 'Instrument Sans',sans-serif">M</div>
+<div style="flex:1"><div style="font:500 14px 'Instrument Sans',sans-serif;color:#16150f">Good morning, Aisha</div><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">My Business Store</div></div>
+<div style="width:30px;height:30px;border-radius:99px;background:#dfe7e2;display:flex;align-items:center;justify-content:center;font:600 11px 'Instrument Sans',sans-serif;color:#0e6b4f">BU</div>
+</div>
+<div style="padding:8px 18px 0;max-height:700px;overflow:hidden">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:18px;padding:18px 18px 10px">
+<div style="font:400 12.5px 'Instrument Sans',sans-serif;color:#8b877a">Revenue this month</div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-top:5px"><span style="font:500 32px/1 'Instrument Sans',sans-serif;color:#16150f;letter-spacing:-.03em">Rs 14,382</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f;background:#e7f2ec;border-radius:99px;padding:3px 8px">+18.4%</span></div>
+<svg viewBox="0 0 320 110" style="width:100%;height:110px;margin-top:10px;display:block" preserveAspectRatio="none">
+<defs><linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16150f" stop-opacity=".14"></stop><stop offset="1" stop-color="#16150f" stop-opacity="0"></stop></linearGradient></defs>
+<path d="M0 92 C40 88 60 80 90 72 C130 62 150 70 180 60 C210 50 220 18 250 14 C280 10 300 44 320 48" fill="none" stroke="#16150f" stroke-width="2" stroke-linecap="round"></path>
+<path d="M0 92 C40 88 60 80 90 72 C130 62 150 70 180 60 C210 50 220 18 250 14 C280 10 300 44 320 48 L320 104 L0 104 Z" fill="url(#rg2)"></path>
+</svg>
+<div style="display:flex;padding:3px;border-radius:9px;background:#f1efe9;gap:2px;margin:6px 0 4px">
+<span style="flex:1;text-align:center;padding:7px 0;border-radius:7px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Today</span>
+<span style="flex:1;text-align:center;padding:7px 0;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.07);font:500 12px 'Instrument Sans',sans-serif;color:#16150f">Month</span>
+<span style="flex:1;text-align:center;padding:7px 0;border-radius:7px;font:500 12px 'Instrument Sans',sans-serif;color:#8b877a">Year</span>
+</div>
+</div>
+<div style="background:#16150f;border-radius:18px;padding:16px 18px;color:#fff;margin-top:10px">
+<div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font:400 12.5px 'Instrument Sans',sans-serif;color:rgba(255,255,255,.55)">Cash in hand</span><span style="font:500 24px 'Instrument Sans',sans-serif;letter-spacing:-.02em">Rs 5,922</span></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:14px 15px"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">To receive</div><div style="font:500 19px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px">Rs 8,460</div><div style="font:400 11px 'Instrument Sans',sans-serif;color:#b4600a;margin-top:3px">2 overdue</div></div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:14px 15px"><div style="font:400 11.5px 'Instrument Sans',sans-serif;color:#8b877a">Stock value</div><div style="font:500 19px 'Instrument Sans',sans-serif;color:#16150f;margin-top:4px">Rs 73,346</div><div style="font:400 11px 'Instrument Sans',sans-serif;color:#8b877a;margin-top:3px">128 items</div></div>
+</div>
+<div style="background:#fff;border:1px solid #e6e3da;border-radius:16px;padding:16px 17px;margin-top:10px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font:500 13.5px 'Instrument Sans',sans-serif;color:#16150f">Needs you today</span><span style="font:500 11px 'IBM Plex Mono',monospace;color:#a8321e;background:#fbeceA;border-radius:99px;padding:3px 8px">3</span></div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#a8321e"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">BMC out of stock</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Order</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:6px;height:6px;border-radius:99px;background:#b4600a"></span><span style="flex:1;font:400 13px 'Instrument Sans',sans-serif;color:#3c3a33">Rs 8,460 overdue</span><span style="font:500 12px 'Instrument Sans',sans-serif;color:#0e6b4f">Remind</span></div>
+</div>
+</div>
+<div style="margin-top:10px;height:64px;border:1px dashed #d3cfc1;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:8px;color:#6f6c61;font:500 13px 'Instrument Sans',sans-serif">+ Add a card</div>
+<div style="height:80px"></div>
+</div>
+<div style="position:relative">
+<div style="position:absolute;left:0;right:0;bottom:74px;display:flex;justify-content:center"><div style="height:44px;padding:0 22px;border-radius:99px;background:#16150f;color:#fff;display:flex;align-items:center;gap:8px;font:500 14px 'Instrument Sans',sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.22)">+ New sale</div></div>
+<div style="display:flex;justify-content:space-around;align-items:center;padding:12px 10px 20px;background:rgba(255,255,255,.92);border-top:1px solid #e6e3da;backdrop-filter:blur(8px)">
+<div style="display:flex;flex-direction:column;align-items:center;gap:5px"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="#16150f" stroke-width="1.5"><rect x="2.2" y="2.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="9.2" y="2.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="2.2" y="9.2" width="4.6" height="4.6" rx="1.2"></rect><rect x="9.2" y="9.2" width="4.6" height="4.6" rx="1.2"></rect></svg><span style="font:500 10.5px 'Instrument Sans',sans-serif;color:#16150f">Home</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:5px"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="#9a9689" stroke-width="1.5"><path d="M2.5 3h2l1.6 7.2h6.2l1.2-5H5"></path><circle cx="7" cy="13" r="1"></circle><circle cx="11.6" cy="13" r="1"></circle></svg><span style="font:500 10.5px 'Instrument Sans',sans-serif;color:#9a9689">Sales</span></div>
+<div style="width:44px"></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:5px"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="#9a9689" stroke-width="1.5"><path d="M2.6 5.4L8 2.6l5.4 2.8v5.2L8 13.4 2.6 10.6z"></path></svg><span style="font:500 10.5px 'Instrument Sans',sans-serif;color:#9a9689">Stock</span></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:5px"><svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="#9a9689" stroke-width="1.5"><circle cx="8" cy="5.6" r="2.6"></circle><path d="M2.8 13.2c.6-2.6 2.5-4 5.2-4s4.6 1.4 5.2 4"></path></svg><span style="font:500 10.5px 'Instrument Sans',sans-serif;color:#9a9689">More</span></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: “show me what the dashboard looks like on day one, before any cards are added” · “make <a class="dv-oid" href="#1a">1a</a> darker / higher contrast” · “add a compact density toggle”</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      openSheet: () => { const el = document.getElementById('1b'); if (el) el.scrollIntoView; },
+      actions: [
+        { g: 'Money', items: [{ n: 'Payment in', k: 'P' }, { n: 'Payment out', k: 'O' }, { n: 'New quote', k: 'Q' }, { n: 'Record expense', k: 'E' }] },
+        { g: 'Stock', items: [{ n: 'Transfer stock', k: 'T' }, { n: 'Add product', k: 'N' }, { n: 'Add category', k: '' }, { n: 'Stock count', k: '' }] },
+        { g: 'People', items: [{ n: 'Add customer', k: 'C' }, { n: 'Add supplier', k: '' }, { n: 'Invite staff', k: '' }, { n: 'New invoice', k: 'I' }] }
+      ],
+      mgrStats: [
+        { l: 'Sales today', v: 'Rs 14,382', n: '23 orders · avg Rs 625' },
+        { l: 'Items sold', v: '184', n: 'Across 12 categories' },
+        { l: 'Stock value', v: 'Rs 73,346', n: '128 items · 3 low' },
+        { l: 'Staff on shift', v: '4 of 5', n: 'Aisha clocked out 11:20' }
+      ],
+      mgrTeam: [
+        { a: 'Fatima M.', b: 'Cashier · on shift 4h 20m', c: 'Rs 8,120' },
+        { a: 'Bilal K.', b: 'Cashier · on shift 2h 05m', c: 'Rs 4,260' },
+        { a: 'Zara A.', b: 'Floor · on shift 6h 10m', c: 'Rs 2,002' }
+      ],
+      acctAging: [
+        { l: '0–30 days', v: 'Rs 4,120', w: '58%' },
+        { l: '31–60 days', v: 'Rs 2,340', w: '33%' },
+        { l: '61–90 days', v: 'Rs 1,200', w: '17%' },
+        { l: '90+ days', v: 'Rs 800', w: '11%' }
+      ],
+      acctJournal: [
+        { a: 'JE-0412', b: 'Sales revenue · Aug 8', c: 'Rs 14,382' },
+        { a: 'JE-0411', b: 'Inventory purchase · Aug 8', c: 'Rs 12,954' },
+        { a: 'JE-0410', b: 'Rent · Aug 7', c: 'Rs 3,000' },
+        { a: 'JE-0409', b: 'Customer payment · Aug 7', c: 'Rs 2,400' }
+      ],
+      poOrders: [
+        { a: 'PO-1042', b: 'Supplier A · 12 items', c: 'In transit' },
+        { a: 'PO-1041', b: 'Nova Traders · 4 items', c: 'Confirmed' },
+        { a: 'PO-1040', b: 'Supplier A · 20 items', c: 'Delivered' },
+        { a: 'PO-1039', b: 'Kaur & Sons · 7 items', c: 'Draft' }
+      ],
+      poReorder: [
+        { a: 'BMC', b: '0 of 5 in stock' },
+        { a: 'Cumfrey 200g', b: '2 of 10 in stock' },
+        { a: 'Vitamix 40g', b: '3 of 12 in stock' }
+      ],
+      viewerReports: [
+        { a: 'Profit & loss', b: 'Month to date' },
+        { a: 'Balance sheet', b: 'As of 8 Aug' },
+        { a: 'Inventory valuation', b: '128 items' },
+        { a: 'Trial balance', b: 'Aug period' }
+      ],
+      library: [
+        { name: 'Cash flow', desc: 'Money in vs out, weekly' },
+        { name: 'Receivables ageing', desc: 'Who owes what, how late' },
+        { name: 'GST summary', desc: 'Tax collected and payable' },
+        { name: 'Staff activity', desc: 'Who sold what today' },
+        { name: 'AI opportunities', desc: 'Suggested actions to grow' },
+        { name: 'Expenses by category', desc: 'Where the money goes' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

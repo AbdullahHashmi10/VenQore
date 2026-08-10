@@ -745,34 +745,18 @@ class SaleController extends Controller
             ->get(['id', 'name', 'code']);
 
         if ($sale->customer) {
-            // FIX: read net balance LIVE from ledger (already includes this sale's AR debit)
             $netBalance = LedgerService::partyNetBalance(
                 $sale->customer->id,
                 $sale->tenant_id
             );
             $sale->customer->current_balance = $netBalance;
 
-            // FIX: read paid amount from payment_allocations (V3 source-of-truth),
-            //      not from the legacy payments relationship which is always 0 for V3 sales.
-            $invoiceTotal = (float) $sale->total;
-            $amountPaid   = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
-                ->where('sale_id', $sale->id)
-                ->where('status', 'active')
-                ->sum('allocated_amount');
-            $balanceDue   = max(0.0, $invoiceTotal - $amountPaid);
-
-            // FIX race condition: the ledger already contains this sale's AR debit.
-            // Previous balance = what the customer owed BEFORE this transaction.
-            // = netBalance (after sale+payment) - invoiceTotal (this sale) + amountPaid (this payment)
-            // = netBalance - balanceDue
-            // BUT when fully paid, balanceDue=0 → prev = net, which is wrong.
-            // Correct formula: prev = net - (invoiceTotal - amountPaid) only works when
-            // the payment journal is also included. Since both sale AR and payment CR are
-            // already in the ledger, the net effect = invoiceTotal - amountPaid = balanceDue.
-            // So: prevBalance = netBalance - balanceDue  ← this IS correct.
-            // The real issue was amountPaid coming from wrong source (fixed above).
             $sale->customer_net_balance  = $netBalance;
-            $sale->customer_prev_balance = $netBalance - $balanceDue;
+            $sale->customer_prev_balance = LedgerService::partyBalanceExcludingDocument(
+                $sale->customer->id,
+                $sale->tenant_id,
+                $sale->id
+            );
             $sale->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
@@ -795,16 +779,12 @@ class SaleController extends Controller
         $settings = \App\Models\Setting::all()->pluck('value', 'key');
 
         if ($sale->party_id) {
-            $net        = LedgerService::partyNetBalance($sale->party_id, $sale->tenant_id);
-            // FIX: read paid amount from payment_allocations, not legacy payments relation
-            $invoiceTotalPr = (float) $sale->total;
-            $amountPaidPr   = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
-                ->where('sale_id', $sale->id)
-                ->where('status', 'active')
-                ->sum('allocated_amount');
-            $balanceDue = max(0.0, $invoiceTotalPr - $amountPaidPr);
-            $sale->customer_net_balance  = $net;
-            $sale->customer_prev_balance = $net - $balanceDue;
+            $sale->customer_net_balance  = LedgerService::partyNetBalance($sale->party_id, $sale->tenant_id);
+            $sale->customer_prev_balance = LedgerService::partyBalanceExcludingDocument(
+                $sale->party_id,
+                $sale->tenant_id,
+                $sale->id
+            );
         }
 
         $pdf = Pdf::loadView('pdf.receipt', [

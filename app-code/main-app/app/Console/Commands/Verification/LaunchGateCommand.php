@@ -26,7 +26,7 @@ class LaunchGateCommand extends Command
 
     public function handle(): int
     {
-        $vc = base_path('Tester/VerificationCenter');
+        $vc = base_path('tests/VerificationCenter');
         $blocks = [];
 
         // (1) Critical issues (rebuilt G-03 logic).
@@ -91,7 +91,7 @@ class LaunchGateCommand extends Command
             }
         }
 
-        $qPath = base_path('Tester/VerificationCenter/registry/quarantine.yaml');
+        $qPath = base_path('tests/VerificationCenter/registry/quarantine.yaml');
         if (is_file($qPath)) {
             foreach ((Yaml::parseFile($qPath)['waivers'] ?? []) as $w) {
                 if (! $isCritical($w['risk'] ?? null) && ! $isCritical($w['severity'] ?? null)) {

@@ -87,8 +87,8 @@ function loadConfig() {
   const defaults = {
     phpBin: 'php',
     projectRoot: PROJECT_ROOT,
-    canonicalConfig: 'FinalTester/phpunit.xml',
-    categoriesConfig: 'FinalTester/config/phpunit.categories.xml'
+    canonicalConfig: 'tests/phpunit.xml',
+    categoriesConfig: 'tests/config/phpunit.categories.xml'
   };
   try {
     return Object.assign(defaults, JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')));
@@ -477,7 +477,7 @@ function runTests(wss, opts) {
     //
     // That single missing flag caused 352 of 438 failures in the 2026-08-02
     // 07:14 run. Do not remove it.
-    '--test-directory=FinalTester/tests',
+    '--test-directory=tests/tests',
     '--teamcity',
     '--log-junit', junitPath,
     '--no-coverage'

@@ -1,19 +1,19 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-08-09 04:18:37 PKT  
+> **Generated:** 2026-08-10 11:12:14 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
-> **Audit Date:** 2026-08-09  
-> **Audit Period Seeded:** 2025-01-01 → 2026-08-09  
+> **Audit Date:** 2026-08-10  
+> **Audit Period Seeded:** 2025-01-01 → 2026-08-10  
 
 ## Summary
 
 | Status | Count |
 |--------|-------|
 | 🔢 Total Routes Scanned | **254** |
-| ✅ Passed | 185 |
-| ⚠️ All Zeros (Suspicious) | 57 |
+| ✅ Passed | 186 |
+| ⚠️ All Zeros (Suspicious) | 59 |
 | ❌ Mismatched vs Ledger | 0 |
-| 🔴 HTTP Errors / Exceptions | 12 |
+| 🔴 HTTP Errors / Exceptions | 9 |
 | ⏭️ Skipped | 0 |
 
 ## Ledger Control Values (Single Source of Truth)
@@ -79,35 +79,37 @@
 | 26 | `store.growth-engine.dashboard` | `s/{store_slug}/growth-engine/dashboard` |
 | 27 | `store.growth-engine.scorecard` | `s/{store_slug}/growth-engine/scorecard` |
 | 28 | `store.attributes.index` | `s/{store_slug}/attributes` |
-| 29 | `store.production.index` | `s/{store_slug}/inventory/production` |
-| 30 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
-| 31 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
-| 32 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
-| 33 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
-| 34 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
-| 35 | `store.woo.connections.index` | `s/{store_slug}/woo/connections` |
-| 36 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
-| 37 | `store.customers.create` | `s/{store_slug}/customers/create` |
-| 38 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
-| 39 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
-| 40 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
-| 41 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
-| 42 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
-| 43 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
-| 44 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
-| 45 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
-| 46 | `store.notifications.index` | `s/{store_slug}/notifications` |
-| 47 | `store.profile.edit` | `s/{store_slug}/profile` |
-| 48 | `store.returns.create` | `s/{store_slug}/returns/create` |
-| 49 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
-| 50 | `store.batches.index` | `s/{store_slug}/batches` |
-| 51 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
-| 52 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
-| 53 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
-| 54 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
-| 55 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
-| 56 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
-| 57 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
+| 29 | `store.vensynq.money-pipeline` | `s/{store_slug}/vensynq/money-pipeline` |
+| 30 | `store.vensynq.payouts` | `s/{store_slug}/vensynq/payouts` |
+| 31 | `store.production.index` | `s/{store_slug}/inventory/production` |
+| 32 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
+| 33 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
+| 34 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
+| 35 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
+| 36 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
+| 37 | `store.woo.connections.index` | `s/{store_slug}/woo/connections` |
+| 38 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
+| 39 | `store.customers.create` | `s/{store_slug}/customers/create` |
+| 40 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
+| 41 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
+| 42 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
+| 43 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
+| 44 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
+| 45 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
+| 46 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
+| 47 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
+| 48 | `store.notifications.index` | `s/{store_slug}/notifications` |
+| 49 | `store.profile.edit` | `s/{store_slug}/profile` |
+| 50 | `store.returns.create` | `s/{store_slug}/returns/create` |
+| 51 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
+| 52 | `store.batches.index` | `s/{store_slug}/batches` |
+| 53 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
+| 54 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
+| 55 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
+| 56 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
+| 57 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
+| 58 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
+| 59 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
 
 ### Zero-Page Financial Props Detail
 
@@ -303,6 +305,20 @@
   membership.tenant.ai_descriptions_balance: 0
 ```
 
+**`store.vensynq.money-pipeline`**
+```
+  pipeline.gross_in_pipeline: 0
+  pipeline.awaiting_confirmation.amount: 0
+```
+
+**`store.vensynq.payouts`**
+```
+  settings.tax_rate: 0
+  membership.tenant.ai_descriptions_balance: 0
+  pipeline.gross_in_pipeline: 0
+  pipeline.awaiting_confirmation.amount: 0
+```
+
 **`store.production.index`**
 ```
   settings.tax_rate: 0
@@ -492,9 +508,6 @@
 | `store.workspace` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
 | `store.appearance` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
 | `store.growth-engine.show` | 404 | {"message":"No query results for model [App\\Models\\AiRecommendation] RET-202501-1001","exception":"Symfony\\Component\ |
-| `store.vensynq.health` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
-| `store.vensynq.money-pipeline` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
-| `store.vensynq.payouts` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
 | `store.woo.plugin.download` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
 | `store.woo.connections.setup` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
 | `store.woo.connections.status-json` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
@@ -594,7 +607,7 @@
 | `store.reports.party-wise-profit-loss` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_invoice_count`=16.00 (+9 more) |
 | `store.reports.discount` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `invoices.sum_subtotal`=526,355.12 (+32 more) |
 | `store.reports.cash-flow` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `operating`=4,071,124.77 (+4 more) |
-| `store.reports.sale-aging` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `invoices.sum_amount`=6,189,422.04 (+1 more) |
+| `store.reports.sale-aging` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `invoices.sum_amount`=6,189,422.04 (+3 more) |
 | `store.reports.sale-orders` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `orders.sum_total_amount`=1,000.00 (+17 more) |
 | `store.reports.bill-wise-profit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `invoices.sum_net_revenue`=449,876.14 (+5 more) |
 | `store.reports.expense-by-category` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_total`=72,017.91 (+5 more) |
@@ -642,9 +655,9 @@
 | `store.parties.ledger` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `party.opening_balance`=0.00 (+12 more) |
 | `store.parties.show` | ↩ REDIRECT | 302 | – |
 | `store.expenses.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `expenses.total`=0.00 (+6 more) |
-| `store.vensynq.health` | 🔴 HTTP_ERROR | 404 | – |
-| `store.vensynq.money-pipeline` | 🔴 HTTP_ERROR | 404 | – |
-| `store.vensynq.payouts` | 🔴 HTTP_ERROR | 404 | – |
+| `store.vensynq.health` | ✅ PASS | 200 | – |
+| `store.vensynq.money-pipeline` | ⚠️ ALL_ZEROS | 200 | `pipeline.gross_in_pipeline`=0.00, `pipeline.awaiting_confirmation.amount`=0.00 |
+| `store.vensynq.payouts` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `pipeline.gross_in_pipeline`=0.00 (+1 more) |
 | `store.payments.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `payments.data.sum_amount`=789,973.78 (+8 more) |
 | `store.payments.in` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |
 | `store.payments.out` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |

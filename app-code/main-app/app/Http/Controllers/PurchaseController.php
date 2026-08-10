@@ -85,12 +85,8 @@ class PurchaseController extends Controller
                 $netSubtotal = $subtotal - $discount;
                 $grandTotal = $netSubtotal + $extras;
 
-                // V3 source-of-truth: read paid amount from payment_allocations
-                // (never from the stale Invoice->payments accessor which joins on reference)
-                $paid = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
-                    ->where('purchase_id', $purchase->id)
-                    ->where('status', 'active')
-                    ->sum('allocated_amount');
+                // Read paid amount from ledger journal entries
+                $paid = $this->paidAmountForInvoice($purchase->id, $purchase->tenant_id);
 
                 $balance = max(0.0, $grandTotal - $paid);
                 
@@ -471,18 +467,15 @@ class PurchaseController extends Controller
     {
         $purchase = Invoice::with(['party', 'items.product', 'payments'])->findOrFail($id);
 
-        // V3 source-of-truth: paid amount comes from payment_allocations, not the old payments relationship
-        $paidAmount = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
-            ->where('purchase_id', $purchase->id)
-            ->where('status', 'active')
-            ->sum('allocated_amount');
+        // Read paid amount from ledger
+        $paidAmount = $this->paidAmountForInvoice($purchase->id, $purchase->tenant_id);
         $purchase->setAttribute('paid_amount', $paidAmount);
 
         if ($purchase->party_id && $purchase->tenant_id) {
-            $net = \App\Services\LedgerService::partyNetBalance($purchase->party_id, $purchase->tenant_id);
-            $balanceDue = max(0, (float)$purchase->total_amount - $paidAmount);
-            $purchase->customer_net_balance  = $net;
-            $purchase->customer_prev_balance = $net - $balanceDue;
+            $purchase->customer_net_balance  = LedgerService::partyNetBalance($purchase->party_id, $purchase->tenant_id);
+            $purchase->customer_prev_balance = LedgerService::partyBalanceExcludingDocument(
+                $purchase->party_id, $purchase->tenant_id, $purchase->id
+            );
             $purchase->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
@@ -687,6 +680,7 @@ class PurchaseController extends Controller
             $method = strtolower($validated['payment_method'] ?? 'cash');
             if ($method === 'credit') $method = 'cash';
 
+            // Operational record only; ledger journal entry ($pmJournal) below is the accounting source of truth.
             \App\Models\Payment::create([
                 'party_id'  => $invoice->party_id,
                 'amount'    => $validated['amount_paid'],
@@ -702,51 +696,46 @@ class PurchaseController extends Controller
                 ['account_code' => (in_array($method, ['bank', 'card', 'upi']) ? '1010' : '1000'), 'debit' => 0, 'credit' => $validated['amount_paid'], 'description' => "Payment out — {$invoice->invoice_number}"],
             ];
 
-            $pmJournal = $accounting->createEntry([
+            $accounting->createEntry([
                 'date'           => $validated['date'],
                 'reference_type' => 'purchase_payment',
                 'reference'      => $invoice->id,
                 'description'    => "Payment — Purchase #{$invoice->invoice_number}",
                 'party_id'       => $invoice->party_id,
             ], $pmLines);
-
-            // ── FIX: write the payment_allocations row so the list/show/ledger
-            //    queries that read from payment_allocations see the correct paid amount.
-            //    We insert directly (not via PaymentService::allocate) because that
-            //    service's over-allocation guard reads from the `purchases` table, but
-            //    our purchase records live in `invoices`. The journal entry is already
-            //    the accounting source-of-truth; this row is the cross-reference index.
-            $tid = app()->bound('current.tenant') ? app('current.tenant')->id : null;
-            \Illuminate\Support\Facades\DB::table('payment_allocations')->insert([
-                'id'                       => \Illuminate\Support\Str::uuid()->toString(),
-                'tenant_id'                => $tid,
-                'payment_journal_entry_id' => $pmJournal->id,
-                'purchase_id'              => $invoice->id,
-                'sale_id'                  => null,
-                'allocated_amount'         => $validated['amount_paid'],
-                'status'                   => 'active',
-                'created_at'               => now(),
-                'updated_at'               => now(),
-            ]);
-
-            // ── Also keep invoices.paid_amount in sync so show() & edit() display
-            //    correctly without a separate allocation query on every page load.
-            $invoice->increment('paid_amount', $validated['amount_paid']);
-
-            // ── Recompute and persist payment_status on the invoice itself.
-            $grandTotal = $invoice->fresh()->total_amount;
-            $totalPaid  = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
-                ->where('purchase_id', $invoice->id)
-                ->where('status', 'active')
-                ->sum('allocated_amount');
-            $tolerance = 1.0;
-            $newStatus = ($totalPaid <= 0)
-                ? 'unpaid'
-                : (($grandTotal - $totalPaid <= $tolerance) ? 'paid' : 'partial');
-            $invoice->update(['status' => $newStatus]);
         }
+
+        // Always recompute and write payment status on the invoice — including zero-paid case.
+        $paid       = $this->paidAmountForInvoice($invoice->id, $invoice->tenant_id);
+        $grandTotal = (float) $invoice->fresh()->total_amount;
+        $tolerance  = (float) (DB::table('system_settings')
+            ->where('tenant_id', $invoice->tenant_id)
+            ->where('key', 'roundoff_tolerance')
+            ->value('value') ?? 1.00);
+
+        $newStatus = ($paid <= 0)
+            ? 'unpaid'
+            : (($grandTotal - $paid <= $tolerance) ? 'paid' : 'partial');
+
+        $invoice->update(['status' => $newStatus]);
     }
 
+    /**
+     * Amount paid against a legacy (invoices-table) purchase, read from the ledger.
+     * Sums the AP debits raised by purchase_payment entries for this invoice.
+     */
+    private function paidAmountForInvoice(string $invoiceId, string $tenantId): float
+    {
+        return (float) (DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('je.is_reversed', 0)
+            ->where('je.reference_type', 'purchase_payment')
+            ->where('je.reference', $invoiceId)
+            ->where('a.code', '2000')
+            ->sum('ji.debit') ?? 0);
+    }
 
     public function receive($id)
     {

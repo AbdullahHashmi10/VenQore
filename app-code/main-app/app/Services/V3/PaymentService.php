@@ -67,6 +67,8 @@ class PaymentService
                 // Update badge immediately after each allocation
                 if ($isSale) {
                     $this->updatePaymentBadge($allocation['sale_id']);
+                } else {
+                    $this->updatePurchaseBadge($allocation['purchase_id']);
                 }
             }
         });
@@ -74,7 +76,7 @@ class PaymentService
 
     /**
      * Recompute and write sales.payment_status from live allocation data.
-     * THIS IS THE ONLY METHOD THAT WRITES payment_status.
+     * THIS IS THE ONLY METHOD THAT WRITES payment_status FOR SALES.
      */
     public function updatePaymentBadge(string $saleId): void
     {
@@ -93,6 +95,7 @@ class PaymentService
 
         $total     = (float) ($sale->total ?? 0);
         $tolerance = (float) (DB::table('system_settings')
+            ->where('tenant_id', $tid)
             ->where('key', 'roundoff_tolerance')
             ->value('value') ?? 1.00);
 
@@ -117,6 +120,47 @@ class PaymentService
     }
 
     /**
+     * Recompute and write purchases.payment_status from live allocation data.
+     * THIS IS THE ONLY METHOD THAT WRITES payment_status FOR PURCHASES.
+     */
+    public function updatePurchaseBadge(string $purchaseId): void
+    {
+        $tid = $this->tenantId;
+        $purchase = DB::table('purchases')->where('tenant_id', $tid)->where('id', $purchaseId)->first();
+        if (!$purchase) return;
+
+        $allocated = (float) DB::table('payment_allocations')
+            ->where('tenant_id', $tid)
+            ->where('purchase_id', $purchaseId)
+            ->where('status', 'active')
+            ->sum('allocated_amount');
+
+        $total     = (float) ($purchase->total ?? 0);
+        $tolerance = (float) (DB::table('system_settings')
+            ->where('tenant_id', $tid)
+            ->where('key', 'roundoff_tolerance')
+            ->value('value') ?? 1.00);
+
+        $outstanding = $total - $allocated;
+
+        if ($allocated <= 0) {
+            $status = 'unpaid';
+        } elseif ($outstanding <= $tolerance) {
+            $status = 'paid';
+        } else {
+            $status = 'partial';
+        }
+
+        DB::table('purchases')
+            ->where('tenant_id', $tid)
+            ->where('id', $purchaseId)
+            ->update([
+                'payment_status' => $status,
+                'updated_at'     => now(),
+            ]);
+    }
+
+    /**
      * Void all active allocations for a given payment journal entry.
      *
      * CRITICAL: Called ONLY by AccountingService::reverseEntry().
@@ -129,7 +173,7 @@ class PaymentService
         DB::transaction(function () use ($paymentJournalEntryId) {
 
             $tid = $this->tenantId;
-            // Collect affected sale IDs before voiding
+            // Collect affected sale/purchase IDs before voiding
             $affected = DB::table('payment_allocations')
                 ->where('tenant_id', $tid)
                 ->where('payment_journal_entry_id', $paymentJournalEntryId)
@@ -150,6 +194,8 @@ class PaymentService
             foreach ($affected as $row) {
                 if ($row->sale_id) {
                     $this->updatePaymentBadge($row->sale_id);
+                } elseif ($row->purchase_id) {
+                    $this->updatePurchaseBadge($row->purchase_id);
                 }
             }
         });
@@ -171,13 +217,14 @@ class PaymentService
                 ->first();
             $invoiceTotal = (float) ($invoice->total ?? 0);
         } else {
-            // Purchases are stored in the `invoices` table (type = 'purchase')
-            $invoice = DB::table('invoices')
+            // V3 purchases live in the `purchases` table. This must stay in step
+            // with V3\PurchaseService, V3\PurchaseController, V3\SupplierStatementController
+            // and GoldenCompanySeeder, which all write/read `purchases`.
+            $invoice = DB::table('purchases')
                 ->where('tenant_id', $tid)
                 ->where('id', $invoiceId)
-                ->where('type', 'purchase')
                 ->first();
-            $invoiceTotal = (float) ($invoice->total_amount ?? 0);
+            $invoiceTotal = (float) ($invoice->total ?? 0);
         }
 
         if (!$invoice) {

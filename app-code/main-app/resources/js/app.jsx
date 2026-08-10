@@ -107,6 +107,10 @@ createInertiaApp({
     },
 });
 
+window.addEventListener('vite:preloadError', () => {
+    console.warn('[Vite] Preload error detected. Forcing reload.');
+    window.location.reload();
+});
 
 // Global window error listener for non-React errors
 window.onerror = function (message, source, lineno, colno, error) {

@@ -253,8 +253,19 @@ class PlanRepository
         $cacheKey = "tenant_features_map:{$tenant->id}:{$tenant->plan}";
         return Cache::remember($cacheKey, 300, function () use ($tenant) {
             $rawLimits = self::getLimits($tenant->plan ?? 'starter');
+
+            // Fail-closed: the map must contain EVERY known feature key across the database
+            // (all ~250 keys defined in plan_limits) as well as fallback configs. A key missing
+            // from tenant plan limits resolves to false — it must never be absent, because an
+            // absent key reads as "undefined" on the frontend and fatals on the backend.
+            $dbKeys = Cache::remember('all_canonical_feature_keys', 300, function () {
+                return \Illuminate\Support\Facades\DB::table('plan_limits')->distinct()->pluck('key')->toArray();
+            });
+            $configKeys = array_keys(config('plans.counter', config('plans.starter', [])));
+            $keys = array_unique(array_merge($dbKeys, $configKeys, array_keys($rawLimits)));
+
             $map = [];
-            foreach ($rawLimits as $key => $val) {
+            foreach ($keys as $key) {
                 $map[$key] = self::canUseFeature($tenant, $key);
             }
             return $map;

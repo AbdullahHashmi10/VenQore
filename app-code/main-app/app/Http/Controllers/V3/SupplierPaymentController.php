@@ -77,46 +77,9 @@ class SupplierPaymentController extends Controller
         return redirect()->back()->with('success', 'Supplier payment posted.');
     }
 
-    // Badge update for purchases — reads from `invoices` (type='purchase') which is
-    // where purchase records actually live. Mirrors PaymentService::updatePaymentBadge.
     private function updatePurchaseBadge(string $purchaseId): void
     {
-        $tid = app('current.tenant')->id;
-
-        // Purchases live in `invoices` table with type = 'purchase'
-        $purchase = DB::table('invoices')
-            ->where('tenant_id', $tid)
-            ->where('id', $purchaseId)
-            ->where('type', 'purchase')
-            ->first();
-        if (!$purchase) return;
-
-        $allocated = (float) DB::table('payment_allocations')
-            ->where('tenant_id', $tid)
-            ->where('purchase_id', $purchaseId)
-            ->where('status', 'active')
-            ->sum('allocated_amount');
-
-        $total     = (float) ($purchase->total_amount ?? 0);
-        $tolerance = (float) (DB::table('system_settings')
-            ->where('tenant_id', $tid)
-            ->where('key', 'roundoff_tolerance')
-            ->value('value') ?? 1.00);
-
-        $outstanding = $total - $allocated;
-
-        if ($allocated <= 0) {
-            $status = 'unpaid';
-        } elseif ($outstanding <= $tolerance) {
-            $status = 'paid';
-        } else {
-            $status = 'partial';
-        }
-
-        DB::table('invoices')
-            ->where('tenant_id', $tid)
-            ->where('id', $purchaseId)
-            ->update(['status' => $status, 'updated_at' => now()]);
+        $this->payments->updatePurchaseBadge($purchaseId);
     }
 }
 

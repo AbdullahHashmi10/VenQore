@@ -16,20 +16,7 @@ export default defineConfig({
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                        if (id.includes('lucide-react')) {
-                            return 'vendor-lucide';
-                        }
-                        if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
-                            return 'vendor-react-core';
-                        }
-                        return 'vendor-core';
-                    }
-                    if (id.includes('resources/js/Pages/Marketing/')) {
-                        return 'marketing-pages';
-                    }
-                }
+                // Rely on default chunking logic
             }
         }
     },

@@ -56,18 +56,10 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Build assets (/build/*): Network-first to ensure new deploys update immediately
+    // Build assets (/build/*): No caching in SW. 
+    // Hashed filenames ensure correct browser caching, SW interference causes stale chunk errors.
     if (url.pathname.startsWith('/build/')) {
-        event.respondWith(
-            fetch(event.request).then(response => {
-                if (response && response.status === 200 && response.type === 'basic') {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }).catch(() => caches.match(event.request))
-        );
-        return;
+        return; 
     }
 
     // Static assets (images, fonts): cache-first with network fallback

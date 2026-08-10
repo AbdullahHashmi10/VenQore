@@ -1,6 +1,6 @@
 {
   "_comment": "Edit phpBin if 'php' is not on your PATH. The BAT launchers auto-detect it; the dashboard server reads it from here.",
   "phpBin": "C:\\Users\\PC\\AppData\\Roaming\\Local\\lightning-services\\php-8.2.23+0\\bin\\win64\\php.exe",
-  "canonicalConfig": "FinalTester/phpunit.xml",
-  "categoriesConfig": "FinalTester/config/phpunit.categories.xml"
+  "canonicalConfig": "tests/phpunit.xml",
+  "categoriesConfig": "tests/config/phpunit.categories.xml"
 }
