@@ -1,0 +1,3 @@
+AMD_POS_VERSION=5.5.0
+RELEASED=2026-08-10
+TYPE=update_package
