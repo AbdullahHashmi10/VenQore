@@ -153,7 +153,7 @@ function InviteModal({ storeId, onClose }) {
                         {/* Role description */}
                         <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: (ROLES[data.role]?.bg ?? vq.slate[50]), border: `1px solid ${ROLES[data.role]?.border ?? vq.slate[200]}`, fontSize: 12, color: ROLES[data.role]?.color ?? vq.slate[500] }}>
                             {data.role === 'admin'              && 'Full store access — same as owner, except billing and store deletion.'}
-                            {data.role === 'manager'            && 'All operational access. Can view all 38 reports. Cannot manage staff roles.'}
+                            {data.role === 'manager'            && 'All operational access. Can view all 40 reports. Cannot manage staff roles.'}
                             {data.role === 'cashier'            && 'POS terminal only. Minimal dashboard. Cannot see financial data.'}
                             {data.role === 'accountant'         && 'Full financial access. Cannot access POS or manage staff.'}
                             {data.role === 'purchasing_officer' && 'Purchase orders, suppliers, and stock receiving. No sales/finance access.'}

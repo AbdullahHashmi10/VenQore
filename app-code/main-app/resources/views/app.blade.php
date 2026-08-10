@@ -1,5 +1,23 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{--
+    Appearance is resolved and written onto <html> here, server-side, rather than
+    applied by React after boot.
+
+    The theme engine emits every selectable theme into one stylesheet, scoped by
+    these attributes. Setting them in the document the browser is already parsing
+    means the correct theme is in force before the first pixel is painted. Doing
+    it from JavaScript instead would show the build-time default theme on every
+    full page load and then repaint — the flash is most of a second on a slow
+    Android device, and it happens on every login, every hard refresh and every
+    non-Inertia navigation.
+
+    Appearance::forRequest() fails closed to defaults: it runs on the marketing
+    site, in the installer and before the database exists.
+--}}
+@php($vqAppearance = \App\Support\Appearance::forRequest())
+@php($vqHtmlAttributes = \App\Support\Appearance::htmlAttributes($vqAppearance))
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    @foreach($vqHtmlAttributes as $vqAttribute => $vqValue) {{ $vqAttribute }}="{{ $vqValue }}" @endforeach>
 
 <head>
     <!-- Google tag (gtag.js) -->
@@ -86,7 +104,11 @@
     <!-- Fonts Preconnect & Swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {{-- Figtree and Source Serif 4 are here because Appearance settings offers
+         them as typeface choices. A font a user can select but the browser never
+         downloads silently falls back to the next stack entry, which reads as
+         "the setting does nothing". --}}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Figtree:wght@300;400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/logo.png">
 

@@ -39,7 +39,7 @@ const FeaturedPost = ({ post }) => (
                             </span>
                         </div>
 
-                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4 font-display group-hover:text-indigo-100 transition-colors">
+                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4 font-display group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">
                             {post.title}
                         </h2>
                         <p className="text-slate-500 leading-relaxed mb-8 line-clamp-3">
@@ -80,7 +80,7 @@ const PostCard = ({ post, index }) => (
                         <span className="text-2xs text-slate-700 font-bold">{post.date}</span>
                     </div>
 
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug mb-3 font-display group-hover:text-indigo-100 transition-colors flex-1">
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug mb-3 font-display group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors flex-1">
                         {post.title}
                     </h3>
                     <p className="text-slate-600 text-sm leading-relaxed mb-5 line-clamp-2">
@@ -114,7 +114,7 @@ export default function BlogIndex({ posts = [] }) {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
                         <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-6 font-display">
-                            <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Ideas That</span>{' '}
+                            <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 bg-clip-text text-transparent">Ideas That</span>{' '}
                             <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent vq-text-glow">Matter.</span>
                         </h1>
                     </RevealOnScroll>

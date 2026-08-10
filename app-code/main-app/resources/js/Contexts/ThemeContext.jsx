@@ -18,32 +18,12 @@ const STORAGE_KEY = 'amd_theme';
  * header toggle, that choice is persisted to localStorage and honoured
  * everywhere afterwards — landing page included.
  */
-const LIGHT_BY_DEFAULT_PREFIXES = [
-    '/features',
-    '/solutions',
-    '/compare',
-    '/pricing',
-    '/tools',
-    '/blog',
-    '/docs',
-    '/roadmap',
-    '/about',
-    '/contact',
-    '/partners',
-    '/partner-support',
-    '/vensynq',
-    '/smartcapture',
-    '/digital-products',
-    '/subscribe',
-    '/terms',
-    '/privacy',
-    '/refund-policy',
-];
-
-const isLightByDefaultPath = (pathname = '') =>
-    LIGHT_BY_DEFAULT_PREFIXES.some(
+const isExceptionPath = (pathname = '') => {
+    const prefixes = ['/tools', '/blog', '/docs', '/documentation'];
+    return prefixes.some(
         (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
     );
+};
 
 /** Has the visitor ever explicitly picked a theme? */
 const readSavedTheme = () => {
@@ -68,16 +48,33 @@ const readTenantDefault = (settings) => {
 
 /** Resolve the theme for a given path, honouring explicit choice first. */
 const resolveTheme = (settings, pathname) => {
+    if (!isExceptionPath(pathname)) {
+        return true; // Always dark mode for non-excepted public pages
+    }
+
     const saved = readSavedTheme();
     if (saved) return saved === 'dark';
 
     const tenantDefault = readTenantDefault(settings);
     if (tenantDefault !== null) return tenantDefault;
 
-    return !isLightByDefaultPath(pathname);
+    return false; // Default to light mode for excepted public pages
 };
 
-export const ThemeProvider = ({ children, settings = {} }) => {
+/**
+ * @param {boolean} managed
+ *   True when an authenticated appearance preference is in force. In that case
+ *   AppearanceContext owns the `dark` class on <html> and this provider must not
+ *   write it.
+ *
+ *   Without this flag the two fight, and the loser is whichever effect runs
+ *   first: AppearanceProvider is nested inside this one, so React flushes its
+ *   effect first and this provider's would immediately overwrite it. The user
+ *   would pick "Light" in Appearance settings and watch the page flick back to
+ *   dark. The context still reports `isDarkMode` for the components that read
+ *   it — it simply stops being the one applying it.
+ */
+export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
         if (typeof window === 'undefined') return true;
         return resolveTheme(settings, window.location.pathname);
@@ -88,7 +85,6 @@ export const ThemeProvider = ({ children, settings = {} }) => {
     // the per-path default would only ever apply to the very first page load.
     useEffect(() => {
         const apply = () => {
-            if (readSavedTheme()) return; // explicit choice wins — never override
             setIsDarkMode(resolveTheme(settings, window.location.pathname));
         };
         const stop = router.on('navigate', apply);
@@ -108,8 +104,9 @@ export const ThemeProvider = ({ children, settings = {} }) => {
     // localStorage here — persisting on mere page view would turn the
     // landing page's dark default into a sticky site-wide preference.
     useEffect(() => {
+        if (managed) return;
         document.documentElement.classList.toggle('dark', isDarkMode);
-    }, [isDarkMode]);
+    }, [isDarkMode, managed]);
 
     /** Explicit user action — this is what gets remembered. */
     const persist = useCallback((dark) => {
@@ -119,6 +116,7 @@ export const ThemeProvider = ({ children, settings = {} }) => {
     }, []);
 
     const toggleTheme = useCallback(() => {
+        if (!isExceptionPath(window.location.pathname)) return;
         setIsDarkMode((prev) => {
             const next = !prev;
             persist(next);
@@ -127,6 +125,7 @@ export const ThemeProvider = ({ children, settings = {} }) => {
     }, [persist]);
 
     const setThemeExplicitly = useCallback((dark) => {
+        if (!isExceptionPath(window.location.pathname)) return;
         const next = typeof dark === 'function' ? dark(isDarkMode) : dark;
         persist(next);
         setIsDarkMode(next);

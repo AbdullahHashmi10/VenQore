@@ -29,6 +29,9 @@
 
 import midnightNebula from './themes/midnight-nebula.js';
 import daylightCalm from './themes/daylight-calm.js';
+import minimal from './themes/minimal.js';
+import classic from './themes/classic.js';
+import colour from './themes/colour.js';
 
 /* ─────────────────────────────────────────────────────────────────────────── *
  *  ▼▼▼  CHANGE THIS LINE TO RESKIN THE ENTIRE APPLICATION  ▼▼▼
@@ -48,7 +51,60 @@ export const ACTIVE_THEME = 'midnight-nebula';
 export const AVAILABLE_THEMES = {
     'midnight-nebula': midnightNebula,
     'daylight-calm': daylightCalm,
+    minimal,
+    classic,
+    colour,
 };
+
+/* ─────────────────────────────────────────────────────────────────────────── *
+ *  RUNTIME THEME SELECTION
+ * ─────────────────────────────────────────────────────────────────────────── *
+ *
+ * ACTIVE_THEME above still decides what lands in `:root` — the build-time
+ * default, and what a page renders before any JavaScript runs.
+ *
+ * Everything in SELECTABLE_THEMES is additionally emitted by the generator
+ * under `[data-vq-theme="<id>"]`, so a user can switch between them at runtime
+ * by changing one attribute on <html>. See Contexts/AppearanceContext.jsx.
+ *
+ * Why a separate list rather than just using AVAILABLE_THEMES: a theme being
+ * registered means "the build validates it". A theme being selectable means "we
+ * are willing to support a paying customer running their whole business in it",
+ * which is a much higher bar, and a draft theme should be able to sit in the
+ * first list for a while before it enters the second.
+ */
+export const SELECTABLE_THEMES = ['midnight-nebula', 'daylight-calm'];
+
+/**
+ * What Appearance settings shows. Kept next to the registry so a new theme
+ * cannot be made selectable without someone deciding how to describe it.
+ *
+ * `swatch` is picked by hand rather than read from the ramps: the preview chip
+ * needs the two or three colours that *characterise* the theme, which is a
+ * judgement call and not always the 500 stop.
+ */
+export const THEME_CATALOG = [
+    {
+        id: 'midnight-nebula',
+        name: 'Midnight',
+        tagline: 'The VenQore look — dark, premium, technical',
+        supportsDark: true,
+        swatch: ['#0b1020', '#6366f1', '#a855f7'],
+    },
+    {
+        id: 'daylight-calm',
+        name: 'Daylight',
+        tagline: 'The same interface in light colours',
+        supportsDark: true,
+        swatch: ['#f4f2ef', '#4a6fa5', '#9c7b6a'],
+    },
+];
+
+/**
+ * The theme a user lands on before they have ever chosen one.
+ * Must match ACTIVE_THEME above and Appearance::defaults() in PHP.
+ */
+export const DEFAULT_THEME_ID = 'midnight-nebula';
 
 /**
  * Which mode the app opens in when a user has no saved preference.

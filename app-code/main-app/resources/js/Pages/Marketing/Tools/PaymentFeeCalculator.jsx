@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { CreditCard, TrendingUp, AlertTriangle, Info } from 'lucide-react';
 import ToolShell from './Shared/ToolShell';
+import SmartCaptureNudge from './Shared/SmartCaptureNudge';
 
 /**
  * Payment Processing Fee Calculator — free, entirely client-side.
@@ -153,6 +154,8 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
             }}
             related={[{ label: 'Profit Margin & Markup Calculator', href: '/tools/margin-calculator' }, { label: 'POS ROI Calculator', href: '/tools/pos-roi-calculator' }]}
         >
+            <SmartCaptureNudge documentType="payment fee details" />
+
             {/* ── Disclaimer — prominent, above the results ───────────────── */}
             <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 sm:p-5 mb-6 flex items-start gap-3">
                 <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />

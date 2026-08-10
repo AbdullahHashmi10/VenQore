@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use App\Services\LedgerService;
+
 
 class PurchaseController extends Controller
 {
@@ -684,15 +686,15 @@ class PurchaseController extends Controller
         if (($validated['amount_paid'] ?? 0) > 0) {
             $method = strtolower($validated['payment_method'] ?? 'cash');
             if ($method === 'credit') $method = 'cash';
-            
+
             \App\Models\Payment::create([
-                'party_id' => $invoice->party_id,
-                'amount'   => $validated['amount_paid'],
-                'date'     => $validated['date'],
-                'type'     => 'out',
-                'method'   => $method,
+                'party_id'  => $invoice->party_id,
+                'amount'    => $validated['amount_paid'],
+                'date'      => $validated['date'],
+                'type'      => 'out',
+                'method'    => $method,
                 'reference' => $invoice->invoice_number,
-                'notes'    => "Payment for Purchase #{$invoice->invoice_number}"
+                'notes'     => "Payment for Purchase #{$invoice->invoice_number}",
             ]);
 
             $pmLines = [
@@ -700,15 +702,51 @@ class PurchaseController extends Controller
                 ['account_code' => (in_array($method, ['bank', 'card', 'upi']) ? '1010' : '1000'), 'debit' => 0, 'credit' => $validated['amount_paid'], 'description' => "Payment out — {$invoice->invoice_number}"],
             ];
 
-            $accounting->createEntry([
+            $pmJournal = $accounting->createEntry([
                 'date'           => $validated['date'],
                 'reference_type' => 'purchase_payment',
                 'reference'      => $invoice->id,
                 'description'    => "Payment — Purchase #{$invoice->invoice_number}",
                 'party_id'       => $invoice->party_id,
             ], $pmLines);
+
+            // ── FIX: write the payment_allocations row so the list/show/ledger
+            //    queries that read from payment_allocations see the correct paid amount.
+            //    We insert directly (not via PaymentService::allocate) because that
+            //    service's over-allocation guard reads from the `purchases` table, but
+            //    our purchase records live in `invoices`. The journal entry is already
+            //    the accounting source-of-truth; this row is the cross-reference index.
+            $tid = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+            \Illuminate\Support\Facades\DB::table('payment_allocations')->insert([
+                'id'                       => \Illuminate\Support\Str::uuid()->toString(),
+                'tenant_id'                => $tid,
+                'payment_journal_entry_id' => $pmJournal->id,
+                'purchase_id'              => $invoice->id,
+                'sale_id'                  => null,
+                'allocated_amount'         => $validated['amount_paid'],
+                'status'                   => 'active',
+                'created_at'               => now(),
+                'updated_at'               => now(),
+            ]);
+
+            // ── Also keep invoices.paid_amount in sync so show() & edit() display
+            //    correctly without a separate allocation query on every page load.
+            $invoice->increment('paid_amount', $validated['amount_paid']);
+
+            // ── Recompute and persist payment_status on the invoice itself.
+            $grandTotal = $invoice->fresh()->total_amount;
+            $totalPaid  = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
+                ->where('purchase_id', $invoice->id)
+                ->where('status', 'active')
+                ->sum('allocated_amount');
+            $tolerance = 1.0;
+            $newStatus = ($totalPaid <= 0)
+                ? 'unpaid'
+                : (($grandTotal - $totalPaid <= $tolerance) ? 'paid' : 'partial');
+            $invoice->update(['status' => $newStatus]);
         }
     }
+
 
     public function receive($id)
     {

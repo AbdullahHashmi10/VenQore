@@ -169,7 +169,7 @@ export default function SidebarItem({
                             'Profit & Loss': 'store.reports.profit-loss',
                             'Party Statement': 'store.reports.party-statement',
                             'Cookbook': 'store.cookbook.index', 
-                            // ALL 38 Reports
+                            // ALL 40 Reports
                             'Stock Valuation': 'store.reports.stock-valuation',
                             'Low Stock': 'store.reports.low-stock',
                             'Movement History': 'store.reports.movement-history',

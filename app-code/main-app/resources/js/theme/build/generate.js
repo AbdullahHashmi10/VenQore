@@ -23,7 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getActiveTheme, ACTIVE_THEME, AVAILABLE_THEMES } from '../active.js';
+import { getActiveTheme, ACTIVE_THEME, AVAILABLE_THEMES, SELECTABLE_THEMES } from '../active.js';
 import { toTriplet, toHex, contrastRatio, SHADES } from '../color.js';
 import {
     validateTheme,
@@ -43,7 +43,30 @@ const isCheckMode = process.argv.includes('--check');
  * Emitters
  * ------------------------------------------------------------------ */
 
-const line = (name, value) => `    ${name}: ${value};`;
+/**
+ * A single custom-property declaration.
+ *
+ * The name is asserted rather than trusted. A custom property whose name is not
+ * a legal ident is not a custom property: the browser silently discards both the
+ * declaration and every `var()` reading it, so the failure surfaces as missing
+ * padding on a button rather than as an error anyone can search for. That
+ * happened once already — the spacing scale's `1.5` step produced
+ * `--vq-space-1.5`, which took the padding off 2,772 class usages — and the cost
+ * of never letting it happen again is this one regex.
+ */
+const VALID_CUSTOM_PROPERTY = /^--[a-zA-Z_][a-zA-Z0-9_-]*$/;
+
+const line = (name, value) => {
+    if (!VALID_CUSTOM_PROPERTY.test(name)) {
+        throw new Error(
+            `[theme] "${name}" is not a valid CSS custom property name. ` +
+            `Browsers drop such declarations silently, along with every var() that reads them. ` +
+            `Route the token key through cssVar() in contract.js, which sanitises it.`,
+        );
+    }
+
+    return `    ${name}: ${value};`;
+};
 
 /** Layer 1: the ramps themselves, holding real channel triplets. */
 function emitRamps(theme) {
@@ -189,30 +212,19 @@ function auditContrast(theme) {
  * Build
  * ------------------------------------------------------------------ */
 
-function buildCss(theme) {
-    const header = [
-        '/*',
-        ' * ═══════════════════════════════════════════════════════════════════════════',
-        ' *  GENERATED FILE — DO NOT EDIT',
-        ' * ═══════════════════════════════════════════════════════════════════════════',
-        ' *',
-        ` *  Theme:  ${theme.name} (${theme.id})`,
-        ` *  Source: resources/js/theme/themes/${theme.id}.js`,
-        ' *',
-        ' *  Regenerate with:  npm run theme:build',
-        ' *',
-        ' *  Edits here are overwritten on every build. To change how the product',
-        ' *  looks, edit the theme file above, or switch themes in',
-        ' *  resources/js/theme/active.js.',
-        ' * ═══════════════════════════════════════════════════════════════════════════',
-        ' */',
-        '',
-        ':root {',
+/**
+ * Every token a theme owns except its dark-mode semantics, as declaration lines.
+ *
+ * Factored out of `buildCss` when the theme system became runtime-switchable:
+ * the same token set now has to be emitted once into `:root` (the build-time
+ * default, and what paints before any JavaScript runs) and once per selectable
+ * theme into `[data-vq-theme="…"]`. Two copies of this list would guarantee that
+ * a token added to one is forgotten in the other.
+ */
+function emitThemeTokens(theme) {
+    return [
         `    /* Theme identity — readable from JS via getComputedStyle if ever needed */`,
         `    --vq-theme-id: '${theme.id}';`,
-    ];
-
-    const body = [
         '',
         '    /* ═══════════════ COLOUR RAMPS ═══════════════',
         '       Stored as bare "R G B" channel triplets, not hex, so that Tailwind\'s',
@@ -230,7 +242,7 @@ function buildCss(theme) {
 
         '',
         '    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════',
-        '       Overridden by the .dark block below. */',
+        '       Overridden by the dark blocks further down. */',
         ...emitSemantic(theme, 'light'),
 
         ...emitScalarGroup(theme.typography.families, cssVar.font, '═══════════════ TYPOGRAPHY ═══════════════'),
@@ -250,9 +262,235 @@ function buildCss(theme) {
         ...emitScalarGroup(theme.motion.easing, cssVar.easing, 'easing curves'),
 
         ...emitScalarGroup(theme.gradients || {}, cssVar.gradient, '═══════════════ GRADIENTS ═══════════════'),
+    ];
+}
+
+/**
+ * The selectable themes, each scoped to an attribute on <html>.
+ *
+ * ── Why the block order below is not negotiable ─────────────────────────────
+ *
+ * `.dark` and `[data-vq-theme="x"]` have identical specificity (0,1,0), so
+ * between them the later rule wins. If a theme's LIGHT semantics were emitted
+ * after `.dark`, then switching to that theme in dark mode would paint light
+ * surfaces with light-mode tokens — white cards on a black page.
+ *
+ * So: theme light blocks first, then `.dark`, then the theme dark blocks, which
+ * are `[data-vq-theme="x"].dark` (0,2,0) and therefore beat `.dark` regardless
+ * of order. That single ordering constraint is what makes runtime switching work
+ * with no JavaScript beyond setting one attribute.
+ */
+function emitThemeLibrary(themes) {
+    const light = [];
+    const dark = [];
+
+    for (const theme of themes) {
+        light.push(
+            '',
+            `/* ── ${theme.name} (${theme.id}) ── */`,
+            `[data-vq-theme="${theme.id}"] {`,
+            ...emitThemeTokens(theme),
+            '}',
+        );
+
+        dark.push(
+            '',
+            `[data-vq-theme="${theme.id}"].dark {`,
+            ...emitSemantic(theme, 'dark'),
+            '}',
+        );
+    }
+
+    return { light, dark };
+}
+
+/* ------------------------------------------------------------------ *
+ * User customisation — density, radius and font
+ * ------------------------------------------------------------------ *
+ *
+ * These are the three dials Appearance settings exposes that cannot be
+ * expressed as a colour, and the reason they are emitted as CSS rather than
+ * written from JavaScript is the same reason the themes are: a page that has to
+ * wait for JavaScript to learn how much padding it uses reflows in front of the
+ * user on every single load.
+ *
+ * They are emitted per theme because the values are per theme — Classic's
+ * "compact" is already tighter than Colour's, and a single global scale would
+ * either bloat Classic or crush Colour.
+ */
+
+/** Multiply a CSS length, leaving `0`, `%`, `9999px` and `none` alone. */
+function scaleLength(value, factor) {
+    if (typeof value !== 'string') return value;
+
+    const match = value.trim().match(/^(-?[\d.]+)(rem|em|px)$/);
+    if (!match) return value;
+
+    const amount = parseFloat(match[1]);
+    const unit = match[2];
+
+    if (!Number.isFinite(amount) || amount === 0) return value;
+    if (unit === 'px' && amount >= 1000) return value; // 9999px pill radii
+
+    // Three decimals is below a tenth of a pixel at any sane root size, and
+    // keeps the generated file from filling with floating-point noise.
+    const scaled = Math.round(amount * factor * 1000) / 1000;
+    return `${scaled}${unit}`;
+}
+
+const scaleGroup = (group, factor, varFn) =>
+    Object.entries(group).map(([key, value]) => line(varFn(key), scaleLength(value, factor)));
+
+/**
+ * Density presets.
+ *
+ * `comfortable` is emitted even though it is the theme's own value, so that
+ * switching back to it is a plain attribute change rather than a special case
+ * that has to clear the attribute — the kind of asymmetry that produces
+ * "it won't go back" bugs.
+ */
+const DENSITY_SCALES = { compact: 0.84, comfortable: 1, spacious: 1.18 };
+
+/** Corner radius presets. Sharp does not go fully square: 0.35 keeps a 1–2px
+ *  softening that stops borders from looking like a rendering artefact. */
+const RADIUS_SCALES = { sharp: 0.35, default: 1, round: 1.6 };
+
+function emitDensityVariants(theme) {
+    const out = [];
+
+    for (const [level, factor] of Object.entries(DENSITY_SCALES)) {
+        out.push(
+            '',
+            `[data-vq-theme="${theme.id}"][data-vq-density="${level}"] {`,
+            ...scaleGroup(theme.density.space, factor, cssVar.space),
+            ...scaleGroup(theme.density.control, factor, cssVar.control),
+            // Page and sidebar widths are structure, not density. Scaling them
+            // would move the sidebar every time someone nudged the spacing dial.
+            ...scaleGroup(
+                {
+                    gutter: theme.density.layout.gutter,
+                    'section-gap': theme.density.layout['section-gap'],
+                    'card-padding': theme.density.layout['card-padding'],
+                },
+                factor,
+                cssVar.layout,
+            ),
+            '}',
+        );
+    }
+
+    return out;
+}
+
+function emitRadiusVariants(theme) {
+    const out = [];
+
+    for (const [level, factor] of Object.entries(RADIUS_SCALES)) {
+        out.push(
+            '',
+            `[data-vq-theme="${theme.id}"][data-vq-radius="${level}"] {`,
+            ...scaleGroup(theme.shape.radius, factor, cssVar.radius),
+            '}',
+        );
+    }
+
+    return out;
+}
+
+/**
+ * Font choices. Unlike density and radius these are theme-independent — a font
+ * stack means the same thing in every theme — so they are emitted once.
+ *
+ * `theme` is deliberately NOT one of the options: a user who wants the theme's
+ * own typography simply has no `data-vq-font` attribute set.
+ */
+const FONT_CHOICES = {
+    inter: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    figtree: "'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    system: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    grotesk: "'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    serif: "'Source Serif 4', Georgia, 'Times New Roman', serif",
+    mono: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace",
+};
+
+function emitFontVariants() {
+    const out = [];
+
+    for (const [key, stack] of Object.entries(FONT_CHOICES)) {
+        out.push(
+            '',
+            `[data-vq-font="${key}"] {`,
+            line(cssVar.font('sans'), stack),
+            line(cssVar.font('display'), stack),
+            // Numeric follows the choice too, except for the serif option: serif
+            // digits in a currency column are genuinely harder to scan, and this
+            // is an accounting product before it is a stylish one.
+            line(cssVar.font('numeric'), key === 'serif' ? FONT_CHOICES.inter : stack),
+            '}',
+        );
+    }
+
+    return out;
+}
+
+function buildCss(theme) {
+    const selectable = SELECTABLE_THEMES
+        .map((id) => AVAILABLE_THEMES[id])
+        .filter(Boolean);
+
+    const library = emitThemeLibrary(selectable);
+
+    return [
+        '/*',
+        ' * ═══════════════════════════════════════════════════════════════════════════',
+        ' *  GENERATED FILE — DO NOT EDIT',
+        ' * ═══════════════════════════════════════════════════════════════════════════',
+        ' *',
+        ` *  Build-time default:  ${theme.name} (${theme.id})`,
+        ` *  Source:              resources/js/theme/themes/${theme.id}.js`,
+        ` *  Runtime-selectable:  ${selectable.map((t) => t.id).join(', ')}`,
+        ' *',
+        ' *  Regenerate with:  npm run theme:build',
+        ' *',
+        ' *  Edits here are overwritten on every build. To change how the product',
+        ' *  looks, edit the theme files above, or switch the build-time default in',
+        ' *  resources/js/theme/active.js.',
+        ' *',
+        ' *  The :root block is what paints before any JavaScript runs. The',
+        ' *  [data-vq-theme="…"] blocks let a user switch themes at runtime by',
+        ' *  changing one attribute on <html> — see Contexts/AppearanceContext.jsx.',
+        ' * ═══════════════════════════════════════════════════════════════════════════',
+        ' */',
+        '',
+        ':root {',
+        ...emitThemeTokens(theme),
         '}',
         '',
-        '/* ═══════════════ SEMANTIC — DARK MODE ═══════════════',
+        '/* ═══════════════════════════════════════════════════════════════════════════',
+        '   THEME LIBRARY — LIGHT',
+        '   ═══════════════════════════════════════════════════════════════════════════ */',
+        ...library.light,
+        '',
+        '/* ═══════════════════════════════════════════════════════════════════════════',
+        '   USER CUSTOMISATION — DENSITY',
+        '   Attribute pairs, so specificity (0,2,0) beats the theme block above',
+        '   without depending on source order.',
+        '   ═══════════════════════════════════════════════════════════════════════════ */',
+        ...selectable.flatMap(emitDensityVariants),
+        '',
+        '/* ═══════════════════════════════════════════════════════════════════════════',
+        '   USER CUSTOMISATION — CORNER RADIUS',
+        '   ═══════════════════════════════════════════════════════════════════════════ */',
+        ...selectable.flatMap(emitRadiusVariants),
+        '',
+        '/* ═══════════════════════════════════════════════════════════════════════════',
+        '   USER CUSTOMISATION — TYPEFACE',
+        '   Theme-independent, and emitted after the theme blocks because it shares',
+        '   their specificity. No attribute set means "use the theme\'s own type".',
+        '   ═══════════════════════════════════════════════════════════════════════════ */',
+        ...emitFontVariants(),
+        '',
+        '/* ═══════════════ SEMANTIC — DARK MODE (build-time default) ═══════════════',
         '   Only the mode-dependent tokens are restated. Ramps deliberately do NOT',
         '   change between modes: the codebase expresses mode by picking different',
         '   stops (bg-white dark:bg-slate-900), so flipping the ramps would invert',
@@ -261,14 +499,17 @@ function buildCss(theme) {
         ...emitSemantic(theme, 'dark'),
         '}',
         '',
+        '/* ═══════════════════════════════════════════════════════════════════════════',
+        '   THEME LIBRARY — DARK',
+        '   ═══════════════════════════════════════════════════════════════════════════ */',
+        ...library.dark,
+        '',
         '/* Colour-scheme hint so native controls (scrollbars, date pickers, form',
         '   widgets) match the theme instead of rendering in stock light chrome. */',
         ':root { color-scheme: light; }',
         '.dark { color-scheme: dark; }',
         '',
-    ];
-
-    return [...header, ...body].join('\n');
+    ].join('\n');
 }
 
 /* ------------------------------------------------------------------ *

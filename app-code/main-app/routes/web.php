@@ -102,9 +102,9 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::post('/barcode-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'sheet'])
         ->middleware('throttle:tools')->name('barcode.sheet');
 
-    // Invoice Scanner Tool (T7-2)
-    Route::get('/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'showInvoiceScanner'])->name('invoice-scanner');
-    Route::post('/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'submitInvoiceScanner'])->middleware('throttle:tools')->name('invoice-scanner.submit');
+    // Smart Capture Tool (T7-2)
+    Route::get('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'showSmartCapture'])->name('smart-capture');
+    Route::post('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'submitSmartCapture'])->middleware('throttle:tools')->name('smart-capture.submit');
 
     // T2 — Invoice Generator
     Route::get('/invoice-generator', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'index'])->name('invoice');
@@ -996,6 +996,41 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
 
+    // ── New Experience — HIDDEN 2026-08-09, not removed ─────────────────────
+    // See Appearance::NEW_EXPERIENCE_ENABLED. Every controller behind these
+    // eight routes now starts with `abort_unless(NEW_EXPERIENCE_ENABLED, 404)`,
+    // so all of them 404 for everyone regardless of role.
+    //
+    // The route names stay registered on purpose rather than being commented
+    // out here: resources/js/scratch/audit_ziggy_routes.cjs walks every .jsx
+    // file for `route(...)` calls and fails the production build if any name
+    // it finds is missing from ziggy.js, and the pages behind these routes
+    // still contain calls like `route('store.appearance.update', ...)`. That
+    // scan can't tell "unreachable because a controller 404s it" from "unreachable
+    // because it doesn't exist" — so removing the name here would break
+    // `npm run build` over code that is already inert. The nav link that
+    // pointed here is commented out in OneGlanceLayout.jsx, so nothing in the
+    // product currently generates a link to any of the eight.
+    //
+    // `store.dashboard` above still renders the classic dashboard for
+    // everyone, and `store.dashboard-v1` remains an unconditional escape hatch
+    // back to it.
+    Route::get('/overview', [\App\Http\Controllers\OverviewDashboardController::class, 'index'])->name('overview');
+
+    Route::get('/workspace', [\App\Http\Controllers\WorkspaceDashboardController::class, 'index'])->name('workspace');
+    Route::post('/workspace/layout', [\App\Http\Controllers\WorkspaceDashboardController::class, 'save'])->name('workspace.layout.save');
+    Route::post('/workspace/layout/reset', [\App\Http\Controllers\WorkspaceDashboardController::class, 'reset'])->name('workspace.layout.reset');
+    Route::post('/workspace/data', [\App\Http\Controllers\WorkspaceDashboardController::class, 'data'])->name('workspace.data');
+
+    // Appearance. Presentation only — see AppearanceController for why none of
+    // this can touch business configuration.
+    Route::get('/appearance', [\App\Http\Controllers\AppearanceSettingsController::class, 'index'])->name('appearance');
+    Route::post('/appearance', [\App\Http\Controllers\AppearanceController::class, 'update'])->name('appearance.update');
+    Route::post('/appearance/experience', [\App\Http\Controllers\AppearanceController::class, 'switchExperience'])->name('appearance.experience');
+    Route::post('/appearance/store-default', [\App\Http\Controllers\AppearanceController::class, 'updateTenantDefault'])
+        ->middleware('permission:admin.settings_manage')
+        ->name('appearance.store-default');
+
     Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->middleware('permission:pos.checkout')->name('pos');
 
     // Inventory
@@ -1381,9 +1416,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // WooCommerce Sync
     Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
-        ->middleware('plan.feature:woocommerce')
         ->name('woocommerce.index');
-    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
+    Route::prefix('woo')->name('woo.')->group(function () {
         Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])->name('plugin.download');
         Route::get('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'index'])->name('connections.index');
         Route::post('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'store'])->name('connections.store');

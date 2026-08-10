@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Trash2, Download, Loader2, Upload, AlertCircle, Package } from 'lucide-react';
 import ToolShell from './Shared/ToolShell';
 import EditableText from './Shared/EditableText';
+import SmartCaptureNudge from './Shared/SmartCaptureNudge';
 
 /**
  * Free Packing Slip Generator.
@@ -167,6 +168,8 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
             related={[{ href: '/tools/purchase-order-generator', label: 'Purchase Order Generator' }, { href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >
+            <SmartCaptureNudge documentType="packing slip" />
+
             {errors.length > 0 && (
                 <div className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2.5">
                     <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />

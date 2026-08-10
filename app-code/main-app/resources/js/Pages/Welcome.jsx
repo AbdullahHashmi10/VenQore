@@ -371,7 +371,7 @@ export default function Welcome() {
                         <FeatureCard
                             icon={BarChart3}
                             title="Vision Analytics"
-                            description="38+ comprehensive reports giving you X-ray vision into your business."
+                            description="40+ comprehensive reports giving you X-ray vision into your business."
                             colorClass="bg-pink-600"
                             glowColor="text-pink-400 shadow-pink-500/20"
                         />

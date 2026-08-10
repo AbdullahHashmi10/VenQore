@@ -1,0 +1,1 @@
+{"name":"faulty_receipt_99.json","input_type":"text","expected":{"action":"purchase","party":"Expected Supplier"},"mock_extracted":{"action":"sale","party":"Wrong Party"}}

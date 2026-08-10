@@ -57,9 +57,6 @@ class VenSynQController extends Controller
         private PlatformRegistry $registry,
         private IntegrationHealthService $health,
     ) {
-        if (!config('vensynq.enabled', false)) {
-            abort(404);
-        }
     }
 
     // ─── Command Center Dashboard ─────────────────────────────────────────────
@@ -123,7 +120,7 @@ class VenSynQController extends Controller
 
     // ─── OAuth Connection Flow ────────────────────────────────────────────────
 
-    public function connectChannel(string $platform)
+    public function connectChannel(string $platform, Request $request)
     {
         if (!$this->registry->isEnabled($platform)) {
             return back()->with('error', "The {$this->registry->label($platform)} integration is not available right now.");
@@ -132,7 +129,16 @@ class VenSynQController extends Controller
         try {
             session(['vensynq_oauth_store_slug' => app('current.tenant')->slug]);
 
-            return redirect()->away($this->registry->resolve($platform)->getAuthorizationUrl());
+            $client = $this->registry->resolve($platform);
+            if ($platform === 'amazon' && $client instanceof \App\Services\VenSynQ\Platforms\AmazonClient) {
+                $region = $request->query('region');
+                session(['vensynq_oauth_amazon_region' => $region]);
+                $authUrl = $client->getAuthorizationUrlForRegion($region);
+            } else {
+                $authUrl = $client->getAuthorizationUrl();
+            }
+
+            return redirect()->away($authUrl);
         } catch (\Throwable $e) {
             Log::error('[VenSynQ] connectChannel failed', ['platform' => $platform, 'error' => $e->getMessage()]);
 
@@ -163,6 +169,8 @@ class VenSynQController extends Controller
                 ?? $tokens['seller_id']
                 ?? ('MOCK_' . strtoupper($platform) . '_' . mt_rand(100, 999));
 
+            $region = session('vensynq_oauth_amazon_region');
+
             $channel = $this->upsertChannel($tenant->id, $platform, $externalSellerId, [
                 'oauth_access_token'       => $tokens['access_token'] ?? null,
                 'oauth_refresh_token'      => $tokens['refresh_token'] ?? null,
@@ -170,6 +178,7 @@ class VenSynQController extends Controller
                     ? now()->addSeconds((int) $tokens['expires_in'])
                     : null,
                 'auth_method'              => $platform === 'woocommerce' ? 'plugin' : 'oauth',
+                'region'                   => $region,
             ]);
 
             return redirect()->route('store.vensynq.settings', ['store_slug' => $tenantSlug])
@@ -294,6 +303,7 @@ class VenSynQController extends Controller
             'refresh_token' => 'required|string|max:2048',
             'seller_id'     => 'required|string|max:255',
             'name'          => 'nullable|string|max:255',
+            'region'        => 'nullable|string|max:255',
         ]);
 
         // Re-validate server-side. The client may have skipped the test step, and
@@ -318,6 +328,7 @@ class VenSynQController extends Controller
             'access_token_expires_at'  => now()->addSeconds((int) ($result['expires_in'] ?? 3600)),
             'refresh_token_expires_at' => now()->addYear(),
             'auth_method'              => 'credentials',
+            'region'                   => $validated['region'] ?? 'eu',
         ]);
 
         return redirect()->route('store.vensynq.settings', ['store_slug' => app('current.tenant')->slug])

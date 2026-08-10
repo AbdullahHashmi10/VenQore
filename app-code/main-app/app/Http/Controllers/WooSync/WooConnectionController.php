@@ -28,10 +28,20 @@ class WooConnectionController extends Controller implements HasMiddleware
             // directly by customers' WordPress/WooCommerce installs (plugin update
             // checks, plugin zip downloads), not by a logged-in tenant user. They
             // must never be gated behind a tenant's plan entitlement.
+            // Setup, settings, and connection lists are allowed for all users so they
+            // can connect their stores before upgrading. Sync actions are locked.
             (new Middleware(function ($request, $next) {
                 \App\Services\PlanGate::enforce('woocommerce');
                 return $next($request);
-            }))->except(['checkPluginUpdate', 'downloadStaticPlugin']),
+            }))->only([
+                'syncPage',
+                'approveSync',
+                'forcePush',
+                'forcePull',
+                'resolveConflict',
+                'ignore',
+                'scanCatalog',
+            ]),
         ];
     }
 
@@ -55,10 +65,6 @@ class WooConnectionController extends Controller implements HasMiddleware
      */
     public function indexRedirect(Request $request)
     {
-        if (!\App\Services\PlanGate::check('woocommerce')) {
-            abort(403, 'WooCommerce integration is not available on your current plan.');
-        }
-
         return redirect()->route('store.woo.connections.index', [
             'store_slug' => $this->storeSlug()
         ]);
@@ -69,10 +75,6 @@ class WooConnectionController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        if (!\App\Services\PlanGate::check('woocommerce')) {
-            abort(403, 'WooCommerce integration is not available on your current plan.');
-        }
-
         $tenantId = $this->tenantId();
 
         $connections = WooConnection::where('tenant_id', $tenantId)

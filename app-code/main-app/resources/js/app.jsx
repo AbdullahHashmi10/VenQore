@@ -11,6 +11,7 @@ import GlobalProviderLayout from '@/Layouts/GlobalProviderLayout';
 import GlobalErrorBoundary from '@/Components/GlobalErrorBoundary';
 
 import { vq } from '@/theme/runtime';
+import { applyAppearance } from '@/theme/appearance';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Intercept non-JSON responses from Inertia server calls (preventing the default modal block)
@@ -72,6 +73,22 @@ createInertiaApp({
             store_name:      store.name               || settings.store_name || settings.business_name,
             decimal_places:  parseInt(settings.decimal_places !== undefined ? settings.decimal_places : 2)
         };
+
+        // Appearance, applied before the first render rather than from an effect
+        // after it.
+        //
+        // Blade has already put the theme, density, radius and font attributes on
+        // <html>, so the page painted correctly. What it could not do is the two
+        // custom colours: turning one hex into an eleven-stop ramp needs the
+        // perceptual curve in theme/color.js. Doing that here — synchronously,
+        // before createRoot().render() — means it lands in the same paint rather
+        // than as a visible recolour a moment later.
+        //
+        // Guarded to authenticated store sessions: the marketing site and the
+        // auth screens have no preference to apply and must keep their own look.
+        if (pageProps.auth?.user && pageProps.store) {
+            applyAppearance(pageProps.appearance || {});
+        }
 
         const appElement = (
             <GlobalErrorBoundary>

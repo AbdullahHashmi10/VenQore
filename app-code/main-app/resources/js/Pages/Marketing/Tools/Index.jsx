@@ -18,6 +18,7 @@ export default function ToolsIndex({ toolGroups = [] }) {
                 headline: 'Stop doing this manually.',
                 subtext: 'VenQore automates the busywork on every sale and keeps a balanced set of books while it does.',
             }}
+            wide
         >
             <div className="space-y-10">
                 {toolGroups.map((group) => (

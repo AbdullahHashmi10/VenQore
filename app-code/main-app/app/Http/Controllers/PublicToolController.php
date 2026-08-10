@@ -14,14 +14,15 @@ use Inertia\Response;
 
 class PublicToolController extends Controller
 {
-    public function showInvoiceScanner(): Response
+    public function showSmartCapture(): Response
     {
-        return Inertia::render('Marketing/Tools/InvoiceScanner', [
+        return Inertia::render('Marketing/Tools/SmartCapture', [
             'turnstileSiteKey' => config('services.cloudflare.turnstile_site_key', ''),
+            'toolGroups'       => \App\Support\ToolRegistry::groups(),
         ]);
     }
 
-    public function submitInvoiceScanner(
+    public function submitSmartCapture(
         Request $request,
         PublicToolBudgetGuard $guard,
         AiExtractionService $aiService,
@@ -32,13 +33,8 @@ class PublicToolController extends Controller
         $rules = [
             'email' => 'required|email|max:255',
             'file'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'type'  => 'required|string|in:invoice,purchase,expense,quotation,packing_slip,credit_note,purchase_order',
         ];
-
-        if (!empty($turnstileSecret)) {
-            $rules['turnstile_token'] = 'required|string';
-        } else {
-            $rules['turnstile_token'] = 'nullable|string';
-        }
 
         $request->validate($rules);
 
@@ -108,6 +104,18 @@ class PublicToolController extends Controller
         $invoiceNo      = 'INV-PUBLIC-' . rand(1000, 9999);
         $subtotal       = 0.00;
 
+        $type = $request->input('type', 'purchase');
+        $extractionType = match($type) {
+            'invoice'        => 'sale',
+            'purchase'       => 'purchase',
+            'expense'        => 'expense',
+            'quotation'      => 'proposal',
+            'packing_slip'   => 'sale',
+            'credit_note'    => 'return',
+            'purchase_order' => 'pre_purchase',
+            default          => 'purchase',
+        };
+
         try {
             $file   = $request->file('file');
             $base64 = base64_encode(file_get_contents($file->getRealPath()));
@@ -116,7 +124,7 @@ class PublicToolController extends Controller
             $extractionResult = $aiService->extract(
                 'image',
                 [['base64' => $base64, 'mime' => $mime]],
-                'purchase',
+                $extractionType,
                 null,
                 ['feature' => 'public_tool']
             );

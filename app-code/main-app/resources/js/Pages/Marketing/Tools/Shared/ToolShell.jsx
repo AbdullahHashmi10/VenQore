@@ -117,10 +117,10 @@ export default function ToolShell({
     return (
         <MarketingLayout title={title} description={metaDescription}>
             <div className="pt-32 md:pt-36 pb-24 px-2 sm:px-4">
-                <div className="max-w-full mx-auto px-2 md:px-4 flex gap-4 md:gap-6">
+                <div className={`mx-auto px-2 md:px-4 flex gap-4 md:gap-6 ${wide ? 'max-w-[96rem]' : 'max-w-7xl'}`}>
                     <ToolsSidebar groups={toolGroups} currentSlug={currentSlug} />
 
-                    <div className={`flex-1 min-w-0 ${wide ? 'max-w-4xl' : 'max-w-7xl'}`}>
+                    <div className="flex-1 min-w-0">
                         {eyebrow && <SectionLabel>{eyebrow}</SectionLabel>}
 
                         <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-6 text-slate-900 dark:text-white">

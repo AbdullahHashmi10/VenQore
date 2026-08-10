@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage, Link } from '@inertiajs/react';
 import { Camera, Mic, ScanLine, CheckCircle2, ArrowRight, Mail, Sparkles } from 'lucide-react';
 import MarketingLayout, { RelatedPages, InlineLink } from './Shared/MarketingLayout';
 
@@ -51,6 +51,14 @@ export default function SmartCapture() {
                         structured digital transaction in VenQore.{' '}
                         <span className="text-slate-900 dark:text-white font-semibold">No more evening data entry.</span>
                     </p>
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Link
+                            href="/tools/smart-capture"
+                            className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm tracking-wide rounded-xl transition-colors shadow-lg shadow-indigo-600/10 inline-flex items-center gap-2"
+                        >
+                            Test Smart Capture Live <ArrowRight size={15} />
+                        </Link>
+                    </div>
                 </div>
 
                 {/* How it works */}
@@ -71,7 +79,7 @@ export default function SmartCapture() {
                     </h2>
                     <ul className="space-y-3">
                         {[
-                            <>Supplier bills and purchase receipts — scanned into editable line items with quantities and costs. Need one right now? Use the free <InlineLink href="/tools/invoice-generator">invoice generator</InlineLink>.</>,
+                            <>Supplier bills and purchase receipts — scanned into editable line items with quantities and costs. Try it live with our <InlineLink href="/tools/smart-capture">free standalone parser</InlineLink>.</>,
                             <>Voice memos in plain language become drafted sales, purchases or expenses for your review.</>,
                             <>Every capture is matched against your real catalog and <InlineLink href="/features/inventory-management">FIFO cost history</InlineLink> before anything posts.</>,
                             <>Nothing skips the engine: confirmed captures post as balanced journal entries, like everything in <InlineLink href="/features/accounting">VenQore accounting</InlineLink>.</>,

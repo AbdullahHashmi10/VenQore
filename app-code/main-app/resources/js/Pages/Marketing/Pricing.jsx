@@ -178,7 +178,7 @@ export default function Pricing({ plans = [] }) {
     const ALL_AI_OPTIONS = Object.keys(aiTiersFromProp).length > 0
         ? Object.entries(aiTiersFromProp).map(([key, tier]) => ({
             key,
-            name: tier.name || `AI ${key.toUpperCase()}`,
+            name: tier.name?.includes('Smart Capture') ? tier.name : `Smart Capture ${tier.name || key.toUpperCase()}`,
             emoji: key === 'spark' ? '🌱' : key === 'shop' ? '⚡' : key === 'pro' ? '🚀' : '👑',
             tagline: tier.tagline || '',
             priceUSD: tier.price_monthly || 0,
@@ -186,7 +186,7 @@ export default function Pricing({ plans = [] }) {
             popular: key === 'shop',
             laymanDesc: tier.description || '',
             laymanStats: [
-                { label: `${(tier.ai_pages_limit || 0).toLocaleString()} AI Pages per month`, icon: FileText, desc: 'Auto extraction for paper supplier bills' },
+                { label: `${(tier.ai_pages_limit || 0).toLocaleString()} Smart Capture Pages per month`, icon: FileText, desc: 'Auto extraction for paper supplier bills' },
                 { label: `${(tier.ai_queries_limit || 0).toLocaleString()} AI Questions per month`, icon: MessageSquare, desc: 'Voice & text inventory queries' },
             ],
             techSpecs: tier.tech_specs || [
@@ -197,10 +197,10 @@ export default function Pricing({ plans = [] }) {
             ]
         }))
         : [
-            { key: 'spark', name: 'AI Spark', emoji: '🌱', tagline: 'Small Retailer', priceUSD: 3, pricePKR: 840, popular: false },
-            { key: 'shop',  name: 'AI Shop',  emoji: '⚡', tagline: 'Busy Store',     priceUSD: 6, pricePKR: 1680, popular: true },
-            { key: 'pro',   name: 'AI Pro',   emoji: '🚀', tagline: 'High Volume',   priceUSD: 12, pricePKR: 3360, popular: false },
-            { key: 'max',   name: 'AI Max',   emoji: '👑', tagline: 'Enterprise',    priceUSD: 24, pricePKR: 6720, popular: false },
+            { key: 'spark', name: 'Smart Capture Spark', emoji: '🌱', tagline: 'Small Retailer', priceUSD: 3, pricePKR: 840, popular: false },
+            { key: 'shop',  name: 'Smart Capture Shop',  emoji: '⚡', tagline: 'Busy Store',     priceUSD: 6, pricePKR: 1680, popular: true },
+            { key: 'pro',   name: 'Smart Capture Pro',   emoji: '🚀', tagline: 'High Volume',   priceUSD: 12, pricePKR: 3360, popular: false },
+            { key: 'max',   name: 'Smart Capture Max',   emoji: '👑', tagline: 'Enterprise',    priceUSD: 24, pricePKR: 6720, popular: false },
         ];
 
     const selectedAIData = ALL_AI_OPTIONS.find(o => o.key === selectedAI || `opt_${o.key}` === selectedAI) ?? null;
@@ -664,9 +664,9 @@ export default function Pricing({ plans = [] }) {
         { id: 'faq-trial', q: 'Do I need a credit card to start my trial?', a: 'No. If you select a base plan without any AI add-on, sync integration, or onboarding service, your 14-day trial starts immediately with zero card details required. A card is only needed if you add an AI plan, connect a sync channel, or select an onboarding service.' },
         { id: 'faq-ai-cost', q: 'What is the $5 one-time BYOK fee for?', a: 'Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $5 platform activation fee to unlock the AI routing layer in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing. This fee does not expire and has no hidden conditions.' },
         { id: 'faq-ai-monthly', q: 'How does managed AI billing work?', a: 'Managed AI plans (AI Core, AI Lite, AI Pro, AI Ultimate) are monthly add-ons. We handle the infrastructure, models, and usage. You pay us a flat monthly fee and we take care of the rest. There is no usage surprise billing — your monthly cap is shown clearly on your plan.' },
-        { id: 'faq-scans-allowance', q: 'How many AI scans do I get, and what happens when I run out?', a: 'Every plan comes with 10 free lifetime scans. Managed AI plans provide monthly quotas: AI Core (90 scans/mo), AI Lite (150 scans/mo), AI Pro (480 scans/mo), and AI Ultimate (850 scans/mo). When you reach your monthly scan limit, AI extraction pauses until your next billing cycle, or you can add your own OpenAI/Gemini API key (BYOK) for unlimited scans billed directly by your provider.' },
-        { id: 'faq-scan-definition', q: 'What counts as one AI scan?', a: 'One document submission (up to 5 images or invoice pages) processed by SmartCapture counts as a single scan. Retrying or reviewing extracted data inside VenQore does not consume additional scans.' },
-        { id: 'faq-token-usage', q: 'How does token consumption work across AI Invoice Scanning, Assistant Questions, and Product Writing?', a: 'AI models (like Gemini & OpenAI) measure work in tokens (approx. 4 characters per token). Here is what each action consumes under the hood: 1) AI Invoice Photo Scan uses ~7,000 input tokens (image processing + system prompt) + ~800 output tokens (JSON data). On Gemini 1.5 Flash, 1 scan costs ~$0.0007 (less than 1/10th of a cent). 2) AI Assistant Question uses ~1,500 input tokens + ~250 output tokens (~$0.00018 per query). 3) AI Product Description Writer uses ~300 input tokens + ~350 output tokens (~$0.00012 per product). Managed AI plans cover all these operations with flat monthly caps so you never have to worry about token math.' },
+        { id: 'faq-scans-allowance', q: 'How many Smart Capture scans do I get, and what happens when I run out?', a: 'Every plan comes with monthly free Smart Capture pages (Counter gets 10, Starter gets 25, Growth gets 100, and Business gets 500). Smart Capture add-ons provide larger monthly quotas: Spark (500 pages/mo), Shop (1000 pages/mo), Pro (2000 pages/mo), and Max (4000 pages/mo). When you reach your monthly limit, Smart Capture extraction pauses until your next billing cycle, or you can add your own OpenAI/Gemini API key (BYOK) for unlimited scans.' },
+        { id: 'faq-scan-definition', q: 'What counts as one Smart Capture page scan?', a: 'Every single invoice page or receipt image processed counts as 1 page scan. A document with multiple pages is calculated page-by-page (e.g. a 3-page supplier PDF invoice will count as 3 page scans). The maximum size allowed per upload is 5 pages. Retrying or reviewing extracted data inside VenQore does not consume additional pages.' },
+        { id: 'faq-token-usage', q: 'How does token consumption work across Smart Capture Scanning, Assistant Questions, and Product Writing?', a: 'AI models (like Gemini & OpenAI) measure work in tokens (approx. 4 characters per token). Here is what each action consumes under the hood: 1) Smart Capture Photo Scan uses ~7,000 input tokens (image processing + system prompt) + ~800 output tokens (JSON data). On Gemini 1.5 Flash, 1 scan costs ~$0.0007 (less than 1/10th of a cent). 2) AI Assistant Question uses ~1,500 input tokens + ~250 output tokens (~$0.00018 per query). 3) AI Product Description Writer uses ~300 input tokens + ~350 output tokens (~$0.00012 per product). Managed Smart Capture plans cover all these operations with flat monthly caps so you never have to worry about token math.' },
         { id: 'faq-vensynq-channels', q: 'Which marketplaces does VenSynQ support?', a: 'VenSynQ currently supports live automated sync for Amazon Marketplace and WooCommerce. eBay and TikTok Shop integrations are currently on our product roadmap.' },
         { id: 'faq-charge', q: 'When will my card actually be charged?', a: 'Your subscription is only charged after your 14-day free trial ends — not on the day you sign up. The only immediate charge possible is the $5 BYOK activation fee (if you select that option). Onboarding services are charged from inside your admin panel when you choose to initiate the service — not at checkout.' },
         { id: 'faq-service', q: 'How do onboarding services work with the trial?', a: 'You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.' },

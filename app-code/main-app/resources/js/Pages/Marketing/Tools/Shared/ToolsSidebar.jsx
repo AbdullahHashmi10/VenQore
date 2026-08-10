@@ -50,22 +50,63 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
         );
     };
 
-    const Nav = () => (
-        <nav className="space-y-6">
-            {groups.map((group) => (
-                <div key={group.key}>
-                    <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-600 mb-2 px-3">
-                        {group.label}
-                    </p>
-                    <div className="space-y-0.5">
-                        {group.tools.map((tool) => (
-                            <Item key={tool.slug} tool={tool} />
-                        ))}
+    const Nav = () => {
+        let smartCaptureTool = null;
+        const filteredGroups = groups.map(group => {
+            const sc = group.tools.find(t => t.slug === 'smart-capture');
+            if (sc) {
+                smartCaptureTool = sc;
+            }
+            return {
+                ...group,
+                tools: group.tools.filter(t => t.slug !== 'smart-capture')
+            };
+        }).filter(group => group.tools.length > 0);
+
+        return (
+            <nav className="space-y-6">
+                {smartCaptureTool && (
+                    <div>
+                        <p className="text-2xs font-black uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mb-2 px-3 flex items-center gap-1">
+                            <span>Premium AI Feature</span>
+                        </p>
+                        <div className="space-y-0.5">
+                            <Link
+                                href={smartCaptureTool.href}
+                                onClick={() => setOpen(false)}
+                                className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 border ${
+                                    currentSlug === 'smart-capture'
+                                        ? 'bg-gradient-to-r from-violet-600/20 to-indigo-600/10 text-violet-700 dark:text-violet-300 font-black border-violet-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
+                                        : 'bg-gradient-to-r from-violet-500/[0.04] to-indigo-500/[0.01] hover:from-violet-500/[0.08] hover:to-indigo-500/[0.05] border-violet-500/15 hover:border-violet-500/30 text-slate-800 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 font-bold'
+                                }`}
+                            >
+                                <span className="flex items-center gap-2 truncate">
+                                    <span className="animate-pulse">✨</span>
+                                    <span className="truncate">{smartCaptureTool.short}</span>
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400 text-[9px] font-black uppercase tracking-wider shrink-0 scale-90">
+                                    PRO
+                                </span>
+                            </Link>
+                        </div>
                     </div>
-                </div>
-            ))}
-        </nav>
-    );
+                )}
+
+                {filteredGroups.map((group) => (
+                    <div key={group.key}>
+                        <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-600 mb-2 px-3">
+                            {group.label}
+                        </p>
+                        <div className="space-y-0.5">
+                            {group.tools.map((tool) => (
+                                <Item key={tool.slug} tool={tool} />
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </nav>
+        );
+    };
 
     return (
         <>

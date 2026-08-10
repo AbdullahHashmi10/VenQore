@@ -9,6 +9,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+    .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+}
+
 /* ============================================================================================
    EDITABLE-PREVIEW DISCOVERABILITY (free tools: Invoice, Receipt, PO, Quote, etc.)
    ============================================================================================
@@ -20,6 +24,11 @@
 @keyframes editablePulse {
     0%, 100% { box-shadow: 0 0 0 0 rgb(var(--vq-indigo-500) / 0); }
     50% { box-shadow: 0 0 0 3px rgb(var(--vq-indigo-500) / 0.35); }
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.8; }
 }
 
 /* ============================================================================================

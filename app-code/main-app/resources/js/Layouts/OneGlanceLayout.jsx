@@ -57,7 +57,8 @@ import {
     MoreVertical,
     Plus,
     Factory,
-    Mail
+    Mail,
+    Palette
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -578,6 +579,18 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             route: store ? 'store.reports.index' : 'reports.index',
             routeParams: store ? { store_slug: store.slug } : {}
         },
+        // Appearance nav entry — hidden while the New Experience is pulled
+        // back for rework (see Appearance::NEW_EXPERIENCE_ENABLED). The route
+        // it pointed to is commented out in web.php, so leaving this entry in
+        // would be a link to a 404. Restore both together.
+        //
+        // store ? {
+        //     name: 'Appearance',
+        //     icon: Palette,
+        //     subs: [],
+        //     route: 'store.appearance',
+        //     routeParams: { store_slug: store.slug },
+        // } : null,
     ].filter(Boolean);
 
     const userRole = my_role || userRoleProp || props.auth?.user?.role;
@@ -730,8 +743,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') return true;
 
         const required = MENU_PERMISSIONS[item.name];
-        // Home is always visible; everything else requires explicit permission for non-named roles
-        if (item.name === 'Home') return true;
+        // Home is always visible; everything else requires explicit permission for non-named roles.
+        // Appearance joins it: it is a personal display preference that grants no
+        // access to anything, and a cashier is exactly the person most likely to
+        // need a larger, higher-contrast interface on a shop-floor screen.
+        if (item.name === 'Home' || item.name === 'Appearance') return true;
         if (!required || required.length === 0) return false;
 
         // Prefix-aware permission check:
@@ -1116,6 +1132,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             {/* USER MENU POPUP */}
                             {isUserMenuOpen && (
                                 <div className="absolute bottom-20 left-4 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+                                    {props.auth?.my_stores_count > 1 && (
+                                        <div className="p-2 border-b border-slate-100 dark:border-slate-700 mb-2">
+                                            <p className="text-2xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 pl-1">Switch Store</p>
+                                            <StoreSwitcher />
+                                        </div>
+                                    )}
                                     {store && (
                                         <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
                                             <User size={16} /> Profile Settings
@@ -1130,20 +1152,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     >
                                         <Sparkles size={16} /> Take a Tour
                                     </button>
-                                    {/* Admin Panel link — goes to new store-scoped route */}
-                                    {store && (userRole === 'owner' || userRole === 'admin') && (
-                                         <Link 
-                                             id="tour-sidebar-admin"
-                                             href={mode === 'admin' 
-                                                 ? route('store.dashboard', {store_slug: store.slug})
-                                                 : route('store.admin.home', {store_slug: store.slug})
-                                             } 
-                                             className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
-                                         >
-                                             <ShieldCheck size={16} className={mode === 'admin' ? "text-indigo-500" : "text-amber-500"} /> 
-                                             {mode === 'admin' ? 'Back to Store' : 'Admin Panel'}
-                                         </Link>
-                                    )}
                                     {(userRole === 'platform_admin') && (
                                         <Link href="/updater" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium text-amber-600 dark:text-amber-400">
                                             <Package size={16} /> System Update
@@ -1398,16 +1406,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     )}
                                 </div>
  
-                                {/* Store Switcher (Moved from Sidebar) */}
-                                {props.auth?.my_stores_count > 1 && (
-                                    <div className="hidden lg:block relative">
-                                        <StoreSwitcher />
-                                    </div>
-                                )}
+
  
                                 {/* Header Private Shortcut: Toggle Admin/Store Panel - Hide in Platform HQ */}
                                 {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
                                     <Link
+                                        id="tour-sidebar-admin"
                                         href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
                                         className="hidden lg:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300"
                                     >
@@ -1511,16 +1515,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 </div>
                                             )}
  
-                                            {/* Admin / Store Link */}
-                                            {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
-                                                <Link
-                                                    href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
-                                                    className={`flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-semibold ${mode === 'admin' ? 'text-indigo-600' : 'text-amber-600'}`}
-                                                >
-                                                    <ShieldCheck size={16} className={mode === 'admin' ? "text-indigo-500" : "text-amber-500"} />
-                                                    <span>{mode === 'admin' ? 'Back to Store' : 'Admin Panel'}</span>
-                                                </Link>
-                                            )}
+
  
                                             {/* Display Settings */}
                                             <div className="space-y-1">

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             ExpenseCategorySeeder::class,
             ProductAttributeSeeder::class,
             AccountSeeder::class,
+            BlogPostSeeder::class,
         ]);
 
         // 1. Admin User (Commented out to allow the first web registration to become the primary owner/platform_admin)

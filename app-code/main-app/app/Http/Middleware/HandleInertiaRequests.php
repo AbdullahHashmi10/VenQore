@@ -157,6 +157,14 @@ class HandleInertiaRequests extends Middleware
                     'exit_url'        => route('platform.impersonate.end'),
                 ];
             })(),
+            // ── Presentation preferences (New Experience, 2026-08-08) ─────────
+            // Shared on every page rather than fetched by the pages that need it:
+            // the theme has to be correct on the POS terminal and the trial
+            // balance too, and a prop that is only present on some screens would
+            // make the app change appearance as you navigate. Resolution is a
+            // single indexed lookup and falls back to defaults on any failure —
+            // see App\Support\Appearance.
+            'appearance' => fn () => \App\Support\Appearance::forRequest(),
             'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
             'plan' => (function () {
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;

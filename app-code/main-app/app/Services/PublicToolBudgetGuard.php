@@ -44,29 +44,30 @@ class PublicToolBudgetGuard
                 ];
             }
 
-            // 2. Check Per-Email Limit (3/day)
+            // 2. Check Per-Email Limit (5/month)
+            $startOfMonth = Carbon::now()->startOfMonth();
             $emailCount = PublicToolRequest::where('email', $cleanEmail)
-                ->where('created_at', '>=', $todayStart)
+                ->where('created_at', '>=', $startOfMonth)
                 ->count();
 
-            if ($emailCount >= 3) {
+            if ($emailCount >= 5) {
                 return [
                     'allowed' => false,
                     'reason'  => 'email_limit_exceeded',
-                    'message' => 'You have reached the daily limit of 3 free scans per email.',
+                    'message' => 'You have reached the monthly limit of 5 free scans per email.',
                 ];
             }
 
-            // 3. Check Per-IP Limit (10/day)
+            // 3. Check Per-IP Limit (5/month)
             $ipCount = PublicToolRequest::where('ip_address', $ipAddress)
-                ->where('created_at', '>=', $todayStart)
+                ->where('created_at', '>=', $startOfMonth)
                 ->count();
 
-            if ($ipCount >= 10) {
+            if ($ipCount >= 5) {
                 return [
                     'allowed' => false,
                     'reason'  => 'ip_limit_exceeded',
-                    'message' => 'Your IP address has reached the limit of 10 free scans per day.',
+                    'message' => 'Your IP address has reached the monthly limit of 5 free scans.',
                 ];
             }
 

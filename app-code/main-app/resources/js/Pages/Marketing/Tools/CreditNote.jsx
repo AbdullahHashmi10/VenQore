@@ -3,6 +3,7 @@ import { Plus, Trash2, Download, Loader2, Upload, X, AlertCircle } from 'lucide-
 import ToolShell from './Shared/ToolShell';
 import Select from './Shared/Select';
 import EditableText from './Shared/EditableText';
+import SmartCaptureNudge from './Shared/SmartCaptureNudge';
 
 /**
  * Free Credit Note Generator.
@@ -208,6 +209,8 @@ export default function CreditNoteTool({
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >
+            <SmartCaptureNudge documentType="credit note" />
+
             {errors.length > 0 && (
                 <div className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2.5">
                     <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />

@@ -93,7 +93,7 @@ export default function StoreSwitcher() {
             {/* Trigger */}
             <button
                 onClick={toggle}
-                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all duration-300 border
+                className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl transition-all duration-300 border
                     ${open
                         ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-indigo-200 dark:border-indigo-800'
                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'
@@ -101,13 +101,15 @@ export default function StoreSwitcher() {
                 aria-label="Switch store"
                 aria-expanded={open}
             >
-                {/* Store avatar */}
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xs font-black text-white shrink-0 shadow-sm leading-none">
-                    {store.name.charAt(0).toUpperCase()}
-                </div>
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    {/* Store avatar */}
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xs font-black text-white shrink-0 shadow-sm leading-none">
+                        {store.name.charAt(0).toUpperCase()}
+                    </div>
 
-                <div className="flex-1 min-w-0 text-left hidden lg:block">
-                    <p className="text-sm font-bold truncate leading-tight">{store.name}</p>
+                    <div className="flex-1 min-w-0 text-left">
+                        <p className="text-sm font-bold truncate leading-tight">{store.name}</p>
+                    </div>
                 </div>
 
                 <ChevronDown

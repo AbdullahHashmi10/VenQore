@@ -25,6 +25,18 @@ class DashboardController extends Controller
         // products on every request — a critical data-corruption risk. They must be
         // re-implemented as one-shot Artisan commands and run only under explicit control.
 
+        // ── Experience router (New Experience, 2026-08-08) ────────────────────
+        // Only `store.dashboard` defers to the preference. `store.dashboard-v1`
+        // shares this controller and is deliberately excluded, so it remains an
+        // unconditional route back to the classic dashboard — the escape hatch a
+        // user needs if the new one ever misbehaves for them.
+        if (request()->routeIs('store.dashboard')
+            && \App\Support\Appearance::forRequest()['experience'] === 'new') {
+            return redirect()->route('store.workspace', [
+                'store_slug' => app('current.tenant')->slug,
+            ]);
+        }
+
         $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();

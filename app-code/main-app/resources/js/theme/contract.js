@@ -203,28 +203,54 @@ export const VAR_PREFIX = '--vq';
  * `--vq-slate-500: var(--vq-slate-500)` — a self-reference that CSS discards,
  * leaving the colour undefined. The extra namespace makes that impossible.
  */
+/**
+ * Make a token key safe to appear inside a CSS custom property name.
+ *
+ * ── The bug this exists to prevent ─────────────────────────────────────────
+ *
+ * A custom property name is a `<dashed-ident>`, and a full stop is not a legal
+ * ident character. The spacing scale has `0.5` and `1.5` steps, so the naive
+ * name for them is `--vq-space-1.5` — which is not a custom property at all.
+ * The browser drops the declaration when it parses the stylesheet, and drops
+ * every `var(--vq-space-1.5)` that references it, taking the whole declaration
+ * with it.
+ *
+ * The failure is silent and it is severe. Tailwind compiles `py-1.5` to
+ * `padding-top: var(--vq-space-1.5)`, so `py-1.5 px-3` — the single most common
+ * small-button padding pair in this codebase — rendered with no vertical
+ * padding whatsoever. 2,772 class usages across the app were affected: buttons,
+ * chips, badges and table cells all collapsed to their content size.
+ *
+ * Mapping the dot to an underscore makes the name a legal ident. Doing it here,
+ * rather than at either call site, is what guarantees the generator and
+ * tailwind.config.js agree: they both build names through this object, so a
+ * name that is written is by construction the same name that is read.
+ */
+const safeKey = (key) => String(key).replace(/\./g, '_');
+
 export const cssVar = {
     /** `--vq-ramp-brand-600` — where a ramp's actual value lives. */
-    ramp: (name, shade) => `${VAR_PREFIX}-ramp-${name}-${shade}`,
+    ramp: (name, shade) => `${VAR_PREFIX}-ramp-${safeKey(name)}-${safeKey(shade)}`,
     /** `--vq-indigo-600` — what Tailwind reads; points at a ramp variable. */
-    palette: (name, shade) => `${VAR_PREFIX}-${name}-${shade}`,
+    palette: (name, shade) => `${VAR_PREFIX}-${safeKey(name)}-${safeKey(shade)}`,
     /** `--vq-bg-surface` */
-    semantic: (key) => `${VAR_PREFIX}-${key}`,
+    semantic: (key) => `${VAR_PREFIX}-${safeKey(key)}`,
     /** `--vq-font-sans` */
-    font: (key) => `${VAR_PREFIX}-font-${key}`,
+    font: (key) => `${VAR_PREFIX}-font-${safeKey(key)}`,
     /** `--vq-text-base` */
-    size: (key) => `${VAR_PREFIX}-text-${key}`,
-    weight: (key) => `${VAR_PREFIX}-weight-${key}`,
-    leading: (key) => `${VAR_PREFIX}-leading-${key}`,
-    tracking: (key) => `${VAR_PREFIX}-tracking-${key}`,
-    radius: (key) => `${VAR_PREFIX}-radius-${key}`,
-    shadow: (key) => `${VAR_PREFIX}-shadow-${key}`,
-    space: (key) => `${VAR_PREFIX}-space-${key}`,
-    control: (key) => `${VAR_PREFIX}-control-${key}`,
-    layout: (key) => `${VAR_PREFIX}-layout-${key}`,
-    duration: (key) => `${VAR_PREFIX}-duration-${key}`,
-    easing: (key) => `${VAR_PREFIX}-ease-${key}`,
-    gradient: (key) => `${VAR_PREFIX}-gradient-${key}`,
+    size: (key) => `${VAR_PREFIX}-text-${safeKey(key)}`,
+    weight: (key) => `${VAR_PREFIX}-weight-${safeKey(key)}`,
+    leading: (key) => `${VAR_PREFIX}-leading-${safeKey(key)}`,
+    tracking: (key) => `${VAR_PREFIX}-tracking-${safeKey(key)}`,
+    radius: (key) => `${VAR_PREFIX}-radius-${safeKey(key)}`,
+    shadow: (key) => `${VAR_PREFIX}-shadow-${safeKey(key)}`,
+    /** `--vq-space-1_5` — see safeKey above for why this is not `1.5`. */
+    space: (key) => `${VAR_PREFIX}-space-${safeKey(key)}`,
+    control: (key) => `${VAR_PREFIX}-control-${safeKey(key)}`,
+    layout: (key) => `${VAR_PREFIX}-layout-${safeKey(key)}`,
+    duration: (key) => `${VAR_PREFIX}-duration-${safeKey(key)}`,
+    easing: (key) => `${VAR_PREFIX}-ease-${safeKey(key)}`,
+    gradient: (key) => `${VAR_PREFIX}-gradient-${safeKey(key)}`,
 };
 
 /**

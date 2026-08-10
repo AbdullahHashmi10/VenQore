@@ -269,6 +269,13 @@ const ThemeToggle = ({ isDarkMode, onToggle, compact = false }) => (
     </button>
 );
 
+const isExceptionPath = (pathname = '') => {
+    const prefixes = ['/tools', '/blog', '/docs', '/documentation'];
+    return prefixes.some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
+};
+
 /* ═══════════════════════════════════════════════════════════════════════════
    SITE MAP — single source of truth for header dropdowns, the footer sitemap
    and the RelatedPages block. Add a marketing page here once and it is
@@ -639,7 +646,7 @@ export default function MarketingLayout({ children, title, description }) {
                         ))}
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />
+                        {isExceptionPath(currentPath) && <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />}
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Sign In</Link>
                         <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-full text-2xs sm:text-1xs font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(99,102,241,0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>

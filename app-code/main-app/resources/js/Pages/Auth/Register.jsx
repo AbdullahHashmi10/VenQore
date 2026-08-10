@@ -65,7 +65,7 @@ export default function Register() {
     const benefits = [
         { icon: Shield, title: 'Auditor-Grade Accuracy', desc: 'Every transaction writes a correct journal entry' },
         { icon: Zap, title: 'Professional POS', desc: '25+ shortcuts, crash-proof architecture' },
-        { icon: BarChart3, title: '38 Verified Reports', desc: 'P&L, Balance Sheet, Cash Flow & more' },
+        { icon: BarChart3, title: '40 Verified Reports', desc: 'P&L, Balance Sheet, Cash Flow & more' },
         { icon: Boxes, title: 'Full Inventory Control', desc: 'FIFO, batch tracking, multi-warehouse' },
     ];
 

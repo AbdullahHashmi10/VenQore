@@ -8,6 +8,47 @@ import {
     FileText, Zap, Compass, Info, CheckCircle2, ShieldCheck, HelpCircle as FaqIcon
 } from 'lucide-react';
 
+function DocFAQItem({ qa, index }) {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    return (
+        <div 
+            id={`faq-${qa.slug}-${index}`}
+            itemScope 
+            itemType="https://schema.org/Question" 
+            className="p-5 rounded-2xl border border-slate-900/[0.06] dark:border-white/[0.04] bg-slate-900/[0.015] dark:bg-white/[0.01] hover:bg-slate-900/[0.02] dark:hover:bg-white/[0.02] transition-all"
+        >
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between text-left group focus:outline-none"
+            >
+                <h3 itemprop="name" className="text-slate-900 dark:text-white font-bold text-sm md:text-base tracking-tight flex items-start gap-3 flex-1 pr-4">
+                    <span className="text-indigo-600 dark:text-indigo-400 text-2xs font-black uppercase bg-indigo-500/10 px-2 py-0.5 rounded shrink-0">Q</span>
+                    <span>{qa.question}</span>
+                </h3>
+                <span className={`transform transition-transform duration-200 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0`}>
+                    <svg className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </button>
+            
+            <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
+                <div className="overflow-hidden">
+                    <div itemprop="acceptedAnswer" itemScope itemType="https://schema.org/Answer" className="pl-9 pr-4">
+                        <div 
+                            itemprop="text" 
+                            className="text-slate-600 dark:text-slate-400 text-xs md:text-sm leading-relaxed space-y-4"
+                            dangerouslySetInnerHTML={{ __html: qa.answer_html }}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function DocsShow({
     navigation = {},
     currentDoc = {},
@@ -33,7 +74,7 @@ export default function DocsShow({
 
     return (
         <MarketingLayout>
-            <div className="min-h-screen bg-void-950 text-slate-500 dark:text-slate-400 font-sans relative overflow-hidden pt-24 pb-20">
+            <div className="min-h-screen text-slate-500 dark:text-slate-400 font-sans relative overflow-hidden pt-24 pb-20">
                 {/* Background glow effects */}
                 <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-indigo-500/[0.02] blur-[150px] pointer-events-none" />
                 <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] rounded-full bg-purple-500/[0.02] blur-[180px] pointer-events-none" />
@@ -69,7 +110,7 @@ export default function DocsShow({
 
                         {/* LEFT SIDEBAR NAVIGATION */}
                         <aside className={`
-                            w-full lg:w-72 flex-shrink-0 bg-void-950 lg:bg-transparent lg:block
+                            w-full lg:w-72 flex-shrink-0 bg-white dark:bg-void-950 lg:bg-transparent lg:block
                             ${mobileSidebarOpen ? 'block' : 'hidden'}
                             z-40 rounded-3xl border border-slate-900/[0.08] dark:border-white/[0.06] lg:border-none p-6 lg:p-0 mb-6 lg:mb-0
                         `}>
@@ -159,9 +200,10 @@ export default function DocsShow({
                                                         <HelpCircle size={16} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                                                         <span>{qa.question}</span>
                                                     </h3>
-                                                    <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed pl-5">
-                                                        {qa.answer}
-                                                    </p>
+                                                     <div 
+                                                         className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed pl-5 space-y-2"
+                                                         dangerouslySetInnerHTML={{ __html: qa.answer_html }}
+                                                     />
                                                     <div className="mt-4 pt-3 border-t border-slate-900/[0.06] dark:border-white/[0.04] flex justify-end">
                                                         <Link 
                                                             href={`/docs/${qa.slug}`}
@@ -215,25 +257,9 @@ export default function DocsShow({
                                                     </h2>
                                                 </div>
                                                 <div className="grid grid-cols-1 gap-4">
-                                                    {currentDoc.qas.map((qa, i) => (
-                                                        <div 
-                                                            key={i} 
-                                                            id={`faq-${currentDoc.slug}-${i}`}
-                                                            itemScope 
-                                                            itemType="https://schema.org/Question" 
-                                                            className="p-5 rounded-2xl border border-slate-900/[0.06] dark:border-white/[0.04] bg-slate-900/[0.015] dark:bg-white/[0.01] hover:bg-white/[0.02] transition-all"
-                                                        >
-                                                            <h3 itemprop="name" className="text-slate-900 dark:text-white font-bold text-xs tracking-tight mb-2 flex items-start gap-2">
-                                                                <span className="text-indigo-600 dark:text-indigo-400 text-3xs font-black uppercase bg-indigo-500/10 px-1.5 py-0.5 rounded">Q</span>
-                                                                <span>{qa.question}</span>
-                                                            </h3>
-                                                            <div itemprop="acceptedAnswer" itemScope itemType="https://schema.org/Answer">
-                                                                <p itemprop="text" className="text-slate-500 dark:text-slate-400 text-3xs leading-relaxed pl-6">
-                                                                    <strong>A:</strong> {qa.answer}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                     {currentDoc.qas.map((qa, i) => (
+                                                         <DocFAQItem key={i} qa={qa} index={i} />
+                                                     ))}
                                                 </div>
                                             </div>
                                         )}

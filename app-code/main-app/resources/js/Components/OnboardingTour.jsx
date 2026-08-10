@@ -56,7 +56,7 @@ const OnboardingTour = ({ onComplete }) => {
         },
         {
             title: 'Powerful Reports',
-            description: 'Get insights with 38+ reports including Sales, P&L, Stock Valuation, and more. AI-powered tips help you grow!',
+            description: 'Get insights with 40+ reports including Sales, P&L, Stock Valuation, and more. AI-powered tips help you grow!',
             icon: BarChart2,
             highlight: 'reports',
             action: { label: 'View Reports', route: 'store.reports.index' },

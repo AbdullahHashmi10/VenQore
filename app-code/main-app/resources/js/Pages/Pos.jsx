@@ -1113,9 +1113,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
         // Auto-print if enabled
         if (paymentData.printReceipt) {
-            // Build sale object for printing
+            // Build sale object for printing — include `id` from `sale_id` so that
+            // PrintService.quickPrint can fetch the full sale (with live ledger balance)
+            // from the server before rendering the receipt.
             const saleForPrint = {
                 ...data,
+                id: data.sale_id || data.id,   // ← ensures quickPrint fetches fresh server data
                 items: activeSale.cart,
                 total: cartTotal,
                 amount_paid: paymentData.totalPaid,
@@ -1127,6 +1130,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             const printType = settings?.default_print_type || 'thermal';
             setTimeout(() => PrintService.quickPrint(saleForPrint, printType, settings), 500);
         }
+
 
         // Show notifications
         let message = '';

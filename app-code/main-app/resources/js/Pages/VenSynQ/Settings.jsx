@@ -5,8 +5,8 @@ import AmazonSetupWizard from './Components/AmazonSetupWizard';
 import { vq } from '@/theme/runtime';
 import {
     Zap, Plus, Link2, Unlink, Check, Clock, AlertTriangle,
-    BarChart2, RefreshCw, Edit2, Trash2, ChevronLeft,
-    CheckCircle2, AlertCircle, X, Save, ExternalLink, Settings, Home, HardDrive
+    BarChart2, RefreshCw, Edit2, Trash2, ChevronLeft, ChevronRight,
+    CheckCircle2, AlertCircle, X, Save, ExternalLink, Settings, Home, HardDrive, Store
 } from 'lucide-react';
 
 const AmazonLogo = () => (
@@ -84,6 +84,55 @@ const FULFILLMENT_LABELS = {
     jit: { label: 'JIT — Buy Day-Of',          badge: 'bg-amber-900/40 text-amber-300 border-amber-700' },
 };
 
+const AMAZON_MARKETPLACES = [
+    {
+        region: 'eu',
+        title: 'Europe',
+        markets: [
+            { value: 'uk', label: 'United Kingdom', desc: '.co.uk' },
+            { value: 'de', label: 'Germany', desc: '.de' },
+            { value: 'fr', label: 'France', desc: '.fr' },
+            { value: 'it', label: 'Italy', desc: '.it' },
+            { value: 'es', label: 'Spain', desc: '.es' },
+            { value: 'nl', label: 'Netherlands', desc: '.nl' },
+            { value: 'se', label: 'Sweden', desc: '.se' },
+            { value: 'pl', label: 'Poland', desc: '.pl' },
+            { value: 'be', label: 'Belgium', desc: '.com.be' },
+            { value: 'tr', label: 'Turkey', desc: '.com.tr' },
+        ]
+    },
+    {
+        region: 'na',
+        title: 'North America',
+        markets: [
+            { value: 'us', label: 'United States', desc: '.com' },
+            { value: 'ca', label: 'Canada', desc: '.ca' },
+            { value: 'mx', label: 'Mexico', desc: '.com.mx' },
+            { value: 'br', label: 'Brazil', desc: '.com.br' },
+        ]
+    },
+    {
+        region: 'me_in',
+        title: 'Middle East & India',
+        markets: [
+            { value: 'in', label: 'India', desc: '.in' },
+            { value: 'ae', label: 'UAE / Dubai', desc: '.ae' },
+            { value: 'sa', label: 'Saudi Arabia', desc: '.sa' },
+            { value: 'eg', label: 'Egypt', desc: '.com.eg' },
+            { value: 'za', label: 'South Africa', desc: '.co.za' },
+        ]
+    },
+    {
+        region: 'apac',
+        title: 'Asia-Pacific',
+        markets: [
+            { value: 'jp', label: 'Japan', desc: '.co.jp' },
+            { value: 'au', label: 'Australia', desc: '.com.au' },
+            { value: 'sg', label: 'Singapore', desc: '.sg' },
+        ]
+    }
+];
+
 export default function VenSynQSettings({ channels = [], warehouses = [], expenseCategories = [], platforms = [] }) {
     const { props } = usePage();
     const flash = props.flash ?? {};
@@ -91,9 +140,10 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
 
     const [editingChannel, setEditingChannel] = useState(null);
 
-    // T16 — the 3-step SP-API credential wizard, offered alongside (not instead
-    // of) the OAuth redirect. Self-authorized sellers never see a consent screen.
     const [showAmazonWizard, setShowAmazonWizard] = useState(false);
+    const [showAmazonRegionModal, setShowAmazonRegionModal] = useState(false);
+    const [selectedAmazonRegion, setSelectedAmazonRegion] = useState('uk');
+    const [activeRegionTab, setActiveRegionTab] = useState('eu');
 
     // Form for editing connected channel settings
     const editForm = useForm({
@@ -301,7 +351,13 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                     {/* Link to connect another account for this platform */}
                                                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
                                                         <a 
-                                                            href={route('store.vensynq.connect', { store_slug: store?.slug, platform })}
+                                                            onClick={(e) => {
+                                                                if (platform === 'amazon') {
+                                                                    e.preventDefault();
+                                                                    setShowAmazonRegionModal(true);
+                                                                }
+                                                            }}
+                                                            href={platform === 'amazon' ? '#' : route('store.vensynq.connect', { store_slug: store?.slug, platform })}
                                                             style={{ 
                                                                 display: 'inline-flex', 
                                                                 alignItems: 'center', 
@@ -331,7 +387,13 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                                     </div>
 
                                                     <a 
-                                                        href={route('store.vensynq.connect', { store_slug: store?.slug, platform })}
+                                                        onClick={(e) => {
+                                                            if (platform === 'amazon') {
+                                                                e.preventDefault();
+                                                                setShowAmazonRegionModal(true);
+                                                            }
+                                                        }}
+                                                        href={platform === 'amazon' ? '#' : route('store.vensynq.connect', { store_slug: store?.slug, platform })}
                                                         style={{ 
                                                             width: '100%', 
                                                             display: 'inline-flex', 
@@ -418,6 +480,104 @@ export default function VenSynQSettings({ channels = [], warehouses = [], expens
                                 </button>
                             </div>
                         </form>
+                    </Modal>
+                )}
+                {showAmazonRegionModal && (
+                    <Modal title="Select Amazon Region" onClose={() => setShowAmazonRegionModal(false)}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <p style={{ margin: 0, fontSize: 13, color: vq.slate[300], lineHeight: 1.5 }}>
+                                Amazon Seller Central authorization endpoints vary by region. Please select the region of your Amazon Seller account:
+                            </p>
+                            
+                            {/* Region Tabs */}
+                            <div style={{ display: 'flex', borderBottom: '1px solid #1e3a5f', marginBottom: 16, gap: 16, overflowX: 'auto', paddingBottom: 6 }}>
+                                {AMAZON_MARKETPLACES.map((group) => {
+                                    const isActive = activeRegionTab === group.region;
+                                    return (
+                                        <button
+                                            key={group.region}
+                                            type="button"
+                                            onClick={() => setActiveRegionTab(group.region)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderBottom: isActive ? '2px solid #FF9900' : '2px solid transparent',
+                                                color: isActive ? '#fff' : '#64748b',
+                                                fontWeight: isActive ? 700 : 500,
+                                                padding: '4px 2px 8px 2px',
+                                                fontSize: 12,
+                                                cursor: 'pointer',
+                                                whiteSpace: 'nowrap',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {group.title}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Marketplaces list */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, maxHeight: 240, overflowY: 'auto', padding: '2px 4px' }}>
+                                {AMAZON_MARKETPLACES.find(g => g.region === activeRegionTab)?.markets.map((reg) => {
+                                    const isSelected = selectedAmazonRegion === reg.value;
+                                    return (
+                                        <button
+                                            key={reg.value}
+                                            type="button"
+                                            onClick={() => setSelectedAmazonRegion(reg.value)}
+                                            style={{
+                                                padding: '12px 10px',
+                                                borderRadius: 8,
+                                                background: isSelected ? '#12233f' : '#0a1220',
+                                                border: isSelected ? '1px solid #FF9900' : '1px solid #1e3a5f',
+                                                color: '#fff',
+                                                cursor: 'pointer',
+                                                textAlign: 'left',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: isSelected ? '0 0 10px rgba(255, 153, 0, 0.15)' : 'none',
+                                            }}
+                                        >
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: isSelected ? '#FF9900' : vq.slate[100], marginBottom: 2 }}>
+                                                {reg.label}
+                                            </div>
+                                            <div style={{ fontSize: 9, color: isSelected ? vq.slate[300] : '#64748b' }}>
+                                                {reg.desc}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 14 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAmazonRegionModal(false)}
+                                    style={{
+                                        padding: '8px 16px', borderRadius: 8, border: '1px solid #334155',
+                                        background: 'transparent', color: vq.slate[400], fontSize: 12,
+                                        fontWeight: 600, cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <a
+                                    href={route('store.vensynq.connect', {
+                                        store_slug: store?.slug,
+                                        platform: 'amazon',
+                                        region: selectedAmazonRegion
+                                    })}
+                                    style={{
+                                        padding: '8px 20px', borderRadius: 8, border: 'none',
+                                        background: '#FF9900', color: '#000', fontSize: 12,
+                                        fontWeight: 700, textDecoration: 'none', cursor: 'pointer',
+                                        display: 'inline-flex', alignItems: 'center', gap: 4
+                                    }}
+                                >
+                                    Next <ChevronRight size={14} />
+                                </a>
+                            </div>
+                        </div>
                     </Modal>
                 )}
             </div>

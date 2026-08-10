@@ -28,6 +28,7 @@ return [
 
     'platforms' => [
         'amazon' => [
+            'app_id'         => env('VENSYNQ_AMAZON_APP_ID', 'amzn1.sellerapps.app.mock_id'),
             'client_id'      => env('VENSYNQ_AMAZON_CLIENT_ID', 'amzn1.application-oa2-client.mock_id'),
             'client_secret'  => env('VENSYNQ_AMAZON_CLIENT_SECRET', 'mock_amazon_secret_key_12345'),
             'redirect_uri'   => env('VENSYNQ_AMAZON_REDIRECT_URI', '/amazon/callback'),

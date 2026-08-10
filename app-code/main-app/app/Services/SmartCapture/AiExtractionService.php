@@ -122,9 +122,13 @@ class AiExtractionService
 
         // 3. Platform-level fallback (managed / free tiers)
         $provider = $this->normalizeProvider(config('smartcapture.provider', 'gemini'));
-        $key = $provider === 'gemini'
-            ? (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'))
-            : config('smartcapture.api_key');
+        if ($feature === 'public_tool') {
+            $key = config('smartcapture.free_api_key') ?: (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'));
+        } else {
+            $key = $provider === 'gemini'
+                ? (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'))
+                : config('smartcapture.api_key');
+        }
 
         $featureModel = $feature ? config("smartcapture.feature_models.{$feature}") : null;
 

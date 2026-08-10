@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { router } from '@inertiajs/react';
+import { router, Link } from '@inertiajs/react';
 import { role, vq } from '@/theme/runtime';
 import {
     RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, ChevronDown,
-    Wifi, KeyRound, Webhook, RotateCw, Clock, X,
+    Wifi, KeyRound, Webhook, RotateCw, Clock, X, Store, ArrowRight,
 } from 'lucide-react';
 
 /**
@@ -430,33 +430,7 @@ export default function SyncHealthPanel({ health, storeSlug, syncing, onSyncNow 
                 </div>
             )}
 
-            {/* ── Empty state ──────────────────────────────────────────────── */}
-            {channels.length === 0 && !dismissed && (
-                <div style={{
-                    position: 'relative',
-                    background: vq.void[800] ?? '#0b1220',
-                    border: '1px dashed #1e3a5f', borderRadius: 12,
-                    padding: '26px 20px', textAlign: 'center',
-                }}>
-                    <button
-                        onClick={() => setDismissed(true)}
-                        aria-label="Dismiss"
-                        style={{
-                            position: 'absolute', top: 10, right: 10, background: 'transparent',
-                            border: 'none', cursor: 'pointer', color: vq.slate[600], padding: 4,
-                        }}
-                    >
-                        <X size={14} />
-                    </button>
-                    <AlertTriangle size={26} color={role.warning[500]} style={{ marginBottom: 10 }} />
-                    <h3 style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 700, color: vq.slate[300] }}>
-                        No marketplaces connected yet
-                    </h3>
-                    <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>
-                        Connect WooCommerce or Amazon in Settings to start importing orders automatically.
-                    </p>
-                </div>
-            )}
+            {/* ── Empty state handled at Dashboard level ──────────────────── */}
 
             {/* Scoped keyframes — the parent page has no animation utilities. */}
             <style>{`

@@ -41,12 +41,13 @@ class AmazonClient implements PlatformClient
         }
 
         $startedAt = microtime(true);
+        $config = $this->resolveConfigForToken($accessToken);
 
         try {
             $response = Http::withHeaders(['x-amz-access-token' => $accessToken])
                 ->timeout(15)
-                ->get($this->baseUrl() . '/orders/v0/orders', [
-                    'MarketplaceIds'   => config('vensynq.platforms.amazon.marketplace_id'),
+                ->get($config['base_url'] . '/orders/v0/orders', [
+                    'MarketplaceIds'   => $config['marketplace_id'],
                     'CreatedAfter'     => now()->subDay()->toIso8601String(),
                     'MaxResultsPerPage' => 1,
                 ]);
@@ -132,34 +133,113 @@ class AmazonClient implements PlatformClient
     }
 
     /**
-     * Build the Amazon SP-API Authorization URL.
-     * In sandbox mode, uses the platform-level refresh token instead of OAuth flow.
+     * Resolve the region config dynamically for a specific access token.
      */
+    public function resolveConfigForToken(string $accessToken): array
+    {
+        if (config('vensynq.sandbox_mode')) {
+            return [
+                'base_url'       => config('vensynq.platforms.amazon.sandbox_url'),
+                'marketplace_id' => config('vensynq.platforms.amazon.marketplace_id'),
+            ];
+        }
+
+        // Query the database for this specific access token inside the current tenant/global context
+        $channel = \App\Models\EcommerceChannel::where('platform', 'amazon')
+            ->where('is_connected', true)
+            ->get()
+            ->first(fn ($ch) => $ch->oauth_access_token === $accessToken);
+
+        $region = $channel?->region;
+
+        $baseUrl = match ($region) {
+            'us', 'ca', 'mx', 'br', 'na' => 'https://sellingpartnerapi-na.amazon.com',
+            'jp', 'au', 'sg', 'fe'       => 'https://sellingpartnerapi-fe.amazon.com',
+            default                      => 'https://sellingpartnerapi-eu.amazon.com',
+        };
+
+        $marketplaceId = match ($region) {
+            'us'    => 'ATVPDKIKX0DER',
+            'ca'    => 'A2EUQ1WTGCTBG2',
+            'mx'    => 'A1AM78C64UM0Y8',
+            'br'    => 'A2Q3Y263D3E9CID',
+            'de'    => 'A1PA6795UKMFR9',
+            'fr'    => 'A13V1IB3VIYZZH',
+            'it'    => 'APJ6JRA9NG5V4',
+            'es'    => 'A1RKKUPIHCS9HS',
+            'nl'    => 'A1805IZSGIAFEB',
+            'se'    => 'A2NODRK35UZR0C',
+            'pl'    => 'A1C3O529UMJ2Z8',
+            'be'    => 'AMEN7PMS3EDWL',
+            'tr'    => 'A33AVAJ2EAF3SG',
+            'eg'    => 'ARBP9OOSHTCHU',
+            'sa'    => 'A17E79C6D8DWAL',
+            'ae'    => 'A2VIGQ35RCS4C5',
+            'in'    => 'A21TJRUUN4KGV',
+            'za'    => 'AE08W01Z3WI6O',
+            'jp'    => 'A1VC38T7YXB528',
+            'au'    => 'A39IBJ37TRP1C6',
+            'sg'    => 'A19VAU5U5O7RUS',
+            default => 'A1F83G8C2ARO7P', // Default to UK
+        };
+
+        return [
+            'base_url'       => $baseUrl,
+            'marketplace_id' => $marketplaceId,
+        ];
+    }
+
     public function getAuthorizationUrl(): string
+    {
+        return $this->getAuthorizationUrlForRegion(request()->query('region'));
+    }
+
+    /**
+     * Build the Amazon SP-API Authorization URL for a specific region.
+     */
+    public function getAuthorizationUrlForRegion(?string $region): string
     {
         if (config('vensynq.simulation_mode')) {
             return route('store.vensynq.callback', [
                 'platform'   => 'amazon',
                 'store_slug' => app('current.tenant')->slug,
                 'code'       => 'simulated_amazon_auth_code_xyz',
+                'region'     => $region,
             ]);
         }
 
-        // In sandbox mode we skip the OAuth screen entirely and use the
-        // platform-level refresh token that Amazon Developer Console provides.
         if (config('vensynq.sandbox_mode')) {
             return route('store.vensynq.callback', [
                 'platform'   => 'amazon',
                 'store_slug' => app('current.tenant')->slug,
                 'code'       => 'sandbox_bypass',
+                'region'     => $region,
             ]);
         }
 
-        $clientId    = config('vensynq.platforms.amazon.client_id');
+        $appId = config('vensynq.platforms.amazon.app_id');
+        if (empty($appId) || $appId === 'amzn1.sellerapps.app.mock_id') {
+            $clientId = config('vensynq.platforms.amazon.client_id');
+            $appId = str_replace('application-oa2-client', 'sellerapps.app', $clientId);
+        }
         $redirectUri = url(config('vensynq.platforms.amazon.redirect_uri'));
 
-        return 'https://sellercentral.amazon.co.uk/apps/authorize/consent'
-             . '?application_id=' . urlencode($clientId)
+        $baseUrl = match ($region) {
+            'us', 'ca', 'mx', 'br', 'na' => 'https://sellercentral.amazon.com',
+            'tr'                         => 'https://sellercentral.amazon.com.tr',
+            'eg'                         => 'https://sellercentral.amazon.eg',
+            'sa'                         => 'https://sellercentral.amazon.sa',
+            'ae'                         => 'https://sellercentral.amazon.ae',
+            'in'                         => 'https://sellercentral.amazon.in',
+            'za'                         => 'https://sellercentral.amazon.co.za',
+            'jp'                         => 'https://sellercentral.amazon.co.jp',
+            'au'                         => 'https://sellercentral.amazon.com.au',
+            'sg'                         => 'https://sellercentral.amazon.sg',
+            default                      => 'https://sellercentral.amazon.co.uk',
+        };
+
+        return $baseUrl . '/apps/authorize/consent'
+             . '?application_id=' . urlencode($appId)
              . '&state='          . urlencode(csrf_token())
              . '&redirect_uri='   . urlencode($redirectUri);
     }
@@ -260,11 +340,13 @@ class AmazonClient implements PlatformClient
             return $this->getSimulatedOrders();
         }
 
+        $config = $this->resolveConfigForToken($accessToken);
+
         // SP-API orders endpoint — resolves sandbox or production automatically
         $response = Http::withHeaders([
             'x-amz-access-token' => $accessToken,
-        ])->get($this->baseUrl() . '/orders/v0/orders', [
-            'MarketplaceIds'   => config('vensynq.platforms.amazon.marketplace_id'),
+        ])->get($config['base_url'] . '/orders/v0/orders', [
+            'MarketplaceIds'   => $config['marketplace_id'],
             'LastUpdatedAfter' => now()->subHours(25)->toIso8601String(),
             'OrderStatuses'    => 'Shipped,Unshipped',
         ]);
@@ -284,7 +366,7 @@ class AmazonClient implements PlatformClient
             // Get order line items
             $itemsResponse = Http::withHeaders([
                 'x-amz-access-token' => $accessToken,
-            ])->get($this->baseUrl() . "/orders/v0/orders/{$orderId}/orderItems");
+            ])->get($config['base_url'] . "/orders/v0/orders/{$orderId}/orderItems");
 
             if ($itemsResponse->failed()) {
                 continue;
@@ -322,10 +404,12 @@ class AmazonClient implements PlatformClient
             return true;
         }
 
+        $config = $this->resolveConfigForToken($accessToken);
+
         $response = Http::withHeaders([
             'x-amz-access-token' => $accessToken,
-        ])->post($this->baseUrl() . "/orders/v0/orders/{$orderId}/shipment", [
-            'marketplaceId' => config('vensynq.platforms.amazon.marketplace_id'),
+        ])->post($config['base_url'] . "/orders/v0/orders/{$orderId}/shipment", [
+            'marketplaceId' => $config['marketplace_id'],
             'carrierCode' => $this->mapCarrierToAmazonCode($carrier),
             'carrierName' => $carrier,
             'shipperTrackingNumber' => $trackingNumber,

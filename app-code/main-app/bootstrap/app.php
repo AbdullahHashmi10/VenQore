@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\DemoBannerMiddleware::class,
             \App\Http\Middleware\LastModifiedMiddleware::class,
+            \App\Http\Middleware\PreventAuthenticatedPageCaching::class,
         ]);
 
         $middleware->api(prepend: [
@@ -157,10 +158,24 @@ return Application::configure(basePath: dirname(__DIR__))
                 ]);
                 if ($request->header('X-Inertia')) {
                     if ($request->hasSession()) {
+                        // Issue a fresh CSRF token before sending the browser back.
+                        // Without this the reloaded page is handed the same dead
+                        // token it just failed with, re-POSTs, fails again, and
+                        // the user rides the loop down to /error/500.
+                        $request->session()->regenerateToken();
                         $request->session()->reflash();
                         $request->session()->flash('error', 'Your session has expired. Please try again.');
                     }
-                    return \Inertia\Inertia::location($request->fullUrl());
+
+                    // `fullUrl()` is the URL that was just POSTed to. Sending the
+                    // browser there turns a failed POST into a GET of an endpoint
+                    // that only answers POST — a 405, or on this codebase another
+                    // trip through the error page. Redirect to the page the user
+                    // was actually looking at instead.
+                    $target = $request->headers->get('referer')
+                        ?: ($request->isMethod('GET') ? $request->fullUrl() : url('/'));
+
+                    return \Inertia\Inertia::location($target);
                 }
                 return redirect()->back()->withInput()->with('error', 'Your session has expired. Please try again.');
             }
@@ -192,6 +207,31 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($statusCode === 409) {
                     return null;
                 }
+
+                // ── Local development: show the error, do not hide it ─────────
+                //
+                // Redirecting to /error/500 replaces the exception with a
+                // friendly page, and because that redirect is signalled to the
+                // Inertia client as a 409, the browser console reports
+                // "409 Conflict" for what is really a 500. Combined with
+                // ErrorLog::record() deduplicating by fingerprint — so a
+                // repeating fault stops producing new log lines after the first
+                // — a genuine server error can look like an Inertia versioning
+                // problem and leave no trace anywhere obvious.
+                //
+                // In local/dev the real message goes back as JSON instead. The
+                // production path below is unchanged.
+                if (! app()->environment('production')) {
+                    return response()->json([
+                        'message' => $e->getMessage(),
+                        'exception' => get_class($e),
+                        'file' => $e->getFile() . ':' . $e->getLine(),
+                        'trace' => collect($e->getTrace())->take(8)->map(
+                            fn ($f) => ($f['file'] ?? '?') . ':' . ($f['line'] ?? '?') . ' ' . ($f['function'] ?? '')
+                        )->toArray(),
+                    ], $statusCode === 200 ? 500 : $statusCode);
+                }
+
                 // Use Inertia::location() for a full redirect so the page reloads cleanly
                 return \Inertia\Inertia::location(route('error.page', ['code' => $statusCode]));
             }

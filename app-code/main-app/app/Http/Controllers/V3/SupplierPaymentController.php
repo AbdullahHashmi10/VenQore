@@ -77,20 +77,29 @@ class SupplierPaymentController extends Controller
         return redirect()->back()->with('success', 'Supplier payment posted.');
     }
 
-    // Badge update for purchases — mirrors PaymentService::updatePaymentBadge
-    // but for the purchases table instead of sales
+    // Badge update for purchases — reads from `invoices` (type='purchase') which is
+    // where purchase records actually live. Mirrors PaymentService::updatePaymentBadge.
     private function updatePurchaseBadge(string $purchaseId): void
     {
-        $purchase = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->where('id', $purchaseId)->first();
+        $tid = app('current.tenant')->id;
+
+        // Purchases live in `invoices` table with type = 'purchase'
+        $purchase = DB::table('invoices')
+            ->where('tenant_id', $tid)
+            ->where('id', $purchaseId)
+            ->where('type', 'purchase')
+            ->first();
         if (!$purchase) return;
 
-        $allocated = (float) DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
+        $allocated = (float) DB::table('payment_allocations')
+            ->where('tenant_id', $tid)
             ->where('purchase_id', $purchaseId)
             ->where('status', 'active')
             ->sum('allocated_amount');
 
-        $total     = (float) $purchase->total;
-        $tolerance = (float) (DB::table('system_settings')->where('system_settings.tenant_id', app('current.tenant')->id)
+        $total     = (float) ($purchase->total_amount ?? 0);
+        $tolerance = (float) (DB::table('system_settings')
+            ->where('tenant_id', $tid)
             ->where('key', 'roundoff_tolerance')
             ->value('value') ?? 1.00);
 
@@ -104,8 +113,10 @@ class SupplierPaymentController extends Controller
             $status = 'partial';
         }
 
-        DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
+        DB::table('invoices')
+            ->where('tenant_id', $tid)
             ->where('id', $purchaseId)
-            ->update(['payment_status' => $status, 'updated_at' => now()]);
+            ->update(['status' => $status, 'updated_at' => now()]);
     }
 }
+

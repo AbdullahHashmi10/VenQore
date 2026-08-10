@@ -23,7 +23,7 @@ const RelatedPost = ({ post, index }) => (
                 <span className="px-2.5 py-0.5 rounded-full bg-slate-900/[0.03] dark:bg-white/5 text-3xs font-black text-slate-500 uppercase tracking-widest mb-3 inline-block">
                     {post.category}
                 </span>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-snug mb-2 group-hover:text-indigo-100 transition-colors line-clamp-2">
+                <h4 className="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-snug mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors line-clamp-2">
                     {post.title}
                 </h4>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-900/[0.06] dark:border-white/5">
@@ -118,7 +118,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                     {/* Excerpt */}
                     {post.excerpt && (
                         <RevealOnScroll delay={0.15}>
-                            <p className="text-lg md:text-xl text-slate-400 leading-relaxed mb-8 font-medium border-l-2 border-indigo-500/50 pl-4 py-1">
+                            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-8 font-medium border-l-2 border-indigo-500/50 pl-4 py-1">
                                 {post.excerpt}
                             </p>
                         </RevealOnScroll>
@@ -129,7 +129,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                         <div className="flex flex-wrap items-center justify-between gap-4 py-5 border-y border-slate-900/[0.08] dark:border-white/10 mb-10">
                             <div className="flex items-center gap-3">
                                 <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 p-0.5 shadow-lg shadow-indigo-500/20">
-                                    <div className="w-full h-full rounded-full bg-slate-950 flex items-center justify-center text-white text-sm font-black">
+                                    <div className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-900 dark:text-white text-sm font-black">
                                         {post.author?.charAt(0) || 'V'}
                                     </div>
                                 </div>
@@ -150,7 +150,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                                             alert('Article link copied to clipboard!');
                                         }
                                     }}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/40 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-500/40 text-slate-300 hover:text-white transition-all text-2xs font-bold uppercase tracking-widest"
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/[0.04] dark:bg-slate-900/40 hover:bg-indigo-600/20 border border-slate-900/10 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-all text-2xs font-bold uppercase tracking-widest"
                                 >
                                     <Share2 size={13} /> Copy Link
                                 </button>
@@ -183,7 +183,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
 
             {/* ── 3. RELATED POSTS ────────────────────────────── */}
             {recentPosts.length > 0 && (
-                <section className="py-20 px-6 border-t border-slate-900/[0.08] dark:border-white/10 bg-slate-950/40">
+                <section className="py-20 px-6 border-t border-slate-900/[0.08] dark:border-white/10 bg-slate-900/[0.01] dark:bg-slate-950/40">
                     <div className="max-w-5xl mx-auto">
                         <RevealOnScroll>
                             <div className="flex items-center justify-between mb-10">

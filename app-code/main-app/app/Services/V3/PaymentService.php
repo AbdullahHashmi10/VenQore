@@ -162,18 +162,31 @@ class PaymentService
         float  $attemptedAmount,
         string $type  // 'sale' or 'purchase'
     ): void {
-        $table        = $type === 'sale' ? 'sales' : 'purchases';
-        $idColumn     = $type === 'sale' ? 'sale_id' : 'purchase_id';
-
         $tid = $this->tenantId;
-        $invoice = DB::table($table)->where('tenant_id', $tid)->where('id', $invoiceId)->first();
-        if (!$invoice) {
-            $dbSales = DB::table($table)->where('id', $invoiceId)->first();
-            $dbSalesTenant = $dbSales ? $dbSales->tenant_id : 'NO_RECORD';
-            throw new \InvalidArgumentException("Invoice not found: {$invoiceId}. Target Tenant ID: {$tid}. Actual DB Tenant ID: {$dbSalesTenant}. Table: {$table}");
+
+        if ($type === 'sale') {
+            $invoice = DB::table('sales')
+                ->where('tenant_id', $tid)
+                ->where('id', $invoiceId)
+                ->first();
+            $invoiceTotal = (float) ($invoice->total ?? 0);
+        } else {
+            // Purchases are stored in the `invoices` table (type = 'purchase')
+            $invoice = DB::table('invoices')
+                ->where('tenant_id', $tid)
+                ->where('id', $invoiceId)
+                ->where('type', 'purchase')
+                ->first();
+            $invoiceTotal = (float) ($invoice->total_amount ?? 0);
         }
 
-        $invoiceTotal = (float) ($invoice->total ?? 0);
+        if (!$invoice) {
+            throw new \InvalidArgumentException(
+                "Invoice not found: {$invoiceId}. Tenant: {$tid}. Type: {$type}."
+            );
+        }
+
+        $idColumn = $type === 'sale' ? 'sale_id' : 'purchase_id';
 
         $alreadyAllocated = (float) DB::table('payment_allocations')
             ->where('tenant_id', $tid)
@@ -190,4 +203,5 @@ class PaymentService
             );
         }
     }
+
 }

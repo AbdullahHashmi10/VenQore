@@ -54,6 +54,7 @@ class DocsController extends Controller
             $qas[] = [
                 'question' => trim($match[1]),
                 'answer' => trim($match[2]),
+                'answer_html' => SimpleMarkdownParser::parse(trim($match[2])),
                 'category' => $category,
                 'slug' => $slug,
             ];

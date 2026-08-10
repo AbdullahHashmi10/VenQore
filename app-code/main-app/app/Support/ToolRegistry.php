@@ -51,6 +51,7 @@ class ToolRegistry
                 'key'   => 'documents',
                 'label' => 'Documents',
                 'tools' => [
+                    self::tool('smart-capture', 'Smart Capture AI', 'Smart Capture', 'Scan handwritten images, PDFs, and invoices with AI to extract vendor details, totals, and item breakdowns.', self::STATUS_LIVE, 'tools.smart-capture'),
                     self::tool('invoice-generator', 'Invoice Generator', 'Invoices', 'Free, unwatermarked PDF invoices in multiple templates.', self::STATUS_LIVE, 'tools.invoice'),
                     self::tool('receipt-generator', 'Receipt Generator', 'Receipts', 'Free POS-style PDF receipts for 80mm thermal printers or Letter/A4 records.', self::STATUS_LIVE, 'tools.receipt'),
                     self::tool('purchase-order-generator', 'Purchase Order Generator', 'Purchase Orders', 'Free, unwatermarked PDF purchase orders with ship-to address and signature line.', self::STATUS_LIVE, 'tools.purchase-order'),

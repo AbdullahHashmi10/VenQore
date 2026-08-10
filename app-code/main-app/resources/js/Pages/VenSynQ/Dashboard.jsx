@@ -138,39 +138,41 @@ export default function VenSynQDashboard({
                             <p style={{ margin: 0, fontSize: 12, color: vq.slate[500] }}>Multi-Channel Fulfillment Command Center</p>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <button
-                            onClick={handleFetchLiveOrders}
-                            disabled={fetching}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '8px 18px',
-                                borderRadius: 8,
-                                background: fetching ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                                border: 'none',
-                                color: fetching ? vq.slate[600] : '#fff',
-                                fontSize: 13,
-                                fontWeight: 600,
-                                cursor: fetching ? 'not-allowed' : 'pointer',
-                                boxShadow: fetching ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.25)',
-                                transition: 'all 0.2s',
-                            }}
-                        >
-                            <RefreshCw size={14} className={fetching ? 'spin' : ''} />
-                            {fetching ? 'Syncing Orders…' : 'Fetch Live Orders'}
-                        </button>
-                        {jitDraftsCount > 0 && (
-                            <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#2d1a00', border: '1px solid #7c3d00', color: vq.orange[400], fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
-                                <AlertTriangle size={14} />
-                                {jitDraftsCount} JIT Draft{jitDraftsCount !== 1 ? 's' : ''} Need Approval
+                    {channels.length > 0 && (
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <button
+                                onClick={handleFetchLiveOrders}
+                                disabled={fetching}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    padding: '8px 18px',
+                                    borderRadius: 8,
+                                    background: fetching ? vq.slate[800] : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                    border: 'none',
+                                    color: fetching ? vq.slate[600] : '#fff',
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    cursor: fetching ? 'not-allowed' : 'pointer',
+                                    boxShadow: fetching ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.25)',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                <RefreshCw size={14} className={fetching ? 'spin' : ''} />
+                                {fetching ? 'Syncing Orders…' : 'Fetch Live Orders'}
+                            </button>
+                            {jitDraftsCount > 0 && (
+                                <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#2d1a00', border: '1px solid #7c3d00', color: vq.orange[400], fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
+                                    <AlertTriangle size={14} />
+                                    {jitDraftsCount} JIT Draft{jitDraftsCount !== 1 ? 's' : ''} Need Approval
+                                </a>
+                            )}
+                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #1e3a5f', color: vq.blue[400], fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
+                                <Settings size={15} /> VenSynQ Settings
                             </a>
-                        )}
-                        <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #1e3a5f', color: vq.blue[400], fontSize: 13, textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
-                            <Settings size={15} /> VenSynQ Settings
-                        </a>
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Flash Messages ──────────────────────────────────────── */}
@@ -185,205 +187,249 @@ export default function VenSynQDashboard({
                     </div>
                 )}
 
-                <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+                <div style={{
+                    padding: '28px 32px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 28,
+                    alignItems: channels.length === 0 ? 'center' : 'stretch',
+                    justifyContent: 'center',
+                    minHeight: channels.length === 0 ? '60vh' : 'auto'
+                }}>
+                    {channels.length === 0 ? (
+                        <div className="relative overflow-hidden bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                            {/* Background glows */}
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-550/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
-                    {/* ── T16: Sync Status Dashboard ─────────────────────────── */}
-                    {/* Health badges, Sync Now with live progress, freshness
-                        timestamps and the 1-click Error Inspector. Placed first
-                        so a broken integration is the first thing seen. */}
-                    <SyncHealthPanel
-                        health={health}
-                        storeSlug={store?.slug}
-                        syncing={fetching}
-                        onSyncNow={handleFetchLiveOrders}
-                    />
+                            <div className="flex flex-col items-center gap-4 relative z-10">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-2xs font-bold uppercase tracking-wider">
+                                    <RefreshCw size={12} className="animate-spin" style={{ animationDuration: '6s' }} />
+                                    Multi-Channel Sync
+                                </div>
+                                <h3 className="text-2xl md:text-3xl font-black text-white leading-tight">
+                                    Unified Inventory & Order Control
+                                </h3>
+                                <p className="text-sm text-slate-350 leading-relaxed font-medium">
+                                    VenSynQ acts as your multi-channel command center. It automatically syncs products, real-time stock levels, and customer orders across WooCommerce, Amazon, eBay, and more. Once connected, your marketplace sales post directly into your main dashboard for unified dispatching, shipping tracking updates, and automated JIT purchase orders.
+                                </p>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    Connect your first integration channel in settings to start importing and tracking your sales in one glance.
+                                </p>
 
-                    {/* ── T17: Money Pipeline ────────────────────────────────── */}
-                    {/* Answers "where is my money right now?" — online sales,
-                        money the platforms are still holding, and what has
-                        genuinely cleared to the bank. */}
-                    <MoneyPipeline
-                        pipeline={pipeline}
-                        clearingEnabled={clearingEnabled}
-                        storeSlug={store?.slug}
-                    />
-
-                    {/* ── Overview Cards ─────────────────────────────────────── */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-                        
-                        {/* Connected Channels Summary */}
-                        <div style={{ background: 'linear-gradient(135deg, #0d1e36 0%, #091220 100%)', border: '1px solid #1e3a5f', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
-                            <div>
-                                <span style={{ fontSize: 11, color: vq.blue[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Channel Connections</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
-                                    {channels.length} Connected
+                                <div className="pt-4">
+                                    <a
+                                        href={route('store.vensynq.settings', { store_slug: store?.slug })}
+                                        className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl border border-indigo-500/30 bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all duration-300 shadow-lg shadow-indigo-900/30 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm"
+                                    >
+                                        <Link2 size={18} />
+                                        <span>Connect Your First Channel</span>
+                                        <ChevronRight size={16} />
+                                    </a>
                                 </div>
                             </div>
-                            <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ color: vq.sky[400], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
-                                Configure channels & defaults <ChevronRight size={13} />
-                            </a>
                         </div>
+                    ) : (
+                        <>
+                            {/* ── T16: Sync Status Dashboard ─────────────────────────── */}
+                            {/* Health badges, Sync Now with live progress, freshness
+                                timestamps and the 1-click Error Inspector. Placed first
+                                so a broken integration is the first thing seen. */}
+                            <SyncHealthPanel
+                                health={health}
+                                storeSlug={store?.slug}
+                                syncing={fetching}
+                                onSyncNow={handleFetchLiveOrders}
+                            />
 
-                        {/* Pending Fulfillment Summary */}
-                        <div style={{ background: 'linear-gradient(135deg, #0f241b 0%, #061510 100%)', border: '1px solid #065f46', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
-                            <div>
-                                <span style={{ fontSize: 11, color: vq.emerald[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending Dispatch</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
-                                    {pendingSales.total ?? pendingSales.data.length} Orders
+                            {/* ── T17: Money Pipeline ────────────────────────────────── */}
+                            {/* Answers "where is my money right now?" — online sales,
+                                money the platforms are still holding, and what has
+                                genuinely cleared to the bank. */}
+                            <MoneyPipeline
+                                pipeline={pipeline}
+                                clearingEnabled={clearingEnabled}
+                                storeSlug={store?.slug}
+                            />
+
+                            {/* ── Overview Cards ─────────────────────────────────────── */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+                                
+                                {/* Connected Channels Summary */}
+                                <div style={{ background: 'linear-gradient(135deg, #0d1e36 0%, #091220 100%)', border: '1px solid #1e3a5f', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
+                                    <div>
+                                        <span style={{ fontSize: 11, color: vq.blue[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Channel Connections</span>
+                                        <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
+                                            {channels.length} Connected
+                                        </div>
+                                    </div>
+                                    <a href={route('store.vensynq.settings', { store_slug: store?.slug })} style={{ color: vq.sky[400], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
+                                        Configure channels & defaults <ChevronRight size={13} />
+                                    </a>
                                 </div>
-                            </div>
-                            <span style={{ color: vq.emerald[200], fontSize: 12 }}>
-                                Awaiting tracking details to sync back
-                            </span>
-                        </div>
 
-                        {/* JIT Draft Purchases Summary */}
-                        <div style={{ background: 'linear-gradient(135deg, #2b1d0a 0%, #150f05 100%)', border: '1px solid #7c3d00', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
-                            <div>
-                                <span style={{ fontSize: 11, color: vq.orange[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>JIT Draft Purchases</span>
-                                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
-                                    {jitDraftsCount} Pending
+                                {/* Pending Fulfillment Summary */}
+                                <div style={{ background: 'linear-gradient(135deg, #0f241b 0%, #061510 100%)', border: '1px solid #065f46', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
+                                    <div>
+                                        <span style={{ fontSize: 11, color: vq.emerald[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pending Dispatch</span>
+                                        <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
+                                            {pendingSales.total ?? pendingSales.data.length} Orders
+                                        </div>
+                                    </div>
+                                    <span style={{ color: vq.emerald[200], fontSize: 12 }}>
+                                        Awaiting tracking details to sync back
+                                    </span>
                                 </div>
-                            </div>
-                            {jitDraftsCount > 0 ? (
-                                <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ color: vq.orange[300], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
-                                    Confirm supplier costs now <ChevronRight size={13} />
-                                </a>
-                            ) : (
-                                <span style={{ color: vq.orange[200], fontSize: 12 }}>
-                                    All Day-Of JIT purchases fully processed
-                                </span>
-                            )}
-                        </div>
 
-                    </div>
+                                {/* JIT Draft Purchases Summary */}
+                                <div style={{ background: 'linear-gradient(135deg, #2b1d0a 0%, #150f05 100%)', border: '1px solid #7c3d00', borderRadius: 12, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 120 }}>
+                                    <div>
+                                        <span style={{ fontSize: 11, color: vq.orange[400], fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>JIT Draft Purchases</span>
+                                        <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: vq.slate[50] }}>
+                                            {jitDraftsCount} Pending
+                                        </div>
+                                    </div>
+                                    {jitDraftsCount > 0 ? (
+                                        <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ color: vq.orange[300], fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 12 }} className="hover:underline">
+                                            Confirm supplier costs now <ChevronRight size={13} />
+                                        </a>
+                                    ) : (
+                                        <span style={{ color: vq.orange[200], fontSize: 12 }}>
+                                            All Day-Of JIT purchases fully processed
+                                        </span>
+                                    )}
+                                </div>
 
-                    {/* ── Pending Fulfillment Table ──────────────── */}
-                    <section>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                            <h2 style={{ fontSize: 14, fontWeight: 600, color: vq.slate[400], textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
-                                Pending Dispatch ({pendingSales.total ?? pendingSales.data.length})
-                            </h2>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                {dirtyCount > 0 && (
-                                    <span style={{ fontSize: 12, color: vq.slate[400] }}>{dirtyCount} tracking number{dirtyCount !== 1 ? 's' : ''} ready to sync</span>
-                                )}
-                                <button
-                                    onClick={handleSyncTracking}
-                                    disabled={!dirtyCount || syncing}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: 6,
-                                        padding: '8px 18px', borderRadius: 8,
-                                        background: dirtyCount ? 'linear-gradient(135deg, #059669, #047857)' : vq.slate[800],
-                                        border: 'none', color: dirtyCount ? '#fff' : vq.slate[600],
-                                        fontSize: 13, fontWeight: 600, cursor: dirtyCount ? 'pointer' : 'not-allowed',
-                                        transition: 'all 0.2s',
-                                    }}
-                                >
-                                    {syncing ? <RefreshCw size={14} className="spin" /> : <Truck size={14} />}
-                                    {syncing ? 'Syncing…' : 'Sync Tracking'}
-                                </button>
                             </div>
-                        </div>
 
-                        {pendingSales.data.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '60px 20px', background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12 }}>
-                                <PackageCheck size={40} color="#1e3a5f" style={{ marginBottom: 14 }} />
-                                <h3 style={{ color: vq.slate[600], fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>All clear!</h3>
-                                <p style={{ color: vq.slate[700], fontSize: 13 }}>No pending dispatches right now. Use the POS Dropship Checkout to log new channel sales.</p>
-                            </div>
-                        ) : (
-                            <div style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12, overflow: 'hidden' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                                    <thead>
-                                        <tr style={{ background: '#0f1f35', borderBottom: '1px solid #1e3a5f' }}>
-                                            {['Order ID', 'Channel', 'Date', 'Items', 'Revenue', 'Est. Fee', 'Type', 'Tracking Number', 'Carrier', 'Status'].map(h => (
-                                                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: vq.slate[500], fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {pendingSales.data.map((sale, idx) => {
-                                            const platform = PLATFORMS[sale.ecommerce_channel?.platform] ?? PLATFORMS.amazon;
-                                            const ft       = FULFILLMENT_LABELS[sale.fulfillment_type] ?? FULFILLMENT_LABELS.fbm;
-                                            const edit     = trackingEdits[sale.id] ?? {};
-                                            return (
-                                                <tr key={sale.id} style={{ borderBottom: '1px solid #162032', transition: 'background 0.15s' }}
-                                                    onMouseEnter={e => e.currentTarget.style.background = vq.gray[900]}
-                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                                >
-                                                    <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: vq.blue[400], fontSize: 12 }}>
-                                                        {sale.channel_order_id ?? `#${sale.id.substring(0, 8)}`}
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px' }}>
-                                                        <span style={{ 
-                                                            display: 'inline-flex', 
-                                                            alignItems: 'center', 
-                                                            gap: 6, 
-                                                            padding: '3px 8px', 
-                                                            borderRadius: 6, 
-                                                            background: platform.bg, 
-                                                            border: `1px solid ${platform.border}`, 
-                                                            color: platform.color, 
-                                                            fontSize: 11, 
-                                                            fontWeight: 600 
-                                                        }}>
-                                                            {sale.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={14} />}
-                                                            {sale.ecommerce_channel?.platform === 'woocommerce' && <WooLogo size={14} />}
-                                                            {sale.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={14} />}
-                                                            {sale.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={14} />}
-                                                            {platform.label}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px', color: vq.slate[400], fontSize: 12 }}>
-                                                        {new Date(sale.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px', color: vq.slate[200] }}>
-                                                        {sale.items?.length ?? 0} item{(sale.items?.length ?? 0) !== 1 ? 's' : ''}
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px', color: vq.emerald[400], fontWeight: 600 }}>
-                                                        £{parseFloat(sale.total ?? 0).toFixed(2)}
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px', color: vq.red[400], fontSize: 12 }}>
-                                                        {sale.gross_platform_fee ? `£${parseFloat(sale.gross_platform_fee).toFixed(2)}` : '—'}
-                                                        {!sale.financial_reconciled && <span style={{ marginLeft: 4, fontSize: 10, color: vq.amber[500] }} title="Estimated">~Est.</span>}
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px' }}>
-                                                        <span style={{ padding: '2px 7px', borderRadius: 5, fontSize: 11, border: '1px solid', ...Object.fromEntries(Object.entries(ft.badge.split(' ').reduce((a, c) => { a[c] = true; return a; }, {})).map(([k]) => [k, true])) }} className={ft.badge}>
-                                                            {ft.label}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ padding: '8px 14px' }}>
-                                                        <input
-                                                            type="text"
-                                                            value={edit.tracking_number ?? sale.tracking_number ?? ''}
-                                                            onChange={e => setTracking(sale.id, 'tracking_number', e.target.value)}
-                                                            placeholder="Paste tracking…"
-                                                            style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 10px', color: vq.slate[200], fontSize: 12, width: 170 }}
-                                                        />
-                                                    </td>
-                                                    <td style={{ padding: '8px 14px' }}>
-                                                        <select
-                                                            value={edit.shipping_carrier ?? sale.shipping_carrier ?? ''}
-                                                            onChange={e => setTracking(sale.id, 'shipping_carrier', e.target.value)}
-                                                            style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 8px', color: vq.slate[200], fontSize: 12 }}
-                                                        >
-                                                            <option value="">Carrier…</option>
-                                                            {CARRIER_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                                                        </select>
-                                                    </td>
-                                                    <td style={{ padding: '10px 14px' }}>
-                                                        <DispatchBadge status={sale.dispatch_status} />
-                                                    </td>
+                            {/* ── Pending Fulfillment Table ──────────────── */}
+                            <section>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                                    <h2 style={{ fontSize: 14, fontWeight: 600, color: vq.slate[400], textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+                                        Pending Dispatch ({pendingSales.total ?? pendingSales.data.length})
+                                    </h2>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        {dirtyCount > 0 && (
+                                            <span style={{ fontSize: 12, color: vq.slate[400] }}>{dirtyCount} tracking number{dirtyCount !== 1 ? 's' : ''} ready to sync</span>
+                                        )}
+                                        <button
+                                            onClick={handleSyncTracking}
+                                            disabled={!dirtyCount || syncing}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: 6,
+                                                padding: '8px 18px', borderRadius: 8,
+                                                background: dirtyCount ? 'linear-gradient(135deg, #059669, #047857)' : vq.slate[800],
+                                                border: 'none', color: dirtyCount ? '#fff' : vq.slate[600],
+                                                fontSize: 13, fontWeight: 600, cursor: dirtyCount ? 'pointer' : 'not-allowed',
+                                                transition: 'all 0.2s',
+                                            }}
+                                        >
+                                            {syncing ? <RefreshCw size={14} className="spin" /> : <Truck size={14} />}
+                                            {syncing ? 'Syncing…' : 'Sync Tracking'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {pendingSales.data.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '60px 20px', background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12 }}>
+                                        <PackageCheck size={40} color="#1e3a5f" style={{ marginBottom: 14 }} />
+                                        <h3 style={{ color: vq.slate[600], fontSize: 16, fontWeight: 600, margin: '0 0 8px' }}>All clear!</h3>
+                                        <p style={{ color: vq.slate[700], fontSize: 13 }}>No pending dispatches right now. Use the POS Dropship Checkout to log new channel sales.</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 12, overflow: 'hidden' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                                            <thead>
+                                                <tr style={{ background: '#0f1f35', borderBottom: '1px solid #1e3a5f' }}>
+                                                    {['Order ID', 'Channel', 'Date', 'Items', 'Revenue', 'Est. Fee', 'Type', 'Tracking Number', 'Carrier', 'Status'].map(h => (
+                                                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: vq.slate[500], fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
+                                                    ))}
                                                 </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                                            </thead>
+                                            <tbody>
+                                                {pendingSales.data.map((sale, idx) => {
+                                                    const platform = PLATFORMS[sale.ecommerce_channel?.platform] ?? PLATFORMS.amazon;
+                                                    const ft       = FULFILLMENT_LABELS[sale.fulfillment_type] ?? FULFILLMENT_LABELS.fbm;
+                                                    const edit     = trackingEdits[sale.id] ?? {};
+                                                    return (
+                                                        <tr key={sale.id} style={{ borderBottom: '1px solid #162032', transition: 'background 0.15s' }}
+                                                            onMouseEnter={e => e.currentTarget.style.background = vq.gray[900]}
+                                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                        >
+                                                            <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: vq.blue[400], fontSize: 12 }}>
+                                                                {sale.channel_order_id ?? `#${sale.id.substring(0, 8)}`}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px' }}>
+                                                                <span style={{ 
+                                                                    display: 'inline-flex', 
+                                                                    alignItems: 'center', 
+                                                                    gap: 6, 
+                                                                    padding: '3px 8px', 
+                                                                    borderRadius: 6, 
+                                                                    background: platform.bg, 
+                                                                    border: `1px solid ${platform.border}`, 
+                                                                    color: platform.color, 
+                                                                    fontSize: 11, 
+                                                                    fontWeight: 600 
+                                                                }}>
+                                                                    {sale.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={14} />}
+                                                                    {sale.ecommerce_channel?.platform === 'woocommerce' && <WooLogo size={14} />}
+                                                                    {sale.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={14} />}
+                                                                    {sale.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={14} />}
+                                                                    {platform.label}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', color: vq.slate[400], fontSize: 12 }}>
+                                                                {new Date(sale.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', color: vq.slate[200] }}>
+                                                                {sale.items?.length ?? 0} item{(sale.items?.length ?? 0) !== 1 ? 's' : ''}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', color: vq.emerald[400], fontWeight: 600 }}>
+                                                                £{parseFloat(sale.total ?? 0).toFixed(2)}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px', color: vq.red[400], fontSize: 12 }}>
+                                                                {sale.gross_platform_fee ? `£${parseFloat(sale.gross_platform_fee).toFixed(2)}` : '—'}
+                                                                {!sale.financial_reconciled && <span style={{ marginLeft: 4, fontSize: 10, color: vq.amber[500] }} title="Estimated">~Est.</span>}
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px' }}>
+                                                                <span style={{ padding: '2px 7px', borderRadius: 5, fontSize: 11, border: '1px solid', ...Object.fromEntries(Object.entries(ft.badge.split(' ').reduce((a, c) => { a[c] = true; return a; }, {})).map(([k]) => [k, true])) }} className={ft.badge}>
+                                                                    {ft.label}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '8px 14px' }}>
+                                                                <input
+                                                                    type="text"
+                                                                    value={edit.tracking_number ?? sale.tracking_number ?? ''}
+                                                                    onChange={e => setTracking(sale.id, 'tracking_number', e.target.value)}
+                                                                    placeholder="Paste tracking…"
+                                                                    style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 10px', color: vq.slate[200], fontSize: 12, width: 170 }}
+                                                                />
+                                                            </td>
+                                                            <td style={{ padding: '8px 14px' }}>
+                                                                <select
+                                                                    value={edit.shipping_carrier ?? sale.shipping_carrier ?? ''}
+                                                                    onChange={e => setTracking(sale.id, 'shipping_carrier', e.target.value)}
+                                                                    style={{ background: vq.void[800], border: '1px solid #1e3a5f', borderRadius: 6, padding: '5px 8px', color: vq.slate[200], fontSize: 12 }}
+                                                                >
+                                                                    <option value="">Carrier…</option>
+                                                                    {CARRIER_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                            </td>
+                                                            <td style={{ padding: '10px 14px' }}>
+                                                                <DispatchBadge status={sale.dispatch_status} />
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
                         )}
                     </section>
-                </div>
+                </>
+            )}
+        </div>
             </div>
 
             <style>{`

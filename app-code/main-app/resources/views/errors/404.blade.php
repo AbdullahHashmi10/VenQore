@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>404 - Page Not Found | VenQore</title>
-    @viteReactRefresh
-    @vite(['resources/js/app.jsx'])
+    @vite(['resources/css/app.css'])
 </head>
 <body class="bg-slate-950 font-sans antialiased h-screen w-screen overflow-hidden flex flex-col items-center justify-center relative selection:bg-indigo-500 selection:text-white">
 

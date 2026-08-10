@@ -1,19 +1,19 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-08-07 07:39:36 PKT  
+> **Generated:** 2026-08-09 04:18:37 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
-> **Audit Date:** 2026-08-07  
-> **Audit Period Seeded:** 2025-01-01 → 2026-08-07  
+> **Audit Date:** 2026-08-09  
+> **Audit Period Seeded:** 2025-01-01 → 2026-08-09  
 
 ## Summary
 
 | Status | Count |
 |--------|-------|
-| 🔢 Total Routes Scanned | **251** |
-| ✅ Passed | 182 |
-| ⚠️ All Zeros (Suspicious) | 53 |
+| 🔢 Total Routes Scanned | **254** |
+| ✅ Passed | 185 |
+| ⚠️ All Zeros (Suspicious) | 57 |
 | ❌ Mismatched vs Ledger | 0 |
-| 🔴 HTTP Errors / Exceptions | 16 |
+| 🔴 HTTP Errors / Exceptions | 12 |
 | ⏭️ Skipped | 0 |
 
 ## Ledger Control Values (Single Source of Truth)
@@ -75,35 +75,39 @@
 | 22 | `store.reports.day-book` | `s/{store_slug}/reports/day-book` |
 | 23 | `store.reports.low-stock` | `s/{store_slug}/reports/low-stock` |
 | 24 | `store.reports.expiry` | `s/{store_slug}/reports/expiry` |
-| 25 | `store.attributes.index` | `s/{store_slug}/attributes` |
-| 26 | `store.production.index` | `s/{store_slug}/inventory/production` |
-| 27 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
-| 28 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
-| 29 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
-| 30 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
-| 31 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
-| 32 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
-| 33 | `store.customers.create` | `s/{store_slug}/customers/create` |
-| 34 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
-| 35 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
-| 36 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
-| 37 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
-| 38 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
-| 39 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
-| 40 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
-| 41 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
-| 42 | `store.notifications.index` | `s/{store_slug}/notifications` |
-| 43 | `store.profile.edit` | `s/{store_slug}/profile` |
-| 44 | `store.returns.create` | `s/{store_slug}/returns/create` |
-| 45 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
-| 46 | `store.batches.index` | `s/{store_slug}/batches` |
-| 47 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
-| 48 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
-| 49 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
-| 50 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
-| 51 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
-| 52 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
-| 53 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
+| 25 | `store.growth-engine.index` | `s/{store_slug}/growth-engine` |
+| 26 | `store.growth-engine.dashboard` | `s/{store_slug}/growth-engine/dashboard` |
+| 27 | `store.growth-engine.scorecard` | `s/{store_slug}/growth-engine/scorecard` |
+| 28 | `store.attributes.index` | `s/{store_slug}/attributes` |
+| 29 | `store.production.index` | `s/{store_slug}/inventory/production` |
+| 30 | `store.stock-transfers.create` | `s/{store_slug}/stock-transfers/create` |
+| 31 | `store.stock-transfers.show` | `s/{store_slug}/stock-transfers/{id}` |
+| 32 | `store.bank-reconciliation.index` | `s/{store_slug}/bank-reconciliation` |
+| 33 | `store.invoice-reminders.index` | `s/{store_slug}/invoice-reminders` |
+| 34 | `store.marketing-campaigns.index` | `s/{store_slug}/marketing/campaigns` |
+| 35 | `store.woo.connections.index` | `s/{store_slug}/woo/connections` |
+| 36 | `store.e-invoicing.index` | `s/{store_slug}/e-invoicing` |
+| 37 | `store.customers.create` | `s/{store_slug}/customers/create` |
+| 38 | `store.sales.invoice.create` | `s/{store_slug}/sales/invoice/create` |
+| 39 | `store.presales.create` | `s/{store_slug}/sales/presale/create` |
+| 40 | `store.manufacturing.rules` | `s/{store_slug}/manufacturing/rules` |
+| 41 | `store.legacy.admin.data` | `s/{store_slug}/admin-panel/data-management` |
+| 42 | `store.legacy.admin.settings` | `s/{store_slug}/admin-panel/settings` |
+| 43 | `store.legacy.admin.logs` | `s/{store_slug}/admin-panel/logs` |
+| 44 | `store.legacy.admin.database` | `s/{store_slug}/admin-panel/database` |
+| 45 | `store.staff-attendance.index` | `s/{store_slug}/staff-attendance` |
+| 46 | `store.notifications.index` | `s/{store_slug}/notifications` |
+| 47 | `store.profile.edit` | `s/{store_slug}/profile` |
+| 48 | `store.returns.create` | `s/{store_slug}/returns/create` |
+| 49 | `store.stock-takes.show` | `s/{store_slug}/stock-audit/{id}` |
+| 50 | `store.batches.index` | `s/{store_slug}/batches` |
+| 51 | `store.staff.attendance.index` | `s/{store_slug}/staff/attendance` |
+| 52 | `store.online-store.index` | `s/{store_slug}/online-store-manager` |
+| 53 | `store.v3.products.create` | `s/{store_slug}/v3/products/create` |
+| 54 | `store.v3.warehouses.index` | `s/{store_slug}/v3/warehouses` |
+| 55 | `store.v3.warehouses.create` | `s/{store_slug}/v3/warehouses/create` |
+| 56 | `store.v3.warehouses.edit` | `s/{store_slug}/v3/warehouses/{warehouse}/edit` |
+| 57 | `store.v3.opening-balances.status` | `s/{store_slug}/v3/opening-balances/status` |
 
 ### Zero-Page Financial Props Detail
 
@@ -260,6 +264,39 @@
   stats.total_quantity: 0
 ```
 
+**`store.growth-engine.index`**
+```
+  settings.tax_rate: 0
+  membership.tenant.ai_descriptions_balance: 0
+  recommendations.total: 0
+  stats.total_signals: 0
+  stats.potential_revenue: 0
+  stats.realised_value: 0
+  stats.by_brain.sum_value: 0
+  stats.by_brain.total_value: 0
+  scorecard.total_generated: 0
+  scorecard.total_acted: 0
+  scorecard.total_graded: 0
+  scorecard.realised_value: 0
+```
+
+**`store.growth-engine.dashboard`**
+```
+  stats.total_signals: 0
+  stats.potential_revenue: 0
+  stats.realised_value: 0
+  stats.by_brain.sum_value: 0
+  stats.by_brain.total_value: 0
+```
+
+**`store.growth-engine.scorecard`**
+```
+  total_generated: 0
+  total_acted: 0
+  total_graded: 0
+  realised_value: 0
+```
+
 **`store.attributes.index`**
 ```
   settings.tax_rate: 0
@@ -301,6 +338,12 @@
 ```
 
 **`store.marketing-campaigns.index`**
+```
+  settings.tax_rate: 0
+  membership.tenant.ai_descriptions_balance: 0
+```
+
+**`store.woo.connections.index`**
 ```
   settings.tax_rate: 0
   membership.tenant.ai_descriptions_balance: 0
@@ -445,21 +488,17 @@
 
 | Route | Code | Snippet |
 |-------|------|--------|
-| `store.create` | 500 |  |
-| `store.reports.point-in-time-inventory` | 403 | {"success":false,"code":"feature_locked","feature":"point_in_time_inventory","message":"The 'point_in_time_inventory' fe |
-| `store.reports.point-in-time-inventory.details` | 403 | {"success":false,"code":"feature_locked","feature":"point_in_time_inventory","message":"The 'point_in_time_inventory' fe |
-| `store.reports.customer-insights` | 403 | {"success":false,"code":"feature_locked","feature":"customer_insights","message":"The 'customer_insights' feature requir |
-| `store.reports.customer-insights.details` | 403 | {"success":false,"code":"feature_locked","feature":"customer_insights","message":"The 'customer_insights' feature requir |
-| `store.reports.supplier-insights` | 403 | {"success":false,"code":"feature_locked","feature":"supplier_insights","message":"The 'supplier_insights' feature requir |
-| `store.reports.supplier-insights.details` | 403 | {"success":false,"code":"feature_locked","feature":"supplier_insights","message":"The 'supplier_insights' feature requir |
-| `store.growth-engine.index` | 403 | {"success":false,"code":"feature_locked","feature":"growth_engine","message":"The 'growth_engine' feature requires a pla |
-| `store.growth-engine.dashboard` | 403 | {"success":false,"code":"feature_locked","feature":"growth_engine","message":"The 'growth_engine' feature requires a pla |
-| `store.growth-engine.show` | 403 | {"success":false,"code":"feature_locked","feature":"growth_engine","message":"The 'growth_engine' feature requires a pla |
-| `store.growth-engine.scorecard` | 403 | {"success":false,"code":"feature_locked","feature":"growth_engine","message":"The 'growth_engine' feature requires a pla |
-| `store.growth-engine.settings` | 403 | {"success":false,"code":"feature_locked","feature":"growth_engine","message":"The 'growth_engine' feature requires a pla |
-| `store.vensynq.health` | 403 |  |
-| `store.vensynq.money-pipeline` | 403 |  |
-| `store.vensynq.payouts` | 403 |  |
+| `store.overview` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.workspace` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.appearance` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.growth-engine.show` | 404 | {"message":"No query results for model [App\\Models\\AiRecommendation] RET-202501-1001","exception":"Symfony\\Component\ |
+| `store.vensynq.health` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.vensynq.money-pipeline` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.vensynq.payouts` | 404 | {"message":"","exception":"Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException","file":"E:\\AMD POS\\AMD PO |
+| `store.woo.plugin.download` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
+| `store.woo.connections.setup` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
+| `store.woo.connections.status-json` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
+| `store.woo.connections.logs` | 404 | {"message":"No query results for model [App\\Models\\WooConnection] 1","exception":"Symfony\\Component\\HttpKernel\\Exce |
 
 ## 💥 Exceptions / Parameter Errors
 
@@ -467,12 +506,12 @@
 |-------|------|-------|
 | `store.smart-capture.job-status` | PARAM_ERROR | Cannot resolve URL: Missing required parameter for [Route: store.smart-capture.job-status] [URI: s/{store_slug}/smart-capture/status/{job_id}] [Missing parameter: job_id]. |
 
-## Full Scan Results (251 routes)
+## Full Scan Results (254 routes)
 
 | Route | Status | Code | Financial Props |
 |-------|--------|------|----------------|
 | `store.create-or-join` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `store.ai_descriptions_balance`=0.00 |
-| `store.create` | 🔴 HTTP_ERROR | 500 | – |
+| `store.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `store.ai_descriptions_balance`=0.00, `plans.sum_annual_total`=2,460.00 (+1 more) |
 | `store.join` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `store.ai_descriptions_balance`=0.00 |
 | `store.` | ↩ REDIRECT | 302 | – |
 | `store.setup` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
@@ -513,6 +552,9 @@
 | `store.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `revenue`=449,876.14 (+69 more) |
 | `store.home` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.dashboard-v1` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `revenue`=449,876.14 (+69 more) |
+| `store.overview` | 🔴 HTTP_ERROR | 404 | – |
+| `store.workspace` | 🔴 HTTP_ERROR | 404 | – |
+| `store.appearance` | 🔴 HTTP_ERROR | 404 | – |
 | `store.inventory.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `stats.total_products`=15.00 (+5 more) |
 | `store.inventory.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.data.sum_cost_price`=91,953.28 (+4 more) |
 | `store.inventory.reservations` | 📄 NON_JSON | 200 | – |
@@ -571,25 +613,25 @@
 | `store.reports.stock-aging` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_cost_value`=2,549,718.61 (+5 more) |
 | `store.reports.sale-purchase-by-party-group` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_sales`=526,355.12 (+7 more) |
 | `store.reports.analytics` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `trendData.sum_sales`=449,876.14 (+5 more) |
-| `store.reports.point-in-time-inventory` | 🔴 HTTP_ERROR | 403 | – |
-| `store.reports.point-in-time-inventory.details` | 🔴 HTTP_ERROR | 403 | – |
-| `store.reports.customer-insights` | 🔴 HTTP_ERROR | 403 | – |
-| `store.reports.customer-insights.details` | 🔴 HTTP_ERROR | 403 | – |
-| `store.reports.supplier-insights` | 🔴 HTTP_ERROR | 403 | – |
-| `store.reports.supplier-insights.details` | 🔴 HTTP_ERROR | 403 | – |
+| `store.reports.point-in-time-inventory` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_unit_cost`=88,695.59 (+5 more) |
+| `store.reports.point-in-time-inventory.details` | ✅ PASS | 200 | – |
+| `store.reports.customer-insights` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_invoice_count`=16.00 (+7 more) |
+| `store.reports.customer-insights.details` | ✅ PASS | 200 | – |
+| `store.reports.supplier-insights` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `data.sum_total_qty_purchased`=94.00 (+11 more) |
+| `store.reports.supplier-insights.details` | ✅ PASS | 200 | – |
 | `store.reports.owner-daily-pulse` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `snapshots.sum_sales_value`=449,876.14 (+13 more) |
 | `store.cookbook.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `recipes.sum_product.cost_price`=620.13 (+11 more) |
 | `store.cookbook.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_cost_price`=91,953.28 (+1 more) |
 | `store.cookbook.edit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_cost_price`=91,953.28 (+3 more) |
-| `store.growth-engine.index` | 🔴 HTTP_ERROR | 403 | – |
-| `store.growth-engine.dashboard` | 🔴 HTTP_ERROR | 403 | – |
-| `store.growth-engine.show` | 🔴 HTTP_ERROR | 403 | – |
-| `store.growth-engine.scorecard` | 🔴 HTTP_ERROR | 403 | – |
-| `store.growth-engine.settings` | 🔴 HTTP_ERROR | 403 | – |
+| `store.growth-engine.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `recommendations.total`=0.00 (+9 more) |
+| `store.growth-engine.dashboard` | ⚠️ ALL_ZEROS | 200 | `stats.total_signals`=0.00, `stats.potential_revenue`=0.00, `stats.realised_value`=0.00 (+2 more) |
+| `store.growth-engine.show` | 🔴 HTTP_ERROR | 404 | – |
+| `store.growth-engine.scorecard` | ⚠️ ALL_ZEROS | 200 | `total_generated`=0.00, `total_acted`=0.00, `total_graded`=0.00 (+1 more) |
+| `store.growth-engine.settings` | ✅ PASS | 200 | `settings.min_order_value_filter`=5,000.00, `settings.loyalty_points_per_amount`=100.00, `membership.tenant.ai_descriptions_balance`=0.00 (+6 more) |
 | `store.global.search` | 📄 NON_JSON | 200 | – |
 | `store.ai.recommendations` | ✅ PASS | 200 | – |
 | `store.ai.smart-reorder` | ✅ PASS | 200 | – |
-| `store.ai.cash-flow-forecast` | ✅ PASS | 200 | `current_balance`=8,358,352.71, `avg_daily_net`=279.21, `forecast.sum_projected_net_change`=129,832.65 (+3 more) |
+| `store.ai.cash-flow-forecast` | ✅ PASS | 200 | `current_balance`=8,358,352.71, `avg_daily_net`=0.00, `forecast.sum_projected_net_change`=0.00 (+3 more) |
 | `store.attributes.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.categories.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `categories.total`=4.00 (+2 more) |
 | `store.inventory.stock-levels` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_cost_price`=91,953.28 (+5 more) |
@@ -600,9 +642,9 @@
 | `store.parties.ledger` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `party.opening_balance`=0.00 (+12 more) |
 | `store.parties.show` | ↩ REDIRECT | 302 | – |
 | `store.expenses.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `expenses.total`=0.00 (+6 more) |
-| `store.vensynq.health` | 🔴 HTTP_ERROR | 403 | – |
-| `store.vensynq.money-pipeline` | 🔴 HTTP_ERROR | 403 | – |
-| `store.vensynq.payouts` | 🔴 HTTP_ERROR | 403 | – |
+| `store.vensynq.health` | 🔴 HTTP_ERROR | 404 | – |
+| `store.vensynq.money-pipeline` | 🔴 HTTP_ERROR | 404 | – |
+| `store.vensynq.payouts` | 🔴 HTTP_ERROR | 404 | – |
 | `store.payments.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `payments.data.sum_amount`=789,973.78 (+8 more) |
 | `store.payments.in` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |
 | `store.payments.out` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |
@@ -637,12 +679,12 @@
 | `store.marketing-campaigns.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.marketing-campaigns.create` | ↩ REDIRECT | 302 | – |
 | `store.woocommerce.index` | ↩ REDIRECT | 302 | – |
-| `store.woo.plugin.download` | ↩ REDIRECT | 302 | – |
-| `store.woo.connections.index` | ↩ REDIRECT | 302 | – |
-| `store.woo.connections.setup` | ↩ REDIRECT | 302 | – |
-| `store.woo.connections.status-json` | ↩ REDIRECT | 302 | – |
+| `store.woo.plugin.download` | 🔴 HTTP_ERROR | 404 | – |
+| `store.woo.connections.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
+| `store.woo.connections.setup` | 🔴 HTTP_ERROR | 404 | – |
+| `store.woo.connections.status-json` | 🔴 HTTP_ERROR | 404 | – |
 | `store.woo.connections.sync` | ↩ REDIRECT | 302 | – |
-| `store.woo.connections.logs` | ↩ REDIRECT | 302 | – |
+| `store.woo.connections.logs` | 🔴 HTTP_ERROR | 404 | – |
 | `store.e-invoicing.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.parked-sales.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parkedSales.sum_total`=100.00 (+3 more) |
 | `store.customers.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `customers.total`=8.00 |

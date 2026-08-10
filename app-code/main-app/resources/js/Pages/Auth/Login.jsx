@@ -143,7 +143,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                     {/* Trust indicators */}
                     <div className="mt-12 grid grid-cols-3 gap-4">
                         {[
-                            { val: '38', label: 'Reports' },
+                            { val: '40', label: 'Reports' },
                             { val: '0.00', label: 'Balance Error' },
                             { val: 'FIFO', label: 'Cost Basis' },
                         ].map((s, i) => (

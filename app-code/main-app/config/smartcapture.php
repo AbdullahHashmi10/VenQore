@@ -12,10 +12,11 @@ return [
     |--------------------------------------------------------------------------
     | Supported providers: gemini, openai, anthropic, deepseek.
     */
-    'provider'   => env('SMART_CAPTURE_PROVIDER', 'gemini'),
-    'gemini_key' => env('GEMINI_API_KEY'),
-    'api_key'    => env('SMART_CAPTURE_API_KEY'), // generic platform key for the provider above
-    'model'      => env('SMART_CAPTURE_MODEL', 'gemini-2.5-flash'),
+    'provider'     => env('SMART_CAPTURE_PROVIDER', 'gemini'),
+    'gemini_key'   => env('GEMINI_API_KEY'),
+    'api_key'      => env('SMART_CAPTURE_API_KEY'), // generic platform key for the provider above
+    'free_api_key' => env('SMART_CAPTURE_FREE_API_KEY'),
+    'model'        => env('SMART_CAPTURE_MODEL', 'gemini-2.5-flash'),
 
     /*
     |--------------------------------------------------------------------------

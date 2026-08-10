@@ -11,17 +11,31 @@ import KeyboardShortcutsModal from '@/Components/KeyboardShortcutsModal';
 
 import { usePage } from '@inertiajs/react';
 import { ThemeProvider } from '@/Contexts/ThemeContext';
+import { AppearanceProvider } from '@/Contexts/AppearanceContext';
 import ChatWidget from '@/Components/ChatWidget';
 
 export default function GlobalProviderLayout({ children }) {
     const { props } = usePage();
     const settings = props.settings || {};
-    
+
+    // AppearanceProvider sits inside ThemeProvider rather than replacing it.
+    // ThemeProvider still owns the light/dark first impression on public
+    // marketing pages, where there is no account to hold a preference; inside
+    // the app, AppearanceProvider is authoritative and writes the `dark` class
+    // from the user's saved mode. Nesting this way means the marketing site is
+    // untouched by the New Experience work.
+    // Inside a store, the saved appearance decides light/dark. Outside one
+    // (marketing, auth, the installer) there is no preference to honour, so
+    // ThemeProvider keeps its existing per-path behaviour untouched.
+    const appearanceManaged = Boolean(props.auth?.user && props.store);
+
     return (
-        <ThemeProvider settings={settings}>
-            <InnerGlobalLayout settings={settings}>
-                {children}
-            </InnerGlobalLayout>
+        <ThemeProvider settings={settings} managed={appearanceManaged}>
+            <AppearanceProvider>
+                <InnerGlobalLayout settings={settings}>
+                    {children}
+                </InnerGlobalLayout>
+            </AppearanceProvider>
         </ThemeProvider>
     );
 }

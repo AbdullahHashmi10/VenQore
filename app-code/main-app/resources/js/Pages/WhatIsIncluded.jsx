@@ -155,7 +155,7 @@ export default function WhatIsIncluded() {
                                     <Feature label="P&L / Balance Sheet / Cash Flow" starter={true}  growth={true}  business={true} />
                                     <Feature label="Tax Report"                       starter={true}  growth={true}  business={true} />
                                     <Feature label="Stock Valuation"                  starter={true}  growth={true}  business={true} />
-                                    <Feature label="Advanced Reports (38 total)"      starter="20"    growth="38+"   business="38+" />
+                                    <Feature label="Advanced Reports (40 total)"      starter="20"    growth="40+"   business="40+" />
                                     <Feature label="Sale Aging / Purchase Aging"      starter={false} growth={true}  business={true} />
                                 </Section>
                                 <Section title="Intelligence & Growth">
