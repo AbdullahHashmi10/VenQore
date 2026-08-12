@@ -11,6 +11,8 @@ use App\Models\InvoiceItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Stock;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -301,28 +303,39 @@ class SmartFulfillmentService
 
             // ── Step 5: Create JIT Purchase Drafts ────────────────────────────
             // One draft per shortfall SKU so client can confirm each supplier cost individually
+            //
+            // At Phase 5 cutover this block is repointed at App\Models\Purchase.
             foreach ($jitDrafts as $draft) {
-                $invoice = Invoice::create([
+                $purchase = Purchase::create([
                     'tenant_id'       => $tenantId,
                     'user_id'         => $userId,
-                    'type'            => 'purchase',
+                    'created_by'      => $userId ?? 1,
                     'invoice_number'  => 'JIT-' . time() . '-' . rand(100, 999),
                     'jit_sale_id'     => $sale->id,
-                    'channel_order_id'=> $sale->channel_order_id,
                     'is_jit'          => true,
                     'approval_status' => 'draft',
                     'subtotal'        => $draft['cost_price'] * $draft['shortfall_qty'],
-                    'total_amount'    => $draft['cost_price'] * $draft['shortfall_qty'],
-                    'status'          => 'draft',
-                    'date'            => now()->toDateString(),
+                    'tax'             => 0,
+                    'discount'        => 0,
+                    'round_off'       => 0,
+                    'total'           => $draft['cost_price'] * $draft['shortfall_qty'],
+                    'payment_status'  => 'unpaid',
+                    'workflow_status' => 'pending',
+                    'purchase_date'   => now()->toDateString(),
+                    'warehouse_id'    => $channel->warehouse_id,
+                    'reference'       => $sale->channel_order_id,
                 ]);
 
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'product_id' => $draft['product_id'],
-                    'quantity'   => $draft['shortfall_qty'],
-                    'unit_price' => $draft['cost_price'],
-                    'total'      => $draft['cost_price'] * $draft['shortfall_qty'],
+                PurchaseItem::create([
+                    'purchase_id'     => $purchase->id,
+                    'product_id'      => $draft['product_id'],
+                    'qty'             => $draft['shortfall_qty'],
+                    'received_qty'    => 0,
+                    'unit_cost'       => $draft['cost_price'],
+                    'discount_amount' => 0,
+                    'tax_rate'        => 0,
+                    'business_pct'    => 100,
+                    'line_total'      => $draft['cost_price'] * $draft['shortfall_qty'],
                 ]);
             }
 
@@ -432,23 +445,23 @@ class SmartFulfillmentService
      * Marks the draft as approved. If all JIT drafts for the linked sale are now
      * approved, marks the sale as financially_reconciled = true.
      *
-     * @param  Invoice  $purchase
+     * @param  Purchase  $purchase
      * @param  float    $confirmedCost  Actual total the client paid the supplier
      * @param  string|null $supplierId  FK to party/supplier record
      */
-    public function approveJitDraft(Invoice $purchase, float $confirmedCost, ?string $supplierId = null): void
+    public function approveJitDraft(Purchase $purchase, float $confirmedCost, ?string $supplierId = null): void
     {
         DB::transaction(function () use ($purchase, $confirmedCost, $supplierId) {
             $purchase->update([
                 'approval_status' => 'approved',
                 'subtotal'        => $confirmedCost,
-                'total_amount'    => $confirmedCost,
+                'total'           => $confirmedCost,
                 'party_id'        => $supplierId,
             ]);
 
             // Check if all JIT drafts for the linked sale are now approved
             if ($purchase->jit_sale_id) {
-                $pendingDrafts = Invoice::where('jit_sale_id', $purchase->jit_sale_id)
+                $pendingDrafts = Purchase::where('jit_sale_id', $purchase->jit_sale_id)
                     ->where('approval_status', 'draft')
                     ->count();
 

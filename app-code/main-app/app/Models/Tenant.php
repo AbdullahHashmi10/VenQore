@@ -71,6 +71,7 @@ class Tenant extends Model
 
     protected $fillable = [
         'name',
+        'business_type',
         'slug',
         'plan',
         'status',
@@ -160,6 +161,12 @@ class Tenant extends Model
         'limit_grace_ends_at'   => 'datetime',
         'sync_channels'         => 'array',
         'grace_ends_at'         => 'datetime',
+        // Monthly transaction counter (migration 2026_08_05_000013). Stored as a
+        // DATE column. Without this cast it hydrates as a plain string, so
+        // EnforceTransactionLimit's now()->gte($tenant->transactions_reset_at)
+        // comparison and PlanUsageController's ?->toIso8601String() both misbehave.
+        'transactions_reset_at' => 'date',
+        'transactions_this_month' => 'integer',
     ];
 
     protected $hidden = [

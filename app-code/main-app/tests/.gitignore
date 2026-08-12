@@ -10,7 +10,13 @@
 # Tester/tests on every run), so they are not tracked either. The source of
 # truth for tests remains Tester/tests/ — commit changes there.
 
-tests/
+tests/*
+!tests/Unit/
+tests/Unit/*
+!tests/Unit/Reckoner/
+!tests/Feature/
+tests/Feature/*
+!tests/Feature/Reckoner/
 reports/*.json
 reports/*.xml
 reports/coverage/
@@ -24,3 +30,13 @@ VerificationCenter/
 # Exception: these two are FinalTester-owned source, not synced copies.
 !tests/Routes/
 !tests/Routes/FullRouteSweepTest.php
+!tests/tests/Unit/Reckoner/
+# NOTE: tests/tests/Feature/Reckoner/ is un-ignored above via the
+# tests/Feature/ + tests/Feature/* + !tests/Feature/Reckoner/ block
+# (paths there are written relative to this file's own directory, i.e.
+# relative to tests/, so "tests/Feature/..." here means the real repo
+# path tests/tests/Feature/...). A bare "!tests/tests/Feature/Reckoner/"
+# rule does NOT work on its own — git cannot re-include a path whose
+# parent directory (tests/tests/Feature/) is still excluded by an
+# earlier tests/* rule, no matter how specific the later "!" is.
+

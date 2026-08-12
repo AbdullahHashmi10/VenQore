@@ -635,11 +635,12 @@ class AiController extends Controller
 
         if ($name === 'get_purchase_summary') {
             $this->checkAuthPermission('purchases');
-            $total = Invoice::where('type', 'purchase')
-                ->whereBetween('date', [$args['start_date'], $args['end_date']])
-                ->sum('total_amount');
-            $count = Invoice::where('type', 'purchase')
-                ->whereBetween('date', [$args['start_date'], $args['end_date']])
+            // V3: purchases live in `purchases` (date -> purchase_date, total_amount -> total).
+            $total = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
+                ->whereBetween('purchase_date', [$args['start_date'], $args['end_date']])
+                ->sum('total');
+            $count = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
+                ->whereBetween('purchase_date', [$args['start_date'], $args['end_date']])
                 ->count();
 
             return json_encode(['total_purchases' => $total, 'purchase_count' => $count]);
@@ -676,9 +677,10 @@ class AiController extends Controller
                 ->select('id', 'total', 'created_at')
                 ->get();
 
-            $recentPurchases = Invoice::where('type', 'purchase')
+            // V3: purchases live in `purchases` (total_amount -> total).
+            $recentPurchases = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
                 ->whereBetween('created_at', [$startDate, $endDate])
-                ->select('id', 'total_amount as total', 'created_at', 'notes')
+                ->select('id', 'total', 'created_at', 'notes')
                 ->get();
 
             $recentExpenses = Expense::whereBetween('date', [$startDate, $endDate])

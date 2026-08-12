@@ -34,6 +34,6 @@ class Expense extends Model
 
     public function purchase()
     {
-        return $this->belongsTo(Invoice::class, 'purchase_id');
+        return $this->belongsTo(Purchase::class, 'purchase_id');
     }
 }

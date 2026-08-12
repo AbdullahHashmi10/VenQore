@@ -106,34 +106,58 @@ class TransactionController extends Controller
             $transactions = $transactions->merge($invoiceSales);
         }
 
-        // 3. Purchases (from invoices table)
-        $purchases = DB::table('invoices')
-            ->where('invoices.tenant_id', $tenantId)
-            ->leftJoin('parties', 'invoices.party_id', '=', 'parties.id')
-            ->where('invoices.type', 'purchase')
+        // 3. Purchases — V3: these live in `purchases`, not `invoices`.
+        // Column map: total_amount -> total · tax_amount -> tax ·
+        // discount_amount -> discount · status -> payment_status.
+        //
+        // `paid_amount` has NO equivalent column and never will — it is derived
+        // from the ledger (AP debits on live purchase_payment entries), because
+        // a stored copy drifts. It is resolved in one grouped query below rather
+        // than per row.
+        $apAccountId = DB::table('accounts')
+            ->where('tenant_id', $tenantId)
+            ->where('code', '2000')
+            ->value('id');
+
+        $paidByPurchase = $apAccountId
+            ? DB::table('journal_items as ji')
+                ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                ->where('je.tenant_id', $tenantId)
+                ->where('je.reference_type', 'purchase_payment')
+                ->where('je.is_reversed', 0)
+                ->where('ji.account_id', $apAccountId)
+                ->groupBy('je.reference')
+                ->select('je.reference', DB::raw('SUM(ji.debit) as paid'))
+                ->pluck('paid', 'reference')
+            : collect();
+
+        $purchases = DB::table('purchases')
+            ->where('purchases.tenant_id', $tenantId)
+            ->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+            ->where('purchases.workflow_status', '!=', 'cancelled')
             ->select([
-                'invoices.id',
-                'invoices.created_at as date',
+                'purchases.id',
+                'purchases.created_at as date',
                 DB::raw("'purchase' as type"),
-                'invoices.invoice_number as reference',
-                DB::raw('NULL as description'),
-                'invoices.party_id',
+                'purchases.invoice_number as reference',
+                'purchases.notes as description',
+                'purchases.party_id',
                 'parties.name as party_name',
                 'parties.phone as party_phone',
-                'invoices.subtotal',
-                'invoices.tax_amount as tax',
-                'invoices.discount_amount as discount',
-                'invoices.total_amount as amount',
-                DB::raw('0 as round_off'),
-                'invoices.status as payment_status',
-                DB::raw("NULL as payment_method"),
-                'invoices.paid_amount as amount_paid',
+                'purchases.subtotal',
+                'purchases.tax as tax',
+                'purchases.discount as discount',
+                'purchases.total as amount',
+                'purchases.round_off',
+                'purchases.payment_status',
+                'purchases.payment_method',
                 DB::raw('0 as item_count'),
             ])
             ->get()
-            ->map(function ($t) {
+            ->map(function ($t) use ($paidByPurchase) {
+                $t->amount_paid = (float) ($paidByPurchase[$t->id] ?? 0);
                 $t->party = $t->party_name ? ['name' => $t->party_name, 'phone' => $t->party_phone] : null;
-                $t->balance_due = max(0, ($t->amount ?? 0) - ($t->amount_paid ?? 0));
+                $t->balance_due = max(0, ($t->amount ?? 0) - $t->amount_paid);
                 $t->debit = 0;
                 $t->credit = $t->amount;
                 return $t;

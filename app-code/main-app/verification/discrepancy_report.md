@@ -1,16 +1,16 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-08-10 11:12:14 PKT  
+> **Generated:** 2026-08-12 02:06:32 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
-> **Audit Date:** 2026-08-10  
-> **Audit Period Seeded:** 2025-01-01 → 2026-08-10  
+> **Audit Date:** 2026-08-12  
+> **Audit Period Seeded:** 2025-01-01 → 2026-08-12  
 
 ## Summary
 
 | Status | Count |
 |--------|-------|
-| 🔢 Total Routes Scanned | **254** |
-| ✅ Passed | 186 |
+| 🔢 Total Routes Scanned | **257** |
+| ✅ Passed | 189 |
 | ⚠️ All Zeros (Suspicious) | 59 |
 | ❌ Mismatched vs Ledger | 0 |
 | 🔴 HTTP Errors / Exceptions | 9 |
@@ -519,7 +519,7 @@
 |-------|------|-------|
 | `store.smart-capture.job-status` | PARAM_ERROR | Cannot resolve URL: Missing required parameter for [Route: store.smart-capture.job-status] [URI: s/{store_slug}/smart-capture/status/{job_id}] [Missing parameter: job_id]. |
 
-## Full Scan Results (254 routes)
+## Full Scan Results (257 routes)
 
 | Route | Status | Code | Financial Props |
 |-------|--------|------|----------------|
@@ -567,6 +567,7 @@
 | `store.dashboard-v1` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `revenue`=449,876.14 (+69 more) |
 | `store.overview` | 🔴 HTTP_ERROR | 404 | – |
 | `store.workspace` | 🔴 HTTP_ERROR | 404 | – |
+| `store.next-dashboard` | ✅ PASS | 200 | `store.ai_descriptions_balance`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `performance.revenue`=45,000.00 (+6 more) |
 | `store.appearance` | 🔴 HTTP_ERROR | 404 | – |
 | `store.inventory.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `stats.total_products`=15.00 (+5 more) |
 | `store.inventory.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.data.sum_cost_price`=91,953.28 (+4 more) |
@@ -661,11 +662,11 @@
 | `store.payments.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `payments.data.sum_amount`=789,973.78 (+8 more) |
 | `store.payments.in` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |
 | `store.payments.out` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+9 more) |
-| `store.purchases.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchases.data.sum_supplier.opening_balance`=0.00 (+13 more) |
-| `store.purchases.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `parties.sum_opening_balance`=0.00 (+7 more) |
-| `store.purchases.show` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+9 more) |
-| `store.purchases.edit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+15 more) |
-| `store.purchases.receive` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+7 more) |
+| `store.purchases.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchases.data.sum_total`=12,370,043.70 (+5 more) |
+| `store.purchases.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_tax_rate`=255.00 (+3 more) |
+| `store.purchases.show` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+15 more) |
+| `store.purchases.edit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_tax_rate`=255.00 (+14 more) |
+| `store.purchases.receive` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+10 more) |
 | `store.transactions.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `transactions.data.sum_subtotal`=14,818,799.53 (+20 more) |
 | `store.inventory.stock` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_cost_price`=91,953.28 (+5 more) |
 | `store.pre-sales.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `orders.data.sum_total_amount`=1,000.00 (+37 more) |
@@ -752,9 +753,11 @@
 | `store.v3.warehouses.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.v3.warehouses.create` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
 | `store.v3.warehouses.edit` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00 |
-| `store.v3.purchases.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchases.data.sum_total`=12,370,043.70 (+2 more) |
-| `store.v3.purchases.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_tax_rate`=255.00 (+1 more) |
-| `store.v3.purchases.show` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+12 more) |
+| `store.v3.purchases.receive` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+10 more) |
+| `store.v3.purchases.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchases.data.sum_total`=12,370,043.70 (+5 more) |
+| `store.v3.purchases.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_tax_rate`=255.00 (+3 more) |
+| `store.v3.purchases.show` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+15 more) |
+| `store.v3.purchases.edit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `products.sum_tax_rate`=255.00 (+14 more) |
 | `store.v3.purchases.return.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `membership.tenant.ai_descriptions_balance`=0.00, `purchase.subtotal`=55,934.98 (+2 more) |
 | `store.v3.opening-balances.status` | ⚠️ ALL_ZEROS | 200 | `balance_7000`=0.00 |
 | `store.v3.suppliers.statement` | ✅ PASS | 200 | `supplier.opening_balance`=0.00, `supplier.current_balance`=0.00, `ap_balance`=-95,373.46 (+6 more) |

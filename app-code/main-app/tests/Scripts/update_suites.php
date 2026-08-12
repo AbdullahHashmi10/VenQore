@@ -37,8 +37,10 @@ function rglob($pattern) {
     return $files;
 }
 
-$root = 'tests/tests';
-$all = rglob($root . '/*Test.php');
+$all = array_merge(
+    rglob('tests/tests/*Test.php'),
+    rglob('tests/Unit/*Test.php')
+);
 $liveFiles = array_values(array_filter($all, fn ($f) => strpos(str_replace('\\', '/', $f), '/_archive/') === false));
 
 foreach ($liveFiles as $fullPath) {

@@ -25,6 +25,7 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'resources/js'),
             'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy/dist/index.esm.js'),
         },
+        dedupe: ['react', 'react-dom'],
     },
     test: {
         environment: 'node',

@@ -1,0 +1,1846 @@
+[
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/electronics-store",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/wholesale",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/clothing",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/multi-store",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/compare/venqore-vs-square",
+    "details": {
+      "canonicalUrl": "https://venqore.com/compare/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": {
+      "canonicalUrl": "https://venqore.com/solutions/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": {
+      "canonicalUrl": "https://venqore.com/compare/%7Bslug%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/code93",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/ean-13",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/code128",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/upc-a",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/ean-8",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/codabar",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/itf-14",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "canonicalized-page",
+    "issue": "Canonicalized to another URL",
+    "url": "https://venqore.com/tools/barcode-generator/upc-e",
+    "details": {
+      "canonicalUrl": "https://venqore.com/tools/barcode-generator/%7Bformat%7D"
+    },
+    "howToFix": "If this page should rank on its own, set its canonical to itself. Otherwise no action is needed."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": {
+      "length": 173
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/compare",
+    "details": {
+      "length": 182
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/solutions",
+    "details": {
+      "length": 170
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/",
+    "details": {
+      "length": 234
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": {
+      "length": 168
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": {
+      "length": 164
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/sku-generator",
+    "details": {
+      "length": 166
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": {
+      "length": 178
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/quote-generator",
+    "details": {
+      "length": 195
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/purchase-order-generator",
+    "details": {
+      "length": 165
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/stock-count-sheet",
+    "details": {
+      "length": 173
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/credit-note-generator",
+    "details": {
+      "length": 174
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/product-csv-cleaner",
+    "details": {
+      "length": 167
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/cash-drawer-count-sheet",
+    "details": {
+      "length": 195
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/pos-roi-calculator",
+    "details": {
+      "length": 187
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/food-cost-calculator",
+    "details": {
+      "length": 195
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "info",
+    "issueType": "meta-description-too-long",
+    "issue": "Meta description too long",
+    "url": "https://venqore.com/tools/payment-fee-calculator",
+    "details": {
+      "length": 212
+    },
+    "howToFix": "Trim the description to roughly 70–160 characters while keeping the core message and call to action."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/electronics-store",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/wholesale",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/clothing",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/compare",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/multi-store",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/compare/venqore-vs-square",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/blog",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/code93",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/ean-13",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/code128",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/upc-a",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/ean-8",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/codabar",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/itf-14",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-generator/upc-e",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/barcode-validator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/invoice-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/receipt-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/price-tag-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/label-sheet-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/margin-calculator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/sku-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/qr-code-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/quote-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/purchase-order-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/qr-menu-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/packing-slip-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/stock-count-sheet",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/credit-note-generator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/product-csv-cleaner",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/cash-drawer-count-sheet",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/pos-roi-calculator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/food-cost-calculator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "missing-h1",
+    "issue": "Missing H1 heading",
+    "url": "https://venqore.com/tools/payment-fee-calculator",
+    "details": null,
+    "howToFix": "Add a single H1 that states the page's main topic, consistent with the title tag."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/electronics-store",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/wholesale",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/clothing",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/compare",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/multi-store",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/compare/venqore-vs-square",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/blog",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/code93",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/ean-13",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/code128",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/upc-a",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/ean-8",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/codabar",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/itf-14",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-generator/upc-e",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/barcode-validator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/invoice-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/receipt-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/price-tag-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/label-sheet-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/margin-calculator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/sku-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/qr-code-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/quote-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/purchase-order-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/qr-menu-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/packing-slip-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/stock-count-sheet",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/credit-note-generator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/product-csv-cleaner",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/cash-drawer-count-sheet",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/pos-roi-calculator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/food-cost-calculator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "no-outgoing-links",
+    "issue": "Page has no outgoing links",
+    "url": "https://venqore.com/tools/payment-fee-calculator",
+    "details": null,
+    "howToFix": "Add links to related pages, the parent category, or the homepage. If the page's navigation is rendered by JavaScript, make sure it also exists in the server-rendered HTML."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/electronics-store",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/wholesale",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/clothing",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/compare",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/multi-store",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/compare/venqore-vs-square",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/blog",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/code93",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/ean-13",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/code128",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/upc-a",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/ean-8",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/codabar",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/itf-14",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-generator/upc-e",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/barcode-validator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/invoice-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/receipt-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/price-tag-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/label-sheet-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/margin-calculator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/sku-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/qr-code-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/quote-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/purchase-order-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/qr-menu-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/packing-slip-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/stock-count-sheet",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/credit-note-generator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/product-csv-cleaner",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/cash-drawer-count-sheet",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/pos-roi-calculator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/food-cost-calculator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "orphan-page",
+    "issue": "Orphan page",
+    "url": "https://venqore.com/tools/payment-fee-calculator",
+    "details": null,
+    "howToFix": "Link to this page from relevant pages (navigation, related content, hub pages), or remove it from the sitemap if it shouldn't be indexed."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/electronics-store",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/wholesale",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/clothing",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/compare",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/multi-store",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/compare/venqore-vs-square",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/blog",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/compare/venqore-vs-vyapar",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/code93",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/ean-13",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/code128",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/code39",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/upc-a",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/ean-8",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/codabar",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/itf-14",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-generator/upc-e",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/barcode-validator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/invoice-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/receipt-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/price-tag-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/label-sheet-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/margin-calculator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/sku-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/qr-code-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/quote-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/purchase-order-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/qr-menu-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/packing-slip-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/stock-count-sheet",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/credit-note-generator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/product-csv-cleaner",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/cash-drawer-count-sheet",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/pos-roi-calculator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/food-cost-calculator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "warning",
+    "issueType": "thin-content",
+    "issue": "Thin content",
+    "url": "https://venqore.com/tools/payment-fee-calculator",
+    "details": {
+      "wordCount": 0
+    },
+    "howToFix": "Either expand the page with genuinely useful content, noindex it, or consolidate it into a stronger page. If the content exists but is rendered by JavaScript, ensure it is server-rendered or pre-rendered."
+  },
+  {
+    "severity": "info",
+    "issueType": "title-too-long",
+    "issue": "Title too long",
+    "url": "https://venqore.com/solutions/pharmacy",
+    "details": {
+      "length": 71
+    },
+    "howToFix": "Shorten the title to roughly 50–60 characters, front-loading the most important words."
+  },
+  {
+    "severity": "info",
+    "issueType": "title-too-long",
+    "issue": "Title too long",
+    "url": "https://venqore.com/solutions",
+    "details": {
+      "length": 66
+    },
+    "howToFix": "Shorten the title to roughly 50–60 characters, front-loading the most important words."
+  },
+  {
+    "severity": "info",
+    "issueType": "title-too-long",
+    "issue": "Title too long",
+    "url": "https://venqore.com/solutions/grocery",
+    "details": {
+      "length": 65
+    },
+    "howToFix": "Shorten the title to roughly 50–60 characters, front-loading the most important words."
+  },
+  {
+    "severity": "info",
+    "issueType": "title-too-long",
+    "issue": "Title too long",
+    "url": "https://venqore.com/tools/label-sheet-generator",
+    "details": {
+      "length": 64
+    },
+    "howToFix": "Shorten the title to roughly 50–60 characters, front-loading the most important words."
+  },
+  {
+    "severity": "info",
+    "issueType": "title-too-long",
+    "issue": "Title too long",
+    "url": "https://venqore.com/tools/inventory-health",
+    "details": {
+      "length": 68
+    },
+    "howToFix": "Shorten the title to roughly 50–60 characters, front-loading the most important words."
+  }
+]

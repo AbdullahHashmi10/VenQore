@@ -66,11 +66,12 @@ class SendWeeklyBusinessSummaries extends Command
                         ->sum(DB::raw('qty * cost_price'));
                 }
 
-                // Calculate Purchases
-                $purchasesTotal = (float) Invoice::where('tenant_id', $tenant->id)
-                    ->where('type', 'purchase')
-                    ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-                    ->sum('total_amount');
+                // Calculate Purchases — V3: purchases live in `purchases`
+                // (date -> purchase_date, total_amount -> total).
+                $purchasesTotal = (float) \App\Models\Purchase::where('tenant_id', $tenant->id)
+                    ->where('workflow_status', '!=', 'cancelled')
+                    ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
+                    ->sum('total');
 
                 // Calculate Expenses
                 $expensesTotal = (float) Expense::whereBetween('date', [$start->toDateString(), $end->toDateString()])

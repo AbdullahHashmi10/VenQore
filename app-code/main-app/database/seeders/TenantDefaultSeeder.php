@@ -29,6 +29,161 @@ class TenantDefaultSeeder
         static::seedExpenseCategories($tenant);
         static::seedInitialCashAccount($tenant);
         static::seedAiSettings($tenant);
+        static::seedDefaultDashboards($tenant);
+    }
+
+    private static function seedDefaultDashboards(Tenant $tenant): void
+    {
+        $now = now();
+        $dashboards = [
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Owner Overview',
+                'slug' => 'owner-overview',
+                'is_default' => true,
+                'for_role' => 'owner',
+                'is_locked' => false,
+                'position' => 0,
+                'cards' => [
+                    [
+                        'reading_key' => 'sales.revenue',
+                        'period' => 'this_month',
+                        'chart' => 'stat',
+                        'size' => 'small',
+                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
+                    ],
+                    [
+                        'reading_key' => 'finance.net_profit',
+                        'period' => 'this_month',
+                        'chart' => 'stat',
+                        'size' => 'small',
+                        'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2
+                    ],
+                    [
+                        'reading_key' => 'sales.revenue_trend',
+                        'period' => 'this_month',
+                        'chart' => 'line',
+                        'size' => 'medium',
+                        'x' => 0, 'y' => 2, 'w' => 6, 'h' => 3
+                    ],
+                    [
+                        'reading_key' => 'sales.top_products',
+                        'period' => 'this_month',
+                        'chart' => 'bar',
+                        'size' => 'large',
+                        'x' => 6, 'y' => 0, 'w' => 6, 'h' => 5
+                    ],
+                ]
+            ],
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Accountant Hub',
+                'slug' => 'accountant-hub',
+                'is_default' => false,
+                'for_role' => 'accountant',
+                'is_locked' => false,
+                'position' => 1,
+                'cards' => [
+                    [
+                        'reading_key' => 'finance.net_profit',
+                        'period' => 'this_month',
+                        'chart' => 'stat',
+                        'size' => 'small',
+                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
+                    ],
+                    [
+                        'reading_key' => 'finance.balance_sheet_ok',
+                        'period' => 'live',
+                        'chart' => 'status',
+                        'size' => 'small',
+                        'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2
+                    ],
+                    [
+                        'reading_key' => 'finance.expenses_by_category',
+                        'period' => 'this_month',
+                        'chart' => 'ring',
+                        'size' => 'medium',
+                        'x' => 0, 'y' => 2, 'w' => 6, 'h' => 3
+                    ],
+                    [
+                        'reading_key' => 'inventory.stock_value',
+                        'period' => 'live',
+                        'chart' => 'stat',
+                        'size' => 'small',
+                        'x' => 6, 'y' => 0, 'w' => 6, 'h' => 2
+                    ],
+                ]
+            ],
+            [
+                'id' => (string) Str::uuid(),
+                'name' => 'Cashier Station',
+                'slug' => 'cashier-station',
+                'is_default' => false,
+                'for_role' => 'cashier',
+                'is_locked' => true,
+                'position' => 2,
+                'cards' => [
+                    [
+                        'reading_key' => 'sales.revenue',
+                        'period' => 'today',
+                        'chart' => 'stat',
+                        'size' => 'small',
+                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
+                    ],
+                    [
+                        'reading_key' => 'sales.live_feed',
+                        'period' => 'live',
+                        'chart' => 'feed',
+                        'size' => 'large',
+                        'x' => 3, 'y' => 0, 'w' => 9, 'h' => 5
+                    ],
+                    [
+                        'reading_key' => 'sales.payment_breakdown',
+                        'period' => 'today',
+                        'chart' => 'pie',
+                        'size' => 'small',
+                        'x' => 0, 'y' => 2, 'w' => 3, 'h' => 3
+                    ],
+                ]
+            ]
+        ];
+
+        foreach ($dashboards as $d) {
+            DB::table('dashboards')->updateOrInsert(
+                ['tenant_id' => $tenant->id, 'slug' => $d['slug']],
+                [
+                    'id' => $d['id'],
+                    'name' => $d['name'],
+                    'is_default' => $d['is_default'],
+                    'for_role' => $d['for_role'],
+                    'is_locked' => $d['is_locked'],
+                    'position' => $d['position'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+
+            // Re-seed cards
+            DB::table('dashboard_cards')->where('dashboard_id', $d['id'])->delete();
+
+            foreach ($d['cards'] as $c) {
+                DB::table('dashboard_cards')->insert([
+                    'id' => (string) Str::uuid(),
+                    'tenant_id' => $tenant->id,
+                    'dashboard_id' => $d['id'],
+                    'reading_key' => $c['reading_key'],
+                    'period' => $c['period'],
+                    'chart' => $c['chart'],
+                    'size' => $c['size'],
+                    'x' => $c['x'],
+                    'y' => $c['y'],
+                    'w' => $c['w'],
+                    'h' => $c['h'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
     }
 
     private static function seedChartOfAccounts(Tenant $tenant): void

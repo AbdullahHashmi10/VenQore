@@ -268,7 +268,9 @@ class TenantMiddleware
             ],
             'onboarding_metrics' => [
                 'has_products' => \App\Models\Product::exists(),
-                'has_purchases' => \App\Models\Invoice::where('type', 'purchase')->exists(),
+                // V3: purchases live in `purchases`. Reading the emptied legacy
+                // table made onboarding believe no store had ever bought anything.
+                'has_purchases' => \App\Models\Purchase::exists(),
                 'has_sales' => \App\Models\Sale::exists() || \App\Models\Invoice::where('type', 'sale')->exists(),
                 'has_expenses' => \App\Models\Expense::exists(),
                 'has_drive_sync' => (bool)$tenant->google_backup_enabled,

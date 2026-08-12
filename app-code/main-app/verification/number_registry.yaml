@@ -13,7 +13,7 @@
 # coverage% = verified_metrics / total LEDGER-DERIVED entries
 # ============================================================
 # Generator: verify:map artisan command (auto-regenerated)
-# Last updated: 2026-08-10
+# Last updated: 2026-08-12
 # ============================================================
 
 version: '1.0'

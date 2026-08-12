@@ -170,9 +170,28 @@ class MigrateV3Ledger extends Command
         $this->info("Migrated: {$migrated}, Skipped: {$skipped}");
     }
 
+    /**
+     * OBSOLETE as of 2026-08-11 — the legacy purchase island was retired.
+     *
+     * This step backfilled journal entries from `invoices` rows of type
+     * 'purchase'. Those rows no longer exist; purchases live in `purchases` and
+     * post their own journal through App\Services\V3\PurchaseService.
+     *
+     * Kept as a no-op rather than deleted so an operator who runs this old
+     * command gets a clear message instead of a silent "0 migrated".
+     * See V3_CONSOLIDATION_PLAN.md.
+     */
     private function migrateLegacyPurchases()
     {
         $this->info('Step 2 — Migrating Legacy Purchases...');
+
+        if (! DB::getSchemaBuilder()->hasTable('invoices')
+            || ! DB::table('invoices')->where('type', 'purchase')->exists()) {
+            $this->warn('   SKIPPED — the legacy purchase island was retired on 2026-08-11.');
+            $this->line('   Purchases live in `purchases` and post their own journal via V3\\PurchaseService.');
+            return;
+        }
+
         $invoices = DB::table('invoices')->where('type', 'purchase')->get();
         $this->output->progressStart($invoices->count());
 

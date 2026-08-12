@@ -43,11 +43,19 @@ trait HasActivityLog
             if (count($payload['new']) === 1 && isset($payload['new']['updated_at'])) return;
         }
 
+        $actionName = strtolower(class_basename($model)) . '.' . $action;
+
         try {
             StoreActivityLog::create([
                 'tenant_id'    => $tenantId,
                 'user_id'      => auth()->id(),
-                'action'       => strtolower(class_basename($model)) . '.' . $action,
+                'action'       => $actionName,
+                // `description` is NOT NULL on a fresh install (see the
+                // create_activity_logs_table migration). It was never written here,
+                // so every insert threw and was swallowed, leaving fresh installs
+                // with no audit trail at all. Populate it rather than relying on
+                // the column having drifted to nullable in one long-lived database.
+                'description'  => $actionName,
                 'subject_type' => get_class($model),
                 'subject_id'   => $model->uuid ?? $model->id,
                 'payload'      => $payload,
@@ -55,13 +63,21 @@ trait HasActivityLog
                 'user_agent'   => Request::userAgent(),
                 'is_impersonated' => session()->has('impersonating_user_id'),
             ]);
-        } catch (\Exception $e) {
-            // Prevent crashing the application if logging fails (e.g., during migration/testing when table doesn't exist),
-            // but log the error so future schema drifts or write failures are visible in laravel.log.
+        } catch (\Throwable $e) {
+            // Never crash the caller for an audit-trail failure, but make the
+            // failure loud. A silent catch here is what hid R3 for months: the
+            // writes were failing on every fresh install and nothing surfaced it.
             \Illuminate\Support\Facades\Log::error('HasActivityLog failed to write audit entry: ' . $e->getMessage(), [
-                'model'  => get_class($model),
-                'action' => $action,
+                'model'     => get_class($model),
+                'action'    => $action,
+                'tenant_id' => $tenantId,
+                'exception' => $e::class,
             ]);
+
+            // In non-production the mismatch should be impossible to ignore.
+            if (app()->environment('local', 'testing')) {
+                throw $e;
+            }
         }
     }
 }

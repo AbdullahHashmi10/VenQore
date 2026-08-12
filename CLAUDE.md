@@ -245,13 +245,54 @@ resources/js/
 
 ---
 
+## ⛔ Purchases live in `purchases`. Full stop.
+
+This section exists because a session once had to re-derive it from scratch and got it wrong.
+
+- A purchase is a row in **`purchases`** with lines in **`purchase_items`**; a purchase return is a row in **`purchase_returns`**.
+- **Nothing may write a purchase into the `invoices` table.** `invoices` held the legacy purchase island and is being retired — see `V3_CONSOLIDATION_PLAN.md`.
+- The only engine that may create, edit, void, receive or return a purchase is **`App\Services\V3\PurchaseService`**.
+- **`paid_amount` is never stored.** It is derived from the ledger: AP debits on non-reversed `purchase_payment` journal entries. A stored column drifts.
+- **`payment_status` and `workflow_status` are separate columns.** Overloading one field is what left unpaid purchases stuck on `pending`. `PaymentService::updatePurchaseBadge()` is the only writer of `payment_status` after insert.
+- **Never hard-delete a posted purchase.** Reverse the journal and set `workflow_status = 'cancelled'`.
+- **UUIDs are preserved across the migration.** `journal_entries.reference`, `expenses.purchase_id` and `inventory_batches.purchase_invoice_id` all resolve against the same id in either table. Never regenerate an id for a migrated row.
+
+- **Reads matter as much as writes.** When the legacy rows were deleted, seventeen read sites kept querying `invoices` for purchases. An emptied table does not throw — it returns zero rows — so reports, dashboards, the transactions list, the owner emails and the `has_purchases` onboarding flag all silently showed nothing while the suite stayed green. Column map when porting a read:
+
+| Legacy `invoices` | V3 `purchases` |
+|---|---|
+| `total_amount` | `total` |
+| `date` | `purchase_date` |
+| `tax_amount` | `tax` |
+| `discount_amount` | `discount` |
+| `status` | `payment_status` **or** `workflow_status` — decide which |
+| `paid_amount` | **no column** — derive from the ledger |
+
+Lines: `invoice_items` → `purchase_items`, `quantity` → `qty`, `unit_price` → `unit_cost`, `total` → `line_total`.
+
+`tests/tests/Feature/Golden/PurchaseIslandGuardTest.php` enforces all of the above — both writes and reads. If it fails, fix the code — not the test.
+
+**Consolidation tooling:**
+
+| Command | Phase | Purpose |
+|---|---|---|
+| `purchases:divergence-count` | 0 | Daily count of rows left in the legacy island |
+| `purchases:reconcile --baseline` | 3 | Snapshot the truth *before* the backfill |
+| `purchases:migrate-legacy [--commit]` | 3 | UUID-preserving backfill, dry-run by default |
+| `purchases:reconcile` | 3 | Prove no rupee moved |
+| `purchases:drift-check` | 4 | Nightly legacy↔V3 comparison; must be clean 7+ days |
+
+Cutover switches live in `config/venqore.php` (`purchase_cutover`, `purchase_cutover_tenants`, `purchase_shadow_write`).
+
+---
+
 ## Code Conventions
 
 - **Controllers** are thin — business logic lives in `app/Services/`.
 - **Inertia responses** use `Inertia::render('PageName', [...data])`.
 - **React components** use Tailwind utility classes (no separate CSS files).
 - **All DB queries must include `tenant_id` scope** — never query cross-tenant.
-- **PurchaseService Safety:** If you ever route or wire up the legacy `PurchaseService` in routes/controllers, ensure that the double-entry payment allocation logic remains fully covered and correct (it must link `PaymentAllocation` to a valid `JournalEntry` ID, not a `Payment` ID, so the MySQL trigger passes).
+- **PurchaseService Safety:** `App\Services\PurchaseService` is **decommissioned** — an inert stub that throws on construction. Do not wire it up, do not restore it, delete the file when convenient. The canonical engine is `App\Services\V3\PurchaseService`. (The old warning about `PaymentAllocation` needing a `JournalEntry` ID rather than a `Payment` ID still applies to any code writing that table — the DB trigger enforces it.)
 - **No Trailing NUL-Bytes:** Never commit or save files ending with trailing NUL (`\x00`) bytes. CI automatically runs a python scan to block pushes with NUL-byte corruption.
 - Route names follow `feature.action` convention (e.g., `sales.store`, `inventory.index`).
 - Use `route()` Ziggy helper in React for named routes.

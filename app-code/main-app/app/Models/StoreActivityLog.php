@@ -18,6 +18,7 @@ class StoreActivityLog extends Model
         'tenant_id',
         'user_id',
         'action',
+        'description',
         'subject_type',
         'subject_id',
         'payload',

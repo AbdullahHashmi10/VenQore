@@ -36,10 +36,29 @@ class PlanUsageController extends Controller
         $staffCount     = User::whereNotIn('role', ['platform_admin'])->count();
         $warehouseCount = Warehouse::count();
 
+        // Monthly transaction usage — the cap AppSumo LTD buyers actually hit.
+        // Limits are 1000/3000/8000 for ltd_1/ltd_2/ltd_3 (config/plans.php,
+        // config/pricing.php and PlanFeatureMatrixSeeder all agree); subscription
+        // plans are uncapped (null) per the 2026-07-03 decision.
+        //
+        // NOTE: the AppSumo listing/decision docs still describe a 500 tx/month
+        // Code-1 cap. The code says 1000. Reconcile before publishing the listing —
+        // AppSumo's grandfathering policy makes advertised limits hard to tighten.
+        //
+        // Counted live from posted sales, matching EnforceTransactionLimit (which
+        // performs the actual block) and SaleController::store(). The
+        // `tenants.transactions_this_month` column is a denormalised mirror that
+        // nothing incremented before 2026-08-11, so reading it reported 0 for
+        // every tenant. This endpoint is read-only.
+        $txCount = \App\Models\Sale::where('status', 'posted')
+            ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->count();
+
         // Get plan limits from config (with per-tenant overrides via getLimit)
         $skuLimit       = $tenant->getLimit('sku_limit');
         $staffLimit     = $tenant->getLimit('staff_limit');
         $locationLimit  = $tenant->getLimit('locations');
+        $txLimit        = $tenant->getLimit('transactions_per_month');
 
         return response()->json([
             'plan' => $tenant->plan,
@@ -54,7 +73,8 @@ class PlanUsageController extends Controller
                     'unlimited' => $skuLimit === null,
                     'percent'   => $skuLimit ? round(($productCount / $skuLimit) * 100) : 0,
                     'at_limit'  => $skuLimit !== null && $productCount >= $skuLimit,
-                    'near_limit'=> $skuLimit !== null && $productCount >= ($skuLimit * 0.90),
+                    'near_limit'=> $skuLimit !== null && $productCount >= ($skuLimit * 0.80),
+                    'critical'  => $skuLimit !== null && $productCount >= ($skuLimit * 0.95),
                 ],
                 'staff' => [
                     'used'      => $staffCount,
@@ -62,7 +82,8 @@ class PlanUsageController extends Controller
                     'unlimited' => $staffLimit === null,
                     'percent'   => $staffLimit ? round(($staffCount / $staffLimit) * 100) : 0,
                     'at_limit'  => $staffLimit !== null && $staffCount >= $staffLimit,
-                    'near_limit'=> $staffLimit !== null && $staffCount >= ($staffLimit * 0.90),
+                    'near_limit'=> $staffLimit !== null && $staffCount >= ($staffLimit * 0.80),
+                    'critical'  => $staffLimit !== null && $staffCount >= ($staffLimit * 0.95),
                 ],
                 'warehouses' => [
                     'used'      => $warehouseCount,
@@ -70,7 +91,20 @@ class PlanUsageController extends Controller
                     'unlimited' => $locationLimit === null,
                     'percent'   => $locationLimit ? round(($warehouseCount / $locationLimit) * 100) : 0,
                     'at_limit'  => $locationLimit !== null && $warehouseCount >= $locationLimit,
-                    'near_limit'=> $locationLimit !== null && $warehouseCount >= ($locationLimit * 0.90),
+                    'near_limit'=> $locationLimit !== null && $warehouseCount >= ($locationLimit * 0.80),
+                    'critical'  => $locationLimit !== null && $warehouseCount >= ($locationLimit * 0.95),
+                ],
+                'transactions' => [
+                    'used'      => $txCount,
+                    'limit'     => $txLimit,            // null = unlimited (all subscription plans)
+                    'unlimited' => $txLimit === null,
+                    'percent'   => $txLimit ? round(($txCount / $txLimit) * 100) : 0,
+                    'at_limit'  => $txLimit !== null && $txCount >= $txLimit,
+                    'near_limit'=> $txLimit !== null && $txCount >= ($txLimit * 0.80),
+                    'critical'  => $txLimit !== null && $txCount >= ($txLimit * 0.95),
+                    // The allowance is a calendar-month window (see the live count
+                    // above), so it always resets at the start of next month.
+                    'resets_at' => now()->addMonth()->startOfMonth()->toIso8601String(),
                 ],
             ],
 
@@ -82,12 +116,18 @@ class PlanUsageController extends Controller
                 'reports'       => $tenant->getLimit('reports'), // 'basic' | 'advanced'
             ],
 
-            // Available upgrade path
-            'upgrade_to' => match($tenant->plan) {
-                'starter'  => 'growth',
-                'growth'   => 'business',
-                'business' => null,    // already on top plan
-                default    => 'starter',
+            // Available upgrade path. LTD tenants store plan = 'ltd' on the
+            // Tenant row (see Tenant::setPlanAttribute) — matching on the raw
+            // $tenant->plan here previously fell through to the default case
+            // and told every AppSumo buyer to "upgrade to Starter", which is
+            // a downgrade for ltd_2/ltd_3 holders. effectivePlan() resolves
+            // 'ltd' to its actual tier (ltd_1/ltd_2/ltd_3) via the tenant's
+            // snapshotted transactions_per_month.
+            'upgrade_to' => match($tenant->effectivePlan()) {
+                'starter', 'ltd_1' => 'growth',
+                'growth', 'ltd_2'  => 'business',
+                'business', 'ltd_3' => null,   // already on top tier
+                default             => 'starter',
             },
         ]);
     }

@@ -1,0 +1,246 @@
+# VenQore — AppSumo Pre-Launch Plan
+
+**Prepared:** 2026-08-11
+**Companion to:** `AppSumo_Readiness_Audit_2026-08-11.md`, `AppSumo_Application_Draft.md`
+**Scope:** everything to do before submitting, and before launch day. Two tracks — code, and the listing assets only you can make.
+
+---
+
+## 0. Read this first: the strategic tension
+
+The Reddit account you found (TransferChain, 2025) adds a fact that matters more than anything else in this document.
+
+**Self-listing gets you approved more easily, but AppSumo does almost no marketing for you:**
+
+| | Select / curated | Self-listed |
+|---|---|---|
+| AppSumo email to 1.5M list | ✅ | ❌ |
+| AppSumo-produced video | ✅ | ❌ |
+| AppSumo paid ads (Google/Meta) | ✅ | ❌ |
+| Homepage placement | ✅ prioritized | ⬇️ deprioritized |
+| Approval difficulty | Very hard | Moderate |
+| Revenue share | AppSumo takes the larger share | Better for you, but see below |
+
+TransferChain sold "a few hundred licenses in 6 weeks" on self-listing — and they had an existing audience and ran their own Facebook-group marketing. **You have said you have no way to get users. That is exactly the gap self-listing does not fill.**
+
+This does not mean don't do it. It means:
+
+1. **Do not expect self-listing alone to be a business.** Expect a slow trickle from AppSumo's organic marketplace browsers, not a launch event.
+2. **Section 3 of this plan (traffic you control) is not optional.** It is the difference between a few dozen sales and a few hundred.
+3. **The realistic prize is Select, later.** AppSumo reached out to TransferChain *after* their Product Hunt launch. Select is earned by visible traction, not applied for. A decent self-list performance plus a Product Hunt launch is the actual route there.
+
+### On revenue share, the numbers conflict
+
+- An IndieHackers vendor reports **$55 from a $79 sale** (~70% to him) on self-listing.
+- The TransferChain post says AppSumo now takes **~50%** on self-listing.
+- AppSumo's own page says rates are **negotiated per product**.
+
+**Do not model on any of these.** Get the actual rate from the partner portal before you finalize pricing, and build your projections on the worst case (50% to you).
+
+---
+
+# TRACK 1 — Code work
+
+## ✅ Closed on 2026-08-11
+
+| Item | What changed |
+|---|---|
+| **C2** transaction usage | `PlanUsageController` now returns a `transactions` bucket (used/limit/percent/near_limit/critical/resets_at) |
+| **C3** LTD upgrade path | `upgrade_to` now uses `effectivePlan()`, so `plan = 'ltd'` resolves to `ltd_1/2/3` instead of falling through to `starter` |
+| **C4** warning thresholds | All four buckets moved from a single 90% flag to two-tier 80%/95%; `usePlan().usageStatus()` added; `UsageLimitBanner.jsx` built and mounted on the dashboard |
+| **C5 / R3** activity logging | New migration makes `description`/`subject_type`/`subject_id` nullable; `HasActivityLog` now writes `description`, catches `Throwable`, and rethrows in local/testing so a schema mismatch can never silently hide again; `description` added to `$fillable` |
+| 🔴 **Transaction cap was not enforced** | *See below — the most serious finding* |
+| Missing model casts | `transactions_reset_at` (date) and `transactions_this_month` (integer) were absent from `Tenant::$casts`, so the date hydrated as a string and date comparisons misbehaved |
+
+### 🔴 The transaction cap was never actually enforced
+
+`tenants.transactions_this_month` was **read** by `EnforceTransactionLimit`, **reset** by it, and **reported** by `PlanUsageController` — but **nothing in the entire codebase ever incremented it**. It sat at 0 permanently, so the middleware never blocked a single sale. Every LTD tenant had an unlimited transaction allowance.
+
+The `SaleController::store()` path was unaffected because it counts live from the `sales` table via `PlanGate::enforce()`. So there were two competing mechanisms, one working and one dead.
+
+**Fixed** by making both the middleware and the usage endpoint count live from posted sales in the current month, matching `SaleController`. The counter column is now kept in sync as a denormalised mirror for display only.
+
+**This needs verifying against a real tenant before launch** — it is the single most important item in the production drill.
+
+### ⚠️ Decision needed: 500 or 1000 transactions?
+
+`config/plans.php`, `config/pricing.php` and `PlanFeatureMatrixSeeder` all agree on **1000 / 3000 / 8000** for `ltd_1/2/3`. The AppSumo decision document and listing draft say **500** for Code 1.
+
+Pick one before publishing. AppSumo's grandfathering policy means an advertised limit can be raised later but never tightened.
+
+### Items checked and found already resolved
+
+- **C6 (orphaned tests)** — R3's premise no longer holds. All 257 tests live under `tests/tests/Feature/`, which is exactly what `phpunit.xml.dist` collects, and `ImportAppSumoCodesTest` already extends `VenQoreTestCase`. Nothing to move.
+- **C7 (stale baselines)** — the three baseline JSONs are regenerated by the Guardrails suite itself. Deleting them without running the suite would leave the repo worse, so this is a run-the-tests task, not an edit task. `StoreActivityLog` has no `stale_fillable` entry, so today's model change invalidates nothing.
+
+---
+
+## 🔴 Before launch day (not needed before applying)
+
+You can submit the listing while these are open. You cannot let buyers in until they are closed.
+
+### C1. Schema reconciliation (R4) — biggest item, do first
+Migrations do not reproduce `venqore_pos`. A fresh install is broken and your tests run on a different schema than production.
+
+```bash
+mysqldump --no-data venqore_pos > prod_schema.sql
+mysql -e "CREATE DATABASE schema_check"
+# point a scratch .env at schema_check
+php artisan migrate
+mysqldump --no-data schema_check > migrated_schema.sql
+diff migrated_schema.sql prod_schema.sql
+```
+Write a migration for every missing column. Repeat until `diff` is empty.
+**Done when:** diff clean, and `migrate:fresh` on `amd_pos_test` matches production.
+
+### C7. Regenerate the guard baselines (R2)
+Run the Guardrails suite, read the regenerated `mass_assignment_drift.json` and `stale_fillable.json`, confirm every remaining entry is a genuinely open item, commit.
+
+### C8. Rotate all 15 secrets
+Lemon Squeezy, AppSumo, AWS, Gemini, mail. They have sat in a dev `.env` across many sessions.
+
+### C9. Kill the default credentials
+`platform@venqore.com / admin1234` must fail on production.
+
+---
+
+## 🔴 Production verification drill (2 days, before launch day)
+
+Code existing is not the same as code working. AppSumo's 60-day no-questions refund window plus a broken `/redeem` is how a launch becomes a refund event.
+
+- [ ] Real card payment through live Lemon Squeezy, then refunded
+- [ ] Real AppSumo code redeemed on production, end to end
+- [ ] Second and third code stacked → tier upgrades correctly
+- [ ] Same code, two browsers, simultaneously → exactly one wins
+- [ ] **Code-1 tenant pushed past the transaction cap → correct block message, data still readable.** Highest priority: this path was completely dead until 2026-08-11 and has never been observed working
+- [ ] Usage banner appears at 80% and again at 95% as the tenant approaches the cap
+- [ ] Duplicate webhook fired twice → no duplicate tenant, no duplicate credit
+- [ ] Two tenants, factory-reset one → other tenant's data 100% intact
+- [ ] Offline POS sale → reconnect → syncs exactly once
+- [ ] Backup taken, restored into a scratch DB, app runs against it
+
+**Keep a written, dated log with screenshots.**
+
+---
+
+## 🟠 Operational (before launch day)
+
+- [ ] Sentry live, receiving a test exception
+- [ ] UptimeRobot on `/` and `/health`
+- [ ] Alert on Lemon Squeezy webhook failures
+- [ ] Queue worker + scheduler supervised (restart on reboot)
+- [ ] Automated daily backups, off-server, restore tested
+- [ ] Helpdesk with a published response time
+- [ ] ToS + Privacy reviewed by a lawyer
+- [ ] `APPSUMO_PUBLIC=false` until approval day
+
+---
+
+# TRACK 2 — Listing assets (your work, start now)
+
+AppSumo names missing images as **"the #1 stall"** for partners. Start here, not after the code.
+
+## A. Pricing — decide before anything else
+
+**Move Code 1 from $79 to $49 or less.** AppSumo's listing brief states an entry tier at $49 or under *"converts far better and has a much stronger chance of acceptance."* Target 70%+ off your regular price.
+
+Scope the entry tier by **volume**, never by removing core value. Offline POS and double-entry accounting stay in every tier — those are why someone buys.
+
+Two hard constraints:
+
+- **"Lower than anywhere" is permanent and monitored.** Your AppSumo price must stay below your cheapest price on any channel, forever.
+- **Grandfathering is one-directional.** You can always make the deal more generous. Tightening limits later means killing the listing and starting over. **Set limits for the world where 2,000 people redeem.**
+
+Resolve the conflict in your own files first — `AppSumoController` says $79/$158/$237, the decision doc says $49/$99/$179, and `update_plan_prices.php` changed things again without review.
+
+## B. Images — the shot list
+
+All: clean product UI, plain background, **no device frames, no text overlays**.
+
+| Asset | Spec | What to show |
+|---|---|---|
+| Company icon | 512×512+, PNG/JPG, <5MB | Logo mark only, no wordmark |
+| Hero | 16:9, 1920×1080+, <5MB | The one screen that says "this is a POS with real accounting" — POS terminal mid-sale, or dashboard |
+| Screenshot 1 | Same | POS terminal with a live cart |
+| Screenshot 2 | Same | Inventory with batches/expiry visible |
+| Screenshot 3 | Same | P&L or trial balance — this is your differentiator, show it |
+| Screenshot 4 | Same | Offline mode indicator, or multi-store switcher |
+
+Aim for all four. Approval expects them. Each needs alt text, ~4 words, noun phrase ("Retainer dashboard" style).
+
+**Use `SeedDemoData` to populate realistic data first.** Empty tables photograph badly. Real-looking product names, real-looking numbers.
+
+## C. Copy — write to AppSumo's house style
+
+Their brief bans specific things. Follow it exactly:
+
+- Sentence case everywhere. Never Title Case.
+- **No em dashes.** They call it the strongest tell of AI-written copy.
+- No emoji, no exclamation marks.
+- Banned words: seamless, robust, revolutionary, cutting-edge, game-changing, world-class, leverage, unlock, empower, elevate, "not just X, it's Y", and -ing tails (streamlining, enhancing).
+- **Never mention monthly pricing, annual pricing, free tiers, trials, or "no credit card required"** anywhere in the copy. It is a lifetime deal; pricing lives only in the pricing fields.
+- Specific beats impressive. "Generates a trial balance from every sale automatically" beats "powerful accounting".
+
+Fields to write: product name, tagline (SEO line, lead with the searched term), secondary tagline (5–8 words), USP (30–255 chars), TL;DR (exactly 2 bullets, ≤128 chars each), 2–4 feature stories with 2–5 bullets each, 6–8 FAQ pairs.
+
+FAQs should cover: is it really lifetime, what happens at the limits, can I export my data, refund window, support response time.
+
+## D. Product story — you, publicly
+
+Required-ish and it matters. AppSumo says *"if a founder won't put their name on it publicly, that's a red flag."*
+
+- 2+ first-person paragraphs: why you built it, who for, where it's going. No origin-story clichés.
+- Your real name, role, LinkedIn URL.
+- Founded date, HQ city, team size, stage, funding — pick from their dropdowns, don't invent.
+
+**Create the LinkedIn profile now if it doesn't exist.** It's a field in the form.
+
+## E. Trust signals — optional, but fill what you can
+
+Stripe ARR link, LinkedIn company page, G2, Capterra. Optional section, and you have little to put here. **Get listed on G2 and Capterra anyway** — free, takes an afternoon, and it fills an otherwise empty credibility slot.
+
+---
+
+# TRACK 3 — Traffic you control (the part that decides the outcome)
+
+Self-listing means AppSumo will not market for you. These are the levers that don't require you to sell door-to-door in Pakistan.
+
+### 1. You already built a lead magnet and never launched it
+Phase 7 shipped `/tools/invoice-scanner` — a free public invoice scanner with a budget guard. **This is a distribution asset sitting unused.** Photograph-an-invoice tools are exactly what gets shared. Post it to Reddit, Hacker News, Product Hunt, and accounting/small-business forums as a free tool, not as a VenQore ad.
+
+### 2. Product Hunt launch
+This is how TransferChain got noticed by AppSumo in the first place. Free, one day of effort, and it is the most likely single route to a Select invitation later.
+
+### 3. The "Vyapar alternative" search angle
+Enormous South Asian search volume, and you have real differentiation (actual double-entry accounting, offline-first). You already have the blog system and the SEO groundwork. Comparison pages: VenQore vs Vyapar, vs Loyverse, vs Khatabook.
+
+### 4. Directory listings — one afternoon, permanent
+G2, Capterra, GetApp, AlternativeTo, SaaSHub, Crunchbase. Each is a crawlable backlink, a review surface, and a trust-signal field on your AppSumo listing.
+
+### 5. LTD communities directly
+Facebook groups and subreddits for lifetime-deal buyers are where TransferChain drove their own self-listing sales. These people actively want to find new deals. Search "AppSumo" + "lifetime deal" groups.
+
+### 6. Other LTD marketplaces
+DealMirror, PitchGround, Dealify, SaaSZilla. Lower volume than AppSumo but easier acceptance, and several have strong South Asian audiences. **Check the "lower than anywhere" rule before listing anywhere at a price below AppSumo's.**
+
+---
+
+# Suggested order
+
+| Week | Track 1 (code) | Track 2 / 3 (you) |
+|---|---|---|
+| **1** | C1 schema diff, C8 secrets | Decide pricing and tier limits. Seed demo data. Capture all 6 images |
+| **2** | C2 transaction usage, C3 LTD upgrade path | Write listing copy. Create LinkedIn. G2 + Capterra listings |
+| **3** | C4 warning banners, C5 activity log | **Submit the listing.** Launch invoice-scanner publicly |
+| **4** | C6, C7, C9. Production drill | Product Hunt launch. Comparison blog posts |
+| **5+** | Monitoring, backups, support system | LTD communities, respond to AppSumo Q&A daily |
+
+Submitting in week 3 is realistic. Approval review then runs in parallel with the remaining code work, which is the efficient use of the waiting period.
+
+---
+
+# The one thing that matters most after approval
+
+Your Q&A section is your real sales page, and **AppSumo reviews never expire**. Founders who answer every question personally, in technical detail, within hours, average 4.8+. Founders who let questions sit average 3. On self-listing, where AppSumo sends you no traffic, your Q&A responsiveness and your reviews are close to the *only* things driving conversion.
+
+Block the time before launch day, not after.

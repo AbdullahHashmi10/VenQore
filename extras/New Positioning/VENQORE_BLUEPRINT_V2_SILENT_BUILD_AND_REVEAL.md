@@ -1,3 +1,8 @@
+> ## ⚠️ SUPERSEDED — 11 August 2026
+> Replaced by **`v3/00_MASTER_INDEX.md`** and the numbered set beside it.
+> Three things changed: (1) **Services and field work** were added to V1; (2) the UI strategy became the **headless split** in `v3/04` — new UI in its own tree, shared logic in `Domain/`, nothing written twice; (3) most of §04 (themes) and §06 (the `ui_version` switch) turned out to be **already built** in `App\Support\Appearance` and currently behind the `NEW_EXPERIENCE_ENABLED` kill switch.
+> The core strategy of this document — invisible because defaults reproduce today, not because it is hidden — is unchanged and carried forward in `v3/07`.
+
 # VenQore — Blueprint V2
 ## Silent Build, Single Reveal
 

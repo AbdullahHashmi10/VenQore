@@ -1030,30 +1030,12 @@ class FinancialReportingService
                 'purchases.id as purchase_id'
             )->get();
 
-        // Part B: From invoices & invoice_items (where invoices.type = 'purchase')
-        $sourcingB = DB::table('invoice_items')
-            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->join('parties', 'parties.id', '=', 'invoices.party_id')
-            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
-            ->where('invoices.tenant_id', $tenantId)
-            ->where('invoices.type', 'purchase')
-            ->where('parties.type', 'supplier')
-            ->whereBetween('invoices.date', [$start, $end])
-            ->select(
-                'parties.id as supplier_id',
-                'parties.name as supplier_name',
-                'invoice_items.product_id as product_id',
-                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
-                'invoice_items.received_qty as qty',
-                'invoice_items.effective_unit_cost as unit_cost',
-                'invoices.id as purchase_id'
-            )->get();
-
-        // Merge raw points
-        $mergedPoints = $sourcingA->concat($sourcingB);
+        // The legacy `invoice_items` leg (Part B) was removed 2026-08-11 with the
+        // purchase island. Every purchase now lives in `purchases` /
+        // `purchase_items`, which Part A above reads. See V3_CONSOLIDATION_PLAN.md.
 
         // Group by supplier-product pairs to calculate summaries
-        $sourcing = $mergedPoints->groupBy(function($item) {
+        $sourcing = $sourcingA->groupBy(function($item) {
             return $item->supplier_id . '_' . $item->product_id;
         })->map(function($group) {
             $first = $group->first();
@@ -1097,26 +1079,9 @@ class FinancialReportingService
                 'purchase_items.qty as qty'
             )->get();
 
-        // Part B price history points
-        $historyB = DB::table('invoice_items')
-            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->join('parties', 'parties.id', '=', 'invoices.party_id')
-            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
-            ->where('invoices.tenant_id', $tenantId)
-            ->where('invoices.type', 'purchase')
-            ->where('parties.type', 'supplier')
-            ->whereBetween('invoices.created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
-            ->select(
-                'invoice_items.product_id as product_id',
-                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
-                'parties.id as supplier_id',
-                'parties.name as supplier_name',
-                DB::raw('DATE(invoices.created_at) as date'),
-                'invoice_items.effective_unit_cost as unit_cost',
-                'invoice_items.received_qty as qty'
-            )->get();
+        // Legacy Part B price-history leg removed 2026-08-11 with the purchase island.
 
-        $priceHistory = $historyA->concat($historyB)
+        $priceHistory = $historyA
             ->sortBy('date')
             ->map(fn ($r) => [
                 'product_id'     => $r->product_id,

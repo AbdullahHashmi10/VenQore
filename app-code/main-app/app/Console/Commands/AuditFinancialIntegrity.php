@@ -102,47 +102,20 @@ class AuditFinancialIntegrity extends Command
                 Log::info("Finance Audit [{$tenantId}]: Added {$paymentsAdded} missing sale payment records.");
             }
 
-            // ── STEP 2: Fix missing payment records for purchases ──────────────
-            $this->info('   Checking missing purchase payments...');
-            $purchases = Invoice::where('tenant_id', $tenantId)
-                ->where('type', 'purchase')
-                ->where('paid_amount', '>', 0)
-                ->get();
-            $purchasePaymentsAdded = 0;
-
-            foreach ($purchases as $purchase) {
-                $actualPaymentsOut = (float) Payment::where('tenant_id', $tenantId)
-                    ->where('type', 'out')
-                    ->where('reference', $purchase->invoice_number)
-                    ->sum(DB::raw('ABS(amount)'));
-                $actualPaymentsIn  = (float) Payment::where('tenant_id', $tenantId)
-                    ->where('type', 'in')
-                    ->where('reference', $purchase->invoice_number)
-                    ->sum(DB::raw('ABS(amount)'));
-
-                $actualPaymentsNet = $actualPaymentsOut - $actualPaymentsIn;
-
-                if ($actualPaymentsNet < ($purchase->paid_amount - 0.01)) {
-                    $missingAmount = $purchase->paid_amount - $actualPaymentsNet;
-                    if ($missingAmount > 0) {
-                        Payment::create([
-                            'tenant_id' => $tenantId,
-                            'party_id'  => $purchase->party_id,
-                            'amount'    => $missingAmount,
-                            'method'    => 'cash',
-                            'type'      => 'out',
-                            'date'      => $purchase->created_at->toDateString(),
-                            'reference' => $purchase->invoice_number,
-                            'notes'     => 'SYSTEM-AUDIT-FIX missing purchase payment',
-                        ]);
-                        $purchasePaymentsAdded++;
-                    }
-                }
-            }
-
-            if ($purchasePaymentsAdded > 0) {
-                $this->info("   Added {$purchasePaymentsAdded} missing purchase payment records.");
-            }
+            // ── STEP 2: REMOVED 2026-08-11 with the legacy purchase island ─────
+            //
+            // This step reconciled `Payment` rows against `invoices.paid_amount`
+            // for purchases, fabricating a Payment where the two disagreed.
+            //
+            // It has no V3 equivalent, and deliberately so. `purchases` has no
+            // `paid_amount` column — paid amount is DERIVED from the ledger (AP
+            // debits on live `purchase_payment` entries). A stored copy is what
+            // drifted; removing the copy removed the entire class of drift this
+            // step existed to paper over.
+            //
+            // Do not "restore" this by adding paid_amount back. See
+            // V3_CONSOLIDATION_PLAN.md principle 3 and the guardrail in
+            // tests/tests/Feature/Golden/PurchaseIslandGuardTest.php.
 
             // ── STEP 3: Re-link orphan fund transactions ───────────────────────
             $this->info('   Linking orphan fund transactions...');

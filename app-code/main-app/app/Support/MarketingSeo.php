@@ -180,7 +180,15 @@ class MarketingSeo
         }
 
         // Force the canonical URL to HTTPS, venqore.com host, and remove trailing slashes (except for home page)
-        $path = $route->uri() === '/' ? '' : '/' . rtrim($route->uri(), '/');
+        $uri = $route->uri();
+        foreach ($route->parameters() as $key => $value) {
+            $uri = str_replace(['{' . $key . '}', '{' . $key . '?}'], (string) $value, $uri);
+        }
+        $uri = preg_replace('/\{[a-zA-Z_0-9\-]+\?\}/', '', $uri);
+        $path = $uri === '/' ? '' : '/' . rtrim($uri, '/');
+        if ($path !== '' && !str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
         $def['canonical'] = 'https://venqore.com' . $path;
         $def['og_image']  = $def['og_image'] ?? url('/images/logo.png');
 

@@ -1,409 +1,428 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { formatCurrency, formatNumber } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import DualStatCard from '@/Components/DualStatCard';
-import ChartSection from '@/Components/ChartSection';
-import RightPanel from '@/Components/RightPanel';
-import {
-    TrendingUp,
-    CreditCard,
-    Wallet,
-    MoreHorizontal,
-    Activity,
-    ChevronDown,
-    ChevronLeft
-} from 'lucide-react';
-import PremiumDropdown from '@/Components/PremiumDropdown';
-import TodaysOpportunities from '@/Components/TodaysOpportunities';
-import WelcomeTourModal from '@/Components/WelcomeTourModal';
-import DashboardTourGuide from '@/Components/DashboardTourGuide';
 import { usePermission } from '@/Hooks/usePermission';
+import ReactGridLayout from 'react-grid-layout';
+import useMeasure from 'react-use-measure';
 
-export default function Dashboard({
-    performance,
-    outstanding,
-    netProfit,
-    salesData,
-    topSellingItems,
-    lowStockItems,
-    recentPurchases = [],
-    recentTransactions,
-    plSummary,
-    bankAccounts,
-    cashAccounts,
-    cashData,
-    inventoryValue
-}) {
+import {
+    Plus,
+    Save,
+    Lock,
+    Unlock,
+    RotateCcw,
+    Globe,
+    AlertCircle,
+    Info,
+    Layout
+} from 'lucide-react';
+
+import { getChartComponent } from '../Dashboard/chartRegistry';
+import DashboardCardFrame from '../Dashboard/components/DashboardCardFrame';
+import DashboardBuilderSheet from '../Dashboard/components/DashboardBuilderSheet';
+import axios from 'axios';
+
+export default function Dashboard() {
     const { auth, store } = usePage().props;
     const { hasPerm, isAdmin } = usePermission();
+    const [gridRef, { width }] = useMeasure();
 
-    const canSales = hasPerm('sales', 'reports');
-    const canFinance = hasPerm('finance');
-    const canInventory = hasPerm('inventory');
-    const canReports = hasPerm('reports');
-    const canPurchases = hasPerm('purchases');
+    const [dashboards, setDashboards] = useState([]);
+    const [currentDashboard, setCurrentDashboard] = useState(null);
+    const [catalogue, setCatalogue] = useState([]);
+    const [cardData, setCardData] = useState({});
+    const [cardLoaders, setCardLoaders] = useState({});
+    const [cardErrors, setCardErrors] = useState({});
 
-    const showRightPanel = isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant';
+    // Builder sheet & Edit states
+    const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+    const [activeLayout, setActiveLayout] = useState([]);
+    const [isSavingLayout, setIsSavingLayout] = useState(false);
 
-    const [profitView, setProfitView] = useState('Month');
-    const [performancePeriod, setPerformancePeriod] = useState('Today');
-    const [outstandingPeriod, setOutstandingPeriod] = useState('Month');
-    const [netProfitPeriod, setNetProfitPeriod] = useState('Month');
-    const [purchasesPeriod, setPurchasesPeriod] = useState('Month');
-    const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
+    const isManager = isAdmin || hasPerm('admin.settings_manage');
 
-    const currentProfit = plSummary[profitView] || { income: 0, expense: 0, profit: 0, status: 'good' };
-    const purchasesList = Array.isArray(recentPurchases) ? recentPurchases : (recentPurchases[purchasesPeriod] || []);
+    // 1. Initialise Dashboard, Layouts, and catalogue metadata
+    useEffect(() => {
+        loadDashboards();
+        loadCatalogue();
+    }, []);
+
+    const loadDashboards = async () => {
+        try {
+            const res = await axios.get('/api/dashboards');
+            setDashboards(res.data.data);
+            if (res.data.data.length > 0) {
+                // Default to first active or default dashboard
+                const defaultDb = res.data.data.find(d => d.is_default) || res.data.data[0];
+                loadDashboardDetail(defaultDb.id);
+            }
+        } catch (err) {
+            console.error('Failed to load dashboards list', err);
+        }
+    };
+
+    const loadCatalogue = async () => {
+        try {
+            const res = await axios.get('/api/reckoner/catalogue');
+            setCatalogue(res.data.data);
+        } catch (err) {
+            console.error('Failed to load metrics catalogue', err);
+        }
+    };
+
+    const loadDashboardDetail = async (id) => {
+        try {
+            const res = await axios.get(`/api/dashboards/${id}`);
+            const db = res.data.data;
+            setCurrentDashboard(db);
+            
+            // Map card structures for react-grid-layout
+            const gridLayout = db.cards.map(c => ({
+                i: c.id,
+                x: c.x,
+                y: c.y,
+                w: c.w,
+                h: c.h
+            }));
+            setActiveLayout(gridLayout);
+
+            // Trigger batch reading for all cards
+            fetchCardsData(db.cards);
+        } catch (err) {
+            console.error('Failed to load dashboard details', err);
+        }
+    };
+
+    // 2. Batch read metrics values from backend Reckoner API
+    const fetchCardsData = async (cards) => {
+        if (!cards || cards.length === 0) return;
+
+        // Set loaders
+        const loaders = {};
+        const errors = {};
+        cards.forEach(c => {
+            loaders[c.id] = true;
+            errors[c.id] = false;
+        });
+        setCardLoaders(loaders);
+        setCardErrors(errors);
+
+        // Prepare requests
+        const requests = cards.map(c => ({
+            key: c.reading_key,
+            period: c.period || 'today',
+            custom: c.period_custom,
+            granularity: c.granularity,
+            args: c.args || {}
+        }));
+
+        try {
+            const res = await axios.post('/api/reckoner/read', { requests });
+            const results = res.data.data;
+
+            const newData = {};
+            const newLoaders = { ...loaders };
+            
+            cards.forEach((c, index) => {
+                const result = results[index];
+                if (result && result.ok) {
+                    newData[c.id] = result.data;
+                } else {
+                    errors[c.id] = true;
+                }
+                newLoaders[c.id] = false;
+            });
+
+            setCardData(newData);
+            setCardLoaders(newLoaders);
+            setCardErrors(errors);
+        } catch (err) {
+            console.error('Failed to batch-read cards metrics values', err);
+            const errStates = {};
+            cards.forEach(c => {
+                errStates[c.id] = true;
+                loaders[c.id] = false;
+            });
+            setCardErrors(errStates);
+            setCardLoaders(loaders);
+        }
+    };
+
+    // 3. Grid interactions
+    const handleLayoutChange = (layout) => {
+        // Update layout coords locally
+        setActiveLayout(layout);
+    };
+
+    const handleSaveLayout = async () => {
+        if (!currentDashboard) return;
+        setIsSavingLayout(true);
+
+        const updatedCards = currentDashboard.cards.map(c => {
+            const gridItem = activeLayout.find(item => item.i === c.id);
+            return {
+                ...c,
+                x: gridItem ? gridItem.x : c.x,
+                y: gridItem ? gridItem.y : c.y,
+                w: gridItem ? gridItem.w : c.w,
+                h: gridItem ? gridItem.h : c.h
+            };
+        });
+
+        try {
+            await axios.put(`/api/dashboards/${currentDashboard.id}/layout`, {
+                cards: updatedCards
+            });
+            setIsSavingLayout(false);
+            loadDashboardDetail(currentDashboard.id);
+        } catch (err) {
+            console.error('Failed to save layout coordinates', err);
+            setIsSavingLayout(false);
+        }
+    };
+
+    // 4. Card additions and deletions
+    const handleAddCard = async (cardConfig) => {
+        if (!currentDashboard) return;
+        try {
+            await axios.post(`/api/dashboards/${currentDashboard.id}/cards`, cardConfig);
+            loadDashboardDetail(currentDashboard.id);
+        } catch (err) {
+            console.error('Failed to add card to dashboard', err);
+        }
+    };
+
+    const handleRemoveCard = async (cardId) => {
+        if (!currentDashboard) return;
+        try {
+            await axios.delete(`/api/dashboards/${currentDashboard.id}/cards/${cardId}`);
+            loadDashboardDetail(currentDashboard.id);
+        } catch (err) {
+            console.error('Failed to remove card', err);
+        }
+    };
+
+    // 5. Manager publishing & locking layout toggles
+    const handleResetLayout = async () => {
+        if (!currentDashboard) return;
+        if (!confirm('Are you sure you want to reset this layout to default settings?')) return;
+        try {
+            await axios.post(`/api/dashboards/${currentDashboard.id}/reset`);
+            loadDashboardDetail(currentDashboard.id);
+        } catch (err) {
+            console.error('Failed to reset layout', err);
+        }
+    };
+
+    const handlePublishLayout = async () => {
+        if (!currentDashboard) return;
+        const role = prompt('Enter role name to publish this layout to (e.g., cashier, manager):');
+        if (!role) return;
+        const lock = confirm('Do you want to lock this layout for everyone in this role?');
+        
+        try {
+            await axios.post(`/api/dashboards/${currentDashboard.id}/publish`, {
+                for_role: role.trim().toLowerCase(),
+                is_locked: lock
+            });
+            alert('Layout published successfully!');
+            loadDashboards();
+        } catch (err) {
+            console.error('Failed to publish layout', err);
+        }
+    };
 
     return (
         <OneGlanceLayout activeMenu="Dashboard">
-            <Head title="Dashboard" />
+            <Head title="Composition Dashboard" />
 
+            {/* Injected Grid Layout Selector Styles */}
             <style>{`
-                @keyframes nudge-left {
-                    0%, 100% { transform: translateY(-50%) translateX(0); }
-                    50% { transform: translateY(-50%) translateX(-3px); }
+                .react-grid-layout {
+                    position: relative;
+                    transition: height 200ms ease;
                 }
-                .animate-nudge-left {
-                    animation: nudge-left 2.5s ease-in-out infinite;
+                .react-grid-item {
+                    transition: all 200ms ease;
+                    transition-property: left, top;
+                }
+                .react-grid-item.cssTransforms {
+                    transition: property left, top 200ms ease;
+                }
+                .react-grid-item.resizing {
+                    z-index: 10;
+                    opacity: 0.8;
+                }
+                .react-grid-item.react-draggable-dragging {
+                    z-index: 50;
+                    opacity: 0.9;
+                    cursor: grabbing;
+                }
+                .react-grid-item > .react-resizable-handle {
+                    position: absolute;
+                    width: 14px;
+                    height: 14px;
+                    bottom: 4px;
+                    right: 4px;
+                    cursor: se-resize;
+                    border-right: 2px solid rgb(203, 213, 225);
+                    border-bottom: 2px solid rgb(203, 213, 225);
+                }
+                .dark .react-grid-item > .react-resizable-handle {
+                    border-right-color: rgb(71, 85, 105);
+                    border-bottom-color: rgb(71, 85, 105);
                 }
             `}</style>
 
-            {/* Mobile Right Panel Drawer (Rendered outside overflow clipping container) */}
-            {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
-                <div className="lg:hidden">
-                    {mobileRightPanelOpen && (
-                        <div className="fixed inset-0 bg-black/50 z-[90]" onClick={() => setMobileRightPanelOpen(false)} />
-                    )}
-                    <div
-                        className={`
-                            fixed top-0 right-0 h-[100vh] z-[100]
-                            transition-transform duration-300 ease-in-out transform
-                            ${mobileRightPanelOpen ? 'translate-x-0' : 'translate-x-full'}
-                            w-[320px] bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800 p-4 flex flex-col h-full
-                        `}
-                    >
-                        {/* Custom curved sideline overlay notch on the left edge of the sidebar */}
-                        <button
-                            onClick={() => setMobileRightPanelOpen(!mobileRightPanelOpen)}
-                            className={`absolute left-[-24px] top-1/2 -translate-y-1/2 z-[110] lg:hidden w-6 h-32 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition-colors pointer-events-auto ${!mobileRightPanelOpen ? 'animate-nudge-left' : ''}`}
-                            style={{ filter: 'drop-shadow(-4px 4px 6px rgba(0, 0, 0, 0.04))' }}
-                        >
-                            <svg
-                                className="absolute inset-0 w-full h-full text-white dark:text-slate-900 pointer-events-none"
-                                viewBox="0 0 24 128"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M 24 0 C 24 20, 0 35, 0 64 C 0 93, 24 108, 24 128 Z"
-                                    fill="currentColor"
-                                />
-                                <path
-                                    d="M 24 0 C 24 20, 0 35, 0 64 C 0 93, 24 108, 24 128"
-                                    fill="none"
-                                    className="stroke-slate-100 dark:stroke-slate-800"
-                                    strokeWidth="1"
-                                />
-                            </svg>
-                            <ChevronLeft size={14} className={`relative z-10 transition-transform duration-300 ${mobileRightPanelOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <RightPanel
-                                recentTransactions={recentTransactions}
-                                bankAccounts={bankAccounts}
-                                cashAccounts={cashAccounts}
-                                cashData={cashData}
-                                inventoryValue={inventoryValue}
-                            />
+            <div className="flex flex-col gap-6 w-full pt-2 pb-6 px-4">
+                
+                {/* --- Dashboard Controls Panel --- */}
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-2xl">
+                            <Layout size={20} className="stroke-[2.5]" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-1">
+                                {currentDashboard?.name || 'Loading Dashboard...'}
+                            </h1>
+                            <p className="text-3xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                {currentDashboard?.is_locked ? '🔒 Locked by management' : '⚡ Personal layout'}
+                            </p>
                         </div>
                     </div>
-                </div>
-            )}
 
-            <div className="grid grid-cols-12 gap-6 w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
-
-                {/* --- Left Side Content --- */}
-                <div className={`col-span-12 ${showRightPanel ? 'lg:col-span-9' : ''} flex flex-col gap-6`}>
-                    
-                    {/* --- Row 1: High Level Stats --- */}
-                    <div className="flex flex-col sm:flex-row gap-6 w-full">
-                        {canSales && (
-                            <div id="tour-performance" className="flex-1 min-h-[140px]">
-                                <DualStatCard
-                                    title="Performance"
-                                    leftLabel="Total Revenue" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
-                                    rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0), store)}
-                                    icon={TrendingUp}
-                                    colorClass="bg-indigo-500"
-                                    delay={0}
-                                    period={performancePeriod}
-                                    onPeriodChange={setPerformancePeriod}
-                                    onLeftClick={() => router.visit(route('store.sales.index', { store_slug: store?.slug }))}
-                                    onRightClick={() => router.visit(route('store.reports.dashboard', { store_slug: store?.slug }))}
-                                />
-                            </div>
-                        )}
-                        {canFinance && (
-                            <div id="tour-outstanding" className="flex-1 min-h-[140px]">
-                                <DualStatCard
-                                    title="Outstanding"
-                                    leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0), store)}
-                                    rightLabel="To Pay" rightValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.payables || 0), store)}
-                                    icon={CreditCard}
-                                    colorClass="bg-orange-500"
-                                    delay={100}
-                                    period={outstandingPeriod}
-                                    onPeriodChange={setOutstandingPeriod}
-                                    onLeftClick={() => router.visit(route('store.finance.receivables', { store_slug: store?.slug }))}
-                                    onRightClick={() => router.visit(route('store.finance.payables', { store_slug: store?.slug }))}
-                                />
-                            </div>
-                        )}
-                        {canFinance && (
-                            <div id="tour-net-profit" className="flex-1 min-h-[140px]">
-                                <div
-                                    onClick={() => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug }))}
-                                    className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col justify-center gap-2 h-full relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300 cursor-pointer"
-                                >
-                                    <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
-
-                                    <div className="flex items-center gap-3 relative z-10 shrink-0">
-                                        <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
-                                            <Wallet size={18} />
-                                        </div>
-                                        <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">Net Profit</h3>
-                                        <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
-                                            <PremiumDropdown
-                                                options={[
-                                                    { value: 'Today', label: 'Today' },
-                                                    { value: 'Month', label: 'Month' },
-                                                    { value: 'Year', label: 'Year' },
-                                                    { value: 'All Time', label: 'All Time' }
-                                                ]}
-                                                value={netProfitPeriod}
-                                                onChange={setNetProfitPeriod}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3 relative z-10 grow items-center">
-                                        <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
-                                        <div className="text-center min-w-0">
-                                            <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
-                                            <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
-                                        </div>
-                                        <div className="text-center min-w-0">
-                                            <p className="text-2xs uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
-                                                {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
-                                            </p>
-                                            <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-3xs font-medium opacity-80 leading-none">
-                                                <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Revenue">Revenue: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
-                                                <span className="text-red-500 whitespace-nowrap" title="Expenses">Expenses: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* --- Row 2: Sales Chart & Opportunities --- */}
-                    <div className="flex flex-col lg:flex-row gap-6 w-full min-h-[300px]">
-                        {canSales && (
-                            <div id="tour-sales-chart" className={`flex-1 min-h-[300px]`}>
-                                <ChartSection salesData={salesData} />
-                            </div>
-                        )}
-                        {isAdmin && store?.features?.growth_engine == 1 && (
-                            <div id="tour-opportunities" className="w-full lg:w-[280px] shrink-0 flex flex-col">
-                                <TodaysOpportunities className="flex-1" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* --- Row 3: Tables --- */}
-                    <div className="flex flex-col lg:flex-row gap-6 w-full">
-                        {/* Top Selling Items */}
-                        {canSales && (
-                            <div id="tour-top-products" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px] group">
-                                <div className="flex justify-between items-center mb-4 shrink-0">
-                                    <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                        <div className="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
-                                        Top Products
-                                    </h3>
-                                    <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-indigo-600"><MoreHorizontal size={18} /></button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="text-xs font-semibold text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                                                <th className="pb-3 pl-2">Product</th>
-                                                <th className="pb-3 text-center">Volume</th>
-                                                <th className="pb-3 text-right pr-2">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {topSellingItems.map((item, i) => (
-                                                <tr key={i} className="group/row hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-default rounded-xl">
-                                                    <td className="py-3 pl-2 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-sm border border-slate-200 dark:border-slate-700 group-hover/row:scale-110 transition-transform">
-                                                                {item.image}
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
-                                                                <p className="text-2xs text-slate-400 font-medium">{item.category}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3 text-sm text-center font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                                        <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md text-xs">{item.sold}</span>
-                                                    </td>
-                                                    <td className="py-3 pr-2 text-sm text-right font-bold text-emerald-600 dark:text-emerald-400 border-b border-slate-50 dark:border-slate-800/50 group-last/row:border-none">
-                                                        {item.revenue}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {topSellingItems.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="3" className="py-8 text-center text-slate-400 text-sm">No sales data yet.</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
+                    <div className="flex items-center gap-2 shrink-0 select-none">
+                        {/* Tab Switchers */}
+                        {dashboards.length > 1 && (
+                            <div className="flex items-center bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/60 p-0.5 rounded-xl mr-2 text-3xs font-bold">
+                                {dashboards.map(db => (
+                                    <button
+                                        key={db.id}
+                                        onClick={() => loadDashboardDetail(db.id)}
+                                        className={`px-3 py-1.5 rounded-lg transition-colors ${currentDashboard?.id === db.id ? 'bg-white dark:bg-slate-900 text-indigo-500 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                    >
+                                        {db.name}
+                                    </button>
+                                ))}
                             </div>
                         )}
 
-                        {/* LOW STOCK ITEMS */}
-                        {canInventory && (
-                            <div id="tour-low-stock" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px]">
-                                <div className="flex justify-between items-center mb-4 shrink-0">
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                                        <div className="w-1.5 h-5 bg-red-500 rounded-full"></div>
-                                        Low Stock Alerts
-                                    </h3>
-                                    <button className="text-xs text-indigo-600 font-medium hover:underline">View All</button>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
-                                    {lowStockItems.map((item) => (
-                                        <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
-                                                <p className="text-2xs text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
-                                            </div>
-                                            {canPurchases && (
-                                                <button
-                                                    onClick={() => router.visit(route('store.purchases.create', { store_slug: store?.slug, product_id: item.id }))}
-                                                    className="px-2 py-1 bg-white dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 hover:text-indigo-600"
-                                                >
-                                                    Order
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                    {lowStockItems.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                            <span className="text-2xl">✅</span>
-                                            <p className="text-xs mt-2">Stock levels are healthy</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        {/* Reset layout */}
+                        {!currentDashboard?.is_locked && (
+                            <button
+                                onClick={handleResetLayout}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-slate-800/30 dark:border-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                                title="Reset dashboard to role defaults"
+                            >
+                                <RotateCcw size={12} />
+                                <span>Reset</span>
+                            </button>
                         )}
 
-                        {/* PURCHASES */}
-                        {canPurchases && (
-                            <div id="tour-purchases" className="flex-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-[300px]">
-                                <div className="flex justify-between items-center mb-4 shrink-0">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
-                                        <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Purchases</h3>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div onClick={(e) => e.stopPropagation()}>
-                                            <PremiumDropdown
-                                                options={[
-                                                    { value: 'Today', label: 'Today' },
-                                                    { value: 'Month', label: 'Month' },
-                                                    { value: 'Year', label: 'Year' },
-                                                    { value: 'All Time', label: 'All Time' }
-                                                ]}
-                                                value={purchasesPeriod}
-                                                onChange={setPurchasesPeriod}
-                                            />
-                                        </div>
-                                        <button
-                                            onClick={() => router.visit(route('store.purchases.index', { store_slug: store?.slug }))}
-                                            className="text-xs text-indigo-600 font-medium hover:underline"
-                                        >
-                                            View All
-                                        </button>
-                                    </div>
-                                </div>
+                        {/* Add metric card button */}
+                        {!currentDashboard?.is_locked && (
+                            <button
+                                onClick={() => setIsBuilderOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                            >
+                                <Plus size={12} />
+                                <span>Add Card</span>
+                            </button>
+                        )}
 
-                                <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
-                                    {purchasesList.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            onClick={() => router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: item.id }))}
-                                            className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/10 rounded-xl border border-orange-100 dark:border-orange-900/20 hover:scale-[1.01] transition-transform cursor-pointer"
-                                        >
-                                            <div className="min-w-0 flex-1 pr-2">
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.supplier_name}</p>
-                                                <p className="text-2xs text-slate-400 font-medium">{item.date}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.total_amount}</span>
-                                                <p className="text-3xs uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {purchasesList.length === 0 && (
-                                        <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8">
-                                            <span className="text-2xl">📦</span>
-                                            <p className="text-xs mt-2">No purchases recorded yet</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        {/* Save Layout updates */}
+                        {!currentDashboard?.is_locked && (
+                            <button
+                                onClick={handleSaveLayout}
+                                disabled={isSavingLayout}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                            >
+                                <Save size={12} />
+                                <span>{isSavingLayout ? 'Saving...' : 'Save Layout'}</span>
+                            </button>
+                        )}
+
+                        {/* Publisher & Locker (Manager/Owner only) */}
+                        {isManager && (
+                            <button
+                                onClick={handlePublishLayout}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                            >
+                                <Globe size={12} />
+                                <span>Publish</span>
+                            </button>
                         )}
                     </div>
                 </div>
 
-                {/* --- RIGHT PANEL (Desktop Only) --- */}
-                {showRightPanel && (
-                    <div id="tour-right-panel" className="hidden lg:block col-span-3 h-full">
-                        <RightPanel
-                            recentTransactions={recentTransactions}
-                            bankAccounts={bankAccounts}
-                            cashAccounts={cashAccounts}
-                            cashData={cashData}
-                            inventoryValue={inventoryValue}
-                        />
+                {/* --- Grid Layout View --- */}
+                {currentDashboard?.cards?.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl p-12 text-center max-w-lg mx-auto mt-12 select-none">
+                        <Info size={36} className="text-slate-300 dark:text-slate-600 mb-3" />
+                        <h2 className="font-extrabold text-slate-700 dark:text-slate-300 text-sm tracking-tight mb-1">Your Dashboard is Empty</h2>
+                        <p className="text-3xs text-slate-400 dark:text-slate-500 font-semibold mb-4 leading-normal">Add metrics cards to create your customized sales, finance, and operations overview.</p>
+                        <button
+                            onClick={() => setIsBuilderOpen(true)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+                        >
+                            <Plus size={14} />
+                            <span>Add Card</span>
+                        </button>
+                    </div>
+                ) : (
+                    <div ref={gridRef} className="w-full">
+                        {width > 0 && (
+                            <ReactGridLayout
+                                className="layout mt-2"
+                                layout={activeLayout}
+                                cols={12}
+                                rowHeight={80}
+                                width={width}
+                                margin={[16, 16]}
+                                isDraggable={!currentDashboard?.is_locked}
+                                isResizable={!currentDashboard?.is_locked}
+                                onLayoutChange={handleLayoutChange}
+                                draggableHandle=".font-bold" // dragging is initiated by header
+                            >
+                                {currentDashboard?.cards?.map(card => {
+                                    const def = catalogue.find(m => m.key === card.reading_key);
+                                    const Chart = getChartComponent(card.chart);
+                                    
+                                    return (
+                                        <div key={card.id}>
+                                            <DashboardCardFrame
+                                                card={card}
+                                                definition={def}
+                                                loading={cardLoaders[card.id]}
+                                                error={cardErrors[card.id]}
+                                                isLocked={currentDashboard?.is_locked}
+                                                onRemove={() => handleRemoveCard(card.id)}
+                                            >
+                                                {cardData[card.id] && Chart && (
+                                                    <Chart
+                                                        data={cardData[card.id]}
+                                                        definition={def}
+                                                        settings={store?.settings}
+                                                    />
+                                                )}
+                                            </DashboardCardFrame>
+                                        </div>
+                                    );
+                                })}
+                            </ReactGridLayout>
+                        )}
                     </div>
                 )}
-
             </div>
 
-            {!store?.is_demo && !store?.onboarding_completed && (
-                store?.onboarding_step === 'welcome' || 
-                store?.onboarding_step === 'purchase_tour_start' || 
-                store?.onboarding_step === 'purchase_tour_sidebar' ||
-                store?.onboarding_step === 'invoice_tour_start' ||
-                store?.onboarding_step === 'pos_tour_start' ||
-                store?.onboarding_step === 'expense_tour_start'
-            ) && (
-                <WelcomeTourModal store={store} />
-            )}
-            
-            {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
-                <DashboardTourGuide store={store} />
-            )}
+            {/* Step-by-Step Metric card Builder */}
+            <DashboardBuilderSheet
+                isOpen={isBuilderOpen}
+                onClose={() => setIsBuilderOpen(false)}
+                catalogue={catalogue}
+                onSubmit={handleAddCard}
+            />
         </OneGlanceLayout>
     );
 }

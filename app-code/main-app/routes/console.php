@@ -59,6 +59,15 @@ Artisan::command('inspire', function () {
     ->hourly()
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
+// V3 consolidation, Phase 0 step 2 -- see V3_CONSOLIDATION_PLAN.md
+// Read-only daily count of rows still in the legacy purchase island
+// (invoices type=purchase/purchase_return). Must go FLAT after Phase 5
+// cutover and ZERO after Phase 6. A count still climbing after cutover
+// means a legacy writer was missed.
+\Illuminate\Support\Facades\Schedule::command('purchases:divergence-count')
+    ->dailyAt('03:30')
+    ->withoutOverlapping();
+
 // â”€â”€ Phase 2.4: Tenant Lifecycle Automation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Sends day-7 and day-2 reminder emails to tenants still on trial
 \Illuminate\Support\Facades\Schedule::command('tenants:send-trial-reminders')

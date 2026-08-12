@@ -98,10 +98,11 @@ class AdminController extends Controller
                 'net'      => $flow['net_cash_flow'],
             ];
             
-            $purchases = \App\Models\Invoice::where('type', 'purchase')
-                ->where('tenant_id', $tenant->id ?? null)
-                ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-                ->sum('total_amount');
+            // V3: purchases live in `purchases` (date -> purchase_date, total_amount -> total).
+            $purchases = \App\Models\Purchase::where('tenant_id', $tenant->id ?? null)
+                ->where('workflow_status', '!=', 'cancelled')
+                ->whereBetween('purchase_date', [$start->toDateString(), $end->toDateString()])
+                ->sum('total');
 
             return [
                 'month' => $monthName,

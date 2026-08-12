@@ -164,37 +164,30 @@ class DashboardController extends Controller
 
     private function purchasingDashboard(Carbon $now)
     {
-        // Recent purchase orders
+        // Recent purchase orders — V3: purchases live in `purchases`.
+        // This previously read Invoice::where('type','purchase') with a fallback
+        // to `purchases` in a catch block. The catch never fired: an emptied
+        // legacy table does not throw, it returns zero rows. Reading the right
+        // table directly is the fix.
+        //
+        // `status` here means the GOODS state, so it maps to workflow_status —
+        // the widget below filters on 'received'/'cancelled'/'ordered'.
         $orders = collect([]);
         try {
-            $orders = \App\Models\Invoice::where('type', 'purchase')
-                ->with('party:id,name')
+            $orders = \App\Models\Purchase::with('party:id,name')
                 ->latest()
                 ->take(10)
                 ->get()
                 ->map(fn($po) => [
                     'id'            => $po->id,
                     'supplier_name' => $po->party?->name ?? '—',
-                    'total_amount'  => $po->total_amount,
-                    'status'        => $po->status ?? 'ordered',
-                    'expected_date' => $po->due_date?->format('d M Y'),
+                    'total_amount'  => $po->total,
+                    'status'        => $po->workflow_status ?? 'ordered',
+                    'expected_date' => $po->due_date
+                        ? \Carbon\Carbon::parse($po->due_date)->format('d M Y')
+                        : null,
                 ]);
-        } catch (\Throwable) {
-            // Fallback to purchases table
-            try {
-                $orders = \App\Models\Purchase::with('party:id,name')
-                    ->latest()
-                    ->take(10)
-                    ->get()
-                    ->map(fn($po) => [
-                        'id'            => $po->id,
-                        'supplier_name' => $po->party?->name ?? '—',
-                        'total_amount'  => $po->total_amount ?? $po->grand_total ?? 0,
-                        'status'        => $po->status ?? 'ordered',
-                        'expected_date' => null,
-                    ]);
-            } catch (\Throwable) {}
-        }
+        } catch (\Throwable) {}
 
         $openCount = $orders->whereNotIn('status', ['received', 'cancelled'])->count();
 
@@ -209,9 +202,10 @@ class DashboardController extends Controller
         // Monthly spend
         $monthlySpend = 0;
         try {
-            $monthlySpend = \App\Models\Invoice::where('type', 'purchase')
+            // V3: purchases live in `purchases` (total_amount -> total).
+            $monthlySpend = \App\Models\Purchase::where('workflow_status', '!=', 'cancelled')
                 ->whereBetween('created_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()])
-                ->sum('total_amount');
+                ->sum('total');
         } catch (\Throwable) {}
 
         $payables = $this->getOutstanding()['payables'];
@@ -453,8 +447,12 @@ class DashboardController extends Controller
             ];
 
             foreach ($periods as $periodKey => $range) {
+                // V3: purchases live in `purchases`. The old Invoice-first /
+                // Purchase-in-catch pattern was dead — an empty legacy table
+                // returns zero rows rather than throwing, so the fallback never ran.
                 try {
-                    $query = \App\Models\Invoice::where('type', 'purchase')->with('party:id,name');
+                    $query = \App\Models\Purchase::with('party:id,name')
+                        ->where('workflow_status', '!=', 'cancelled');
                     if ($range) {
                         $query->whereBetween('created_at', $range);
                     }
@@ -465,31 +463,12 @@ class DashboardController extends Controller
                             return [
                                 'id'            => $po->id,
                                 'supplier_name' => $po->party?->name ?? '—',
-                                'total_amount'  => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($po->total_amount),
-                                'status'        => $po->status ?? 'ordered',
+                                'total_amount'  => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($po->total),
+                                'status'        => $po->workflow_status ?? 'ordered',
                                 'date'          => $po->created_at->diffForHumans(),
                             ];
                         });
-                } catch (\Throwable $e) {
-                    try {
-                        $query = \App\Models\Purchase::with('party:id,name');
-                        if ($range) {
-                            $query->whereBetween('created_at', $range);
-                        }
-                        $recentPurchases[$periodKey] = $query->latest()
-                            ->take(5)
-                            ->get()
-                            ->map(function ($po) use ($currencySym) {
-                                return [
-                                    'id'            => $po->id,
-                                    'supplier_name' => $po->party?->name ?? '—',
-                                    'total_amount'  => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($po->total_amount ?? $po->grand_total ?? 0),
-                                    'status'        => $po->status ?? 'ordered',
-                                    'date'          => $po->created_at->diffForHumans(),
-                                ];
-                            });
-                    } catch (\Throwable $e2) {}
-                }
+                } catch (\Throwable $e) {}
             }
         }
 

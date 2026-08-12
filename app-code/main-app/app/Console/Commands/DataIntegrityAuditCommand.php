@@ -36,17 +36,19 @@ class DataIntegrityAuditCommand extends Command
         $this->info("=================================================================");
 
         // ── Bootstrapping tenant ──
-        $this->tenant = Tenant::find(self::TENANT_ID);
-        if (!$this->tenant) {
+        $tenant = Tenant::find(self::TENANT_ID);
+        if (!$tenant) {
             $this->error("Golden Audit Tenant not found. Run migrations and seed first.");
             return Command::FAILURE;
         }
+        $this->tenant = $tenant;
 
-        $this->user = User::find(self::USER_OWNER);
-        if (!$this->user) {
+        $user = User::find(self::USER_OWNER);
+        if (!$user) {
             $this->error("Owner user not found.");
             return Command::FAILURE;
         }
+        $this->user = $user;
 
         auth()->login($this->user);
         app()->instance('current.tenant', $this->tenant);

@@ -67,6 +67,10 @@ class PlanLimitException extends Exception
             'limit'        => $tenant?->getLimit($this->feature),
         ];
 
+        if ($this->feature === 'transactions_per_month') {
+            $payload['code'] = 'TRANSACTION_LIMIT_REACHED';
+        }
+
         if ($request->header('X-Inertia')) {
             return back()->with('plan_limit', $payload);
         }

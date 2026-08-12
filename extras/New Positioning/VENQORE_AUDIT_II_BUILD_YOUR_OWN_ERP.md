@@ -1,3 +1,7 @@
+> ## ⚠️ SUPERSEDED ON PLANNING — 11 August 2026
+> The programme now runs from **`v3/00_MASTER_INDEX.md`** and the numbered set beside it.
+> **Still authoritative:** §00 findings (the entitlement layer, `tenant_plan_overrides`, the capability catalogue) and §07 risks. Everything about timeline, 90-day plan and scope is superseded.
+
 # VenQore — Audit II
 ## "Build Your Own ERP" — Incremental Repositioning Strategy
 

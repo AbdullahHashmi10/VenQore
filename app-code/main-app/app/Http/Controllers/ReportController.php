@@ -231,19 +231,43 @@ class ReportController extends Controller
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $supplierId = $request->input('supplier_id');
 
-        $query = Invoice::with('party')->where('type', 'purchase')
-            ->whereBetween('date', [$startDate, $endDate]);
+        // V3: purchases live in `purchases`, not `invoices`. Legacy column names
+        // are aliased so Pages/Reports/Purchases.jsx needs no change.
+        //   total_amount -> total · date -> purchase_date · status -> payment_status
+        $query = \App\Models\Purchase::with('party')
+            ->whereBetween('purchase_date', [$startDate, $endDate])
+            ->where('workflow_status', '!=', 'cancelled');
 
         if ($supplierId) {
             $query->where('party_id', $supplierId);
         }
 
-        $purchases = $query->orderBy('date', 'desc')->get();
+        $purchases = $query->orderByDesc('purchase_date')->get();
 
         $tenantId = app('current.tenant')->id;
         $apAccount = Account::where('code', '2000')->value('id');
 
         $purchaseIds = $purchases->pluck('id');
+
+        // paid_amount is DERIVED from the ledger — never a stored column.
+        // One grouped query for the whole page rather than N per row.
+        $paidByPurchase = DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->where('je.tenant_id', $tenantId)
+            ->whereIn('je.reference', $purchaseIds)
+            ->where('je.reference_type', 'purchase_payment')
+            ->where('je.is_reversed', 0)
+            ->where('ji.account_id', $apAccount)
+            ->groupBy('je.reference')
+            ->select('je.reference', DB::raw('SUM(ji.debit) as paid'))
+            ->pluck('paid', 'reference');
+
+        $purchases->each(function ($p) use ($paidByPurchase) {
+            $p->setAttribute('total_amount', $p->total);
+            $p->setAttribute('date', $p->purchase_date);
+            $p->setAttribute('status', $p->payment_status);
+            $p->setAttribute('paid_amount', (float) ($paidByPurchase[$p->id] ?? 0));
+        });
 
         $totalPurchases = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
@@ -1447,11 +1471,11 @@ class ReportController extends Controller
             ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->groupBy('party_id');
 
-        // Purchases (Invoices type=purchase)
-        $purchases = DB::table('invoices')
-            ->select('party_id', DB::raw('SUM(total_amount) as total'))
+        // V3: purchases live in `purchases` (total_amount -> total).
+        $purchases = DB::table('purchases')
+            ->select('party_id', DB::raw('SUM(total) as total'))
             ->where('tenant_id', $tenantId)
-            ->where('type', 'purchase')
+            ->where('workflow_status', '!=', 'cancelled')
             ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->groupBy('party_id');
 
@@ -1761,13 +1785,14 @@ class ReportController extends Controller
                     ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                     ->sum('total_amount');
                     
-                $purchases = DB::table('invoices')
-                    ->join('parties', 'parties.id', '=', 'invoices.party_id')
-                    ->where('invoices.tenant_id', $tenantId)
+                // V3: purchases live in `purchases` (total_amount -> total).
+                $purchases = DB::table('purchases')
+                    ->join('parties', 'parties.id', '=', 'purchases.party_id')
+                    ->where('purchases.tenant_id', $tenantId)
                     ->where('parties.type', $group->type)
-                    ->where('invoices.type', 'purchase')
-                    ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-                    ->sum('total_amount');
+                    ->where('purchases.workflow_status', '!=', 'cancelled')
+                    ->whereBetween('purchases.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                    ->sum('purchases.total');
                     
                 return [
                     'group' => ucfirst($group->type),
@@ -2437,22 +2462,11 @@ class ReportController extends Controller
             )
             ->get();
 
-        $othersB = DB::table('invoice_items')
-            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
-            ->where('invoices.tenant_id', $tenantId)
-            ->where('invoices.party_id', $supplierId)
-            ->where('invoices.type', 'purchase')
-            ->whereBetween('invoices.date', [$startDate, $endDate])
-            ->select(
-                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as name"),
-                DB::raw("COALESCE(products.sku, invoice_items.product_id) as sku"),
-                'invoice_items.received_qty as qty',
-                'invoice_items.effective_unit_cost as unit_cost'
-            )
-            ->get();
+        // The legacy `invoice_items` leg of this union was removed 2026-08-11 with
+        // the purchase island. Every purchase now lives in `purchases` /
+        // `purchase_items`, which $othersA above already reads.
 
-        $otherProducts = $othersA->concat($othersB)->groupBy('sku')->map(function ($group) {
+        $otherProducts = $othersA->groupBy('sku')->map(function ($group) {
             $first = $group->first();
             return [
                 'name' => $first->name,

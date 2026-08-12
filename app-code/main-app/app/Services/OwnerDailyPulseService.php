@@ -35,11 +35,12 @@ class OwnerDailyPulseService
         $expenseValue = (float) Expense::whereDate('date', $dateString)
             ->sum('amount');
 
-        // 2b. Purchases today (Sum of total_amount on purchase invoices)
-        $purchasesValue = (float) \App\Models\Invoice::where('tenant_id', $tenant->id)
-            ->where('type', 'purchase')
-            ->whereDate('date', $dateString)
-            ->sum('total_amount');
+        // 2b. Purchases today — V3: purchases live in `purchases`
+        // (date -> purchase_date, total_amount -> total).
+        $purchasesValue = (float) \App\Models\Purchase::where('tenant_id', $tenant->id)
+            ->where('workflow_status', '!=', 'cancelled')
+            ->whereDate('purchase_date', $dateString)
+            ->sum('total');
 
         // Instantiate FinancialReportingService
         $reportingService = new FinancialReportingService();

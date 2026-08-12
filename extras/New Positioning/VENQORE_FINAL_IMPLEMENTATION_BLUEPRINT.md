@@ -1,3 +1,8 @@
+> ## ⚠️ PARTIALLY SUPERSEDED — 11 August 2026
+> The programme now runs from **`v3/00_MASTER_INDEX.md`** and the numbered set beside it.
+> **Superseded here:** the business catalogue (§04 — now `v3/06`), the implementation sequence (§18), MVP scope (§19) and time estimates (§21). Services and field work were not in this document at all.
+> **Still authoritative:** §03 asset inventory, §05–§11 configuration/dependency/terminology architecture, §12–§13 Vena and AI cost model, §14 Protocol 7, §15 security, §22 risk register.
+
 # VenQore — Final Implementation Blueprint
 ## "Build Your Own ERP" + the Vena Intelligence Layer
 

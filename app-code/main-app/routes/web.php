@@ -80,6 +80,23 @@ Route::post('/api/partner-support/chat/{ticket_id}/reply', [\App\Http\Controller
 Route::get('/docs', [\App\Http\Controllers\Marketing\DocsController::class, 'index'])->name('marketing.docs.index');
 Route::get('/docs/{slug}', [\App\Http\Controllers\Marketing\DocsController::class, 'show'])->name('marketing.docs.show');
 
+// Public preview route for Liquid Next Dashboard
+Route::get('/next-dashboard', function () {
+    return Inertia::render('Next/Dashboard', [
+        'store' => ['name' => 'Demo Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
+        'auth' => ['user' => ['name' => 'Demo Admin', 'role' => 'admin']],
+        'settings' => [
+            'plan_tier' => 'Growth',
+            'business_type' => 'general'
+        ],
+        'performance' => ['revenue' => 45000, 'grossProfit' => 12500, 'margin' => 27.7],
+        'outstanding' => ['toReceive' => 8400, 'toPay' => 3200, 'overdue' => 0],
+        'netProfit' => ['amount' => 9300, 'balance' => 42100],
+        'inventoryValue' => 68500,
+        'cashAccounts' => [['name' => 'Main Register Till', 'balance' => 15400]],
+    ]);
+})->name('public.next-dashboard');
+
 
 // Barcode Generator (Module 03) — internal Code128B SVG endpoint, used inside the
 // app (e.g. product labels). NOT the public /tools/barcode-generator tool below.
@@ -1018,6 +1035,22 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/overview', [\App\Http\Controllers\OverviewDashboardController::class, 'index'])->name('overview');
 
     Route::get('/workspace', [\App\Http\Controllers\WorkspaceDashboardController::class, 'index'])->name('workspace');
+    Route::get('/next-dashboard', function () {
+        $store = app()->has('currentTenant') ? app('currentTenant') : \App\Models\Tenant::first();
+        return Inertia::render('Next/Dashboard', [
+            'store' => $store ?: ['name' => 'My Business Store', 'slug' => 'demo-store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
+            'auth' => ['user' => Auth::user() ?: ['name' => 'Admin User', 'role' => 'admin']],
+            'settings' => [
+                'plan_tier' => 'Growth',
+                'business_type' => $store->business_type ?? 'general'
+            ],
+            'performance' => ['revenue' => 45000, 'grossProfit' => 12500, 'margin' => 27.7],
+            'outstanding' => ['toReceive' => 8400, 'toPay' => 3200, 'overdue' => 0],
+            'netProfit' => ['amount' => 9300, 'balance' => 42100],
+            'inventoryValue' => 68500,
+            'cashAccounts' => [['name' => 'Main Register Till', 'balance' => 15400]],
+        ]);
+    })->name('next-dashboard');
     Route::post('/workspace/layout', [\App\Http\Controllers\WorkspaceDashboardController::class, 'save'])->name('workspace.layout.save');
     Route::post('/workspace/layout/reset', [\App\Http\Controllers\WorkspaceDashboardController::class, 'reset'])->name('workspace.layout.reset');
     Route::post('/workspace/data', [\App\Http\Controllers\WorkspaceDashboardController::class, 'data'])->name('workspace.data');
@@ -1328,14 +1361,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
     // Purchases
-    Route::get('/purchases', [\App\Http\Controllers\PurchaseController::class, 'index'])->name('purchases.index');
-    Route::get('/purchases/create', [\App\Http\Controllers\PurchaseController::class, 'create'])->name('purchases.create');
-    Route::post('/purchases', [\App\Http\Controllers\PurchaseController::class, 'store'])->name('purchases.store');
-    Route::get('/purchases/{purchase}', [\App\Http\Controllers\PurchaseController::class, 'show'])->name('purchases.show');
-    Route::get('/purchases/{purchase}/edit', [\App\Http\Controllers\PurchaseController::class, 'edit'])->name('purchases.edit');
-    Route::put('/purchases/{purchase}', [\App\Http\Controllers\PurchaseController::class, 'update'])->name('purchases.update');
-    Route::delete('/purchases/{purchase}', [\App\Http\Controllers\PurchaseController::class, 'destroy'])->name('purchases.destroy');
-    Route::get('/purchases/{purchase}/receive', [\App\Http\Controllers\PurchaseController::class, 'receive'])->name('purchases.receive');
+    // V3 CONSOLIDATION Phase 5 — these point at PurchaseRouterController, which
+    // forwards to legacy or V3 per tenant. Route NAMES are unchanged, so no
+    // frontend route() call changes. Rollback = VENQORE_PURCHASE_CUTOVER=false.
+    // See V3_CONSOLIDATION_PLAN.md and config/venqore.php.
+    Route::get('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases/create', [\App\Http\Controllers\V3\PurchaseController::class, 'create'])->name('purchases.create');
+    Route::post('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'store'])->name('purchases.store');
+    Route::get('/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{purchase}/edit', [\App\Http\Controllers\V3\PurchaseController::class, 'edit'])->name('purchases.edit');
+    Route::match(['put', 'patch'], '/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'update'])->middleware('permission:purchases.edit')->name('purchases.update');
+    Route::delete('/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'destroy'])->middleware('permission:purchases.void')->name('purchases.destroy');
+    Route::get('/purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'receive'])->middleware('permission:purchases.edit')->name('purchases.receive');
 
     // All Transactions
     Route::get('/transactions', [\App\Http\Controllers\TransactionController::class, 'index'])->name('transactions.index');
@@ -1444,8 +1481,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/parked-items', [\App\Http\Controllers\ParkedSaleController::class, 'index'])->name('parked-sales.index');
     Route::delete('/sales/parked-items/{sale}', [\App\Http\Controllers\ParkedSaleController::class, 'destroy'])->name('parked-sales.destroy');
 
-    // Enhanced Purchase Receive
-    Route::post('/purchases/{purchase}/receive', [\App\Http\Controllers\PurchaseController::class, 'storeReceive'])->name('purchases.receive.store');
+    // Enhanced Purchase Receive — routed through the Phase 5 cutover switch.
+    Route::post('/purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'storeReceive'])->middleware('permission:purchases.edit')->name('purchases.receive.store');
 
     // Customers
     Route::resource('customers', \App\Http\Controllers\CustomerController::class)->except(['show', 'edit']);
@@ -1830,6 +1867,37 @@ Route::middleware(['auth', 'throttle:api'])->get(
     [\App\Http\Controllers\Api\PlanUsageController::class, 'usage']
 )->name('api.plan.usage');
 
+// ── Reckoner API (§9 Phase 5) ──────────────────────────────────────────────
+// Deliberately the SAME middleware as /api/plan/usage directly above — just
+// ['auth', 'throttle:api'], no 'tenant' middleware. That middleware expects
+// a {store_slug} route parameter (see the 's/{store_slug}' group above) which
+// a bare /api/... route does not have; adding it here would 404/500 every
+// request. current.tenant for routes shaped like this one is bound by
+// whatever already makes /api/plan/usage work outside the {store_slug}
+// prefix (this session did not trace that mechanism — see the final
+// problems report) — ReckonerController itself checks
+// app()->bound('current.tenant') and returns 400 rather than assume it, so
+// this route fails safely either way.
+Route::middleware(['auth', 'throttle:api'])->group(function () {
+    Route::get('/api/reckoner/catalogue', [\App\Http\Controllers\Api\ReckonerController::class, 'catalogue'])
+        ->name('api.reckoner.catalogue');
+    Route::post('/api/reckoner/read', [\App\Http\Controllers\Api\ReckonerController::class, 'read'])
+        ->name('api.reckoner.read');
+
+    // Dashboard Composable Layout Endpoints
+    Route::get('/api/dashboards', [\App\Http\Controllers\Api\DashboardController::class, 'index'])->name('api.dashboards.index');
+    Route::post('/api/dashboards', [\App\Http\Controllers\Api\DashboardController::class, 'store'])->name('api.dashboards.store');
+    Route::get('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'show'])->name('api.dashboards.show');
+    Route::put('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'update'])->name('api.dashboards.update');
+    Route::delete('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'destroy'])->name('api.dashboards.destroy');
+    Route::put('/api/dashboards/{id}/layout', [\App\Http\Controllers\Api\DashboardController::class, 'saveLayout'])->name('api.dashboards.layout');
+    Route::post('/api/dashboards/{id}/cards', [\App\Http\Controllers\Api\DashboardController::class, 'addCard'])->name('api.dashboards.cards.add');
+    Route::patch('/api/dashboards/{id}/cards/{cardId}', [\App\Http\Controllers\Api\DashboardController::class, 'updateCard'])->name('api.dashboards.cards.update');
+    Route::delete('/api/dashboards/{id}/cards/{cardId}', [\App\Http\Controllers\Api\DashboardController::class, 'removeCard'])->name('api.dashboards.cards.remove');
+    Route::post('/api/dashboards/{id}/reset', [\App\Http\Controllers\Api\DashboardController::class, 'reset'])->name('api.dashboards.reset');
+    Route::post('/api/dashboards/{id}/publish', [\App\Http\Controllers\Api\DashboardController::class, 'publish'])->name('api.dashboards.publish');
+});
+
 
 
 // ── Phase 5.3: Platform Super-Admin Routes ─────────────────────────────────
@@ -1855,8 +1923,27 @@ Route::prefix('superadmin')
 Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::resource('products', \App\Http\Controllers\V3\ProductController::class)->except(['show']);
     Route::resource('warehouses', \App\Http\Controllers\V3\WarehouseController::class)->except(['show']);
+    // V3 CONSOLIDATION Phase 2 — full legacy parity on the V3 purchase routes.
+    // See V3_CONSOLIDATION_PLAN.md. `create` is registered by the resource
+    // registrar BEFORE the `{purchase}` wildcard, which is what stops the
+    // /purchases/create -> 404 route-ordering bug that bit purchase-orders.
+    // The literal `receive` routes are declared before the resource for the
+    // same reason.
+    Route::get('purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'receive'])
+         ->middleware('permission:purchases.edit')->name('purchases.receive');
+    Route::post('purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'storeReceive'])
+         ->middleware('permission:purchases.edit')->name('purchases.receive.store');
+
     Route::resource('purchases', \App\Http\Controllers\V3\PurchaseController::class)
-         ->only(['index', 'create', 'store', 'show']);
+         ->only(['index', 'create', 'store', 'show', 'edit']);
+
+    Route::match(['put', 'patch'], 'purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'update'])
+         ->middleware('permission:purchases.edit')
+         ->name('purchases.update');
+
+    Route::delete('purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'destroy'])
+         ->middleware('permission:purchases.void')
+         ->name('purchases.destroy');
 
     Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->middleware('plan.feature:purchase_returns')->name('purchases.return.create');
     Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
