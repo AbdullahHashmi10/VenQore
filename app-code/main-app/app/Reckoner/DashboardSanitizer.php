@@ -10,12 +10,20 @@ namespace App\Reckoner;
  */
 class DashboardSanitizer
 {
-    /** Four grid size presets. */
+    /** 12 canonical grid size presets. */
     public const SIZES = [
-        'small'  => ['w' => 3,  'h' => 2],
-        'medium' => ['w' => 6,  'h' => 2],
-        'large'  => ['w' => 6,  'h' => 4],
-        'full'   => ['w' => 12, 'h' => 3],
+        '2x4' => ['w' => 2, 'h' => 4],
+        '2x6' => ['w' => 2, 'h' => 6],
+        '2x8' => ['w' => 2, 'h' => 8],
+        '4x4' => ['w' => 4, 'h' => 4],
+        '4x6' => ['w' => 4, 'h' => 6],
+        '4x8' => ['w' => 4, 'h' => 8],
+        '6x4' => ['w' => 6, 'h' => 4],
+        '6x6' => ['w' => 6, 'h' => 6],
+        '6x8' => ['w' => 6, 'h' => 8],
+        '8x4' => ['w' => 8, 'h' => 4],
+        '8x6' => ['w' => 8, 'h' => 6],
+        '8x8' => ['w' => 8, 'h' => 8],
     ];
 
     /** Deprecated metric keys migration map. */
@@ -84,9 +92,9 @@ class DashboardSanitizer
             }
 
             // Validate and force size presets
-            $size = $item['size'] ?? 'small';
+            $size = $item['size'] ?? '4x4';
             if (! array_key_exists($size, self::SIZES)) {
-                $size = 'small';
+                $size = '4x4';
             }
 
             $dimensions = self::SIZES[$size];

@@ -78,7 +78,7 @@ class CharityController extends Controller
             ->first();
 
         if ($expenseAccount && $cashAccount) {
-            app(\App\Services\V3\AccountingService::class)->createEntry([
+            app(\App\Engines\AccountingService::class)->createEntry([
                 'date'           => now()->toDateString(),
                 'reference_type' => 'expense',
                 'reference'      => $expense->id,

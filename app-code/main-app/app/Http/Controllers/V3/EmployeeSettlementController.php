@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\SettlementService;
+use App\Engines\SettlementService;
 use Illuminate\Http\Request;
 
 class EmployeeSettlementController extends Controller

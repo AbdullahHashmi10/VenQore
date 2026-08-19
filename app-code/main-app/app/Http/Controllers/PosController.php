@@ -84,7 +84,7 @@ class PosController extends Controller
         return response()->json($sorted);
     }
 
-    public function store(Request $request, \App\Services\InventoryService $inventoryService)
+    public function store(Request $request, \App\Engines\InventoryService $inventoryService)
     {
         $request->validate([
             'cart' => 'required|array',

@@ -297,7 +297,7 @@ class GrowthDataSource
                 INNER JOIN parties p ON p.id = s.party_id AND p.tenant_id = ?
                 LEFT JOIN (
                     SELECT sale_id, SUM(allocated_amount) AS paid
-                    FROM payment_allocations
+                    FROM allocations
                     WHERE tenant_id = ? AND status = 'active'
                     GROUP BY sale_id
                 ) alloc ON alloc.sale_id = s.id
@@ -647,7 +647,7 @@ class GrowthDataSource
     {
         return collect(DB::select("
             SELECT DATE(created_at) AS d, COALESCE(SUM(allocated_amount), 0) AS collected
-            FROM payment_allocations
+            FROM allocations
             WHERE tenant_id = ?
               AND status = 'active'
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
@@ -712,7 +712,7 @@ class GrowthDataSource
      */
     public function collectedFromPartySince(int|string $tenantId, string $partyId, Carbon $since): float
     {
-        return (float) DB::table('payment_allocations as pa')
+        return (float) DB::table('allocations as pa')
             ->join('sales as s', 's.id', '=', 'pa.sale_id')
             ->where('pa.tenant_id', $tenantId)
             ->where('pa.status', 'active')

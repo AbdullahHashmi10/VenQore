@@ -22,7 +22,7 @@ class ProductionLog extends Model
 
     public function recipe()
     {
-        return $this->belongsTo(Recipe::class);
+        return $this->belongsTo(Composition::class);
     }
 
     public function user()

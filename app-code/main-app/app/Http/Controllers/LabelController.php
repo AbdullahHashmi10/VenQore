@@ -28,6 +28,7 @@ class LabelController extends Controller
             'settings.show_price' => 'boolean',
             'settings.show_name' => 'boolean',
             'settings.show_barcode' => 'boolean',
+            'settings.show_qrcode' => 'boolean',
         ]);
 
         $products = Product::with('barcodes')->whereIn('id', array_column($validated['items'], 'id'))->get();
@@ -37,10 +38,12 @@ class LabelController extends Controller
         foreach ($validated['items'] as $item) {
             $product = $products->find($item['id']);
             if ($product) {
+                $productUrl = url("/s/" . app('current.tenant')->slug . "/store/products/" . $product->id);
                 $printItems[] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
-                    'barcode' => $product->barcodes->first()?->barcode ?? $product->sku
+                    'barcode' => $product->barcodes->first()?->barcode ?? $product->sku,
+                    'qrcode_url' => $productUrl,
                 ];
             }
         }

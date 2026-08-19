@@ -58,18 +58,42 @@ final class InventorySource implements ReckonerSource
                 'inventory.out_of_stock_count' => $this->outOfStockCount($ctx),
                 'inventory.product_count' => Product::query()->count(),
                 'inventory.overstock_count' => $this->overstockCount($ctx),
-                'inventory.low_stock_list' => [
-                    'columns' => [
-                        ['key' => 'name', 'label' => 'Product', 'unit' => 'text'],
-                        ['key' => 'qty', 'label' => 'Stock Qty', 'unit' => 'integer'],
-                        ['key' => 'alert', 'label' => 'Alert Qty', 'unit' => 'integer']
-                    ],
-                    'rows' => [
-                        ['name' => 'Sugar 1kg', 'qty' => 5, 'alert' => 10],
-                        ['name' => 'Salt 500g', 'qty' => 2, 'alert' => 5],
-                    ],
-                    'total' => null
-                ],
+                'inventory.low_stock_list' => (function() use ($ctx) {
+                    $globalThreshold = (int) (\App\Helpers\SettingsHelper::getLowStockThreshold() ?? 0);
+                    $stockSums = Stock::query()
+                        ->selectRaw('product_id, SUM(quantity) as qty')
+                        ->groupBy('product_id')
+                        ->pluck('qty', 'product_id');
+
+                    $products = Product::query()->get(['id', 'name', 'alert_quantity']);
+
+                    $lowStockProducts = $products->filter(function ($product) use ($globalThreshold, $stockSums) {
+                        $qty = (float) ($stockSums[$product->id] ?? 0.0);
+                        $threshold = $product->alert_quantity > 0 ? $product->alert_quantity : $globalThreshold;
+                        return $qty > 0 && $qty <= $threshold;
+                    });
+
+                    $rows = [];
+                    foreach ($lowStockProducts as $product) {
+                        $qty = (float) ($stockSums[$product->id] ?? 0.0);
+                        $threshold = $product->alert_quantity > 0 ? $product->alert_quantity : $globalThreshold;
+                        $rows[] = [
+                            'name' => $product->name,
+                            'qty' => (int) $qty,
+                            'alert' => (int) $threshold,
+                        ];
+                    }
+
+                    return [
+                        'columns' => [
+                            ['key' => 'name', 'label' => 'Product', 'unit' => 'text'],
+                            ['key' => 'qty', 'label' => 'Stock Qty', 'unit' => 'integer'],
+                            ['key' => 'alert', 'label' => 'Alert Qty', 'unit' => 'integer']
+                        ],
+                        'rows' => $rows,
+                        'total' => null
+                    ];
+                })(),
                 default => null,
             };
         }

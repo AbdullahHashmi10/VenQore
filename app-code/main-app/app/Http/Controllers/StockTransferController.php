@@ -92,7 +92,7 @@ class StockTransferController extends Controller
 
     protected function moveStock($productId, $fromWarehouseId, $toWarehouseId, $quantity, $reference)
     {
-        resolve(\App\Services\V3\InventoryService::class)->transferStock(
+        resolve(\App\Engines\InventoryService::class)->transferStock(
             productId: $productId,
             fromWarehouseId: $fromWarehouseId,
             toWarehouseId: $toWarehouseId,

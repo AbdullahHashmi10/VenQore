@@ -42,7 +42,12 @@ class SuperAdminController extends Controller
         $revenueService = app(\App\Services\Platform\PlatformRevenueService::class);
         $revenue        = $revenueService->summary($period);
 
-        $mrr         = $revenue['mrr'];          // real paid MRR (USD)
+        // Coupon-adjusted MRR from the canonical Reckoner platform.mrr metric
+        $mrr = (float) (app(\App\Reckoner\Reckoner::class)->read(
+            new \App\Reckoner\ReckonerRequest('platform.mrr', 'live'),
+            request()->user(),
+            null
+        )->data ?? 0.0);
         $totalVolume = $revenue['gmv'];          // merchant GMV — NOT platform revenue
 
         $months      = (int) $request->get('months', 1);
@@ -74,7 +79,7 @@ class SuperAdminController extends Controller
         }
 
         // Plan Distribution — counts per plan; MRR priced from the plans table
-        // via the single price source (PlanPricingService), not hard-coded.
+        // with coupon adjustment applied (T7.9 / T7.10).
         $pricing = app(\App\Services\Platform\PlanPricingService::class);
         $planSlugs = \App\Models\Plan::orderBy('sort_order')->pluck('slug')->all();
         if (empty($planSlugs)) {
@@ -82,11 +87,34 @@ class SuperAdminController extends Controller
         }
         $planDist = collect($planSlugs)->map(function ($plan) use ($realTenants, $pricing) {
             $group = $realTenants->where('plan', $plan);
-            $activePaid = $group->where('status', 'active')->count();
+            $activePaid = $group->where('status', 'active');
+            
+            $planMrr = 0.0;
+            foreach ($activePaid as $t) {
+                $basePrice = $pricing->monthly((string) $plan, 'USD');
+                
+                $redemption = \App\Models\CouponRedemption::withoutTenantScope()
+                    ->where('tenant_id', $t->id)
+                    ->with('coupon')
+                    ->first();
+                if ($redemption && $redemption->coupon) {
+                    $coupon = $redemption->coupon;
+                    if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
+                        $discountVal = ($basePrice * ($coupon->discount_value / 100));
+                        $finalPrice = max(0, $basePrice - $discountVal);
+                    } else {
+                        $finalPrice = max(0, $basePrice - $coupon->discount_value);
+                    }
+                } else {
+                    $finalPrice = $basePrice;
+                }
+                $planMrr += $finalPrice;
+            }
+
             return [
                 'plan'  => $plan,
                 'count' => $group->count(),
-                'mrr'   => round($activePaid * $pricing->monthly((string) $plan, 'USD'), 2),
+                'mrr'   => round($planMrr, 2),
             ];
         })->values();
 

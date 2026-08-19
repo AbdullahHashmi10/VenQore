@@ -7,7 +7,7 @@ import {
     BarChart2, ArrowRight, History, Landmark, AlertTriangle, Clock, Percent,
     RefreshCw, Scale, PieChart, Layers, Box, Hash, ArrowLeftRight, UserPlus,
     PackageSearch, Tags, BarChart3, Tag, Hourglass, Users2, Activity, BookOpen,
-    Search, Lock
+    Search, Lock, PackageMinus
 } from 'lucide-react';
 
 const Card3D = ({ report }) => {
@@ -296,6 +296,16 @@ export default function ReportsHub() {
                     icon: ShoppingCart,
                     color: 'text-amber-500',
                     href: route("store.reports.purchases", {
+                        store_slug: store.slug
+                    })
+                },
+                {
+                    title: 'Purchase Returns',
+                    description: 'Debit notes & returns',
+                    longDescription: 'Track all stock returns and debit notes sent to suppliers. Monitor refund progress, return reasons, and adjust accounts payable accordingly.',
+                    icon: PackageMinus,
+                    color: 'text-rose-500',
+                    href: route("store.reports.purchase-returns", {
                         store_slug: store.slug
                     })
                 },

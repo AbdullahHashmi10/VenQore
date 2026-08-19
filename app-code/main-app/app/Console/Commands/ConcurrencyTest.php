@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Party;
-use App\Services\V3\FifoService;
+use App\Engines\FifoService;
 use Exception;
 
 class ConcurrencyTest extends Command

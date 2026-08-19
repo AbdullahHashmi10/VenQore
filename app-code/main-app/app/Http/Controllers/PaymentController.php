@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\Party;
 use App\Models\BankAccount;
-use App\Services\V3\AccountingService;
+use App\Engines\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -215,8 +215,7 @@ class PaymentController extends Controller
                     }
                 }
 
-                // ── 4. Post to V3 Journal ──────────────────────────────────────────
-                $accounting->createEntry([
+                $journalEntry = $accounting->createEntry([
                     'date'     => $date,
                     'reference_type' => 'payment',
                     'reference'   => $payment->id,
@@ -224,6 +223,88 @@ class PaymentController extends Controller
                     'party_id'       => $partyId,
                     'created_by'     => auth()->id(),
                 ], $lines);
+
+                // ── Auto Allocate lump-sum payments to oldest outstanding invoices ─
+                if ($party) {
+                    $remainingAmount = $amount;
+                    $tenantId = app('current.tenant')->id;
+                    $paymentService = app(\App\Engines\PaymentService::class);
+
+                    if ($party->type === 'supplier') {
+                        $invoices = DB::table('purchases')
+                            ->where('tenant_id', $tenantId)
+                            ->where('party_id', $partyId)
+                            ->whereIn('payment_status', ['unpaid', 'partial'])
+                            ->orderBy('purchase_date', 'asc')
+                            ->get();
+
+                        foreach ($invoices as $invoice) {
+                            if ($remainingAmount <= 0) break;
+
+                            $allocated = (float) DB::table('allocations')
+                                ->where('tenant_id', $tenantId)
+                                ->where('purchase_id', $invoice->id)
+                                ->where('status', 'active')
+                                ->sum('allocated_amount');
+
+                            $due = max(0.0, (float)$invoice->total - $allocated);
+                            if ($due <= 0.01) continue;
+
+                            $allocAmount = min($remainingAmount, $due);
+                            $remainingAmount -= $allocAmount;
+
+                            DB::table('allocations')->insert([
+                                'id'                       => \Illuminate\Support\Str::uuid()->toString(),
+                                'tenant_id'                => $tenantId,
+                                'payment_journal_entry_id' => $journalEntry->id,
+                                'purchase_id'              => $invoice->id,
+                                'allocated_amount'         => $allocAmount,
+                                'status'                   => 'active',
+                                'created_at'               => now(),
+                                'updated_at'               => now(),
+                            ]);
+
+                            $paymentService->updatePurchaseBadge($invoice->id);
+                        }
+                    } else { // Customer
+                        $invoices = DB::table('sales')
+                            ->where('tenant_id', $tenantId)
+                            ->where('party_id', $partyId)
+                            ->whereIn('payment_status', ['unpaid', 'partial'])
+                            ->whereNull('deleted_at')
+                            ->orderBy('posted_at', 'asc')
+                            ->get();
+
+                        foreach ($invoices as $invoice) {
+                            if ($remainingAmount <= 0) break;
+
+                            $allocated = (float) DB::table('allocations')
+                                ->where('tenant_id', $tenantId)
+                                ->where('sale_id', $invoice->id)
+                                ->where('status', 'active')
+                                ->sum('allocated_amount');
+
+                            $due = max(0.0, (float)$invoice->total - $allocated);
+                            if ($due <= 0.01) continue;
+
+                            $allocAmount = min($remainingAmount, $due);
+                            $remainingAmount -= $allocAmount;
+
+                            DB::table('allocations')->insert([
+                                'id'                       => \Illuminate\Support\Str::uuid()->toString(),
+                                'tenant_id'                => $tenantId,
+                                'payment_journal_entry_id' => $journalEntry->id,
+                                'sale_id'                  => $invoice->id,
+                                'allocated_amount'         => $allocAmount,
+                                'status'                   => 'active',
+                                'created_at'               => now(),
+                                'updated_at'               => now(),
+                            ]);
+
+                            $paymentService->updatePaymentBadge($invoice->id);
+                        }
+                    }
+                }
 
                 // ── 5. [V3 SWAP] NO direct current_balance updates ─────────────────
                 // Party balances and bank balances are computed from the journal only.
@@ -247,7 +328,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::with('party', 'bankAccount')->findOrFail($id);
 
-        // Allocations are linked via payment_allocations.payment_journal_entry_id,
+        // Allocations are linked via allocations.payment_journal_entry_id,
         // which stores the JournalEntry ID (NOT the Payment ID) that was created for
         // this payment (see AccountingService::createEntry() call in store(), which
         // posts reference_type = 'payment', reference = $payment->id). Find that
@@ -258,7 +339,7 @@ class PaymentController extends Controller
 
         $allocations = collect();
         if ($journalEntry) {
-            $allocations = \App\Models\PaymentAllocation::with(['sale', 'purchase'])
+            $allocations = \App\Models\Allocation::with(['sale', 'purchase'])
                 ->where('payment_journal_entry_id', $journalEntry->id)
                 ->where('status', 'active')
                 ->get();

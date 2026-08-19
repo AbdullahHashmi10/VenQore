@@ -46,7 +46,7 @@ class FullDemoDeployCommand extends Command
             'sales'           => [\Database\Seeders\Demo\DemoSalesSeeder::class, 'Sales (5-year)'],
             'purchases'       => [\Database\Seeders\Demo\DemoPurchaseSeeder::class, 'Purchases'],
             'proposals'       => [\Database\Seeders\Demo\DemoProposalSeeder::class, 'Proposals'],
-            'cookbook'        => [\Database\Seeders\Demo\DemoCookbookSeeder::class, 'Cookbook Recipes'],
+            'cookbook'        => [\Database\Seeders\Demo\DemoCookbookSeeder::class, 'Cookbook Compositions'],
             'staff'           => [\Database\Seeders\Demo\DemoStaffSeeder::class, 'Staff & Attendance'],
         ];
 
@@ -106,7 +106,7 @@ class FullDemoDeployCommand extends Command
             'sales'         => ['sale_item_batches', 'sale_items', 'sales', 'journal_items', 'journal_entries'],
             'purchases'     => ['purchase_items', 'purchases'],
             'proposals'     => ['proposals', 'proposal_items'],
-            'cookbook'      => ['recipe_ingredients', 'recipes'],
+            'cookbook'      => ['composition_items', 'compositions'],
             'staff'         => ['staff_attendances'],
         ];
 
@@ -124,7 +124,7 @@ class FullDemoDeployCommand extends Command
             // Full wipe uses the single shared table list (see
             // DemoStoreService::TENANT_DATA_TABLES) instead of a separately
             // hand-maintained list here. The old list was missing
-            // transactions, transaction_allocations, payment_allocations,
+            // transactions, allocations, allocations,
             // stock_movements, sale_item_batches and several others, and
             // referenced tables that don't exist (sale_payments,
             // purchase_payments, bank_transactions, recipe_products) — so

@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Party;
-use App\Models\Transaction;
-use App\Services\InventoryService;
+use App\Engines\InventoryService;
 use App\Services\PlanGate;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -153,7 +152,7 @@ class WooCommerceController extends Controller
                         $revenueTotal += (float) $product->price * $qty;
 
                         // Real FIFO deduction → returns per-batch costs; writes sale_item_batches.
-                        if ($warehouse) {
+                        if ($warehouse && $product->type !== 'service') {
                             $deductions = $this->fifo->deductStock($product->id, $warehouse->id, $qty);
                             foreach ($deductions as $d) {
                                 $cogsTotal += (float) $d['total_cost'];
@@ -204,15 +203,6 @@ class WooCommerceController extends Controller
                         'description'    => 'WooCommerce order WC-' . ($payload['id'] ?? 'unknown'),
                         'party_id'       => $party->id,
                     ], $journalLines);
-
-                    // Keep the legacy transactions row (unchanged behavior for existing readers).
-                    Transaction::create([
-                        'party_id'        => $party->id,
-                        'invoice_id'      => 'WC-' . ($payload['id'] ?? 'unknown'),
-                        'amount'          => $revenueTotal,
-                        'type'            => 'debit',
-                        'running_balance' => $party->current_balance + $revenueTotal, // Simplified
-                    ]);
 
                     return $revenueTotal;
                 });

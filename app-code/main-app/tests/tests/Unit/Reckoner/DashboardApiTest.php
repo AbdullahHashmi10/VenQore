@@ -136,8 +136,8 @@ class DashboardApiTest extends TestCase
             'reading_key' => 'sales.revenue',
             'period' => 'today',
             'chart' => 'stat',
-            'size' => 'small',
-            'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2,
+            'size' => '4x4',
+            'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4,
         ]);
 
         $response = $this->actingAs($this->user)
@@ -148,7 +148,7 @@ class DashboardApiTest extends TestCase
                         'reading_key' => 'sales.revenue',
                         'period' => 'today',
                         'chart' => 'stat',
-                        'size' => 'small',
+                        'size' => '4x4',
                         'x' => 3, 'y' => 0, // moved card
                     ]
                 ]

@@ -11,6 +11,7 @@ export default function ProductCreate() {
         price_includes_tax: false,
         reorder_level: '0',
         is_manufactured: false,
+        supplier_sku: '',
     })
 
     const submit = (e) => {
@@ -83,6 +84,16 @@ export default function ProductCreate() {
                             value={data.tax_rate}
                             onChange={e => setData('tax_rate', e.target.value)}
                             className="w-full border rounded px-3 py-2"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Supplier SKU Mapping</label>
+                        <input
+                            type="text"
+                            value={data.supplier_sku}
+                            onChange={e => setData('supplier_sku', e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Supplier SKU"
                         />
                     </div>
                 </div>

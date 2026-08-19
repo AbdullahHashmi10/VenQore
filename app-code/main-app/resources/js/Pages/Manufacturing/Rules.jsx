@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { formatCurrency } from '@/Utils/format';
 import {
     Plus,
     Trash2,
@@ -17,8 +18,19 @@ const ManufacturingRules = () => {
     const { store } = usePage().props;
     const [rules, setRules] = useState([]);
     const [products, setProducts] = useState([]);
+    const [warehouses, setWarehouses] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingRule, setEditingRule] = useState(null);
+
+    // Simulator states
+    const [showSimulateModal, setShowSimulateModal] = useState(false);
+    const [simulatingRule, setSimulatingRule] = useState(null);
+    const [simulationParams, setSimulationParams] = useState({
+        warehouse_id: '',
+        planned_qty: 1
+    });
+    const [simulationResult, setSimulationResult] = useState(null);
+    const [loadingSimulation, setLoadingSimulation] = useState(false);
 
     // New rule form state
     const [newRule, setNewRule] = useState({
@@ -28,7 +40,7 @@ const ManufacturingRules = () => {
         ingredients: []
     });
 
-    // Load rules and products
+    // Load rules, products, and warehouses
     const loadRules = async () => {
         try {
             const response = await axios.get('/api/manufacturing-rules');
@@ -49,10 +61,33 @@ const ManufacturingRules = () => {
         }
     };
 
+    const loadWarehouses = async () => {
+        try {
+            const response = await axios.get('/api/warehouses');
+            setWarehouses(response.data || []);
+        } catch (error) {
+            console.error('Error loading warehouses:', error);
+        }
+    };
+
     useEffect(() => {
         loadRules();
         loadProducts();
+        loadWarehouses();
     }, []);
+
+    // Run simulation
+    const runSimulation = async () => {
+        setLoadingSimulation(true);
+        try {
+            const response = await axios.post(`/api/manufacturing-rules/${simulatingRule.id}/simulate`, simulationParams);
+            setSimulationResult(response.data);
+        } catch (error) {
+            alert('❌ Simulation failed: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setLoadingSimulation(false);
+        }
+    };
 
     // Add ingredient to new rule
     const addIngredient = () => {
@@ -174,7 +209,18 @@ const ManufacturingRules = () => {
                                         </div>
                                         <p className="text-sm text-slate-500 ml-9">{rule.description || 'No description'}</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setSimulatingRule(rule);
+                                                setSimulationParams({ warehouse_id: warehouses[0]?.id || '', planned_qty: 1 });
+                                                setSimulationResult(null);
+                                                setShowSimulateModal(true);
+                                            }}
+                                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/20 dark:hover:bg-indigo-950/40 text-xs font-bold rounded-lg text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5 transition-colors border border-indigo-150/50 dark:border-indigo-900/50"
+                                        >
+                                            <Beaker size={14} className="animate-pulse text-indigo-550" /> Simulate Feasibility
+                                        </button>
                                         <button
                                             onClick={() => toggleRule(rule.id, rule.is_active)}
                                             className={`p-2 rounded-lg ${rule.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'}`}
@@ -336,6 +382,122 @@ const ManufacturingRules = () => {
                                     className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-bold flex items-center gap-2"
                                 >
                                     <Save size={18} /> Save Rule
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Simulate Feasibility Modal */}
+                {showSimulateModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Production Feasibility Simulator</h2>
+                                    <p className="text-sm text-slate-500 mt-1">Simulate manufacturing of <strong>{simulatingRule?.name}</strong></p>
+                                </div>
+                                <button onClick={() => setShowSimulateModal(false)} className="text-slate-400 hover:text-slate-650 text-xl font-bold">×</button>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Simulated Production Qty</label>
+                                        <input
+                                            type="number"
+                                            min="0.0001"
+                                            step="any"
+                                            value={simulationParams.planned_qty}
+                                            onChange={(e) => setSimulationParams({ ...simulationParams, planned_qty: parseFloat(e.target.value) || 1 })}
+                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-indigo-550 text-slate-800 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Target Warehouse</label>
+                                        <select
+                                            value={simulationParams.warehouse_id}
+                                            onChange={(e) => setSimulationParams({ ...simulationParams, warehouse_id: e.target.value })}
+                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 outline-none focus:ring-2 ring-indigo-550 text-slate-850 dark:text-white"
+                                        >
+                                            <option value="">Select target warehouse...</option>
+                                            {warehouses.map(w => (
+                                                <option key={w.id} value={w.id}>{w.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={runSimulation}
+                                    disabled={loadingSimulation || !simulationParams.warehouse_id}
+                                    className="w-full py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 text-sm"
+                                >
+                                    {loadingSimulation ? 'Running Simulation...' : 'Simulate Run'}
+                                </button>
+
+                                {simulationResult && (
+                                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                        <div className="flex items-center justify-between p-4 rounded-xl border font-bold text-sm bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700">
+                                            <div className="text-slate-800 dark:text-slate-200">
+                                                Status: {simulationResult.feasible ? (
+                                                    <span className="text-emerald-600 dark:text-emerald-400 font-extrabold ml-1">✅ FEASIBLE — Enough stock available</span>
+                                                ) : (
+                                                    <span className="text-rose-650 dark:text-rose-400 font-extrabold ml-1">❌ INFEASIBLE — Insufficient ingredient stock</span>
+                                                )}
+                                            </div>
+                                            <div className="text-right text-slate-850 dark:text-slate-250">
+                                                Est. Cost: <span className="text-indigo-650 dark:text-indigo-400 font-black">{formatCurrency(simulationResult.total_estimated_cost, store)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl">
+                                            <table className="w-full text-left text-xs">
+                                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 uppercase tracking-wider font-bold">
+                                                    <tr>
+                                                        <th className="p-3">Ingredient</th>
+                                                        <th className="p-3 text-right">Required</th>
+                                                        <th className="p-3 text-right">Available</th>
+                                                        <th className="p-3 text-right">Shortage</th>
+                                                        <th className="p-3 text-right">Est. Cost</th>
+                                                        <th className="p-3 text-center">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700 font-medium">
+                                                    {simulationResult.items.map((item, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-350">
+                                                            <td className="p-3 font-bold text-slate-800 dark:text-white">
+                                                                {item.ingredient_name}
+                                                                <div className="text-slate-400 text-2xs font-semibold">SKU: {item.sku}</div>
+                                                            </td>
+                                                            <td className="p-3 text-right font-bold">{item.required_qty} {item.unit}</td>
+                                                            <td className="p-3 text-right">{item.available_qty} {item.unit}</td>
+                                                            <td className={`p-3 text-right font-bold ${item.missing_qty > 0 ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                                {item.missing_qty > 0 ? `${item.missing_qty} ${item.unit}` : '0'}
+                                                            </td>
+                                                            <td className="p-3 text-right text-slate-800 dark:text-white font-bold">{formatCurrency(item.estimated_cost, store)}</td>
+                                                            <td className="p-3 text-center font-bold">
+                                                                {item.missing_qty > 0 ? (
+                                                                    <span className="text-rose-650 dark:text-rose-400 text-2xs uppercase bg-rose-50 dark:bg-rose-950/20 px-1.5 py-0.5 rounded">Short</span>
+                                                                ) : (
+                                                                    <span className="text-emerald-600 dark:text-emerald-400 text-2xs uppercase bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded">OK</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                                <button
+                                    onClick={() => setShowSimulateModal(false)}
+                                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-750 dark:text-white rounded-lg font-bold"
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>

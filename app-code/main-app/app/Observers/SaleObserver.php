@@ -112,7 +112,7 @@ class SaleObserver
                     ->first();
 
                 if ($cashAccount && $incomeAccount) {
-                    $accountingSvc = app(\App\Services\V3\AccountingService::class);
+                    $accountingSvc = app(\App\Engines\AccountingService::class);
                     $accountingSvc->createEntry([
                         'tenant_id'      => $sale->tenant_id,
                         'date'           => \Carbon\Carbon::parse($sale->posted_at ?? $sale->created_at)->toDateString(),

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
-use App\Models\CustomCharge;
+use App\Models\AdHocLine;
 use App\Models\Tenant;
 use App\Helpers\SettingsHelper;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ class SettingsController extends Controller
     {
         return Inertia::render('Settings/SettingsPanel', [
             'settings' => Setting::all()->pluck('value', 'key'),
-            'customCharges' => CustomCharge::orderBy('sort_order')->get(),
+            'customCharges' => AdHocLine::orderBy('sort_order')->get(),
         ]);
     }
 
@@ -47,6 +47,16 @@ class SettingsController extends Controller
             // Security
             'settings.enable_passcode'              => 'nullable|string|in:0,1',
             'settings.admin_passcode'               => 'nullable|string|max:6|regex:/^[0-9]*$/',
+            // Invoice Styling & Margin Display
+            'settings.invoice_theme'                => 'nullable|string|in:classic,modern,elegant',
+            'settings.invoice_primary_color'        => 'nullable|string|max:7',
+            'settings.show_margin_on_invoice'       => 'nullable|string|in:0,1',
+            'settings.custom_domain'                => 'nullable|string|max:255',
+            'settings.tax_rates'                    => 'nullable|string',
+            'settings.sso_enabled'                  => 'nullable|string|in:0,1',
+            'settings.sso_idp_entity_id'            => 'nullable|string|max:255',
+            'settings.sso_url'                      => 'nullable|string|max:255',
+            'settings.sso_certificate'              => 'nullable|string',
         ]);
 
         foreach ($data['settings'] as $key => $value) {
@@ -80,6 +90,10 @@ class SettingsController extends Controller
                 $tenant->currency_symbol = $data['settings']['currency_symbol'];
                 $syncNeeded = true;
             }
+            if (isset($data['settings']['custom_domain'])) {
+                $tenant->custom_domain = $data['settings']['custom_domain'];
+                $syncNeeded = true;
+            }
             if ($syncNeeded) {
                 $tenant->save();
             }
@@ -106,14 +120,14 @@ class SettingsController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $data['sort_order'] = CustomCharge::max('sort_order') + 1;
+        $data['sort_order'] = AdHocLine::max('sort_order') + 1;
 
-        CustomCharge::create($data);
+        AdHocLine::create($data);
 
         return back()->with('success', 'Custom charge added!');
     }
 
-    public function updateCharge(Request $request, CustomCharge $charge)
+    public function updateCharge(Request $request, AdHocLine $charge)
     {
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -128,7 +142,7 @@ class SettingsController extends Controller
         return back()->with('success', 'Charge updated!');
     }
 
-    public function deleteCharge(CustomCharge $charge)
+    public function deleteCharge(AdHocLine $charge)
     {
         $charge->delete();
         return back()->with('success', 'Charge deleted!');

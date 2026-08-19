@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\PartyService;
+use App\Engines\PartyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -57,7 +57,7 @@ class CustomerStatementController extends Controller
             ->get(['id', 'reference_number', 'posted_at',
                    'invoice_total', 'total', 'payment_status'])
             ->map(function ($sale) {
-                $paid = (float) DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
+                $paid = (float) DB::table('allocations')->where('allocations.tenant_id', app('current.tenant')->id)
                     ->where('sale_id', $sale->id)
                     ->where('status', 'active')
                     ->sum('allocated_amount');
@@ -71,24 +71,17 @@ class CustomerStatementController extends Controller
                 $sale->days_overdue = now()
                     ->diffInDays($sale->posted_at, false) * -1;
 
-                // Aging buckets
+                // Aging buckets using canonical scheme
+                $frs = new \App\Services\FinancialReportingService();
                 $days = $sale->days_overdue;
-                $sale->aging_bucket = match(true) {
-                    $days <= 0   => 'current',
-                    $days <= 30  => '1-30',
-                    $days <= 60  => '31-60',
-                    $days <= 90  => '61-90',
-                    default      => '90+',
-                };
+                $sale->aging_bucket = $frs->ageBucket((int)$days);
 
                 return $sale;
             });
 
-        // Aging summary
+        // Aging summary using canonical buckets
         $aging = [
-            'current' => $outstanding->where('aging_bucket', 'current')
-                                     ->sum('balance'),
-            '1-30'    => $outstanding->where('aging_bucket', '1-30')
+            '0-30'    => $outstanding->where('aging_bucket', '0-30')
                                      ->sum('balance'),
             '31-60'   => $outstanding->where('aging_bucket', '31-60')
                                      ->sum('balance'),

@@ -18,6 +18,7 @@ import {
     User,
     Check,
     Pause,
+    Truck,
     Clock,
     Archive,
     CreditCard,
@@ -27,7 +28,8 @@ import {
     Database,
     Warehouse,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    History
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -35,6 +37,7 @@ import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { getProductPrice, shouldStopNegativeStock, roundTotal } from '@/Utils/settings';
 import { db } from '@/Utils/db';
+import { useAMDStation } from '@/Utils/AMDStation';
 
 import Toast from '@/Components/Toast';
 import AlertModal from '@/Components/AlertModal';
@@ -69,6 +72,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     } = useWorkspace();
     // [VOT] UI State & Standard Hooks
     const [toasts, setToasts] = useState([]);
+    const { isConnected: isStationConnected } = useAMDStation();
     const [alertState, setAlertState] = useState({ show: false, title: '', message: '', type: 'info' });
     const [confirmState, setConfirmState] = useState({ show: false, title: '', message: '', onConfirm: () => { } });
     const [inputState, setInputState] = useState({ show: false, title: '', placeholder: '', onSubmit: () => { } });
@@ -166,6 +170,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const [processingPayment, setProcessingPayment] = useState(false);
     const [lastSale, setLastSale] = useState(null); // For receipt
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+
+    // Recent Invoices feature state
+    const [recentInvoices, setRecentInvoices] = useState([]);
+    const [showRecentInvoices, setShowRecentInvoices] = useState(false);
+    const [loadingRecent, setLoadingRecent] = useState(false);
 
     // Feature State
     const [lastAddedItemId, setLastAddedItemId] = useState(null); // For "Type number to qty" feature
@@ -445,6 +454,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     const searchInputRef = useRef(null);
     const parkedDropdownRef = useRef(null);
+    const recentDropdownRef = useRef(null);
     const customerDropdownRef = useRef(null);
     const cartListRef = useRef(null);
     const cashReceivedInputRef = useRef(null);
@@ -503,6 +513,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return () => clearTimeout(timer);
     }, [customerSearchTerm]);
 
+
+    const loadRecentInvoices = async () => {
+        setLoadingRecent(true);
+        try {
+            const res = await fetch('/api/pos/recent-sales', {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                setRecentInvoices(data.data);
+            }
+        } catch (e) {
+            console.error(e);
+            addToast('Failed to fetch recent invoices', 'error');
+        } finally {
+            setLoadingRecent(false);
+        }
+    };
 
     // --- CART RESCUE (CRASH AIRBAG) ---
     // 1. Recover on Mount
@@ -910,6 +938,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     })();
 
     const taxRate = activeSale.taxRate !== undefined ? activeSale.taxRate : parseFloat(settings?.default_tax_rate || 0);
+    const taxInclusive = activeSale.taxInclusive !== undefined ? activeSale.taxInclusive : false;
 
     // Subtotal includes free items (gross sales value)
     const subtotal = activeSale.cart.reduce((acc, item) => acc + ((item.key_price || item.price) * (item.qty + (item.freeQuantity || 0))), 0);
@@ -929,8 +958,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const totalDiscounts = freeItemDiscounts + itemDiscounts + globalDiscount;
 
     const taxableAmount = Math.max(0, subtotal - totalDiscounts);
-    const taxAmount = (taxableAmount * taxRate) / 100;
-    const rawCartTotal = taxableAmount + taxAmount;
+    const taxAmount = taxInclusive 
+        ? taxableAmount - (taxableAmount / (1 + taxRate / 100))
+        : (taxableAmount * taxRate) / 100;
+    const rawCartTotal = taxInclusive ? taxableAmount : taxableAmount + taxAmount;
     const cartTotal = roundTotal(rawCartTotal, settings);
 
     const changeDue = activeSale.cashReceived ? parseFloat(activeSale.cashReceived) - cartTotal : 0;
@@ -1048,11 +1079,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             amount_paid: cartTotal, // Always count cartTotal as net paid internally
             tax: taxAmount,
             tax_rate: taxRate,
+            tax_inclusive: taxInclusive,
             discount: globalDiscount,
             notes: paymentData.notes,
             add_to_ledger: addToLedger,
             source: 'pos',
-            is_dropship: false,
+            is_dropship: activeSale.is_dropship || false,
         };
 
         try {
@@ -1850,6 +1882,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             if (parkedDropdownRef.current && !parkedDropdownRef.current.contains(event.target)) {
                 setParkedDropdownOpen(false);
             }
+            if (recentDropdownRef.current && !recentDropdownRef.current.contains(event.target)) {
+                setShowRecentInvoices(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -1969,10 +2004,76 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <span>Parked ({parkedSales.length})</span>
                     </button>
 
+                    {/* Recent Invoices Toggle */}
+                    <div className="relative" ref={recentDropdownRef}>
+                        <button
+                            onClick={() => {
+                                setShowRecentInvoices(!showRecentInvoices);
+                                if (!showRecentInvoices) loadRecentInvoices();
+                            }}
+                            className="h-8 px-3 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 flex items-center gap-2 transition-colors text-xs font-bold"
+                            title="Recent Invoices"
+                        >
+                            <History size={14} />
+                            <span>Recent</span>
+                        </button>
+
+                        {showRecentInvoices && (
+                            <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+                                <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                                    <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Invoices</h3>
+                                    {loadingRecent && <div className="animate-spin w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full"></div>}
+                                </div>
+                                {recentInvoices.length === 0 && !loadingRecent ? (
+                                    <div className="p-8 text-center text-slate-400 text-xs">
+                                        No recent invoices found.
+                                    </div>
+                                ) : (
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {recentInvoices.map(sale => (
+                                            <div
+                                                key={sale.id}
+                                                className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700/50 last:border-0 transition-colors flex items-center justify-between"
+                                            >
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                                        {sale.customer ? sale.customer.name : 'Walk-in Customer'}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        #{sale.reference_number || sale.id} · {new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">
+                                                        {formatCurrency(sale.total || 0, store || settings)}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const printType = settings?.default_print_type || 'thermal';
+                                                        PrintService.quickPrint(sale, printType, settings);
+                                                    }}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/40 text-indigo-600 dark:text-indigo-400 transition-colors"
+                                                    title="Print Receipt"
+                                                >
+                                                    <Printer size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Offline Indicator */}
                     <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isOnline ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                         {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
                         <span>{isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+
+                    {/* Hardware Status Badge */}
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isStationConnected ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                        <Printer size={14} />
+                        <span>{isStationConnected ? 'Hardware Active' : 'No Printer Device'}</span>
                     </div>
 
                     {/* Sync Indicator */}
@@ -2704,6 +2805,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
                                 <span>Tax</span>
                                 <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => updateActiveSale({ taxInclusive: !taxInclusive })}
+                                        className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border transition-colors cursor-pointer mr-1 ${
+                                            taxInclusive 
+                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-950/30 dark:border-indigo-900/50 dark:text-indigo-400' 
+                                                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-800'
+                                        }`}
+                                    >
+                                        {taxInclusive ? 'Inclusive' : 'Exclusive'}
+                                    </button>
                                     <div className="relative">
                                         <button 
                                             type="button"
@@ -2750,7 +2862,22 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <span className="text-slate-900 dark:text-white font-bold">{formatCurrency(taxAmount, store || settings)}</span>
                                 </div>
                             </div>
-                            <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
+                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs mt-2">
+                                <span>Fulfillment</span>
+                                <button
+                                    type="button"
+                                    onClick={() => updateActiveSale({ is_dropship: !(activeSale.is_dropship || false) })}
+                                    className={`text-[10px] font-extrabold uppercase px-2 py-1 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
+                                        activeSale.is_dropship 
+                                            ? 'bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400' 
+                                            : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-900 dark:border-slate-800'
+                                    }`}
+                                >
+                                    <Truck size={12} />
+                                    {activeSale.is_dropship ? 'Dropship' : 'Local Stock'}
+                                </button>
+                            </div>
+                            <div className="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
                             <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
                                 <span>Total</span>
                                 <span>{formatCurrency(cartTotal, store || settings)}</span>

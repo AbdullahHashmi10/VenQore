@@ -81,7 +81,8 @@ class PurchaseOrderController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_cost' => 'required|numeric|min:0',
-            'status' => 'nullable|in:ordered,received'
+            'status' => 'nullable|in:ordered,received',
+            'is_tax_inclusive' => 'boolean',
         ]);
 
         $po = DB::transaction(function () use ($validated) {
@@ -94,6 +95,7 @@ class PurchaseOrderController extends Controller
                 'expected_delivery_date' => $validated['expected_delivery_date'],
                 'notes' => $validated['notes'],
                 'user_id' => auth()->id(),
+                'is_tax_inclusive' => $validated['is_tax_inclusive'] ?? false,
                 'total_amount' => 0, // Calculated below
             ]);
 
@@ -101,6 +103,14 @@ class PurchaseOrderController extends Controller
             foreach ($validated['items'] as $item) {
                 $lineTotal = $item['quantity'] * $item['unit_cost'];
                 $total += $lineTotal;
+
+                $product = Product::find($item['product_id']);
+                if ($product && $product->cost_price > 0 && $item['unit_cost'] > $product->cost_price) {
+                    $msg = "Product '{$product->name}' (SKU: {$product->sku}) unit cost in PO is Rs. {$item['unit_cost']}, which is higher than current cost Rs. {$product->cost_price}.";
+                    if (auth()->check()) {
+                        auth()->user()->notify(new \App\Notifications\SystemAlertNotification($msg));
+                    }
+                }
 
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
@@ -118,7 +128,7 @@ class PurchaseOrderController extends Controller
                 $po->update(['status' => 'received']);
                 foreach ($po->items as $item) {
                     // V3 Inventory: Create Batch
-                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                    app(\App\Engines\FifoService::class)->receiveBatch(
                         $item->product_id,
                         $po->warehouse_id,
                         $item->quantity,
@@ -219,7 +229,7 @@ class PurchaseOrderController extends Controller
                 $purchaseOrder->update(['status' => 'received']);
                 foreach ($purchaseOrder->items as $item) {
                     // V3 Inventory: Create Batch
-                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                    app(\App\Engines\FifoService::class)->receiveBatch(
                         $item->product_id,
                         $purchaseOrder->warehouse_id,
                         $item->quantity,
@@ -274,13 +284,42 @@ class PurchaseOrderController extends Controller
                 return redirect()->back()->with('error', 'Order already received.');
             }
 
-            DB::transaction(function () use ($purchaseOrder) {
+            $hasPartialInputs = $request->has('items');
+            $partialItems = $request->input('items', []);
+
+            DB::transaction(function () use ($purchaseOrder, $hasPartialInputs, $partialItems) {
+                $allFullyReceived = true;
+
                 foreach ($purchaseOrder->items as $item) {
+                    $receiveQty = (float)($item->quantity - $item->received_quantity); // Default: remaining
+
+                    if ($hasPartialInputs) {
+                        $inputItem = collect($partialItems)->firstWhere('id', $item->id);
+                        if ($inputItem) {
+                            $receiveQty = (float)$inputItem['receive_qty'];
+                        } else {
+                            $receiveQty = 0; // Not intaken in this batch
+                        }
+                    }
+
+                    if ($receiveQty <= 0) {
+                        if ($item->received_quantity < $item->quantity) {
+                            $allFullyReceived = false;
+                        }
+                        continue;
+                    }
+
+                    // Enforce remaining limit
+                    $remaining = $item->quantity - $item->received_quantity;
+                    if ($receiveQty > $remaining) {
+                        $receiveQty = $remaining;
+                    }
+
                     // V3 Inventory: Create Batch
-                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                    app(\App\Engines\FifoService::class)->receiveBatch(
                         $item->product_id,
                         $purchaseOrder->warehouse_id,
-                        $item->quantity,
+                        $receiveQty,
                         $item->unit_cost,
                         'purchase',
                         $purchaseOrder->id
@@ -290,20 +329,27 @@ class PurchaseOrderController extends Controller
                     StockMovement::create([
                         'product_id' => $item->product_id,
                         'warehouse_id' => $purchaseOrder->warehouse_id,
-                        'quantity' => $item->quantity,
+                        'quantity' => $receiveQty,
                         'type' => 'purchase',
-                        'description' => "Received PO #{$purchaseOrder->reference_number}",
+                        'description' => "Received PO #{$purchaseOrder->reference_number} (Intake: {$receiveQty})",
                         'user_id' => auth()->id(),
                     ]);
 
                     // Update item received qty
-                    $item->update(['received_quantity' => $item->quantity]);
+                    $newReceivedQty = $item->received_quantity + $receiveQty;
+                    $item->update(['received_quantity' => $newReceivedQty]);
 
                     // Update Product Cost Price (Last Price)
                     $item->product->update(['cost_price' => $item->unit_cost]);
+
+                    if ($newReceivedQty < $item->quantity) {
+                        $allFullyReceived = false;
+                    }
                 }
 
-                $purchaseOrder->update(['status' => 'received']);
+                // Update PO Status
+                $newStatus = $allFullyReceived ? 'received' : 'partial';
+                $purchaseOrder->update(['status' => $newStatus]);
             });
 
             if ($request->wantsJson()) {

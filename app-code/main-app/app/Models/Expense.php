@@ -14,7 +14,7 @@ class Expense extends Model
         'tenant_id', 'category', 'expense_category_id', 'amount', 'tax_amount',
         'date', 'bank_account_id', 'payment_method', 'reference', 'payee',
         'description', 'notes', 'attachment', 'is_landed_cost', 'purchase_id',
-        'allocation_method',
+        'allocation_method', 'channel',
     ];
 
     protected $casts = [

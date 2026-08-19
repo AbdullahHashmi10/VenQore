@@ -12,12 +12,12 @@ use App\Models\Warehouse;
 use App\Models\BankAccount;
 use App\Models\Product;
 use App\Models\Party;
-use App\Services\V3\AccountingService;
-use App\Services\V3\SaleService;
-use App\Services\V3\FifoService;
-use App\Services\V3\PaymentService;
-use App\Services\V3\PurchaseService;
-use App\Services\V3\InventoryService;
+use App\Engines\AccountingService;
+use App\Engines\SaleService;
+use App\Engines\FifoService;
+use App\Engines\PaymentService;
+use App\Engines\PurchaseService;
+use App\Engines\InventoryService;
 
 class GoldenAuditSeeder extends Seeder
 {
@@ -201,16 +201,47 @@ class GoldenAuditSeeder extends Seeder
                 ['account_code' => '3000', 'debit' => 0, 'credit' => 10000.00],
             ]);
 
-            DB::table('parked_sales')->insert([
-                'id' => (string) \Illuminate\Support\Str::uuid(),
-                'tenant_id' => self::TENANT_ID,
-                'cart_data' => json_encode([['product_id' => $productId, 'quantity' => 1, 'price' => 100]]),
-                'user_id' => self::USER_OWNER,
-                'customer_name' => 'Walk-In Customer',
-                'expires_at' => '2035-01-01 09:00:00',
-                'created_at' => $nowStr,
-                'updated_at' => $nowStr
-            ]);
+            if (DB::getSchemaBuilder()->hasTable('parked_sales')) {
+                DB::table('parked_sales')->insert([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'tenant_id' => self::TENANT_ID,
+                    'cart_data' => json_encode([['product_id' => $productId, 'quantity' => 1, 'price' => 100]]),
+                    'user_id' => self::USER_OWNER,
+                    'customer_name' => 'Walk-In Customer',
+                    'expires_at' => '2035-01-01 09:00:00',
+                    'created_at' => $nowStr,
+                    'updated_at' => $nowStr
+                ]);
+            }
+
+            if (DB::getSchemaBuilder()->hasTable('occupancies') && DB::getSchemaBuilder()->hasTable('positions')) {
+                $posId = DB::table('positions')->where('tenant_id', self::TENANT_ID)->value('id');
+                if (!$posId) {
+                    $posId = DB::table('positions')->insertGetId([
+                        'tenant_id' => self::TENANT_ID,
+                        'zone' => 'counter',
+                        'code' => 'CTR',
+                        'label' => 'Counter (Parked)',
+                        'capacity' => 99,
+                        'status' => 'active',
+                        'sort_order' => 9999,
+                        'source_type' => 'parked_sale_slot',
+                        'created_at' => $nowStr,
+                        'updated_at' => $nowStr
+                    ]);
+                }
+                DB::table('occupancies')->insert([
+                    'tenant_id' => self::TENANT_ID,
+                    'position_id' => $posId,
+                    'label' => 'Walk-In Customer',
+                    'session_data' => json_encode(['cart_data' => [['product_id' => $productId, 'quantity' => 1, 'price' => 100]]]),
+                    'opened_by' => self::USER_OWNER,
+                    'opened_at' => $nowStr,
+                    'expires_at' => '2035-01-01 09:00:00',
+                    'created_at' => $nowStr,
+                    'updated_at' => $nowStr
+                ]);
+            }
 
             DB::table('stock_transfers')->insert([
                 'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -307,7 +338,7 @@ class GoldenAuditSeeder extends Seeder
                 'updated_at' => $nowStr
             ]);
 
-            DB::table('recipes')->insert([
+            DB::table('compositions')->insert([
                 'id' => (string) \Illuminate\Support\Str::uuid(),
                 'tenant_id' => self::TENANT_ID,
                 'name' => 'Cream Formula A',
@@ -1059,7 +1090,7 @@ class GoldenAuditSeeder extends Seeder
             'purchase_items', 'party_snapshots', 'parties', 'products', 'warehouses',
             'bank_accounts', 'accounts', 'parked_sales', 'stock_transfers',
             'stock_takes', 'debit_notes', 'batches', 'product_serials',
-            'recurring_invoices', 'recipes', 'staff_attendances', 'purchase_orders',
+            'recurring_invoices', 'compositions', 'staff_attendances', 'purchase_orders',
             'suppliers', 'customers', 'invoices',
             'sales_orders', 'proposals', 'expenses', 'payments',
             'daily_snapshots', 'settings', 'stocks',
@@ -1070,8 +1101,8 @@ class GoldenAuditSeeder extends Seeder
         if (DB::getSchemaBuilder()->hasTable('sale_item_batches')) {
             DB::table('sale_item_batches')->whereIn('tenant_id', $tenantIds)->delete();
         }
-        if (DB::getSchemaBuilder()->hasTable('payment_allocations')) {
-            DB::table('payment_allocations')->whereIn('tenant_id', $tenantIds)->delete();
+        if (DB::getSchemaBuilder()->hasTable('allocations')) {
+            DB::table('allocations')->whereIn('tenant_id', $tenantIds)->delete();
         }
         if (DB::getSchemaBuilder()->hasTable('sales_order_items')) {
             DB::table('sales_order_items')->whereIn('tenant_id', $tenantIds)->delete();

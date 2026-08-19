@@ -1,15 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
-import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck, Play } from 'lucide-react';
 
 export default function PurchaseOrdersShow({ order }) {
     const { store } = usePage().props;
+    const [isIntaking, setIsIntaking] = useState(false);
+    const [intakeQuantities, setIntakeQuantities] = useState(
+        order.items.reduce((acc, item) => {
+            acc[item.id] = Math.max(0, parseFloat(item.quantity) - parseFloat(item.received_quantity || 0)).toString();
+            return acc;
+        }, {})
+    );
+
     const handleReceive = () => {
-        if (confirm('Are you sure you want to mark this order as RECEIVED? This will update your inventory stock levels.')) {
+        if (confirm('Are you sure you want to mark all remaining quantities as RECEIVED? This will update your inventory stock levels.')) {
             router.post(route('store.purchase-orders.receive', order.id));
         }
+    };
+
+    const handleIntakeSubmit = () => {
+        const payload = {
+            items: Object.entries(intakeQuantities).map(([id, receive_qty]) => ({
+                id,
+                receive_qty: parseFloat(receive_qty) || 0
+            }))
+        };
+        router.post(route('store.purchase-orders.receive', order.id), payload, {
+            onSuccess: () => {
+                setIsIntaking(false);
+            }
+        });
     };
 
     return (
@@ -40,7 +62,7 @@ export default function PurchaseOrdersShow({ order }) {
                             <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                                 <Printer size={18} /> Print
                             </button>
-                            {order.status !== 'received' && (
+                            {order.status !== 'received' && !isIntaking && (
                                 <Link
                                     href={route('store.purchase-orders.edit', order.id)}
                                     className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-lg font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
@@ -48,10 +70,32 @@ export default function PurchaseOrdersShow({ order }) {
                                     Edit Order
                                 </Link>
                             )}
-                            {order.status !== 'received' && (
+                            {order.status !== 'received' && !isIntaking && (
+                                <button
+                                    onClick={() => setIsIntaking(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/50 rounded-lg font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                >
+                                    Record Intake
+                                </button>
+                            )}
+                            {order.status !== 'received' && !isIntaking && (
                                 <PremiumButton onClick={handleReceive}>
                                     <CheckCircle size={18} />
-                                    Receive Stock
+                                    Receive All Remaining
+                                </PremiumButton>
+                            )}
+                            {isIntaking && (
+                                <button
+                                    onClick={() => setIsIntaking(false)}
+                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                            {isIntaking && (
+                                <PremiumButton onClick={handleIntakeSubmit}>
+                                    <CheckCircle size={18} />
+                                    Save Stock Intake
                                 </PremiumButton>
                             )}
                         </div>
@@ -104,6 +148,7 @@ export default function PurchaseOrdersShow({ order }) {
                                 <th className="p-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Product</th>
                                 <th className="p-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Ordered Qty</th>
                                 <th className="p-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Received Qty</th>
+                                {isIntaking && <th className="p-4 text-center text-xs font-bold text-indigo-500 uppercase tracking-wider w-36">This Intake</th>}
                                 <th className="p-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Unit Cost</th>
                                 <th className="p-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Total</th>
                             </tr>
@@ -128,6 +173,22 @@ export default function PurchaseOrdersShow({ order }) {
                                             {parseFloat(item.received_quantity)}
                                         </span>
                                     </td>
+                                    {isIntaking && (
+                                        <td className="p-4 text-center">
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                min="0"
+                                                max={parseFloat(item.quantity) - parseFloat(item.received_quantity || 0)}
+                                                value={intakeQuantities[item.id] ?? ''}
+                                                onChange={(e) => setIntakeQuantities({
+                                                    ...intakeQuantities,
+                                                    [item.id]: e.target.value
+                                                })}
+                                                className="w-24 text-center rounded-lg border-slate-250 dark:border-slate-700 dark:bg-slate-900 text-slate-800 dark:text-white font-bold"
+                                            />
+                                        </td>
+                                    )}
                                     <td className="p-4 text-right text-slate-600 dark:text-slate-400">
                                         ${parseFloat(item.unit_cost).toFixed(2)}
                                     </td>
@@ -139,7 +200,7 @@ export default function PurchaseOrdersShow({ order }) {
                         </tbody>
                         <tfoot className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
                             <tr>
-                                <td colSpan="4" className="p-4 text-right font-bold text-slate-500 uppercase">Total Amount</td>
+                                <td colSpan={isIntaking ? 5 : 4} className="p-4 text-right font-bold text-slate-500 uppercase">Total Amount</td>
                                 <td className="p-4 text-right font-bold text-xl text-slate-900 dark:text-white">
                                     ${parseFloat(order.total_amount).toFixed(2)}
                                 </td>

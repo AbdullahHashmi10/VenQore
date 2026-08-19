@@ -57,12 +57,24 @@ final class PartySource implements ReckonerSource
                     ->whereBetween('created_at', [$period->start, $period->end])
                     ->count(),
                 'party.dormant_customers' => $this->dormantCustomers($ctx),
-                'sales.top_customers' => [
-                    'rows' => [
-                        ['rank' => 1, 'name' => 'Walk-in Customer', 'value' => 1250.0],
-                        ['rank' => 2, 'name' => 'Ali Raza', 'value' => 800.0],
-                    ]
-                ],
+                'sales.top_customers' => (function() use ($period) {
+                    $rows = $this->reporting->getGrossProfitByParty($period->start->toDateString(), $period->end->toDateString())
+                        ->take(6)
+                        ->values();
+
+                    $rank = 1;
+                    $rankings = [];
+                    foreach ($rows as $row) {
+                        $rankings[] = [
+                            'rank' => $rank++,
+                            'name' => $row['party_name'],
+                            'value' => (float) $row['net_revenue'],
+                        ];
+                    }
+                    return [
+                        'rows' => $rankings
+                    ];
+                })(),
                 default => null,
             };
         }

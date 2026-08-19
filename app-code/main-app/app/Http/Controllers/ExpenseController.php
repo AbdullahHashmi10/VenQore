@@ -163,6 +163,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'date'                => 'required|date',
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'channel'             => 'nullable|string',
             'amount'              => 'required|numeric|min:0',
             'tax_amount'          => 'nullable|numeric|min:0',
             'grand_total'         => 'nullable|numeric|min:0',
@@ -218,6 +219,7 @@ class ExpenseController extends Controller
         $validated = $request->validate([
             'date'                => 'required|date',
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'channel'             => 'nullable|string',
             'amount'              => 'required|numeric|min:0',
             'tax_amount'          => 'nullable|numeric|min:0',
             'payment_method'      => 'required|in:cash,bank',
@@ -256,7 +258,7 @@ class ExpenseController extends Controller
                     ];
                 })->toArray();
                 
-                app(\App\Services\V3\AccountingService::class)->createEntry([
+                app(\App\Engines\AccountingService::class)->createEntry([
                     'date'           => now()->toDateString(),
                     'reference'      => $expense->id,
                     'reference_type' => 'expense_reversal',
@@ -312,7 +314,7 @@ class ExpenseController extends Controller
                     ];
                 })->toArray();
                 
-                app(\App\Services\V3\AccountingService::class)->createEntry([
+                app(\App\Engines\AccountingService::class)->createEntry([
                     'date'           => now()->toDateString(),
                     'reference'      => $expense->id,
                     'reference_type' => 'expense_reversal',
@@ -397,7 +399,7 @@ class ExpenseController extends Controller
 
         if (!$creditAccount) return;
 
-        app(\App\Services\V3\AccountingService::class)->createEntry([
+        app(\App\Engines\AccountingService::class)->createEntry([
             'date'           => $expense->date,
             'reference'      => $expense->id,
             'reference_type' => 'expense',

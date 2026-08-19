@@ -84,9 +84,21 @@ class AiExtractionService
     /**
      * Resolve the effective AI configuration for the current tenant.
      *
+     * @param  string|null  $feature  Which prompt/model to use (e.g. 'scan'). Purely
+     *                                a model-selection hint — NEVER used to decide
+     *                                which API key to bill. That decision belongs to
+     *                                $entitlementMode alone (see the platform-fallback
+     *                                branch below): a free-tier tenant's scan must
+     *                                always hit SMART_CAPTURE_FREE_API_KEY, regardless
+     *                                of which feature string the caller passes.
+     * @param  string|null  $entitlementMode  The 'mode' from AiEntitlementService::check()
+     *                                — 'free' | 'managed' | 'byok' | 'staff'. Pass this
+     *                                explicitly from every real request path; omitting it
+     *                                now defaults to the SAFEST option (free key) rather
+     *                                than silently falling back to the paid key.
      * @return array{provider:string, api_key:?string, model:string, byok:bool}
      */
-    public function resolveConfig(?string $feature = null): array
+    public function resolveConfig(?string $feature = null, ?string $entitlementMode = null): array
     {
         // 1. Dedicated per-store SmartCapture settings (BYOK) — strictly tenant-scoped
         $tenantKey = $this->tenantSetting('smartcapture_api_key');
@@ -121,10 +133,25 @@ class AiExtractionService
         }
 
         // 3. Platform-level fallback (managed / free tiers)
+        //
+        // Branch on ENTITLEMENT MODE, not feature name. The feature string
+        // ('scan', 'match_fallback', ...) only ever selects a model/prompt —
+        // it says nothing about whether the tenant is paying. Keying the free
+        // key off $feature === 'public_tool' meant every real scan (feature
+        // 'scan') silently fell through to the paid key, so free-tier tenants
+        // burned the platform's dedicated Gemini key on every one of their 10
+        // free scans. 'staff' also gets the free key: staff previews must
+        // never spend the paid key either.
         $provider = $this->normalizeProvider(config('smartcapture.provider', 'gemini'));
-        if ($feature === 'public_tool') {
+
+        $usesFreeKey = in_array($entitlementMode, ['free', 'staff', 'public_tool'], true)
+            || $feature === 'public_tool'   // explicit public (unauthenticated) tool surfaces
+            || $entitlementMode === null;   // unknown entitlement — default to the SAFE key, never the paid one
+
+        if ($usesFreeKey) {
             $key = config('smartcapture.free_api_key') ?: (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'));
         } else {
+            // 'managed' (paid usage-based) and any other explicitly-paying mode
             $key = $provider === 'gemini'
                 ? (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'))
                 : config('smartcapture.api_key');
@@ -193,7 +220,9 @@ class AiExtractionService
         $this->lastModelUsed = null;
         $this->lastUsage = [];
 
-        $config = $this->resolveConfig($context['feature'] ?? 'scan');
+        // entitlement_mode MUST come from the caller's AiEntitlementService
+        // check for this request — never inferred from $context['feature'].
+        $config = $this->resolveConfig($context['feature'] ?? 'scan', $context['entitlement_mode'] ?? null);
 
         if (empty($config['api_key'])) {
             throw new \Exception('No AI API key is configured. Add your own key in AI Scan settings.');

@@ -1,594 +1,769 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
 import { vq } from '@/theme/runtime';
 import {
-    TrendingUp,
-    TrendingDown,
-    DollarSign,
-    Users,
-    Package,
-    AlertCircle,
-    Clock,
-    FileText,
-    Activity,
-    ArrowUpRight,
-    ArrowDownRight,
-    ClipboardList,
-    UserCheck,
-    Receipt,
-    ArrowRight,
-    MoreHorizontal,
-    Wallet,
-    Settings,
-    Shield,
-    Plus,
-    Search,
-    Monitor,
-    ShoppingCart,
-    LayoutGrid,
-    Minus
+    TrendingUp, TrendingDown, DollarSign, Users, Package,
+    AlertCircle, Clock, FileText, Activity, ArrowUpRight,
+    Receipt, ClipboardList, Wallet, Settings, Shield,
+    Plus, Minus, MoreHorizontal
 } from 'lucide-react';
 import {
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-    Tooltip,
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Legend
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+    AreaChart, Area, XAxis, YAxis, CartesianGrid
 } from 'recharts';
+import { LaserFlow } from '@/Components/ReactBits/LaserFlow';
+import SplitText from '@/Components/ReactBits/SplitText';
+import {
+    BklitAreaChart, BklitDonut, BklitBarChart,
+    RingChart, Ring, RingCenter,
+    Legend, LegendItemComponent, LegendMarker, LegendLabel, LegendValue, LegendProgress
+} from '@/Components/Bklit/Charts';
 
+/* ─────────────────────────────────────────────
+   VQ v2 chart series (resolved at runtime from CSS vars)
+   We pull the computed value once on mount.
+────────────────────────────────────────────── */
+function getCssVar(name) {
+    if (typeof window === 'undefined') return '#888';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888';
+}
+
+/* ─────────────────────────────────────────────
+   Tiny reusable pieces
+────────────────────────────────────────────── */
+
+function Eyebrow({ children, color }) {
+    return (
+        <span style={{
+            fontFamily: 'var(--vq-font-mono)',
+            fontSize: '10px',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            fontWeight: 500,
+            color: color || 'var(--vq-text-3)',
+            display: 'block',
+            lineHeight: 1.4,
+        }}>
+            {children}
+        </span>
+    );
+}
+
+function Pill({ type = 'neutral', children }) {
+    const styles = {
+        ok:      { bg: 'var(--vq-success-bg)',  color: 'var(--vq-success)',  ring: 'var(--vq-success-line)'  },
+        warn:    { bg: 'var(--vq-warning-bg)',  color: 'var(--vq-warning)',  ring: 'var(--vq-warning-line)'  },
+        bad:     { bg: 'var(--vq-danger-bg)',   color: 'var(--vq-danger)',   ring: 'var(--vq-danger-line)'   },
+        neutral: { bg: 'var(--vq-sunken)',      color: 'var(--vq-text-2)',   ring: 'var(--vq-line-soft)'     },
+    };
+    const s = styles[type] || styles.neutral;
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px',
+            padding: '2px 8px', borderRadius: 'var(--vq-r-sm)',
+            fontSize: '11px', fontWeight: 500, lineHeight: 1.5,
+            background: s.bg, color: s.color,
+            boxShadow: `inset 0 0 0 1px ${s.ring}`,
+            fontFamily: 'var(--vq-font-sans)',
+            whiteSpace: 'nowrap',
+        }}>
+            {children}
+        </span>
+    );
+}
+
+function IconBadge({ icon: Icon, color }) {
+    return (
+        <div style={{
+            width: '38px', height: '38px', borderRadius: 'var(--vq-r-md)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            background: `color-mix(in srgb, ${color} 14%, transparent)`,
+            color,
+        }}>
+            <Icon size={18} />
+        </div>
+    );
+}
+
+function CountUp({ value, prefix = '', suffix = '', decimals = 0 }) {
+    const [display, setDisplay] = useState(0);
+    useEffect(() => {
+        const target = parseFloat(value) || 0;
+        if (target === 0) { setDisplay(0); return; }
+        let start = null;
+        const dur = 1000;
+        const step = ts => {
+            if (!start) start = ts;
+            const p = Math.min((ts - start) / dur, 1);
+            setDisplay(target * (1 - Math.pow(1 - p, 3)));
+            if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }, [value]);
+    const fmt = decimals > 0 ? display.toFixed(decimals) : Math.round(display).toLocaleString();
+    return <>{prefix}{fmt}{suffix}</>;
+}
+
+/* Card wrapper — VQ surface + elev model */
+function Card({ children, style = {}, pad = '18px 20px', hover = true }) {
+    const [hov, setHov] = useState(false);
+    return (
+        <div
+            style={{
+                background: 'var(--vq-surface)',
+                border: `1px solid ${hov && hover ? 'var(--vq-line-strong)' : 'var(--vq-line)'}`,
+                borderRadius: 'var(--vq-r-xl)',
+                boxShadow: hov && hover ? 'var(--vq-elev-2)' : 'var(--vq-elev-1)',
+                padding: pad,
+                transition: 'border-color 180ms, box-shadow 180ms, transform 180ms',
+                transform: hov && hover ? 'translateY(-2px)' : 'none',
+                fontFamily: 'var(--vq-font-sans)',
+                ...style,
+            }}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+        >
+            {children}
+        </div>
+    );
+}
+
+/* Custom recharts tooltip matching VQ surface */
+function VqTooltip({ active, payload, label, formatter, currencySymbol }) {
+    if (!active || !payload?.length) return null;
+    return (
+        <div style={{
+            background: 'var(--vq-raised)',
+            border: '1px solid var(--vq-line)',
+            borderRadius: 'var(--vq-r-md)',
+            boxShadow: 'var(--vq-elev-3)',
+            padding: '10px 14px',
+            fontFamily: 'var(--vq-font-sans)',
+            fontSize: '12px',
+            color: 'var(--vq-text)',
+            minWidth: '120px',
+        }}>
+            {label && <div style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '10px', color: 'var(--vq-text-3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</div>}
+            {payload.map((p, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: i > 0 ? '4px' : 0 }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+                    <span style={{ color: 'var(--vq-text-2)' }}>{p.name}</span>
+                    <span style={{ fontFamily: 'var(--vq-font-mono)', fontWeight: 600, color: 'var(--vq-text)', marginLeft: 'auto' }}>
+                        {typeof formatter === 'function' ? formatter(p.value) : p.value}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* Activity row */
+function ActivityRow({ act }) {
+    const [hov, setHov] = useState(false);
+    return (
+        <div
+            style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px 10px', borderRadius: 'var(--vq-r-md)',
+                background: hov ? 'var(--vq-sunken)' : 'transparent',
+                transition: 'background 100ms',
+                borderBottom: '1px solid var(--vq-line-soft)',
+            }}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                <div style={{
+                    width: '28px', height: '28px', borderRadius: 'var(--vq-r-sm)', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: act.is_plus ? 'var(--vq-success-bg)' : 'var(--vq-danger-bg)',
+                    color: act.is_plus ? 'var(--vq-success)' : 'var(--vq-danger)',
+                    boxShadow: `inset 0 0 0 1px ${act.is_plus ? 'var(--vq-success-line)' : 'var(--vq-danger-line)'}`,
+                }}>
+                    {act.is_plus ? <Plus size={12} /> : <Minus size={12} />}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--vq-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {act.title}
+                    </div>
+                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '10px', color: 'var(--vq-text-3)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                        <Clock size={8} /> {act.time}
+                    </div>
+                </div>
+            </div>
+            <span style={{
+                fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums',
+                fontSize: '12px', fontWeight: 600, flexShrink: 0, marginLeft: '8px',
+                color: act.is_plus ? 'var(--vq-success)' : 'var(--vq-danger)',
+            }}>
+                {act.amount}
+            </span>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   MAIN PAGE
+────────────────────────────────────────────── */
 export default function AdminDashboard({
     stats = { net_profit: 0, total_revenue: 0, total_expenses: 0, active_staff: 0, total_staff: 0 },
     profitData = [],
-    staffPerformance = [],
     recentActivity = [],
-    inventoryHealth = { healthy: 0, lowStock: 0, outOfStock: 0, deadStock: 0 },
-    topProducts = [],
+    inventoryHealth = { healthy: 0, lowStock: 0, outOfStock: 0, lowStockCount: 0 },
     expenseData = [],
     paymentMethods = [],
     currencySymbol = '$'
 }) {
-    const {
-        store
-    } = usePage().props;
-
-    // Guard: Prevent rendering until store context is derived
+    const { store } = usePage().props;
     if (!store?.slug) return null;
 
-    // Shortcuts Configuration
-    const shortcuts = [
-        { name: 'POS', icon: Monitor, route: 'store.pos', color: 'bg-indigo-500', text: 'text-indigo-600 dark:text-indigo-400' },
-        { name: 'Stock', icon: Package, route: 'store.inventory.dashboard', color: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
-        { name: 'Sales', icon: ShoppingCart, route: 'store.sales.dashboard', color: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400' },
-        { name: 'Money', icon: DollarSign, route: 'store.finance.index', color: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
-        { name: 'Contacts', icon: Users, route: 'store.parties.index', color: 'bg-purple-500', text: 'text-purple-600 dark:text-purple-400' },
-        { name: 'Reports', icon: TrendingUp, route: 'store.reports.index', color: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' },
+    /* VQ chart series — read from CSS at runtime */
+    const S = [
+        'var(--vq-series-1)', 'var(--vq-series-2)', 'var(--vq-series-3)',
+        'var(--vq-series-4)', 'var(--vq-series-5)', 'var(--vq-series-6)',
     ];
 
-    // Process Expense Data: Calculate percentages using real data
-    const totalExpenseValue = expenseData.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0);
-    const hasExpenses = totalExpenseValue > 0;
+    const totalExpenseValue = expenseData.reduce((a, c) => a + (parseFloat(c.value) || 0), 0);
+    const finalExpenseData = totalExpenseValue > 0
+        ? expenseData.map((d, i) => ({ ...d, pct: Math.round((d.value / totalExpenseValue) * 100), color: S[i % 6] }))
+        : [{ name: 'No Data', value: 1, pct: 0, color: 'var(--vq-line)' }];
 
-    const finalExpenseData = hasExpenses ? expenseData.map(item => ({
-        ...item,
-        percentage: Math.round((item.value / totalExpenseValue) * 100)
-    })) : [
-        { name: 'No Data', value: 1, color: vq.slate[700], percentage: 0 } // Placeholder if empty
+    const invStats = [
+        { k: 'Healthy', val: inventoryHealth.healthy ?? 0,    type: 'ok',      color: S[0] },
+        { k: 'Low',     val: inventoryHealth.lowStock ?? 0,   type: 'warn',    color: S[1] },
+        { k: 'Out',     val: inventoryHealth.outOfStock ?? 0, type: 'bad',     color: S[5] },
     ];
+    const pieInv = invStats.filter(d => d.val > 0).map(d => ({ name: d.k, value: d.val, color: d.color }));
+    const emptyPie = [{ name: 'No Data', value: 1, color: 'var(--vq-line)' }];
 
-    // Inventory pie data - Fix 0 || value bug by using explicit null updates or relying on passed 0s
-    // Also ensuring it uses the props passed from controller which are already percentages
-    const pieData = [
-        { name: 'Healthy', value: inventoryHealth.healthy ?? 0, color: vq.emerald[500] },
-        { name: 'Low', value: inventoryHealth.lowStock ?? 0, color: vq.amber[500] },
-        { name: 'Out', value: inventoryHealth.outOfStock ?? 0, color: vq.red[500] },
-    ].filter(d => d.value > 0);
+    const invStatus = inventoryHealth.outOfStock > 0 ? { label: 'Action Needed', type: 'bad' }
+                    : inventoryHealth.lowStock   > 0 ? { label: 'Low Stock',      type: 'warn' }
+                    :                                  { label: 'Healthy',        type: 'ok' };
 
-    const activeInventoryStatus =
-        inventoryHealth.outOfStock > 0 ? { label: 'Action Needed', color: 'text-red-500' } :
-            inventoryHealth.lowStock > 0 ? { label: 'Low Stock', color: 'text-amber-500' } :
-                { label: 'Healthy', color: 'text-emerald-500' };
+    const profitMarginPct = stats.total_revenue > 0
+        ? Math.round((stats.net_profit / stats.total_revenue) * 100) : 0;
+
+    const payPie = paymentMethods.length > 0
+        ? paymentMethods.map((m, i) => ({ ...m, color: S[i % 6] }))
+        : emptyPie;
+
+    const [inventoryHoveredIndex, setInventoryHoveredIndex] = useState(null);
+
+    /* Get accent colour for LaserFlow (teal, extracted from CSS) */
+    const [laserColor, setLaserColor] = useState('#2EC4B6');
+    useEffect(() => {
+        const c = getCssVar('--vq-accent');
+        if (c && c !== '#888') setLaserColor(c);
+    }, []);
 
     return (
         <OneGlanceLayout title="Executive Dashboard" mode="admin" noPadding={true}>
             <Head title="Executive Dashboard" />
-            <div className="h-full w-full px-4 md:px-8 pt-1 pb-4 overflow-hidden flex gap-4">
-                
-                {/* Left/Middle Content Area */}
-                <div className="flex-1 flex flex-col h-full gap-4 min-w-0">
-                    
-                    {/* Top KPI Cards Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
-                        {/* Pending Actions */}
-                        <Link href={route("store.reports.low-stock", {
-                            store_slug: store.slug
-                        })} className="block group">
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 relative overflow-hidden group-hover:-translate-y-0.5 transition-all duration-300">
-                                <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                                <div className="flex items-center gap-3 shrink-0 relative z-10">
-                                    <div className="p-2.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 rounded-xl shadow-sm">
-                                        <ClipboardList size={20} />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Pending Actions</span>
-                                        {inventoryHealth.lowStockCount > 0 && (
-                                            <span className="text-2xs font-bold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 px-2 py-0.5 rounded-full mt-1 w-max">Action Needed</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-end text-right min-w-0 relative z-10">
-                                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{inventoryHealth.lowStockCount > 0 ? `${inventoryHealth.lowStockCount} Items` : '0 Items'}</h2>
-                                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1 group-hover:text-amber-600 transition-colors justify-end">
-                                        Requires your attention <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                    </p>
-                                </div>
+
+            <style>{`
+                :root, [data-theme="dark"], [data-theme="light"], .admin-layout, main, #app {
+                    --vq-teal-400: #00aa98 !important;
+                    --vq-teal-500: #00aa98 !important;
+                    --vq-teal-600: #009988 !important;
+                    --vq-accent: #00aa98 !important;
+                    --vq-series-1: #00aa98 !important;
+                    --chart-1: #00aa98 !important;
+                }
+                @keyframes vq-fade-up {
+                    from { opacity: 0; transform: translateY(16px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                .exec-fade { animation: vq-fade-up 0.5s cubic-bezier(0,0,.2,1) both; }
+                .exec-fade:nth-child(1) { animation-delay: 0.00s; }
+                .exec-fade:nth-child(2) { animation-delay: 0.05s; }
+                .exec-fade:nth-child(3) { animation-delay: 0.10s; }
+                .exec-fade:nth-child(4) { animation-delay: 0.15s; }
+                .exec-fade:nth-child(5) { animation-delay: 0.20s; }
+
+                /* SplitText h1 */
+                .exec-h1.split-parent {
+                    font-size: 22px !important;
+                    line-height: 1.2 !important;
+                    letter-spacing: -0.025em !important;
+                    font-weight: 600 !important;
+                    color: var(--vq-text) !important;
+                    font-family: var(--vq-font-sans) !important;
+                    margin: 0 !important;
+                    display: block !important;
+                }
+                .exec-h1 .split-word { display: inline-block !important; }
+
+                /* Shine sweep for section labels */
+                @keyframes vq-shine-sweep {
+                    0%   { background-position: 200% center; }
+                    100% { background-position: -200% center; }
+                }
+                .shine-label {
+                    font-family: var(--vq-font-mono);
+                    font-size: 10px;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    background-image: linear-gradient(110deg,
+                        var(--vq-accent-text) 0%,
+                        var(--vq-accent-text) 35%,
+                        #fff 50%,
+                        var(--vq-accent-text) 65%,
+                        var(--vq-accent-text) 100%
+                    );
+                    background-size: 200% auto;
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    animation: vq-shine-sweep 3.5s linear infinite;
+                    display: inline-block;
+                }
+            `}</style>
+
+            {/* ═══ PAGE WRAPPER ═══ */}
+            <div style={{
+                display: 'flex', gap: '14px', height: '100%', width: '100%',
+                padding: '14px 18px', overflow: 'hidden', boxSizing: 'border-box',
+                fontFamily: 'var(--vq-font-sans)',
+                background: 'var(--vq-bg)',
+            }}>
+
+                {/* ═══ LEFT + CENTRE ═══ */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, overflow: 'hidden' }}>
+
+                    {/* ── Page header ── */}
+                    <div className="exec-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                        <div>
+                            <Eyebrow color="var(--vq-accent-text)">Executive Overview</Eyebrow>
+                            <div style={{ marginTop: '3px' }}>
+                                <SplitText
+                                    text="Business Dashboard"
+                                    tag="h1"
+                                    className="exec-h1"
+                                    splitType="words"
+                                    from={{ opacity: 0, y: 18 }}
+                                    to={{ opacity: 1, y: 0 }}
+                                    duration={0.65}
+                                    delay={55}
+                                    textAlign="left"
+                                />
                             </div>
+                        </div>
+                        <Link
+                            href={route('store.admin.settings', { store_slug: store.slug })}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                height: '32px', padding: '0 14px', borderRadius: 'var(--vq-r-md)',
+                                fontSize: '12px', fontWeight: 500, color: 'var(--vq-text-2)',
+                                border: '1px solid var(--vq-line)', background: 'transparent',
+                                textDecoration: 'none', transition: 'background 180ms',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-sunken)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <Settings size={13} /> Settings
+                        </Link>
+                    </div>
+
+                    {/* ── TOP KPI ROW ── */}
+                    <div className="exec-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
+                        {/* Pending Actions */}
+                        <Link href={route('store.reports.low-stock', { store_slug: store.slug })} style={{ textDecoration: 'none', display: 'block' }}>
+                            <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', cursor: 'pointer' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                    <IconBadge icon={ClipboardList} color="var(--vq-warning)" />
+                                    <div>
+                                        <Eyebrow>Pending Actions</Eyebrow>
+                                        <div style={{ marginTop: '5px' }}>
+                                            {inventoryHealth.lowStockCount > 0
+                                                ? <Pill type="warn"><AlertCircle size={9} /> Action Needed</Pill>
+                                                : <Pill type="ok">All clear</Pill>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '22px', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--vq-text)', lineHeight: 1 }}>
+                                        {inventoryHealth.lowStockCount > 0 ? inventoryHealth.lowStockCount : 0}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: 'var(--vq-text-3)', marginTop: '3px' }}>items</div>
+                                </div>
+                            </Card>
                         </Link>
 
                         {/* Profit Margin */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300">
-                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                            <div className="flex items-center gap-3 shrink-0 relative z-10">
-                                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-xl shadow-sm">
-                                    <TrendingUp size={20} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Profit Margin</span>
-                                    <span className="text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
-                                        <ArrowUpRight size={10} /> Healthy
-                                    </span>
+                        <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                <IconBadge icon={TrendingUp} color="var(--vq-success)" />
+                                <div>
+                                    <Eyebrow>Profit Margin</Eyebrow>
+                                    <div style={{ marginTop: '5px' }}><Pill type="ok"><ArrowUpRight size={9} /> Healthy</Pill></div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end text-right min-w-0 relative z-10">
-                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{stats.total_revenue > 0 ? `${Math.round((stats.net_profit / stats.total_revenue) * 100)}%` : '0%'}</h2>
-                                <p className="text-xs text-slate-400 mt-1">Net profit / Total revenue</p>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '22px', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--vq-text)', lineHeight: 1 }}>
+                                    <CountUp value={profitMarginPct} suffix="%" />
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--vq-text-3)', marginTop: '3px' }}>net / revenue</div>
                             </div>
-                        </div>
+                        </Card>
 
-                        {/* Overdue Payments */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300">
-                            <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                            <div className="flex items-center gap-3 shrink-0 relative z-10">
-                                <div className="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 rounded-xl shadow-sm">
-                                    <Receipt size={20} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Overdue Payments</span>
-                                    <span className="text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-full mt-1 flex items-center gap-1 w-max">
-                                        <TrendingUp size={10} /> On Track
-                                    </span>
+                        {/* Overdue */}
+                        <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                <IconBadge icon={Receipt} color="var(--vq-mod-reports-accent)" />
+                                <div>
+                                    <Eyebrow>Overdue</Eyebrow>
+                                    <div style={{ marginTop: '5px' }}>
+                                        {stats.overdue_payments > 0 ? <Pill type="bad">Outstanding</Pill> : <Pill type="ok">On Track</Pill>}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end text-right min-w-0 relative z-10">
-                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(stats.overdue_payments)}</h2>
-                                <p className="text-xs text-slate-400 mt-1">{stats.overdue_payments > 0 ? 'Outstanding receivables' : 'No overdue invoices'}</p>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '18px', fontWeight: 600, letterSpacing: '-0.02em', color: stats.overdue_payments > 0 ? 'var(--vq-danger)' : 'var(--vq-text)', lineHeight: 1 }}>
+                                    {formatCurrency(stats.overdue_payments)}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--vq-text-3)', marginTop: '3px' }}>receivables</div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
-                    {/* Middle Charts Grid */}
-                    <div className="flex-1 min-h-0 grid grid-cols-9 grid-rows-2 gap-4 w-full">
-                        {/* purchases (Trend) - Large Tile (Left Top) */}
-                        <div className="col-span-9 md:col-span-6 bg-white dark:bg-slate-900 rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Purchases Trend</h3>
-                                    <p className="text-1xs text-slate-400">Past 6 months spending</p>
-                                </div>
-                                <div className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 rounded-xl">
-                                    <TrendingUp size={16} />
-                                </div>
-                            </div>
-                            <div className="flex-1 min-h-0 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={profitData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.5} />
-                                        <XAxis
-                                            dataKey="month"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: vq.slate[400], fontSize: 10 }}
-                                            dy={5}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: vq.slate[400], fontSize: 10 }}
-                                            tickFormatter={(value) => `${currencySymbol}${value}`}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '12px', color: vq.slate[50], boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
-                                            itemStyle={{ color: '#fff' }}
-                                            cursor={{ stroke: vq.indigo[500], strokeWidth: 1, strokeDasharray: '3 3' }}
-                                            formatter={(value) => `${currencySymbol} ${value.toLocaleString()}`}
-                                        />
-                                        <Area name="Purchases" type="monotone" dataKey="purchases" stroke={vq.indigo[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6 }} />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+                    {/* ── CHARTS GRID ── */}
+                    <div className="exec-fade" style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '3fr 2fr', gridTemplateRows: '1fr 1fr', gap: '12px', overflow: 'hidden' }}>
 
-                        {/* Inventory Health - Small Tile (Right Top) */}
-                        <div className="col-span-9 md:col-span-3 bg-white dark:bg-slate-900 rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
-                            <div className="flex justify-between items-start mb-2 shrink-0">
+                        {/* Purchases Trend — top left */}
+                        <Card hover={false} pad="16px 18px" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexShrink: 0 }}>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Inventory</h3>
-                                    <div className={`flex items-center gap-1.5 mt-0.5 ${activeInventoryStatus.color}`}>
-                                        <span className="text-3xs font-black uppercase tracking-wider">{activeInventoryStatus.label}</span>
-                                    </div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.01em', marginBottom: '2px' }}>Purchases Trend</div>
+                                    <Eyebrow>Past 6 months spending</Eyebrow>
+                                </div>
+                                <IconBadge icon={TrendingUp} color="var(--vq-mod-accounting-accent, var(--vq-accent))" />
+                            </div>
+                            <div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+                                <BklitAreaChart
+                                    data={profitData}
+                                    dataKey="purchases"
+                                    xKey="month"
+                                    name="Purchases"
+                                    color="var(--chart-1)"
+                                    currencySymbol={currencySymbol}
+                                    valueFormatter={v => `${currencySymbol} ${v.toLocaleString()}`}
+                                />
+                            </div>
+                        </Card>
+
+                        {/* Inventory — top right (Bklit RingChart + Legend) */}
+                        <Card hover={false} pad="14px 16px" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexShrink: 0 }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.01em', marginBottom: '2px' }}>Inventory</div>
+                                    <Pill type={invStatus.type}>{invStatus.label}</Pill>
                                 </div>
                             </div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', minHeight: 0 }}>
+                                <RingChart
+                                    data={invStats}
+                                    hoveredIndex={inventoryHoveredIndex}
+                                    onHoverChange={setInventoryHoveredIndex}
+                                    size={120}
+                                    strokeWidth={8}
+                                    ringGap={4}
+                                >
+                                    {invStats.map((_, i) => <Ring index={i} key={i} />)}
+                                    <RingCenter defaultLabel="Inventory" />
+                                </RingChart>
 
-                            {/* Horizontal Layout for data (left) and chart (right) */}
-                            <div className="flex-1 flex items-center gap-4 min-h-0 -mt-2">
-                                {/* Left Side: Data */}
-                                <div className="flex flex-col gap-2.5 shrink-0 justify-center">
-                                    {[
-                                        { k: 'Healthy', val: inventoryHealth.healthy ?? 0, c: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
-                                        { k: 'Low', val: inventoryHealth.lowStock ?? 0, c: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
-                                        { k: 'Out', val: inventoryHealth.outOfStock ?? 0, c: 'bg-red-500', text: 'text-red-600 dark:text-red-400' }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="flex flex-col">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${item.c}`}></div>
-                                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-widest">{item.k}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <Legend
+                                        hoveredIndex={inventoryHoveredIndex}
+                                        items={invStats}
+                                        onHoverChange={setInventoryHoveredIndex}
+                                    >
+                                        <LegendItemComponent>
+                                            <LegendMarker />
+                                            <LegendLabel />
+                                            <LegendValue showPercentage />
+                                        </LegendItemComponent>
+                                        <LegendProgress />
+                                    </Legend>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Payments — bottom left */}
+                        <Card hover={false} pad="16px 18px" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ marginBottom: '10px', flexShrink: 0 }}>
+                                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.01em', marginBottom: '2px' }}>Payments</div>
+                                <Eyebrow>Transaction types</Eyebrow>
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '14px', minHeight: 0 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                                    {paymentMethods.length > 0 ? paymentMethods.map((m, i) => (
+                                        <div key={i}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: S[i % 6], flexShrink: 0 }} />
+                                                <Eyebrow>{m.name}</Eyebrow>
                                             </div>
-                                            <span className={`text-base font-extrabold ml-3 ${item.text}`}>{item.val}%</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Right Side: Chart */}
-                                <div className="flex-1 h-full min-h-0 relative">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: vq.slate[700] }]}
-                                                cx="55%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="75%"
-                                                paddingAngle={4}
-                                                dataKey="value"
-                                                stroke="none"
-                                            >
-                                                {(pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: vq.slate[700] }]).map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
-                                                itemStyle={{ color: '#fff' }}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Payment Methods - Small Tile (Left Bottom) */}
-                        <div className="col-span-9 md:col-span-3 bg-white dark:bg-slate-900 rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
-                            <div className="flex justify-between items-start mb-2 shrink-0">
-                                <div>
-                                    <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Payments</h3>
-                                    <p className="text-1xs text-slate-400">Transaction types</p>
-                                </div>
-                            </div>
-
-                            {/* Horizontal Layout for data (left) and chart (right) */}
-                            <div className="flex-1 flex items-center gap-4 min-h-0 -mt-2">
-                                {/* Left Side: Data */}
-                                <div className="flex flex-col gap-2.5 shrink-0 justify-center">
-                                    {paymentMethods.length > 0 ? paymentMethods.map((method, idx) => (
-                                        <div key={idx} className="flex flex-col">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: method.color }}></div>
-                                                <span className="text-3xs font-bold text-slate-400 uppercase tracking-widest">{method.name}</span>
+                                            <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '15px', fontWeight: 600, color: 'var(--vq-text)', marginLeft: '11px', lineHeight: 1.2 }}>
+                                                {m.value}
                                             </div>
-                                            <span className="text-base font-extrabold ml-3 text-slate-700 dark:text-slate-300">
-                                                {method.value}
-                                            </span>
                                         </div>
-                                    )) : (
-                                        <div className="flex flex-col">
-                                            <span className="text-2xs font-bold text-slate-400 uppercase">No Data</span>
-                                            <span className="text-xs text-slate-500 mt-1">No sales recorded</span>
-                                        </div>
-                                    )}
+                                    )) : <span style={{ fontSize: '12px', color: 'var(--vq-text-3)' }}>No sales yet</span>}
                                 </div>
-
-                                {/* Right Side: Chart */}
-                                <div className="flex-1 h-full min-h-0 relative">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: vq.slate[700] }]}
-                                                cx="55%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="75%"
-                                                paddingAngle={4}
-                                                dataKey="value"
-                                                stroke="none"
-                                            >
-                                                {(paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: vq.slate[700] }]).map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
-                                                itemStyle={{ color: '#fff' }}
-                                                formatter={(value, name) => [value, name]}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
+                                <div style={{ flex: 1, height: '100%', minHeight: 0 }}>
+                                    <BklitDonut
+                                        data={payPie}
+                                        centerLabel={paymentMethods.reduce((a, c) => a + (parseInt(c.value) || 0), 0).toString()}
+                                        centerSublabel="Total Sales"
+                                    />
                                 </div>
                             </div>
-                        </div>
+                        </Card>
 
-                        {/* Expense Breakdown - Large Tile (Right Bottom) */}
-                        <div className="col-span-9 md:col-span-6 bg-white dark:bg-slate-900 rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
-                            <div className="flex justify-between items-start mb-2 shrink-0">
+                        {/* Expenses — bottom right */}
+                        <Card hover={false} pad="16px 18px" style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', flexShrink: 0 }}>
                                 <div>
-                                    <h3 className="text-base font-bold text-slate-800 dark:text-white tracking-tight">Expenses</h3>
-                                    <p className="text-1xs text-slate-400">Monthly breakdown</p>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.01em', marginBottom: '2px' }}>Expenses</div>
+                                    <Eyebrow>Monthly breakdown</Eyebrow>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-3xs text-slate-400 font-bold uppercase tracking-wider">Total</p>
-                                    <p className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(totalExpenseValue)}</p>
+                                <div>
+                                    <Eyebrow>Total</Eyebrow>
+                                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)' }}>{formatCurrency(totalExpenseValue)}</div>
                                 </div>
                             </div>
-
-                            <div className="flex-1 min-h-0 w-full flex items-center gap-6">
-                                <div className="h-full w-[40%] relative">
-                                    <div className="absolute inset-0 z-10 text-2xs">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={finalExpenseData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="55%"
-                                                    outerRadius="85%"
-                                                    paddingAngle={4}
-                                                    dataKey="value"
-                                                    stroke="none"
-                                                >
-                                                    {finalExpenseData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip
-                                                    contentStyle={{ backgroundColor: vq.slate[800], borderColor: vq.slate[700], borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
-                                                    itemStyle={{ color: '#fff' }}
-                                                    formatter={(value) => `${currencySymbol} ${value.toLocaleString()}`}
-                                                />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    </div>
+                            <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '42%', height: '100%', flexShrink: 0 }}>
+                                    <BklitDonut
+                                        data={finalExpenseData}
+                                        valueFormatter={v => `${currencySymbol} ${v.toLocaleString()}`}
+                                    />
                                 </div>
-
-                                <div className={`flex-1 grid gap-2 content-center max-h-full overflow-y-auto ${finalExpenseData.length > 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                    {finalExpenseData.map((item, idx) => (
-                                        <div key={idx} className="flex flex-col p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 transition-colors">
-                                            <div className="flex items-center gap-1.5 mb-0.5">
-                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                                <span className="text-3xs font-bold text-slate-500 uppercase truncate max-w-[70px]">{item.name}</span>
+                                <div style={{
+                                    flex: 1, display: 'grid',
+                                    gridTemplateColumns: finalExpenseData.length > 2 ? '1fr 1fr' : '1fr',
+                                    gap: '5px', alignContent: 'center',
+                                }}>
+                                    {finalExpenseData.map((d, i) => (
+                                        <div key={i} style={{ padding: '6px 8px', borderRadius: 'var(--vq-r-sm)', background: 'var(--vq-sunken)', border: '1px solid var(--vq-line-soft)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
+                                                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: d.color, flexShrink: 0 }} />
+                                                <Eyebrow>{d.name}</Eyebrow>
                                             </div>
-                                            <span className="text-sm font-black text-slate-800 dark:text-slate-200">{item.percentage}%</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
 
-                    {/* Bottom KPI Cards Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
-                        {/* Active Staff */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 shrink-0">
-                                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 rounded-xl shadow-sm">
-                                    <Users size={20} />
+                    {/* ── BOTTOM KPI ROW ── */}
+                    <div className="exec-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
+                        <Card pad="14px 18px">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <IconBadge icon={Users} color="var(--vq-mod-staff-accent, var(--vq-accent))" />
+                                    <Eyebrow>Active Staff</Eyebrow>
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Active Staff</span>
-                            </div>
-                            <div className="flex flex-col items-end text-right min-w-0">
-                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{stats.active_staff} / {stats.total_staff}</h2>
-                            </div>
-                        </div>
-
-                        {/* System Status */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 shrink-0">
-                                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-xl shadow-sm">
-                                    <Activity size={20} />
+                                <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '20px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.02em' }}>
+                                    <CountUp value={stats.active_staff} /> / {stats.total_staff}
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">System Status</span>
                             </div>
-                            <div className="flex flex-col items-end text-right min-w-0">
-                                <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">Operational</h2>
-                            </div>
-                        </div>
-
-                        {/* Last Backup */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 shrink-0">
-                                <div className="p-2.5 bg-purple-50 dark:bg-purple-500/10 text-purple-600 rounded-xl shadow-sm">
-                                    <Clock size={20} />
+                        </Card>
+                        <Card pad="14px 18px">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <IconBadge icon={Activity} color="var(--vq-success)" />
+                                    <Eyebrow>System Status</Eyebrow>
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Last Backup</span>
+                                <span style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--vq-success)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Operational</span>
                             </div>
-                            <div className="flex flex-col items-end text-right min-w-0">
-                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{stats.last_backup || 'N/A'}</h2>
+                        </Card>
+                        <Card pad="14px 18px">
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <IconBadge icon={Clock} color="var(--vq-mod-platform-accent, var(--vq-text-2))" />
+                                    <Eyebrow>Last Backup</Eyebrow>
+                                </div>
+                                <div style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '14px', fontWeight: 600, color: 'var(--vq-text)' }}>
+                                    {stats.last_backup || 'N/A'}
+                                </div>
                             </div>
-                        </div>
+                        </Card>
                     </div>
                 </div>
 
-                {/* Right Panel (spans full height on lg) */}
-                <div className="hidden lg:block w-80 xl:w-96 shrink-0 h-full">
-                    <div className="bg-slate-900 text-white rounded-[2rem] p-6 h-full flex flex-col relative overflow-hidden shadow-2xl ring-1 ring-white/10">
-                        {/* Mesh Gradient Background */}
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
-                        <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
+                {/* ═══ RIGHT PANEL — LaserFlow backlit hero + feed ═══ */}
+                <div style={{
+                    width: '286px', flexShrink: 0, height: '100%',
+                    display: 'flex', flexDirection: 'column', gap: '10px',
+                    overflow: 'hidden',
+                }}>
 
-                        {/* Header - Cash Flow */}
-                        <div className="relative z-30 flex justify-between items-center mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
-                                    <Wallet size={18} className="text-white" />
-                                </div>
+                    {/* ── Net Balance Hero Card ── */}
+                    <Card className="exec-fade" hover={false} pad="18px" style={{
+                        position: 'relative', overflow: 'hidden', flexShrink: 0,
+                        background: 'var(--vq-surface)',
+                        border: '1px solid var(--vq-line-strong)',
+                        boxShadow: 'var(--vq-elev-2)',
+                    }}>
+                        {/* Subtle background accent glow */}
+                        <div style={{
+                            position: 'absolute', top: '-40px', right: '-40px',
+                            width: '140px', height: '140px', borderRadius: '50%',
+                            background: 'var(--vq-accent)', opacity: 0.12,
+                            filter: 'blur(35px)', pointerEvents: 'none',
+                        }} />
+
+                        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            {/* Top: wallet + balance */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <IconBadge icon={Wallet} color="var(--vq-accent)" />
                                 <div>
-                                    <p className="text-xs text-slate-300 font-medium">Net Balance</p>
-                                    <h3 className="text-xl font-bold tracking-tight">{formatCurrency(stats.net_balance)}</h3>
+                                    <Eyebrow color="var(--vq-text-3)">Net Balance</Eyebrow>
+                                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '22px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.02em', lineHeight: 1.1, marginTop: '2px' }}>
+                                        {formatCurrency(stats.net_balance)}
+                                    </div>
                                 </div>
                             </div>
-                            <button className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm">
-                                <MoreHorizontal size={20} className="text-slate-300" />
-                            </button>
-                        </div>
 
-                        {/* Action Buttons - Glass Style like RightPanel */}
-                        <div className="relative z-20 mb-6">
-                            <div className="grid grid-cols-3 gap-2 h-20">
-                                <Link href={route('store.admin.users', { store_slug: store.slug })} className="col-span-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
-                                    <div className="p-1.5 rounded-full bg-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                                        <Users size={18} />
+                            {/* Cash IN / OUT */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                <div style={{ background: 'var(--vq-sunken)', borderRadius: 'var(--vq-r-md)', padding: '10px 12px', border: '1px solid var(--vq-line-soft)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                        <TrendingUp size={13} style={{ color: 'var(--vq-success)' }} />
+                                        <span style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '9px', letterSpacing: '0.1em', color: 'var(--vq-success)', textTransform: 'uppercase', fontWeight: 600 }}>IN</span>
                                     </div>
-                                    <span className="text-2xs font-bold tracking-wider">USERS</span>
-                                </Link>
-                                <Link href={route("store.reports.index", {
-                                    store_slug: store.slug
-                                })} className="col-span-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
-                                    <div className="p-1.5 rounded-full bg-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                                        <FileText size={18} />
-                                    </div>
-                                    <span className="text-2xs font-bold tracking-wider">REPORTS</span>
-                                </Link>
-                                <Link href={route('store.activity-log.index', { store_slug: store.slug })} className="col-span-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
-                                    <div className="p-1.5 rounded-full bg-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                                        <Activity size={18} />
-                                    </div>
-                                    <span className="text-2xs font-bold tracking-wider">LOGS</span>
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Cash In/Out Cards */}
-                        <div className="relative z-10 mb-6 grid grid-cols-2 gap-3">
-                            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start mb-3">
-                                    <TrendingUp size={18} className="text-emerald-400" />
-                                    <span className="text-2xs text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold">IN</span>
+                                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)' }}>{formatCurrency(stats.today_in)}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--vq-text-3)', marginTop: '2px' }}>Today's In</div>
                                 </div>
-                                <h4 className="text-lg font-bold tracking-tight group-hover:scale-105 transition-transform origin-left">{formatCurrency(stats.today_in)}</h4>
-                                <p className="text-2xs text-slate-400 mt-1">Today's In</p>
-                            </div>
-                            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start mb-3">
-                                    <TrendingDown size={18} className="text-red-400" />
-                                    <span className="text-2xs text-red-200 bg-red-500/20 px-2 py-0.5 rounded-full font-bold">OUT</span>
-                                </div>
-                                <h4 className="text-lg font-bold tracking-tight group-hover:scale-105 transition-transform origin-left">{formatCurrency(stats.today_out)}</h4>
-                                <p className="text-2xs text-slate-400 mt-1">Today's Out</p>
-                            </div>
-                        </div>
-
-                        {/* Business Alerts */}
-                        <div className="relative z-10 mb-6 bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5">
-                            <div className="flex justify-between items-center mb-3">
-                                <h3 className="font-bold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                                    <AlertCircle size={14} /> Alerts
-                                </h3>
-                            </div>
-                            <div className="space-y-2">
-                                {inventoryHealth.lowStock > 0 && (
-                                    <div className="flex items-center gap-3 p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                        <Package size={14} className="text-amber-400 shrink-0" />
-                                        <p className="text-xs text-amber-200">{inventoryHealth.lowStock}% inventory running low</p>
+                                <div style={{ background: 'var(--vq-sunken)', borderRadius: 'var(--vq-r-md)', padding: '10px 12px', border: '1px solid var(--vq-line-soft)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                        <TrendingDown size={13} style={{ color: 'var(--vq-danger)' }} />
+                                        <span style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '9px', letterSpacing: '0.1em', color: 'var(--vq-danger)', textTransform: 'uppercase', fontWeight: 600 }}>OUT</span>
                                     </div>
-                                )}
-                                {inventoryHealth.outOfStock > 0 && (
-                                    <div className="flex items-center gap-3 p-2.5 bg-red-500/10 rounded-lg border border-red-500/20">
-                                        <AlertCircle size={14} className="text-red-400 shrink-0" />
-                                        <p className="text-xs text-red-200">{inventoryHealth.outOfStock}% products out of stock</p>
-                                    </div>
-                                )}
-                                {inventoryHealth.lowStock === 0 && inventoryHealth.outOfStock === 0 && (
-                                    <div className="flex items-center gap-3 p-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                                        <TrendingUp size={14} className="text-emerald-400 shrink-0" />
-                                        <p className="text-xs text-emerald-200">All systems running smoothly</p>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-3 p-2.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
-                                    <DollarSign size={14} className="text-indigo-400 shrink-0" />
-                                    <p className="text-xs text-indigo-200">Profit: {formatCurrency(stats.net_profit)}</p>
+                                    <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)' }}>{formatCurrency(stats.today_out)}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--vq-text-3)', marginTop: '2px' }}>Today's Out</div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Activity Section */}
-                        <div className="relative z-10 flex-1 bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 flex flex-col min-h-0">
-                            <div className="flex justify-between items-center mb-3 shrink-0">
-                                <h3 className="font-bold text-xs text-slate-300 uppercase tracking-wider">Business Activity</h3>
-                                <Link href={route('store.funds.index', { store_slug: store.slug, view: 'history' })} className="text-2xs text-indigo-300 hover:text-white transition-colors font-semibold">View All</Link>
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
-                                {recentActivity.length > 0 ? recentActivity.map((act, idx) => (
-                                    <div key={idx} className="flex items-center justify-between group cursor-pointer px-2 py-2 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 pb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-2xs font-black ${act.is_plus ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
-                                                {act.is_plus ? <Plus size={14} /> : <Minus size={14} />}
-                                            </div>
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="text-1xs font-bold text-white/90 truncate">{act.title}</span>
-                                                <span className="text-3xs text-slate-400 flex items-center gap-1">
-                                                    <Clock size={8} /> {act.time}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`text-1xs font-black ${act.is_plus ? 'text-emerald-400' : 'text-rose-400'}`}>{act.amount}</span>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-500 opacity-50">
-                                        <Activity size={24} className="mb-2" />
-                                        <p className="text-2xs font-bold uppercase tracking-widest">No Recent Activity</p>
-                                    </div>
-                                )}
+                            {/* Quick links row */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '6px' }}>
+                                {[
+                                    { label: 'Users',   icon: Users,    route: 'store.admin.users' },
+                                    { label: 'Reports', icon: FileText,  route: 'store.reports.index' },
+                                    { label: 'Logs',    icon: Activity,  route: 'store.activity-log.index' },
+                                ].map((s, i) => (
+                                    <Link key={i}
+                                        href={route(s.route, { store_slug: store.slug })}
+                                        style={{
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                                            padding: '8px 4px', borderRadius: 'var(--vq-r-md)',
+                                            background: 'var(--vq-sunken)',
+                                            border: '1px solid var(--vq-line-soft)',
+                                            textDecoration: 'none', transition: 'background 180ms, border-color 180ms',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--vq-raised)'; e.currentTarget.style.borderColor = 'var(--vq-line-strong)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--vq-sunken)'; e.currentTarget.style.borderColor = 'var(--vq-line-soft)'; }}
+                                    >
+                                        <s.icon size={14} style={{ color: 'var(--vq-text-2)' }} />
+                                        <span style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '8px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--vq-text-3)', fontWeight: 500 }}>{s.label}</span>
+                                    </Link>
+                                ))}
                             </div>
                         </div>
+                    </Card>
 
-                        {/* Quick Actions Footer */}
-                        <div className="relative z-10 pt-4 mt-4 border-t border-white/5 shrink-0">
-                            <div className="grid grid-cols-2 gap-2">
-                                <Link href={route('store.admin.settings', { store_slug: store.slug })} className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all">
-                                    <Settings size={14} /> Settings
-                                </Link>
-                                <button className="flex items-center justify-center gap-2 p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all">
-                                    <Shield size={14} /> Security
-                                </button>
+                    {/* ── Alerts ── */}
+                    <Card className="exec-fade" hover={false} pad="14px 16px" style={{ flexShrink: 0 }}>
+                        <div style={{ marginBottom: '10px' }}>
+                            <span className="shine-label">Alerts</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            {inventoryHealth.lowStock > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--vq-warning-bg)', borderRadius: 'var(--vq-r-sm)', boxShadow: 'inset 0 0 0 1px var(--vq-warning-line)' }}>
+                                    <Package size={12} style={{ color: 'var(--vq-warning)', flexShrink: 0 }} />
+                                    <p style={{ fontSize: '12px', color: 'var(--vq-warning)', margin: 0 }}>{inventoryHealth.lowStock}% inventory low</p>
+                                </div>
+                            )}
+                            {inventoryHealth.outOfStock > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--vq-danger-bg)', borderRadius: 'var(--vq-r-sm)', boxShadow: 'inset 0 0 0 1px var(--vq-danger-line)' }}>
+                                    <AlertCircle size={12} style={{ color: 'var(--vq-danger)', flexShrink: 0 }} />
+                                    <p style={{ fontSize: '12px', color: 'var(--vq-danger)', margin: 0 }}>{inventoryHealth.outOfStock}% out of stock</p>
+                                </div>
+                            )}
+                            {inventoryHealth.lowStock === 0 && inventoryHealth.outOfStock === 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--vq-success-bg)', borderRadius: 'var(--vq-r-sm)', boxShadow: 'inset 0 0 0 1px var(--vq-success-line)' }}>
+                                    <TrendingUp size={12} style={{ color: 'var(--vq-success)', flexShrink: 0 }} />
+                                    <p style={{ fontSize: '12px', color: 'var(--vq-success)', margin: 0 }}>All systems good</p>
+                                </div>
+                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--vq-accent-quiet)', borderRadius: 'var(--vq-r-sm)', boxShadow: 'inset 0 0 0 1px rgba(50,120,130,0.2)' }}>
+                                <DollarSign size={12} style={{ color: 'var(--vq-accent-text)', flexShrink: 0 }} />
+                                <p style={{ fontSize: '12px', color: 'var(--vq-accent-text)', margin: 0 }}>Profit: {formatCurrency(stats.net_profit)}</p>
                             </div>
                         </div>
+                    </Card>
+
+                    {/* ── Business Activity Feed ── */}
+                    <Card className="exec-fade" hover={false} pad="14px 16px" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexShrink: 0 }}>
+                            <span className="shine-label">Activity</span>
+                            <Link
+                                href={route('store.funds.index', { store_slug: store.slug, view: 'history' })}
+                                style={{ fontFamily: 'var(--vq-font-mono)', fontSize: '10px', color: 'var(--vq-accent-text)', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                            >
+                                View All
+                            </Link>
+                        </div>
+                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                            {recentActivity.length > 0 ? recentActivity.map((act, i) => (
+                                <ActivityRow key={i} act={act} />
+                            )) : (
+                                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--vq-text-3)', gap: '8px', padding: '20px 0' }}>
+                                    <Activity size={20} />
+                                    <Eyebrow>No Recent Activity</Eyebrow>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+
+                    {/* ── Footer Actions ── */}
+                    <div className="exec-fade" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', flexShrink: 0 }}>
+                        <Link href={route('store.admin.settings', { store_slug: store.slug })}
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                padding: '9px', borderRadius: 'var(--vq-r-md)', fontSize: '11px', fontWeight: 500,
+                                fontFamily: 'var(--vq-font-mono)', letterSpacing: '0.08em', textTransform: 'uppercase',
+                                color: 'var(--vq-text-2)', background: 'var(--vq-sunken)',
+                                border: '1px solid var(--vq-line-soft)', textDecoration: 'none',
+                                transition: 'background 180ms',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-surface)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--vq-sunken)'}
+                        >
+                            <Settings size={12} /> Settings
+                        </Link>
+                        <button style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                            padding: '9px', borderRadius: 'var(--vq-r-md)', fontSize: '11px', fontWeight: 500,
+                            fontFamily: 'var(--vq-font-mono)', letterSpacing: '0.08em', textTransform: 'uppercase',
+                            color: 'var(--vq-text-2)', background: 'var(--vq-sunken)',
+                            border: '1px solid var(--vq-line-soft)', cursor: 'pointer',
+                            transition: 'background 180ms',
+                        }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-surface)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--vq-sunken)'}
+                        >
+                            <Shield size={12} /> Security
+                        </button>
                     </div>
                 </div>
             </div>
-        </OneGlanceLayout >
+        </OneGlanceLayout>
     );
 }

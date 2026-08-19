@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Services\LedgerService;
+use App\Queries\PartyBalanceQuery;
 
 class PartyController extends Controller
 {
@@ -41,7 +41,7 @@ class PartyController extends Controller
         $apAccount = \App\Models\Account::where('code', '2000')->value('id');
 
         $parties = $parties->map(function ($party) {
-            $netBalance = LedgerService::partyNetBalance(
+            $netBalance = PartyBalanceQuery::partyNetBalance(
                 $party->id,
                 $party->tenant_id,
                 $party->type
@@ -162,7 +162,7 @@ class PartyController extends Controller
         $apAccount = \App\Models\Account::where('code', '2000')->value('id');
 
         $parties->getCollection()->transform(function($party) {
-            $netBalance = LedgerService::partyNetBalance(
+            $netBalance = PartyBalanceQuery::partyNetBalance(
                 $party->id,
                 $party->tenant_id,
                 $party->type
@@ -224,7 +224,7 @@ class PartyController extends Controller
             $party = Party::create($validated);
 
             if ($ob > 0) {
-                $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+                $accountSvc = resolve(\App\Engines\AccountingService::class);
                 $historicalAcct = \App\Models\Account::where('code', '7000')->firstOrCreate(
                     ['code' => '7000'],
                     ['name' => 'Historical Balances', 'type' => 'equity', 'is_active' => true]
@@ -325,7 +325,7 @@ class PartyController extends Controller
             $party->update($validated);
             
             if ($changedOB) {
-                $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+                $accountSvc = resolve(\App\Engines\AccountingService::class);
     
                 // Step 1: Find and reverse existing opening balance entries for this party
                 $oldEntries = \App\Models\JournalEntry::whereIn('reference_type', ['opening_balance_migration', 'opening_balance'])

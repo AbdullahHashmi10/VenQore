@@ -1,0 +1,574 @@
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore — Final Design System Selection Board</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap');
+
+:root{
+  --teal:#327882; --teal-2:#5DA5B0; --teal-3:#21656F; --teal-deep:#0C393F;
+  --ai:#5B7CFF; --ai-soft:rgba(91,124,255,.13); /* proposal: AI-only signal */
+  --coral:#FF6A34; --amber:#F0A600; --sky:#4F8FE8; --violet:#8358F5; --rose:#C45B8B;
+  --success:#1A7F51; --warning:#A85B05; --danger:#BD3838; --info:#595E64;
+  --bg:#0A0B0F; --surface:#12141A; --raised:#1A1D25; --line:rgba(255,255,255,.10);
+  --text:#F4F6F8; --text2:#BFC3C8; --text3:#9A9FA5;
+  --r-base:10px; --r-card:16px; --r-feature:24px; --r-full:999px;
+  --shadow:0 16px 48px rgba(0,0,0,.28);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html[data-theme="light"]{
+  --bg:#FFFFFF; --surface:#F9FAFC; --raised:#FFFFFF; --line:#D9DDE0;
+  --text:#151A1F; --text2:#595E64; --text3:#6C7278;
+  --shadow:0 16px 48px rgba(10,11,15,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.6}
+a{color:inherit}
+button{font:inherit}
+.wrap{width:min(1180px,calc(100% - 40px));margin:auto}
+.top{position:sticky;top:0;z-index:200;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 88%,transparent);border-bottom:1px solid var(--line)}
+.topin{height:64px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{font-weight:700;letter-spacing:-.03em}
+.nav{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text2)}
+.nav a{text-decoration:none}
+.toggle{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:8px 12px;border-radius:var(--r-full);cursor:pointer}
+
+.hero{position:relative;overflow:hidden;padding:100px 0 88px;background:
+  radial-gradient(52% 70% at 18% 10%,rgba(50,120,130,.58),transparent 68%),
+  radial-gradient(48% 60% at 82% 82%,rgba(18,78,86,.70),transparent 66%),
+  radial-gradient(42% 46% at 58% 22%,rgba(93,165,176,.20),transparent 70%),
+  #0A0B0F;
+}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,11,15,.3),transparent 45%,rgba(50,120,130,.12))}
+.hero > .wrap{position:relative;z-index:1}
+.kicker{font:600 12px/1.2 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:#8BC8D2}
+h1,h2,h3{letter-spacing:-.035em;line-height:1.08;margin:0}
+h1{font-size:clamp(44px,7vw,78px);max-width:900px;margin-top:16px}
+h1 em{font-family:"Instrument Serif",serif;font-weight:400;letter-spacing:-.01em}
+.lede{font-size:19px;line-height:1.55;color:#BFC3C8;max-width:720px;margin-top:22px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.btn{height:46px;padding:0 22px;border-radius:var(--r-full);border:1px solid transparent;cursor:pointer;font-weight:600;transition:all 180ms var(--ease)}
+.btn.primary{background:linear-gradient(135deg,#5DA5B0,#21656F);color:#fff;box-shadow:0 12px 34px rgba(50,120,130,.28)}
+.btn.outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.24)}
+.btn:hover{transform:translateY(-2px)}
+.statrow{display:flex;gap:28px;flex-wrap:wrap;margin-top:42px}
+.stat b{display:block;font:600 30px/1 "JetBrains Mono",monospace}
+.stat span{font-size:12px;color:#9A9FA5}
+
+section{padding:82px 0;border-top:1px solid var(--line)}
+.section-head{display:grid;grid-template-columns:180px 1fr;gap:28px;align-items:start;margin-bottom:32px}
+.section-num{font:600 11px/1.3 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-2)}
+.section-head h2{font-size:clamp(30px,4vw,46px)}
+.section-head p{margin:12px 0 0;color:var(--text2);max-width:760px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:24px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.card h3{font-size:20px;margin-bottom:8px}
+.card p{color:var(--text2);margin:7px 0}
+.approved{border-color:color-mix(in srgb,var(--teal) 48%,var(--line));box-shadow:0 0 0 1px rgba(50,120,130,.08)}
+.proposed{border-color:color-mix(in srgb,var(--ai) 45%,var(--line))}
+.tag{display:inline-flex;padding:5px 9px;border-radius:var(--r-full);font:600 10px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);color:var(--text3)}
+.tag.keep{color:var(--teal-2);background:rgba(50,120,130,.10)}
+.tag.propose{color:#90A4FF;background:var(--ai-soft)}
+.tag.decide{color:#FFD25E;background:rgba(240,166,0,.10)}
+.small{font-size:13px;color:var(--text3)}
+
+.mesh{height:260px;border-radius:var(--r-feature);background:
+ radial-gradient(50% 60% at 18% 12%,rgba(50,120,130,.65),transparent 68%),
+ radial-gradient(46% 52% at 82% 78%,rgba(18,78,86,.72),transparent 66%),
+ radial-gradient(38% 40% at 60% 25%,rgba(93,165,176,.26),transparent 70%),#0A0B0F;
+display:grid;place-items:center;color:#D7F1F5;font:600 12px "JetBrains Mono",monospace;letter-spacing:.1em}
+
+.palette{display:grid;grid-template-columns:repeat(6,1fr);overflow:hidden;border-radius:14px;border:1px solid var(--line)}
+.sw{padding:16px 10px;height:94px;display:flex;flex-direction:column;justify-content:flex-end;font:600 11px "JetBrains Mono",monospace}
+.note{margin-top:18px;padding:18px 20px;border-left:3px solid var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--surface));border-radius:0 12px 12px 0;color:var(--text2)}
+.note strong{color:var(--text)}
+
+.type-demo{display:grid;gap:0}
+.type-row{display:grid;grid-template-columns:180px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.type-label{font:600 11px/1.3 "JetBrains Mono",monospace;color:var(--text3)}
+.t-display{font-size:62px;font-weight:700;letter-spacing:-.045em}
+.t-h1{font-size:42px;font-weight:700;letter-spacing:-.04em}
+.t-h2{font-size:32px;font-weight:700;letter-spacing:-.035em}
+.t-body{font-size:18px}
+.t-num{font:600 32px "JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+
+.radius-demo{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.radius-box{width:100px;height:82px;background:linear-gradient(135deg,var(--teal),var(--teal-3));display:grid;place-items:center;color:#fff;font:600 11px "JetBrains Mono",monospace}
+.r10{border-radius:10px}.r16{border-radius:16px}.r24{border-radius:24px}.r999{border-radius:999px;height:50px}
+
+.gradient-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.gradient-card{min-height:220px;border-radius:var(--r-feature);padding:20px;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid var(--line)}
+.gradient-card strong{font-size:18px}.gradient-card span{font-size:12px;color:var(--text2);margin-top:5px}
+.g-mesh{background:
+ radial-gradient(55% 60% at 14% 12%,rgba(50,120,130,.72),transparent 67%),
+ radial-gradient(50% 58% at 84% 78%,rgba(18,78,86,.72),transparent 65%),
+ radial-gradient(40% 42% at 58% 22%,rgba(93,165,176,.28),transparent 70%),#0A0B0F}
+.g-elev{background:linear-gradient(155deg,#0A0B0F,#0C393F 46%,#21656F 76%,#327882)}
+.g-light{background:radial-gradient(circle at 20% 20%,rgba(50,120,130,.22),transparent 55%),linear-gradient(135deg,#F9FAFC,#ECF9FB);color:#151A1F}
+
+.button-show{display:flex;gap:12px;flex-wrap:wrap;padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card)}
+.outline-best{background:transparent;color:var(--text);border:1.5px solid var(--teal-2)}
+.outline-best:hover{background:rgba(50,120,130,.08);border-color:var(--teal-2)}
+.secondary-best{background:transparent;color:var(--text);border:1px solid var(--line)}
+.ai-btn{background:var(--ai);color:#fff}
+.ai-btn:hover{box-shadow:0 10px 30px rgba(91,124,255,.25)}
+
+.glow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.glow-card{min-height:160px;border-radius:var(--r-card);padding:22px;background:var(--raised);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end}
+.glow-teal{box-shadow:0 0 0 1px rgba(50,120,130,.14),0 22px 60px rgba(50,120,130,.20)}
+.glow-coral{box-shadow:0 0 0 1px rgba(255,106,52,.14),0 22px 60px rgba(255,106,52,.18)}
+.glow-sky{box-shadow:0 0 0 1px rgba(79,143,232,.12),0 22px 60px rgba(79,143,232,.16)}
+
+.module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.module{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px}
+.module b{font-size:13px}
+
+.zladder{display:grid;gap:6px}
+.zrow{display:grid;grid-template-columns:130px 70px 1fr;gap:12px;padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,rgba(50,120,130,.10),transparent 72%)}
+.mono{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+
+.rules{display:grid;gap:10px}
+.rule{display:grid;grid-template-columns:40px 1fr;gap:12px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.rule-num{font:600 12px "JetBrains Mono",monospace;color:var(--teal-2)}
+
+.grid-visual{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.grid-visual span{height:28px;background:rgba(50,120,130,.16);border:1px solid rgba(50,120,130,.24);border-radius:6px}
+.card-sizes{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.size-chip{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.size-chip b{font:600 12px "JetBrains Mono",monospace}
+
+.decision{border:1px solid rgba(240,166,0,.30);background:rgba(240,166,0,.07);border-radius:16px;padding:22px}
+footer{padding:54px 0;color:var(--text3);font-size:13px}
+
+@media(max-width:900px){
+  .section-head,.grid2,.grid3,.gradient-row,.glow-grid{grid-template-columns:1fr}
+  .module-grid{grid-template-columns:repeat(2,1fr)}
+  .palette{grid-template-columns:repeat(3,1fr)}
+  .type-row{grid-template-columns:1fr}
+  .t-display{font-size:48px}
+}
+@media(max-width:600px){
+  .wrap{width:min(100% - 28px,1180px)}
+  .nav{display:none}
+  .hero{padding:76px 0 60px}
+  h1{font-size:48px}
+  .module-grid{grid-template-columns:1fr}
+  .palette{grid-template-columns:repeat(2,1fr)}
+  .grid-visual{grid-template-columns:repeat(6,1fr)}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topin">
+    <div class="brand">VenQore · Final Design System</div>
+    <nav class="nav">
+      <a href="#approved">Approved</a><a href="#type">Type</a><a href="#shape">Shape</a><a href="#components">Components</a><a href="#motion">Motion</a><a href="#grid">Grid</a><a href="#decisions">Decisions</a>
+    </nav>
+    <button class="toggle" id="theme">Toggle theme</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="kicker">Selection board · v1–v5 distilled</div>
+    <h1>The pieces are <em>chosen.</em><br>The system comes next.</h1>
+    <p class="lede">This board is deliberately not another competing design system. It takes the elements you repeatedly approved across the five versions, keeps the structural discipline that survived, and isolates the few decisions that still need one final answer.</p>
+    <div class="hero-actions">
+      <button class="btn primary" onclick="document.querySelector('#approved').scrollIntoView({behavior:'smooth'})">See the selected pieces →</button>
+      <button class="btn outline" onclick="document.querySelector('#decisions').scrollIntoView({behavior:'smooth'})">See what still needs deciding</button>
+    </div>
+    <div class="statrow">
+      <div class="stat"><b>5</b><span>source versions distilled</span></div>
+      <div class="stat"><b>1</b><span>brand hue</span></div>
+      <div class="stat"><b>3</b><span>container radii proposed</span></div>
+      <div class="stat"><b>12</b><span>desktop grid columns</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+<section id="approved">
+  <div class="section-head">
+    <div class="section-num">01 · Approved</div>
+    <div>
+      <h2>Your strongest choices, combined.</h2>
+      <p>These are the elements you explicitly kept coming back to. They are treated as the default direction rather than another option.</p>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Mesh gradient</h3>
+      <p>Three offset radial gradients over deep ink. This is the hero signature. It gives the background depth without creating a hard directional seam.</p>
+      <div class="mesh">MESH GRADIENT · HERO SIGNATURE</div>
+    </div>
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Teal + green-tinted dark mode</h3>
+      <p>Keep the deep teal identity and the greenish undertone in both themes. The darker treatment should feel related to the brand, not like generic black UI.</p>
+      <div class="gradient-card g-mesh"><strong>Dark / light family</strong><span>Brand remains recognisable in both.</span></div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Italic signature</h3>
+      <p>One short word in Instrument Serif italic. Marketing signature, not a second body typeface.</p>
+      <div style="font:40px 'Instrument Serif',serif;margin-top:18px">system</div>
+    </div>
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Alive accents</h3>
+      <p>Teal glow, coral glow and small responsive movement. The interface should feel alive, but the product still needs to feel controlled.</p>
+      <div class="glow-grid" style="grid-template-columns:1fr;margin-top:14px">
+        <div class="glow-card glow-teal"><b>Teal glow</b><span class="small">Primary / brand</span></div>
+      </div>
+    </div>
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Active avatar stack</h3>
+      <p>Stacked profile circles with an active shift/offset. This is a useful “live / people / activity” visual language.</p>
+      <div style="display:flex;margin-top:18px">
+        <div style="width:42px;height:42px;border-radius:50%;background:#5DA5B0;border:3px solid var(--surface);"></div>
+        <div style="width:42px;height:42px;border-radius:50%;background:#FF6A34;border:3px solid var(--surface);margin-left:-12px;"></div>
+        <div style="width:42px;height:42px;border-radius:50%;background:#8358F5;border:3px solid var(--surface);margin-left:-12px;"></div>
+        <div style="width:42px;height:42px;border-radius:50%;background:#F0A600;border:3px solid var(--surface);margin-left:-12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Source-backed foundation:</strong> the combined file repeatedly protects teal as the brand, uses an italic serif as a restrained signature, and distinguishes marketing expression from product restraint. The mesh treatment is explicitly shown as the preferred hero treatment in v1.0. fileciteturn5file4L204-L226
+  </div>
+</section>
+
+<section id="colour">
+  <div class="section-head">
+    <div class="section-num">02 · Colour</div>
+    <div>
+      <h2>One brand colour. More life around it.</h2>
+      <p>The core teal stays. Supporting colours are allowed to be vivid and “alive,” but they do not get to redefine the brand.</p>
+    </div>
+  </div>
+
+  <div class="palette">
+    <div class="sw" style="background:#ECF9FB;color:#08272B">50<br>ECF9FB</div>
+    <div class="sw" style="background:#D7F1F5;color:#08272B">100<br>D7F1F5</div>
+    <div class="sw" style="background:#8BC8D2;color:#08272B">300<br>8BC8D2</div>
+    <div class="sw" style="background:#5DA5B0;color:#021416">400<br>5DA5B0</div>
+    <div class="sw" style="background:#327882;color:#fff">500<br>327882</div>
+    <div class="sw" style="background:#21656F;color:#fff">600<br>21656F</div>
+  </div>
+
+  <div class="grid2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag keep">Keep</span>
+      <h3>Brand teal rules</h3>
+      <p><span class="mono">500</span> = fills and primary actions.</p>
+      <p><span class="mono">600</span> = accent text on light surfaces.</p>
+      <p><span class="mono">400</span> = accent text on dark surfaces.</p>
+      <p class="small">Do not use the same teal step for every role.</p>
+    </div>
+    <div class="card proposed">
+      <span class="tag propose">Proposal</span>
+      <h3>AI signal: electric cobalt</h3>
+      <p>Instead of violet, use a restrained electric cobalt/blue signal for AI-only actions, builder states and “AI did this” indicators.</p>
+      <div style="margin-top:14px;padding:16px;border-radius:14px;background:var(--ai-soft);border:1px solid rgba(91,124,255,.30);color:#9CB0FF">
+        <b>AI Builder</b><br><span class="small">Suggested signal: #5B7CFF</span>
+      </div>
+      <p class="small">Reason: it separates AI from teal without stealing semantic red/green or making the product look like every purple AI product.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:30px">Module colour coding — fix the collision problem</h3>
+  <div class="module-grid" style="margin-top:14px">
+    <div class="module"><span class="dot" style="background:#327882"></span><b>Accounting</b><div class="small">Brand teal</div></div>
+    <div class="module"><span class="dot" style="background:#FF6A34"></span><b>Sales / POS</b><div class="small">Coral</div></div>
+    <div class="module"><span class="dot" style="background:#8358F5"></span><b>Inventory</b><div class="small">Violet</div></div>
+    <div class="module"><span class="dot" style="background:#F0A600"></span><b>Purchasing</b><div class="small">Amber</div></div>
+    <div class="module"><span class="dot" style="background:#C45B8B"></span><b>CRM / Parties</b><div class="small">Rose</div></div>
+    <div class="module"><span class="dot" style="background:#4F8FE8"></span><b>HR</b><div class="small">Sky blue</div></div>
+    <div class="module"><span class="dot" style="background:#B58B3A"></span><b>Marketing</b><div class="small">Gold</div></div>
+    <div class="module"><span class="dot" style="background:#6C7278"></span><b>Platform</b><div class="small">Neutral</div></div>
+  </div>
+  <div class="note"><strong>Rule:</strong> module colours are wayfinding, not semantic meaning. Reports should not be red just because they contain alerts, and HR should not share the same colour as generic info. The combined source already separates module wayfinding from semantic state; this board preserves that principle. fileciteturn2file0L539-L548</div>
+</section>
+
+<section id="type">
+  <div class="section-head">
+    <div class="section-num">03 · Typography</div>
+    <div>
+      <h2>Big, readable, deliberate.</h2>
+      <p>You explicitly rejected tiny typography. So the system should stop pretending 10–11px text is normal UI text. Mono can remain a utility face for technical labels, but hierarchy needs to be visible without squinting.</p>
+    </div>
+  </div>
+  <div class="type-demo card">
+    <div class="type-row"><div class="type-label">DISPLAY · 62–72</div><div class="t-display">Build the system</div></div>
+    <div class="type-row"><div class="type-label">H1 · 40–48</div><div class="t-h1">Describe your business</div></div>
+    <div class="type-row"><div class="type-label">H2 · 30–34</div><div class="t-h2">One engine, every module</div></div>
+    <div class="type-row"><div class="type-label">BODY · 16–18</div><div class="t-body">The interface should be easy to understand before it is impressive.</div></div>
+    <div class="type-row"><div class="type-label">NUMBER · 28–36 MONO</div><div class="t-num">41,240.00</div></div>
+  </div>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="card approved"><span class="tag keep">Keep</span><h3>Inter for the product</h3><p>Use for UI, body copy, headings and controls. Keep 400/500/600 as the core range.</p></div>
+    <div class="card approved"><span class="tag keep">Keep</span><h3>Instrument Serif italic</h3><p>One word or tiny phrase as a signature on marketing surfaces.</p></div>
+    <div class="card approved"><span class="tag keep">Keep</span><h3>Mono for numbers</h3><p>Currency, counts, IDs and tables use tabular numerals. The source explicitly treats this as important to financial readability. fileciteturn5file5L263-L281</p></div>
+  </div>
+</section>
+
+<section id="shape">
+  <div class="section-head">
+    <div class="section-num">04 · Shape</div>
+    <div>
+      <h2>Do not build a system with seven corner personalities.</h2>
+      <p>My recommendation is to collapse the competing radius scales into three meaningful container levels plus a full pill.</p>
+    </div>
+  </div>
+
+  <div class="radius-demo">
+    <div><div class="radius-box r10">10px</div><div class="small mono" style="text-align:center;margin-top:6px">control</div></div>
+    <div><div class="radius-box r16">16px</div><div class="small mono" style="text-align:center;margin-top:6px">card</div></div>
+    <div><div class="radius-box r24">24px</div><div class="small mono" style="text-align:center;margin-top:6px">feature</div></div>
+    <div><div class="radius-box r999">999px</div><div class="small mono" style="text-align:center;margin-top:6px">pill</div></div>
+  </div>
+
+  <div class="grid2" style="margin-top:22px">
+    <div class="card approved"><span class="tag keep">Recommended</span><h3>10 / 16 / 24 / full</h3><p>10px for inputs, selects and menus. 16px for cards/panels. 24px for large feature blocks and hero containers. Full only for pills, toggles, avatars and tags.</p></div>
+    <div class="card"><span class="tag decide">Decision</span><h3>Do we ever need 20px?</h3><p>My answer: not in the first system. The extra step makes the visual language harder to remember. Add it only when a real component proves 16 or 24 is insufficient.</p></div>
+  </div>
+
+  <div class="note">The earlier versions were already moving toward a 24px ceiling; v2 explicitly documented a 24px ceiling and the nesting rule for inner corners. fileciteturn2file0L993-L1003</div>
+</section>
+
+<section id="components">
+  <div class="section-head">
+    <div class="section-num">05 · Components</div>
+    <div>
+      <h2>The outline button wins.</h2>
+      <p>You called out the third button in v1 and later preferred the v4/v5 button feel. The combined answer is: pill geometry, but the outline secondary should be the quiet workhorse.</p>
+    </div>
+  </div>
+
+  <div class="button-show">
+    <button class="btn primary">Create invoice →</button>
+    <button class="btn outline-best">See how it works</button>
+    <button class="btn secondary-best">Export</button>
+    <button class="btn ai-btn">✦ AI Builder</button>
+  </div>
+
+  <div class="grid2" style="margin-top:18px">
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Cards</h3>
+      <p>Quiet cards with a clear border or elevation — not both by default. The “floating” feeling can come from restrained shadow/glow rather than oversized corners.</p>
+      <div class="card" style="margin-top:14px;background:var(--raised);box-shadow:0 12px 34px rgba(50,120,130,.16)"><b>Net revenue</b><div class="t-num" style="margin-top:7px">184,320</div></div>
+    </div>
+    <div class="card approved">
+      <span class="tag keep">Keep</span>
+      <h3>Navigation</h3>
+      <p>Use the strong active state language from v3/v5: obvious active item, clear colour anchor, no giant decorative navigation blocks.</p>
+      <div style="margin-top:14px;padding:10px;border-radius:14px;background:var(--raised)">
+        <div style="padding:11px 12px;border-radius:10px;background:rgba(50,120,130,.13);color:var(--teal-2);font-weight:600">● Accounting</div>
+        <div style="padding:11px 12px;color:var(--text2)">○ Sales & POS</div>
+        <div style="padding:11px 12px;color:var(--text2)">○ Inventory</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="elevation">
+  <div class="section-head">
+    <div class="section-num">06 · Elevation</div>
+    <div>
+      <h2>Glow is an accent, not a permanent fog.</h2>
+      <p>The teal glow and coral glow are approved ideas. Use them as focal-point elevation, not as default shadows on every card.</p>
+    </div>
+  </div>
+  <div class="glow-grid">
+    <div class="glow-card glow-teal"><b>Teal glow</b><span class="small">brand / primary focus</span></div>
+    <div class="glow-card glow-coral"><b>Coral glow</b><span class="small">secondary emphasis</span></div>
+    <div class="glow-card glow-sky"><b>AI / system glow</b><span class="small">reserved for AI or intelligence state</span></div>
+  </div>
+  <div class="note"><strong>Dark mode:</strong> depth should primarily come from surface lightness; coloured glow is reserved for intentional emphasis. This preserves the strong rule from v2 that dark mode should not become a sea of random coloured shadows. fileciteturn2file0L675-L690</div>
+</section>
+
+<section id="motion">
+  <div class="section-head">
+    <div class="section-num">07 · Motion</div>
+    <div>
+      <h2>Alive, but not playful.</h2>
+      <p>The versions disagree about how much motion. The stable answer is to keep the timing discipline from v1/v2 and selectively apply the livelier lift/glow interactions from v3/v5.</p>
+    </div>
+  </div>
+  <div class="grid3">
+    <div class="card"><span class="tag keep">Instant</span><h3>100ms</h3><p>Focus rings, colour swaps, micro feedback.</p></div>
+    <div class="card"><span class="tag keep">Fast</span><h3>180ms</h3><p>Buttons, chips, small state changes.</p></div>
+    <div class="card"><span class="tag keep">Base</span><h3>280ms</h3><p>Dropdowns, tabs, accordions.</p></div>
+    <div class="card"><span class="tag keep">Slow</span><h3>480ms</h3><p>Drawers, modals, scroll entrances.</p></div>
+    <div class="card"><span class="tag keep">Ambient</span><h3>6–10s</h3><p>Hero mesh drift / fluid field only.</p></div>
+    <div class="card proposed"><span class="tag propose">Rule</span><h3>3–4px lift</h3><p>Buttons/cards may lift slightly. No bouncing, wobbling or routine scale transforms.</p></div>
+  </div>
+  <div class="note"><strong>Keep:</strong> the source rule that financial figures should not count upward like a slot machine. Marketing stats may animate; actual financial values should appear as final numbers. fileciteturn2file0L769-L778</div>
+</section>
+
+<section id="zindex">
+  <div class="section-head">
+    <div class="section-num">08 · Z-index</div>
+    <div>
+      <h2>One ladder. No z-index wars.</h2>
+      <p>This is one of the few things you explicitly said you want preserved from v2. Keep the named ladder instead of inventing values component by component.</p>
+    </div>
+  </div>
+  <div class="zladder">
+    <div class="zrow"><b class="mono">z-command</b><b class="mono">1000</b><span>Command palette / global search</span></div>
+    <div class="zrow"><b class="mono">z-toast</b><b class="mono">900</b><span>Notifications</span></div>
+    <div class="zrow"><b class="mono">z-tooltip</b><b class="mono">800</b><span>Tooltips</span></div>
+    <div class="zrow"><b class="mono">z-popover</b><b class="mono">700</b><span>Popover inside modal</span></div>
+    <div class="zrow"><b class="mono">z-modal</b><b class="mono">600</b><span>Dialog / confirm</span></div>
+    <div class="zrow"><b class="mono">z-drawer</b><b class="mono">500</b><span>Drawer / filter panel</span></div>
+    <div class="zrow"><b class="mono">z-dropdown</b><b class="mono">400</b><span>Select / combobox / context menu</span></div>
+    <div class="zrow"><b class="mono">z-rail</b><b class="mono">300</b><span>Sidebar</span></div>
+    <div class="zrow"><b class="mono">z-nav</b><b class="mono">200</b><span>Top bar</span></div>
+    <div class="zrow"><b class="mono">z-sticky</b><b class="mono">100</b><span>Sticky table header</span></div>
+    <div class="zrow"><b class="mono">z-raised</b><b class="mono">10</b><span>Hover-raised tile</span></div>
+    <div class="zrow"><b class="mono">z-base</b><b class="mono">0</b><span>Page content</span></div>
+  </div>
+  <div class="note">The source audit identifies 31 handwritten z-index values and replaces them with 12 named rungs; that is exactly the kind of “one system everywhere” rule worth preserving. fileciteturn2file0L29-L50</div>
+</section>
+
+<section id="grid">
+  <div class="section-head">
+    <div class="section-num">09 · Grid & dashboard</div>
+    <div>
+      <h2>12 columns. Cards live inside it.</h2>
+      <p>Your proposed dashboard model is sound. The important part is to make the user's resize freedom a controlled set of legal sizes, not an infinite canvas.</p>
+    </div>
+  </div>
+
+  <div class="grid-visual">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="card"><span class="tag keep">Desktop</span><h3>12 columns</h3><p>Best fit for a business dashboard. Gives enough combinations without becoming freeform chaos.</p></div>
+    <div class="card"><span class="tag propose">Tablet</span><h3>4 columns</h3><p>Recommended for dashboard composition. More expressive than two, simpler than six.</p></div>
+    <div class="card"><span class="tag propose">Mobile</span><h3>2 columns</h3><p>Keep the same card model but compress legal widths to 1 or 2 columns.</p></div>
+  </div>
+
+  <div class="card-sizes">
+    <div class="size-chip"><b>12-col dashboard</b><p>Allowed widths: 2, 4, 6, 8, 10, 12. Heights: 1, 2, 4, 6 depending on content class.</p></div>
+    <div class="size-chip"><b>4-col tablet</b><p>Allowed widths: 1, 2, 3, 4. Charts may have a minimum width so they never become unreadable.</p></div>
+    <div class="size-chip"><b>2-col mobile</b><p>Allowed widths: 1, 2. Never let a chart/card become smaller than its content's minimum viable size.</p></div>
+    <div class="size-chip"><b>Resize rule</b><p>Users drag corners only within legal presets. The system snaps to the nearest allowed span.</p></div>
+  </div>
+
+  <div class="note"><strong>Important correction:</strong> I would not literally expose every mathematical combination (for example every 4×2, 4×4, 4×6 permutation) to every card. The card's content type should constrain the legal sizes. KPI = small; table/chart = medium/large; full dashboard panels = wider. That gives freedom without letting users make broken layouts.</div>
+</section>
+
+<section id="reactbits">
+  <div class="section-head">
+    <div class="section-num">10 · ReactBits</div>
+    <div>
+      <h2>Use a catalogue, not a style pile.</h2>
+      <p>Keep the ReactBits mapping idea from v2, but treat it as an implementation reference layer. Every adopted component still has to obey this system's colour, motion, radius and accessibility rules.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card approved"><span class="tag keep">Keep idea</span><h3>ReactBits map</h3><p>Document which ReactBits pattern is allowed for which role: hero motion, nav effect, reveal, marquee, etc.</p></div>
+    <div class="card"><span class="tag decide">Rule</span><h3>Never inherit its defaults</h3><p>Borrow the interaction pattern, not the visual language. Override colours, typography, radius, timing and reduced-motion behaviour.</p></div>
+  </div>
+</section>
+
+<section id="marketing">
+  <div class="section-head">
+    <div class="section-num">11 · Marketing vs product</div>
+    <div>
+      <h2>Same system. Different intensity.</h2>
+      <p>This is one of the best ideas in v2 and should become a hard boundary rather than another visual option.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag keep">Marketing</span>
+      <h3>Expressive</h3>
+      <p>Mesh gradient, selective glow, occasional ambient motion, serif italic signature, larger display type.</p>
+    </div>
+    <div class="card">
+      <span class="tag keep">Product</span>
+      <h3>Controlled</h3>
+      <p>Flat/quiet surfaces, restrained motion, data-first typography, module colour only in chrome and AI signal only where AI is actually operating.</p>
+    </div>
+  </div>
+  <div class="note">The source explicitly draws this line: public pages may use WebGL fluid/mesh and serif italic; inside the app, the visual language becomes quieter and more compact. fileciteturn4file0L37-L57</div>
+</section>
+
+<section id="decisions">
+  <div class="section-head">
+    <div class="section-num">12 · Final decisions</div>
+    <div>
+      <h2>Only these questions remain.</h2>
+      <p>Everything else can be treated as decided for the next build pass.</p>
+    </div>
+  </div>
+
+  <div class="rules">
+    <div class="rule"><div class="rule-num">01</div><div><b>AI signal colour.</b><br><span class="small">My vote: electric cobalt #5B7CFF. Alternative: a colder sky-blue. I would not use violet.</span></div></div>
+    <div class="rule"><div class="rule-num">02</div><div><b>Exact typography face for marketing display.</b><br><span class="small">My vote: Inter remains the product/UI face; use Bricolage Grotesque only if you strongly prefer its headline personality from v3. Otherwise keep one sans.</span></div></div>
+    <div class="rule"><div class="rule-num">03</div><div><b>Radius.</b><br><span class="small">My vote: 10px / 16px / 24px / full. Do not add 20px unless a real component proves it necessary.</span></div></div>
+    <div class="rule"><div class="rule-num">04</div><div><b>Dashboard grid.</b><br><span class="small">My vote: 12 desktop / 4 tablet / 2 mobile. Cards snap to legal spans based on component type.</span></div></div>
+    <div class="rule"><div class="rule-num">05</div><div><b>Glow usage.</b><br><span class="small">My vote: teal and coral remain approved; glow is a focal-state treatment, not the default card decoration.</span></div></div>
+    <div class="rule"><div class="rule-num">06</div><div><b>Dropdown.</b><br><span class="small">This is still an open component problem. The new system should explicitly design one canonical dropdown before implementation rather than inheriting another version's menu.</span></div></div>
+  </div>
+
+  <div class="decision" style="margin-top:20px">
+    <h3 style="margin-bottom:8px">Suggested final lock</h3>
+    <p style="margin:0;color:var(--text2)">Teal brand + green-tinted dark mode · mesh hero · Inter UI · Instrument Serif italic signature · JetBrains Mono numbers · 10/16/24/full radius · teal/coral controlled glow · electric cobalt AI signal · named z-index ladder · 12/4/2 dashboard grid · expressive marketing / restrained product · no financial count-up animation.</p>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <div class="section-num">13 · Carry-forward fixes</div>
+    <div>
+      <h2>These problems should not survive the redesign.</h2>
+      <p>They are implementation issues already identified in the source, so the final system should explicitly close them instead of merely changing their appearance.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card"><b>Dark accent contrast</b><p class="small">#327882 on the dark background is documented as failing AA; use #5DA5B0 for dark-mode accent text. fileciteturn1file0L329-L341</p></div>
+    <div class="card"><b>No focus-ring removal</b><p class="small">The source flags the hero input's hidden focus ring as a critical accessibility issue. fileciteturn1file0L608-L611</p></div>
+    <div class="card"><b>No hover-scale system-wide</b><p class="small">The source identifies 184 hover-scale usages and recommends lift/colour/elevation instead. fileciteturn2file0L748-L768</p></div>
+    <div class="card"><b>Fix sidebar clipping</b><p class="small">The source documents the overflow-hidden + scale + tooltip clipping root cause in SidebarItem.jsx. fileciteturn4file0L60-L89</p></div>
+    <div class="card"><b>Remove template marketing copy</b><p class="small">The source calls out template copy that does not describe VenQore's actual product. fileciteturn4file0L90-L102</p></div>
+    <div class="card"><b>Replace CDN Tailwind before launch</b><p class="small">The source lists browser-side CDN Tailwind as a pre-launch issue. fileciteturn4file0L103-L110</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <b>VenQore — Final Design System Selection Board</b><br>
+    Built from the user's selections across Design System v1–v5. This board is a decision layer, not yet the production tokens file.
+  </div>
+</footer>
+
+<script>
+const root=document.documentElement;
+document.getElementById('theme').addEventListener('click',()=>{
+  const next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+  root.setAttribute('data-theme',next);
+});
+</script>
+</body>
+</html>

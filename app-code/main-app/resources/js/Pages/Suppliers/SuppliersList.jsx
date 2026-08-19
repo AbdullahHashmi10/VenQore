@@ -69,6 +69,10 @@ export default function SuppliersIndex({ suppliers }) {
         address: '',
         tax_id: '',
         notes: '',
+        payment_terms: '',
+        lead_time_days: '',
+        performance_rating: '',
+        credit_limit: 0,
     });
 
     const handleSubmit = (e) => {
@@ -99,6 +103,10 @@ export default function SuppliersIndex({ suppliers }) {
                 address: supplier.address || '',
                 tax_id: supplier.tax_id || '',
                 notes: supplier.notes || '',
+                payment_terms: supplier.payment_terms || '',
+                lead_time_days: supplier.lead_time_days || '',
+                performance_rating: supplier.performance_rating || '',
+                credit_limit: supplier.credit_limit || 0,
             });
         } else {
             setEditingSupplier(null);
@@ -163,7 +171,16 @@ export default function SuppliersIndex({ suppliers }) {
                         {allSuppliers.map(supplier => (
                             <div key={supplier.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg transition-shadow group">
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{supplier.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{supplier.name}</h3>
+                                        {supplier.performance_rating && (
+                                            <div className="flex text-amber-400">
+                                                {Array.from({ length: supplier.performance_rating }).map((_, i) => (
+                                                    <span key={i}>★</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button onClick={() => openModal(supplier)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
                                             <Edit size={16} />
@@ -256,6 +273,58 @@ export default function SuppliersIndex({ suppliers }) {
                                             onChange={(e) => setData('email', e.target.value)}
                                             className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
                                         />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Payment Terms</label>
+                                        <select
+                                            value={data.payment_terms}
+                                            onChange={(e) => setData('payment_terms', e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                        >
+                                            <option value="">None / Custom</option>
+                                            <option value="net_15">Net 15</option>
+                                            <option value="net_30">Net 30</option>
+                                            <option value="net_45">Net 45</option>
+                                            <option value="net_60">Net 60</option>
+                                            <option value="due_on_receipt">Due on Receipt</option>
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Lead Time (Days)</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={data.lead_time_days}
+                                                onChange={(e) => setData('lead_time_days', e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Performance Rating</label>
+                                            <select
+                                                value={data.performance_rating}
+                                                onChange={(e) => setData('performance_rating', e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 ring-indigo-500/20 outline-none"
+                                            >
+                                                <option value="">Unrated</option>
+                                                <option value="1">1 Star</option>
+                                                <option value="2">2 Stars</option>
+                                                <option value="3">3 Stars</option>
+                                                <option value="4">4 Stars</option>
+                                                <option value="5">5 Stars</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Credit Limit</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={data.credit_limit}
+                                                onChange={(e) => setData('credit_limit', e.target.value)}
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                            />
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Address</label>

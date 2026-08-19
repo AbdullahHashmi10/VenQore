@@ -1,6 +1,16 @@
 import React from 'react';
-import { HelpCircle, RefreshCw, AlertCircle, EyeOff, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { HelpCircle, AlertCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 
+/**
+ * DashboardCardFrame — VenQore Design System v2.0
+ *
+ * Surfaces: --vq-surface (card), --vq-sunken (loading skeleton)
+ * Text:     --vq-text / --vq-text-2 / --vq-text-3
+ * Border:   --vq-line / --vq-line-soft
+ * Accent:   --vq-accent-quiet / --vq-accent-text
+ * Semantic: --vq-danger (error)
+ * Motion:   --vq-dur-fast / --vq-ease
+ */
 export default function DashboardCardFrame({
     card,
     definition,
@@ -22,20 +32,112 @@ export default function DashboardCardFrame({
     }
 
     return (
-        <div 
-            className="group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_10px_30px_rgb(0,0,0,0.04)] hover:border-slate-200 dark:hover:border-slate-700/60 transition-all duration-300 flex flex-col justify-between h-full select-none"
+        <div
+            style={{
+                position: 'relative',
+                background: 'var(--vq-surface)',
+                border: '1px solid var(--vq-line)',
+                borderRadius: 'var(--vq-r-lg)',
+                padding: '16px',
+                boxShadow: 'var(--vq-elev-1)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100%',
+                userSelect: 'none',
+                transition: `border-color var(--vq-dur-fast) var(--vq-ease), box-shadow var(--vq-dur-fast) var(--vq-ease)`,
+            }}
+            className="vq-card-frame"
             id={`card-${card.id}`}
+            onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
+                e.currentTarget.style.boxShadow = 'var(--vq-elev-2)';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--vq-line)';
+                e.currentTarget.style.boxShadow = 'var(--vq-elev-1)';
+            }}
         >
-            {/* Card Header */}
-            <div className="flex items-start justify-between gap-2 shrink-0 mb-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide truncate max-w-[160px] cursor-help" title={description}>
+            {/* ── Card Header ── */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '8px',
+                flexShrink: 0,
+                marginBottom: '10px',
+            }}>
+                {/* Title + help icon */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                    {/* Drag handle doubles as title — grab region */}
+                    <span
+                        className="vq-card-drag-handle"
+                        title={description}
+                        style={{
+                            fontFamily: 'var(--vq-font-mono)',
+                            fontSize: 'var(--vq-fs-eyebrow)',
+                            lineHeight: 'var(--vq-lh-eyebrow)',
+                            letterSpacing: 'var(--vq-ls-eyebrow)',
+                            textTransform: 'uppercase',
+                            fontWeight: 'var(--vq-fw-medium)',
+                            color: 'var(--vq-text-3)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '160px',
+                            cursor: isLocked ? 'default' : 'grab',
+                        }}
+                    >
                         {title}
                     </span>
                     {help && (
-                        <div className="relative group/help cursor-help text-slate-300 dark:text-slate-600 hover:text-indigo-500 transition-colors shrink-0">
-                            <HelpCircle size={13} />
-                            <div className="absolute left-1/2 bottom-full mb-1.5 -translate-x-1/2 w-48 bg-slate-800 text-white dark:bg-slate-950 dark:text-slate-300 p-2 rounded-lg text-3xs font-medium opacity-0 pointer-events-none group-hover/help:opacity-100 transition-opacity duration-200 z-50 shadow-md leading-normal text-center">
+                        <div style={{ position: 'relative', flexShrink: 0 }} className="vq-help-trigger">
+                            <button
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
+                                    cursor: 'help',
+                                    color: 'var(--vq-text-3)',
+                                    display: 'flex',
+                                    transition: `color var(--vq-dur-instant)`,
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.color = 'var(--vq-accent-text)';
+                                    e.currentTarget.nextSibling.style.opacity = '1';
+                                    e.currentTarget.nextSibling.style.pointerEvents = 'auto';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.color = 'var(--vq-text-3)';
+                                    e.currentTarget.nextSibling.style.opacity = '0';
+                                    e.currentTarget.nextSibling.style.pointerEvents = 'none';
+                                }}
+                            >
+                                <HelpCircle size={12} />
+                            </button>
+                            {/* Tooltip */}
+                            <div style={{
+                                position: 'absolute',
+                                left: '50%',
+                                bottom: '100%',
+                                marginBottom: '6px',
+                                transform: 'translateX(-50%)',
+                                width: '192px',
+                                background: 'var(--vq-raised)',
+                                border: '1px solid var(--vq-line)',
+                                color: 'var(--vq-text-2)',
+                                padding: '8px 10px',
+                                borderRadius: 'var(--vq-r-md)',
+                                fontSize: 'var(--vq-fs-caption)',
+                                lineHeight: 'var(--vq-lh-caption)',
+                                fontFamily: 'var(--vq-font-sans)',
+                                textAlign: 'center',
+                                opacity: 0,
+                                pointerEvents: 'none',
+                                transition: `opacity var(--vq-dur-instant)`,
+                                zIndex: 'var(--vq-z-tooltip)',
+                                boxShadow: 'var(--vq-elev-3)',
+                            }}>
                                 {help}
                             </div>
                         </div>
@@ -44,27 +146,102 @@ export default function DashboardCardFrame({
 
                 {/* Edit Actions Menu (rendered if layout is unlocked) */}
                 {!isLocked && (onEdit || onRemove) && (
-                    <div className="relative group/menu flex items-center shrink-0">
-                        <button className="text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 p-0.5 rounded transition-colors">
+                    <div style={{ position: 'relative', flexShrink: 0 }} className="vq-card-menu">
+                        <button
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: '2px',
+                                cursor: 'pointer',
+                                color: 'var(--vq-text-3)',
+                                borderRadius: 'var(--vq-r-xs)',
+                                display: 'flex',
+                                transition: `color var(--vq-dur-instant), background var(--vq-dur-instant)`,
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.color = 'var(--vq-text-2)';
+                                e.currentTarget.style.background = 'var(--vq-sunken)';
+                                const menu = e.currentTarget.parentElement.querySelector('.vq-card-dropdown');
+                                if (menu) { menu.style.opacity = '1'; menu.style.pointerEvents = 'auto'; }
+                            }}
+                        >
                             <MoreVertical size={14} />
                         </button>
                         
-                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-lg shadow-lg opacity-0 pointer-events-none group-hover/menu:opacity-100 group-hover/menu:pointer-events-auto transition-opacity duration-200 z-40 py-1 min-w-[100px]">
+                        <div
+                            className="vq-card-dropdown"
+                            style={{
+                                position: 'absolute',
+                                right: 0,
+                                top: '100%',
+                                marginTop: '4px',
+                                background: 'var(--vq-raised)',
+                                border: '1px solid var(--vq-line)',
+                                borderRadius: 'var(--vq-r-md)',
+                                boxShadow: 'var(--vq-elev-3)',
+                                opacity: 0,
+                                pointerEvents: 'none',
+                                transition: `opacity var(--vq-dur-fast)`,
+                                zIndex: 'var(--vq-z-dropdown)',
+                                padding: '4px',
+                                minWidth: '120px',
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.opacity = '0';
+                                e.currentTarget.style.pointerEvents = 'none';
+                            }}
+                        >
                             {onEdit && (
                                 <button 
                                     onClick={onEdit}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-3xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors text-left"
+                                    style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '7px 10px',
+                                        fontSize: 'var(--vq-fs-caption)',
+                                        fontWeight: 'var(--vq-fw-medium)',
+                                        fontFamily: 'var(--vq-font-sans)',
+                                        color: 'var(--vq-text-2)',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        borderRadius: 'var(--vq-r-sm)',
+                                        textAlign: 'left',
+                                        transition: `background var(--vq-dur-instant)`,
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-sunken)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
                                 >
-                                    <Edit2 size={10} />
+                                    <Edit2 size={11} />
                                     <span>Configure</span>
                                 </button>
                             )}
                             {onRemove && (
                                 <button 
                                     onClick={onRemove}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-3xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors text-left"
+                                    style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '7px 10px',
+                                        fontSize: 'var(--vq-fs-caption)',
+                                        fontWeight: 'var(--vq-fw-medium)',
+                                        fontFamily: 'var(--vq-font-sans)',
+                                        color: 'var(--vq-danger)',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        borderRadius: 'var(--vq-r-sm)',
+                                        textAlign: 'left',
+                                        transition: `background var(--vq-dur-instant)`,
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-danger-bg)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
                                 >
-                                    <Trash2 size={10} />
+                                    <Trash2 size={11} />
                                     <span>Delete</span>
                                 </button>
                             )}
@@ -73,17 +250,61 @@ export default function DashboardCardFrame({
                 )}
             </div>
 
-            {/* Card Body & States */}
-            <div className="grow flex flex-col justify-center w-full min-h-0 relative">
+            {/* ── Card Body & States ── */}
+            <div style={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                width: '100%',
+                minHeight: 0,
+                position: 'relative',
+            }}>
                 {loading ? (
-                    <div className="flex flex-col gap-2 w-full animate-pulse">
-                        <div className="h-7 w-2/3 bg-slate-100 dark:bg-slate-800 rounded-lg" />
-                        <div className="h-4 w-1/3 bg-slate-50 dark:bg-slate-800/60 rounded" />
+                    /* Skeleton loader — VQ sunken surface */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                        <div style={{
+                            height: '28px',
+                            width: '62%',
+                            background: 'var(--vq-sunken)',
+                            borderRadius: 'var(--vq-r-sm)',
+                            animation: 'vq-pulse 1.6s ease-in-out infinite',
+                        }} />
+                        <div style={{
+                            height: '14px',
+                            width: '34%',
+                            background: 'var(--vq-sunken)',
+                            borderRadius: 'var(--vq-r-xs)',
+                            opacity: 0.6,
+                            animation: 'vq-pulse 1.6s ease-in-out 0.3s infinite',
+                        }} />
+                        <style>{`
+                            @keyframes vq-pulse {
+                                0%, 100% { opacity: 0.45; }
+                                50%       { opacity: 0.9; }
+                            }
+                        `}</style>
                     </div>
                 ) : error ? (
-                    <div className="flex flex-col items-center justify-center gap-1.5 text-slate-400 dark:text-slate-600 select-none">
-                        <AlertCircle size={20} className="text-rose-500/80" />
-                        <span className="text-3xs font-bold uppercase tracking-wider">Failed to load</span>
+                    /* Error state */
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        color: 'var(--vq-text-3)',
+                    }}>
+                        <AlertCircle size={20} style={{ color: 'var(--vq-danger)', opacity: 0.72 }} />
+                        <span style={{
+                            fontFamily: 'var(--vq-font-mono)',
+                            fontSize: 'var(--vq-fs-eyebrow)',
+                            letterSpacing: 'var(--vq-ls-eyebrow)',
+                            textTransform: 'uppercase',
+                            color: 'var(--vq-text-3)',
+                        }}>
+                            Failed to load
+                        </span>
                     </div>
                 ) : (
                     children

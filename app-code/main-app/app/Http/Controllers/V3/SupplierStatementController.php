@@ -4,7 +4,7 @@ namespace App\Http\Controllers\V3;
 
 use App\Models\Party;
 use App\Http\Controllers\Controller;
-use App\Services\V3\PartyService;
+use App\Engines\PartyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -64,7 +64,7 @@ class SupplierStatementController extends Controller
             ->select('id', 'invoice_number', 'purchase_date', 'total', 'payment_status')
             ->get()
             ->map(function ($p) use ($tenantId) {
-                $paid = DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
+                $paid = DB::table('allocations')->where('allocations.tenant_id', app('current.tenant')->id)
                     ->where('tenant_id', $tenantId)
                     ->where('purchase_id', $p->id)
                     ->where('status', 'active')

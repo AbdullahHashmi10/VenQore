@@ -4,8 +4,8 @@ namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V3\StoreSupplierPaymentRequest;
-use App\Services\V3\AccountingService;
-use App\Services\V3\PaymentService;
+use App\Engines\AccountingService;
+use App\Engines\PaymentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -23,7 +23,19 @@ class SupplierPaymentController extends Controller
         try {
             DB::transaction(function () use ($validated) {
 
-                $paymentAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
+                $paymentAccount = '1000'; // Cash
+                if ($validated['payment_method'] === 'bank') {
+                    $paymentAccount = '1010'; // Default Bank
+                    if (!empty($validated['bank_account_id'])) {
+                        $ba = \App\Models\BankAccount::find($validated['bank_account_id']);
+                        if ($ba && $ba->account_id) {
+                            $acc = \App\Models\Account::find($ba->account_id);
+                            if ($acc) {
+                                $paymentAccount = $acc->code;
+                            }
+                        }
+                    }
+                }
 
                 // B5 Journal:
                 // DR 2000 Accounts Payable  (liability reduces)

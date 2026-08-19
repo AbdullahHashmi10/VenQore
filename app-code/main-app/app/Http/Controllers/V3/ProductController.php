@@ -64,6 +64,7 @@ class ProductController extends Controller
                 'tax_rate'          => $validated['tax_rate'] ?? 0,
                 'price_includes_tax'=> $validated['price_includes_tax'] ?? 0,
                 'is_manufactured'   => $validated['is_manufactured'] ?? 0,
+                'supplier_sku'      => $validated['supplier_sku'] ?? null,
                 'is_active'         => 1,
                 'status'            => 'active',
                 'created_at'        => now(),
@@ -141,6 +142,7 @@ class ProductController extends Controller
             'price_includes_tax' => $validated['price_includes_tax'] ?? 0,
             // 'reorder_level'      => $validated['reorder_level'] ?? 0,
             'is_manufactured'    => $validated['is_manufactured'] ?? 0,
+            'supplier_sku'       => $validated['supplier_sku'] ?? null,
             'updated_at'         => now(),
         ]);
 

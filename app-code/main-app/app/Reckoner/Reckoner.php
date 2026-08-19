@@ -35,7 +35,7 @@ final class Reckoner
     public const CAPABILITY_TTL = 600;
 
     /** Resolve one reading. */
-    public function read(ReckonerRequest $r, User $u, Tenant $t): ReckonerResult
+    public function read(ReckonerRequest $r, User $u, ?Tenant $t): ReckonerResult
     {
         $id = $r->getCompositeId();
         return $this->readMany([$r], $u, $t)[$id] ?? ReckonerResult::failure($id, $r->key, 'resolver_failed', 'No result returned.');
@@ -62,7 +62,7 @@ final class Reckoner
         foreach ($keys as $key) {
             $definition = ReckonerRegistry::find($key);
 
-            if ($definition === null || ($definition['scope'] ?? 'tenant') === 'platform') {
+            if ($definition === null || ($definition['scope'] ?? 'tenant') === 'platform' || ($definition['implemented'] ?? true) === false) {
                 $availability[$key] = false;
 
                 continue;
@@ -104,7 +104,7 @@ final class Reckoner
      * @param  ReckonerRequest[]  $requests
      * @return array<string, ReckonerResult> keyed by request composite ID
      */
-    public function readMany(array $requests, User $u, Tenant $t): array
+    public function readMany(array $requests, User $u, ?Tenant $t): array
     {
         $results = [];
 
@@ -135,7 +135,7 @@ final class Reckoner
 
             // 2. Scope — a platform metric in a tenant context does not
             // even admit the metric exists.
-            if (($definition['scope'] ?? 'tenant') === 'platform') {
+            if (($definition['scope'] ?? 'tenant') === 'platform' && $t !== null) {
                 $results[$id] = ReckonerResult::failure($id, $key, 'not_found', "No reading exists for '{$key}'.");
 
                 continue;
@@ -148,22 +148,29 @@ final class Reckoner
                 continue;
             }
 
-            // 4. Plan feature
-            $features ??= $this->features($t);
-            $featureKey = $definition['feature'] ?? null;
-            if ($featureKey !== null && empty($features[$featureKey])) {
-                $results[$id] = ReckonerResult::failure($id, $key, 'plan_locked', 'This reading is not included in the current plan.');
+            // 4. Plan feature. Runs independently of the capability gate — a plan that
+            // does not include a feature must lock it whether or not the store happens
+            // to have data for it. Correction Spec §1: plan_locked and not_applicable
+            // answer different questions and neither substitutes for the other.
+            if ($t !== null) {
+                $features ??= $this->features($t);
+                $featureKey = $definition['feature'] ?? null;
+                if ($featureKey !== null && empty($features[$featureKey])) {
+                    $results[$id] = ReckonerResult::failure($id, $key, 'plan_locked', 'This reading is not included in the current plan.');
 
-                continue;
+                    continue;
+                }
             }
 
             // 5. Capability
-            $capabilities ??= $this->capabilities($t);
-            $capabilityKey = $definition['capability'] ?? null;
-            if ($capabilityKey !== null && empty($capabilities[$capabilityKey])) {
-                $results[$id] = ReckonerResult::failure($id, $key, 'not_applicable', 'This store does not use this yet.');
+            if ($t !== null) {
+                $capabilities ??= $this->capabilities($t);
+                $capabilityKey = $definition['capability'] ?? null;
+                if ($capabilityKey !== null && empty($capabilities[$capabilityKey])) {
+                    $results[$id] = ReckonerResult::failure($id, $key, 'not_applicable', 'This store does not use this yet.');
 
-                continue;
+                    continue;
+                }
             }
 
             // 6a. Validate period
@@ -184,7 +191,7 @@ final class Reckoner
 
             // Cache lookup.
             $ttl = $definition['cache_ttl'] ?? 60;
-            $cacheKey = $this->cacheKey($t->id, $key, $period, $request->granularity, $request->args);
+            $cacheKey = $this->cacheKey($t?->id, $key, $period, $request->granularity, $request->args);
 
             if ($ttl > 0 && Cache::has($cacheKey)) {
                 $payload = Cache::get($cacheKey);
@@ -222,7 +229,7 @@ final class Reckoner
             // Comparison setup
             if (($definition['supports_comparison'] ?? false) && $period->compareStart !== null) {
                 $comparePeriod = $period->comparisonWindow();
-                $compareCacheKey = $this->cacheKey($t->id, $key, $comparePeriod, $request->granularity, $request->args);
+                $compareCacheKey = $this->cacheKey($t?->id, $key, $comparePeriod, $request->granularity, $request->args);
 
                 $compareValue = null;
                 $compareValueCached = false;
@@ -295,6 +302,20 @@ final class Reckoner
 
                 $value = $payloads[$itemId];
 
+                // A Source returning null means "I could not compute this", never "the answer
+                // is nothing". Correction Spec §1.3. The card explains itself instead of
+                // rendering an empty or zero state.
+                if ($value === null) {
+                    $primaryId = $item['is_compare'] ? $item['primary_id'] : $itemId;
+                    $results[$primaryId] = ReckonerResult::failure(
+                        $primaryId,
+                        $item['key'],
+                        'not_applicable',
+                        'This reading is not available for your store yet.',
+                    );
+                    continue;
+                }
+
                 if ($item['is_compare']) {
                     $primaryId = $item['primary_id'];
                     $resolvedCompare[$primaryId] = $value;
@@ -360,7 +381,7 @@ final class Reckoner
      * is a scalar. Other shapes are returned by their Source untouched once
      * Phase 2 sources start producing them.
      */
-    private function shapeScalarPayload(mixed $value, ?float $previous, array $definition, ReckonerPeriod $period): mixed
+    private function shapeScalarPayload(mixed $value, mixed $previous, array $definition, ReckonerPeriod $period): mixed
     {
         if ($definition['shape'] !== ReckonerShape::SCALAR) {
             return $value;
@@ -447,7 +468,7 @@ final class Reckoner
                 'has_purchases' => $probe('purchases', fn () => \App\Models\Purchase::query()->exists()),
                 'has_sales_orders' => $probe('sales_orders', fn () => \App\Models\SalesOrder::query()->exists()),
                 'has_manufacturing' => ! empty($features['production'])
-                    && $probe('recipes', fn () => \App\Models\Recipe::query()->exists()),
+                    && $probe('compositions', fn () => \App\Models\Composition::query()->exists()),
                 'has_staff' => $probe(
                     'tenant_users',
                     fn () => \App\Models\TenantUser::withoutGlobalScopes()

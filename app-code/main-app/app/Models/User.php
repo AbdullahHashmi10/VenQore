@@ -256,6 +256,7 @@ class User extends Authenticatable
             $this->resolvedMembership = null;
         }
 
+
         // 1. If we are in a tenant context, query/match the membership for this specific tenant first
         if (app()->bound('current.tenant')) {
             $tenant = app('current.tenant');
@@ -270,10 +271,10 @@ class User extends Authenticatable
             }
         }
 
-        // 2. Fallback to globally bound current.membership if it matches this user
+        // 2. Fallback to globally bound current.membership if it matches this user and is active
         if (app()->bound('current.membership')) {
             $membership = app('current.membership');
-            if ((string)$membership->user_id === (string)$this->id) {
+            if ((string)$membership->user_id === (string)$this->id && $membership->status === 'active') {
                 $this->resolvedMembership = $membership;
                 $this->membershipResolved = true;
                 return $membership;

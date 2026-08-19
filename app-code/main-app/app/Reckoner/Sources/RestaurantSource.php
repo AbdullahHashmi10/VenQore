@@ -35,8 +35,9 @@ final class RestaurantSource implements ReckonerSource
                     ->where('tenant_id', $tenantId)
                     ->where('status', 'occupied')
                     ->count(),
-                'restaurant.kitchen_orders_pending' => DB::table('kitchen_orders')
+                'restaurant.kitchen_orders_pending' => DB::table('work_orders')
                     ->where('tenant_id', $tenantId)
+                    ->where('kind', 'kitchen')
                     ->whereIn('status', ['pending', 'preparing'])
                     ->count(),
                 default => null,

@@ -48,10 +48,12 @@ class ReckonerGateTest extends VenQoreTestCase
         // everything via getActiveMembership() role check in User::hasPermission()).
         $user = $this->createTenantUser($tenant, 'cashier');
         $this->bindTenantContext($tenant, $user);
+        // Warm the permissions cache so it doesn't count against the metric query limit
+        $user->hasPermission('dummy');
 
         $queryCountBefore = 0;
         $spy = 0;
-        DB::listen(function () use (&$spy) {
+        DB::listen(function ($query) use (&$spy) {
             $spy++;
         });
 

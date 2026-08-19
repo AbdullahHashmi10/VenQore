@@ -58,6 +58,28 @@ class WooApiClient
         return $products;
     }
 
+    public function getCustomers(int $perPage = 100): array
+    {
+        $customers = [];
+        $page      = 1;
+
+        do {
+            $response = $this->get('/customers', [
+                'per_page' => $perPage,
+                'page'     => $page,
+            ]);
+
+            if (empty($response)) {
+                break;
+            }
+
+            $customers = array_merge($customers, $response);
+            $page++;
+        } while (count($response) === $perPage);
+
+        return $customers;
+    }
+
     /**
      * Fetch a single product by WooCommerce product ID.
      */

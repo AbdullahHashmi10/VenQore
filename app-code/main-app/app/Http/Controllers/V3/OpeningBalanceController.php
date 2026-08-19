@@ -4,8 +4,8 @@ namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V3\StoreOpeningBalanceRequest;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use Illuminate\Support\Facades\DB;
 
 class OpeningBalanceController extends Controller

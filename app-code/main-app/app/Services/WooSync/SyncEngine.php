@@ -477,6 +477,8 @@ class SyncEngine
     {
         $stats = ['checked' => 0, 'queued' => 0, 'new_staged' => 0];
 
+        $this->autoRegisterCustomers();
+
         $wooProducts  = $this->client->getProducts();
         $wooById      = collect($wooProducts)->keyBy('id');
 
@@ -602,5 +604,43 @@ class SyncEngine
             $map[$cat['name']] = $cat['id'];
         }
         return $map;
+    }
+
+    public function autoRegisterCustomers(): int
+    {
+        $wooCustomers = $this->client->getCustomers();
+        $registered = 0;
+
+        foreach ($wooCustomers as $wc) {
+            $email = $wc['email'] ?? null;
+            if (!$email) continue;
+
+            $exists = \App\Models\Party::where('tenant_id', $this->connection->tenant_id)
+                ->where('email', $email)
+                ->where('type', 'customer')
+                ->exists();
+
+            if (!$exists) {
+                $name = '';
+                if (!empty($wc['first_name']) || !empty($wc['last_name'])) {
+                    $name = trim(($wc['first_name'] ?? '') . ' ' . ($wc['last_name'] ?? ''));
+                } else {
+                    $name = $wc['username'] ?? 'WooCommerce Customer';
+                }
+                
+                \App\Models\Party::create([
+                    'tenant_id' => $this->connection->tenant_id,
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $wc['billing']['phone'] ?? null,
+                    'type' => 'customer',
+                    'address' => trim(($wc['billing']['address_1'] ?? '') . ' ' . ($wc['billing']['address_2'] ?? '')),
+                    'notes' => 'Auto-registered via WooCommerce Sync',
+                ]);
+                $registered++;
+            }
+        }
+
+        return $registered;
     }
 }

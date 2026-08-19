@@ -78,7 +78,7 @@ class ToolRegistry
                     self::tool('margin-calculator', 'Profit Margin & Markup Calculator', 'Margin Calculator', 'Solve cost, price, margin and markup live, plus bulk product-list mode.', self::STATUS_LIVE, 'tools.margin-calculator'),
                     self::tool('pos-roi-calculator', 'POS ROI Calculator', 'POS ROI', 'Work out whether a POS system actually pays for itself.', self::STATUS_LIVE, 'tools.pos-roi'),
                     self::tool('payment-fee-calculator', 'Payment Fee Calculator', 'Payment Fees', 'Compare Stripe, Square, PayPal, Clover and Shopify Payments processing fees.', self::STATUS_LIVE, 'tools.payment-fee'),
-                    self::tool('food-cost-calculator', 'Recipe Costing Calculator', 'Food Cost', 'Cost a recipe per portion and price it to a target margin.', self::STATUS_LIVE, 'tools.food-cost'),
+                    self::tool('food-cost-calculator', 'Composition Costing Calculator', 'Food Cost', 'Cost a recipe per portion and price it to a target margin.', self::STATUS_LIVE, 'tools.food-cost'),
                 ],
             ],
         ];

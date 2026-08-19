@@ -329,7 +329,7 @@ class DashboardController extends Controller
             'reading_key' => 'required|string',
             'period' => 'nullable|string',
             'chart' => 'nullable|string',
-            'size' => 'nullable|string|in:small,medium,large,full',
+            'size' => 'nullable|string|in:2x4,2x6,2x8,4x4,4x6,4x8,6x4,6x6,6x8,8x4,8x6,8x8',
         ]);
 
         $reckoner = app(Reckoner::class);
@@ -394,7 +394,7 @@ class DashboardController extends Controller
             'period' => 'nullable|string',
             'period_custom' => 'nullable|array',
             'chart' => 'nullable|string',
-            'size' => 'nullable|string|in:small,medium,large,full',
+            'size' => 'nullable|string|in:2x4,2x6,2x8,4x4,4x6,4x8,6x4,6x6,6x8,8x4,8x6,8x8',
             'title_override' => 'nullable|string|max:80',
             'args' => 'nullable|array',
             'style' => 'nullable|array',
@@ -602,39 +602,45 @@ class DashboardController extends Controller
                 'reading_key' => 'sales.revenue',
                 'period' => 'today',
                 'chart' => 'stat',
-                'size' => 'small',
-                'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2,
+                'size' => '4x4',
+                'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4,
             ],
             [
                 'reading_key' => 'finance.net_profit',
                 'period' => 'this_month',
                 'chart' => 'stat',
-                'size' => 'small',
-                'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2,
+                'size' => '4x4',
+                'x' => 4, 'y' => 0, 'w' => 4, 'h' => 4,
             ],
             [
                 'reading_key' => 'inventory.stock_value',
                 'period' => 'live',
                 'chart' => 'stat',
-                'size' => 'small',
-                'x' => 6, 'y' => 0, 'w' => 3, 'h' => 2,
+                'size' => '4x4',
+                'x' => 8, 'y' => 0, 'w' => 4, 'h' => 4,
             ],
             [
                 'reading_key' => 'finance.balance_sheet_ok',
                 'period' => 'live',
                 'chart' => 'status',
-                'size' => 'small',
-                'x' => 9, 'y' => 0, 'w' => 3, 'h' => 2,
+                'size' => '4x4',
+                'x' => 0, 'y' => 4, 'w' => 4, 'h' => 4,
             ],
         ];
 
         $clean = [];
         $x = 0;
+        $y = 0;
         foreach ($candidates as $candidate) {
             if (in_array($candidate['reading_key'], $availableKeys, true)) {
+                if ($x + $candidate['w'] > 12) {
+                    $x = 0;
+                    $y += 4;
+                }
                 $candidate['x'] = $x;
+                $candidate['y'] = $y;
                 $clean[] = $candidate;
-                $x += 3;
+                $x += $candidate['w'];
             }
         }
 

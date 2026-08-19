@@ -1,5 +1,6 @@
 import React from 'react';
 import { Scissors } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { formatCurrency, formatNumber, numberToWords } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
@@ -530,6 +531,13 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                 {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
                     <div className="text-xs text-slate-400">
                         {data.print_terms || 'Thank you for your business!'}
+                    </div>
+                )}
+
+                {data.print_qr_code && (
+                    <div className="flex flex-col items-center justify-center my-4">
+                        <QRCodeSVG value={`https://verify.venqore.com/receipt/${data.id || 'sample'}`} size={64} />
+                        <div className="text-[9px] text-slate-400 mt-1">Scan to Verify</div>
                     </div>
                 )}
 

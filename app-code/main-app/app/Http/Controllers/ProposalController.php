@@ -11,7 +11,7 @@ use App\Models\SaleItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
-use App\Services\LedgerService;
+use App\Queries\PartyBalanceQuery;
 
 class ProposalController extends Controller
 {
@@ -100,7 +100,7 @@ class ProposalController extends Controller
         $proposal->load(['items.product', 'customer']);
         
         if ($proposal->customer) {
-            $proposal->customer->current_balance = LedgerService::partyNetBalance(
+            $proposal->customer->current_balance = PartyBalanceQuery::partyNetBalance(
                 $proposal->customer->id,
                 $proposal->tenant_id ?? app('current.tenant')->id
             );
@@ -265,7 +265,7 @@ class ProposalController extends Controller
         if ($proposal->party_id ?? ($proposal->customer_id ?? null)) {
             $partyId    = $proposal->party_id ?? $proposal->customer_id;
             $tenantId   = $proposal->tenant_id ?? app('current.tenant')->id;
-            $net        = \App\Services\LedgerService::partyNetBalance($partyId, $tenantId);
+            $net        = \App\Queries\PartyBalanceQuery::partyNetBalance($partyId, $tenantId);
             $balanceDue = max(0, (float) ($proposal->total ?? 0) - (float) ($proposal->amount_paid ?? 0));
             $proposal->customer_net_balance  = $net;
             $proposal->customer_prev_balance = $net - $balanceDue;
@@ -327,18 +327,24 @@ class ProposalController extends Controller
                     'tenant_id' => $tenantId
                 ]);
 
-                $fifo = app(\App\Services\V3\FifoService::class);
+                $fifo = app(\App\Engines\FifoService::class);
 
                 foreach ($proposal->items as $item) {
                     // Deduct stock using FIFO
                     $lineCogs = 0;
                     $warehouseId = $sale->warehouse_id;
-                    try {
-                        $deductions = $fifo->deductStock($item->product_id, $warehouseId, (float)$item->quantity);
-                        $lineCogs = collect($deductions)->sum('total_cost');
-                    } catch (\App\Exceptions\InsufficientStockException $e) {
-                        $product = \App\Models\Product::find($item->product_id);
+                    $product = \App\Models\Product::find($item->product_id);
+                    $productType = $product?->type ?? 'physical';
+
+                    if ($productType === 'service') {
                         $lineCogs = ($product->cost_price ?? 0) * $item->quantity;
+                    } else {
+                        try {
+                            $deductions = $fifo->deductStock($item->product_id, $warehouseId, (float)$item->quantity);
+                            $lineCogs = collect($deductions)->sum('total_cost');
+                        } catch (\App\Exceptions\InsufficientStockException $e) {
+                            $lineCogs = ($product->cost_price ?? 0) * $item->quantity;
+                        }
                     }
 
                     $saleItem = SaleItem::create([

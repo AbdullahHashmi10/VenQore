@@ -1,15 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
-import { ArrowLeft, Printer, PackageMinus, FileWarning } from 'lucide-react';
+import { ArrowLeft, Printer, PackageMinus, FileWarning, BadgeCheck } from 'lucide-react';
 
-export default function DebitNoteShow({ note, stockMovements = [] }) {
+export default function DebitNoteShow({ note, stockMovements = [], bankAccounts = [] }) {
     const { store } = usePage().props;
+
+    const [showRefundForm, setShowRefundForm] = useState(false);
+    const [refundData, setRefundData] = useState({
+        refund_method: 'cash',
+        bank_account_id: bankAccounts[0]?.id || '',
+        refund_date: new Date().toISOString().split('T')[0],
+    });
+    const [processingRefund, setProcessingRefund] = useState(false);
+
+    const handleRefundSubmit = (e) => {
+        e.preventDefault();
+        setProcessingRefund(true);
+        router.post(route('store.debit-notes.refund', { store_slug: store.slug, id: note.id }), refundData, {
+            onSuccess: () => {
+                setShowRefundForm(false);
+                setProcessingRefund(false);
+            },
+            onError: () => {
+                setProcessingRefund(false);
+            }
+        });
+    };
 
     const statusColors = {
         pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
         approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        refunded: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+        applied: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
     };
 
     return (
@@ -36,13 +60,85 @@ export default function DebitNoteShow({ note, stockMovements = [] }) {
                             {note?.status}
                         </span>
                     </div>
-                    <button
-                        onClick={() => window.print()}
-                        className="flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 font-medium"
-                    >
-                        <Printer size={18} /> Print
-                    </button>
+                    <div className="flex gap-2">
+                        {note?.status === 'approved' && (
+                            <button
+                                onClick={() => setShowRefundForm(!showRefundForm)}
+                                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-all active:scale-95 font-medium"
+                            >
+                                <BadgeCheck size={18} /> Record Refund
+                            </button>
+                        )}
+                        <button
+                            onClick={() => window.print()}
+                            className="flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 font-medium"
+                        >
+                            <Printer size={18} /> Print
+                        </button>
+                    </div>
                 </div>
+
+                {showRefundForm && (
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-indigo-200 dark:border-indigo-900 no-print">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4">Record Cash/Bank Refund from Supplier</h3>
+                        <form onSubmit={handleRefundSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Refund Method</label>
+                                <select
+                                    value={refundData.refund_method}
+                                    onChange={(e) => setRefundData({ ...refundData, refund_method: e.target.value })}
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-800 dark:text-white text-sm"
+                                >
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank Account</option>
+                                </select>
+                            </div>
+                            
+                            {refundData.refund_method === 'bank' && (
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bank Account</label>
+                                    <select
+                                        value={refundData.bank_account_id}
+                                        onChange={(e) => setRefundData({ ...refundData, bank_account_id: e.target.value })}
+                                        className="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-800 dark:text-white text-sm"
+                                    >
+                                        {bankAccounts.map((acc) => (
+                                            <option key={acc.id} value={acc.id}>{acc.name} ({acc.account_number})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Refund Date</label>
+                                <input
+                                    type="date"
+                                    value={refundData.refund_date}
+                                    onChange={(e) => setRefundData({ ...refundData, refund_date: e.target.value })}
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-800 dark:text-white text-sm"
+                                    max={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    type="submit"
+                                    disabled={processingRefund}
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-xl transition-all disabled:opacity-50 text-sm"
+                                >
+                                    {processingRefund ? 'Saving...' : 'Record Refund'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRefundForm(false)}
+                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-xl transition-all text-sm"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
 
                 {/* Summary */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">

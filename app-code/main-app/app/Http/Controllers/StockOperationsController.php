@@ -49,8 +49,8 @@ class StockOperationsController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        /** @var \App\Services\V3\InventoryService $v3Inventory */
-        $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+        /** @var \App\Engines\InventoryService $v3Inventory */
+        $v3Inventory = resolve(\App\Engines\InventoryService::class);
         $v3Inventory->transferStock(
             productId: $validated['product_id'],
             fromWarehouseId: $validated['from_warehouse_id'],
@@ -96,8 +96,8 @@ class StockOperationsController extends Controller
         $quantity = (float) $validated['quantity'];
         $direction = $validated['adjustment_type'] === 'add' ? 'increase' : 'decrease';
 
-        /** @var \App\Services\V3\InventoryService $v3Inventory */
-        $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+        /** @var \App\Engines\InventoryService $v3Inventory */
+        $v3Inventory = resolve(\App\Engines\InventoryService::class);
         $v3Inventory->adjustStock(
             productId:   $validated['product_id'],
             warehouseId: $validated['warehouse_id'],
@@ -120,8 +120,8 @@ class StockOperationsController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
-            /** @var \App\Services\V3\InventoryService $v3Inventory */
-            $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+            /** @var \App\Engines\InventoryService $v3Inventory */
+            $v3Inventory = resolve(\App\Engines\InventoryService::class);
 
             foreach ($validated['audit_items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);

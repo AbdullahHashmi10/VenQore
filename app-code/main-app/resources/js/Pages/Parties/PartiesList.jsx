@@ -625,16 +625,21 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {sortedParties.length > 0 ? (
-                                    sortedParties.map((party) => (
-                                        <tr
-                                            key={party.id}
-                                            className={`
-                                                hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer
-                                                ${party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'}
-                                                ${selectedParties.includes(party.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
-                                            `}
-                                            onClick={() => handleViewLedger(party)}
-                                        >
+                                    sortedParties.map((party) => {
+                                        const isOverdue = party.type === 'customer' && party.credit_limit && parseFloat(party.current_balance || 0) > parseFloat(party.credit_limit);
+                                        return (
+                                            <tr
+                                                key={party.id}
+                                                className={`
+                                                    transition-all cursor-pointer
+                                                    ${isOverdue 
+                                                        ? 'border-l-4 border-red-500 bg-rose-50/50 hover:bg-rose-100/50 dark:bg-rose-950/10 dark:hover:bg-rose-900/20' 
+                                                        : party.type === 'customer' ? 'border-l-4 border-blue-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10' : 'border-l-4 border-amber-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10'
+                                                    }
+                                                    ${selectedParties.includes(party.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
+                                                `}
+                                                onClick={() => handleViewLedger(party)}
+                                            >
                                             <td className="p-3 w-10" onClick={(e) => e.stopPropagation()}>
                                                 <input
                                                     type="checkbox"
@@ -715,7 +720,8 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
+                                    );
+                                    })
                                 ) : (
                                     <tr>
                                         <td colSpan={7} className="p-12">
@@ -743,14 +749,18 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                     {/* Mobile Stacked Card View */}
                     <div className="block sm:hidden divide-y divide-slate-150 dark:divide-slate-800">
                         {sortedParties.length > 0 ? (
-                            sortedParties.map((party) => (
-                                <div
-                                    key={party.id}
-                                    onClick={() => handleViewLedger(party)}
-                                    className={`p-3 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 flex flex-col gap-2 cursor-pointer relative ${
-                                        party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'
-                                    } ${selectedParties.includes(party.id) ? 'bg-indigo-50/40 dark:bg-indigo-900/10' : ''}`}
-                                >
+                            sortedParties.map((party) => {
+                                const isOverdue = party.type === 'customer' && party.credit_limit && parseFloat(party.current_balance || 0) > parseFloat(party.credit_limit);
+                                return (
+                                    <div
+                                        key={party.id}
+                                        onClick={() => handleViewLedger(party)}
+                                        className={`p-3 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 flex flex-col gap-2 cursor-pointer relative ${
+                                            isOverdue
+                                                ? 'border-l-4 border-red-500 bg-rose-50/50 hover:bg-rose-100/50 dark:bg-rose-950/10'
+                                                : party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'
+                                        } ${selectedParties.includes(party.id) ? 'bg-indigo-50/40 dark:bg-indigo-900/10' : ''}`}
+                                    >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex gap-2 items-start">
                                             <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
@@ -806,7 +816,8 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                         </div>
                                     </div>
                                 </div>
-                            ))
+                            );
+                            })
                         ) : (
                             <div className="p-12 text-center text-slate-400 text-xs">
                                 <Users size={24} className="mx-auto mb-2 opacity-50" />

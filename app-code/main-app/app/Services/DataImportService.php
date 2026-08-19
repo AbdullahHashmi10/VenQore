@@ -22,7 +22,6 @@ use App\Models\Supplier;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Account;
-use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\Stock;
 use App\Models\JournalEntry;
@@ -31,7 +30,7 @@ use App\Models\Setting;
 use App\Models\ProductBatch;
 use App\Models\ProductSerial;
 use App\Models\ProductUnit;
-use App\Models\CustomCharge;
+use App\Models\AdHocLine;
 use App\Models\DebitNote;
 
 class DataImportService
@@ -594,7 +593,7 @@ class DataImportService
                 $this->safeImport($pdo, "SELECT * FROM \"$chargeTable\"", function ($row) use (&$counters) {
                     $name = $row['extra_charges_name'] ?? null;
                     if ($name) {
-                        CustomCharge::updateOrCreate(
+                        AdHocLine::updateOrCreate(
                             ['name' => $name],
                             [
                                 'default_amount' => 0,

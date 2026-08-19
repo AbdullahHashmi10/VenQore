@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Models\RecurringInvoice;
-use App\Services\V3\SaleService;
+use App\Engines\SaleService;
 use Carbon\Carbon;
 
 class GenerateRecurringInvoices extends Command

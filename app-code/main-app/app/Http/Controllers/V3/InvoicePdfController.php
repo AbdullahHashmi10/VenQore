@@ -30,6 +30,7 @@ class InvoicePdfController extends Controller
             ->select(
                 'pr.name as product_name',
                 'pr.sku',
+                'pr.cost_price',
                 'si.quantity',
                 'pr.base_unit as sale_uom',
                 'si.unit_price',
@@ -42,9 +43,16 @@ class InvoicePdfController extends Controller
             )
             ->get();
 
+        $primaryColor = \App\Models\Setting::where('tenant_id', app('current.tenant')->id)->where('key', 'invoice_primary_color')->value('value') ?? '#2563eb';
+        $theme = \App\Models\Setting::where('tenant_id', app('current.tenant')->id)->where('key', 'invoice_theme')->value('value') ?? 'classic';
+        $showMargin = \App\Models\Setting::where('tenant_id', app('current.tenant')->id)->where('key', 'show_margin_on_invoice')->value('value') === '1';
+
         $pdf = Pdf::loadView('v3.invoices.pdf', [
             'sale'  => $sale,
             'items' => $items,
+            'primaryColor' => $primaryColor,
+            'theme' => $theme,
+            'showMargin' => $showMargin,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download("invoice-{$sale->reference_number}.pdf");

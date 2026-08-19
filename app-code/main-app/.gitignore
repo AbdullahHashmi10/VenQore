@@ -36,6 +36,13 @@ release_hosting_VenQore_*.zip
 /scratch/
 /Tester/dashboard/
 
+# Destructive maintenance and security scripts (never commit or ship)
+safe.env
+truncate_tables.php
+clean_db.php
+wipe_test_data.php
+fix_admin_passcode.php
+
 # Ignore update directories and zip packages (v4+)
 AMD_POS_Update_*/
 AMD_POS_Update_v*.zip

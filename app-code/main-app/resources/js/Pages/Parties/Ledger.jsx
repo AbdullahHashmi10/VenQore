@@ -31,6 +31,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
     // Format currency
     const { store } = usePage().props;
+    const isOverdue = party.type === 'customer' && party.credit_limit && parseFloat(party.current_balance || 0) > parseFloat(party.credit_limit);
 
 
     const getTypeStyle = (type) => {
@@ -68,6 +69,18 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
                 <ContactsModuleTabs activeTab="ledgers" />
+
+                {isOverdue && (
+                    <div className="bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50 p-3 rounded-xl flex items-center justify-between shrink-0 mb-1">
+                        <div className="flex items-center gap-2 text-rose-800 dark:text-rose-400">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                            </span>
+                            <span className="text-xs font-black uppercase">Credit Limit Exceeded: {formatCurrency(party.current_balance, store)} / Limit: {formatCurrency(party.credit_limit, store)}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Mobile Stats Toggle/Summary */}
                 <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">

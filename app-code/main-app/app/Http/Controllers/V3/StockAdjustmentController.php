@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\InventoryService;
+use App\Engines\InventoryService;
 use Illuminate\Http\Request;
 
 class StockAdjustmentController extends Controller

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V3\StoreSaleRequest;
-use App\Services\V3\SaleService;
+use App\Engines\SaleService;
 use App\Services\PlanGate;
 use App\Models\Sale;
 use Carbon\Carbon;

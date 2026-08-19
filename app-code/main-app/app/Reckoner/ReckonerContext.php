@@ -12,7 +12,7 @@ use App\Models\User;
 final class ReckonerContext
 {
     public function __construct(
-        public readonly Tenant $tenant,
+        public readonly ?Tenant $tenant,
         public readonly User $user,
     ) {
     }

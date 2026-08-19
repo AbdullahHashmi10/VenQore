@@ -66,17 +66,36 @@ final class PlatformSource implements ReckonerSource
     }
 
     /**
-     * INCOMPLETE — see class docblock. This sums plan list price × active
-     * paid tenants with NO coupon adjustment, which is explicitly the
-     * *losing* definition per §7.9. Do not treat this figure as correct;
-     * it exists so `platform.mrr` fails loudly in a review rather than
-     * silently returning null.
+     * §7.9 — MRR computation with coupon adjustment.
      */
     private function mrr(): float
     {
-        return (float) $this->realTenants()
-            ->join('plans', 'tenants.plan', '=', 'plans.slug')
-            ->where('tenants.status', 'active')
-            ->sum('plans.price');
+        $activeRealTenants = $this->realTenants()
+            ->where('status', 'active')
+            ->get();
+            
+        $planPrices = collect(config('saas.plans', []))->mapWithKeys(fn($p) => [$p['slug'] => $p['price'] ?? 0]);
+
+        $liveMrr = 0;
+
+        foreach ($activeRealTenants as $t) {
+            $basePrice = $planPrices[$t->plan] ?? 0;
+            
+            $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)->with('coupon')->first();
+            if ($redemption && $redemption->coupon) {
+                $coupon = $redemption->coupon;
+                if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
+                    $discountVal = ($basePrice * ($coupon->discount_value / 100));
+                    $finalPrice = max(0, $basePrice - $discountVal);
+                } else {
+                    $finalPrice = max(0, $basePrice - $coupon->discount_value);
+                }
+            } else {
+                $finalPrice = $basePrice;
+            }
+            $liveMrr += $finalPrice;
+        }
+
+        return (float) $liveMrr;
     }
 }

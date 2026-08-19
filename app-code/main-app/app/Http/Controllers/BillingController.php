@@ -1127,7 +1127,7 @@ class BillingController extends Controller
                     ->where('reference_type', 'depreciation')
                     ->pluck('id')
                     ->toArray();
-                app(\App\Services\V3\AccountingService::class)->deleteEntries($entryIds);
+                app(\App\Engines\AccountingService::class)->deleteEntries($entryIds);
                 $message = 'Asset depreciation postings cleared from ledger.';
                 break;
 
@@ -1137,7 +1137,7 @@ class BillingController extends Controller
                     ->where('reference_type', 'fiscal_year_close')
                     ->pluck('id')
                     ->toArray();
-                app(\App\Services\V3\AccountingService::class)->deleteEntries($entryIds);
+                app(\App\Engines\AccountingService::class)->deleteEntries($entryIds);
                 $message = 'Fiscal year close postings cleared from ledger.';
                 break;
 

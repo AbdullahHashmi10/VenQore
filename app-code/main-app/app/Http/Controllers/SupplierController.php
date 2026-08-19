@@ -55,6 +55,10 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
             'tax_id' => 'nullable|string',
             'notes' => 'nullable|string',
+            'payment_terms' => 'nullable|string',
+            'lead_time_days' => 'nullable|integer|min:0',
+            'performance_rating' => 'nullable|integer|min:1|max:5',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         // Create Shadow Party for consistency
@@ -90,6 +94,10 @@ class SupplierController extends Controller
             'address' => 'nullable|string',
             'tax_id' => 'nullable|string',
             'notes' => 'nullable|string',
+            'payment_terms' => 'nullable|string',
+            'lead_time_days' => 'nullable|integer|min:0',
+            'performance_rating' => 'nullable|integer|min:1|max:5',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $supplier->update($validated);

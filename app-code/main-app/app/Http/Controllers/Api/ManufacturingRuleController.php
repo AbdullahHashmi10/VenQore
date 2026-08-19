@@ -114,4 +114,58 @@ class ManufacturingRuleController extends Controller
             'message' => 'Rule deleted'
         ]);
     }
+
+    public function simulate(Request $request, $id)
+    {
+        $rule = ManufacturingRule::with(['ingredients.ingredientProduct'])->findOrFail($id);
+
+        $request->validate([
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'planned_qty'  => 'required|numeric|min:0.0001',
+        ]);
+
+        $warehouseId = $request->input('warehouse_id');
+        $plannedQty  = (float) $request->input('planned_qty');
+        
+        $items = [];
+        $feasible = true;
+        $totalEstimatedCost = 0.00;
+
+        foreach ($rule->ingredients as $ing) {
+            $requiredQty = round($ing->quantity_per_unit * $plannedQty, 4);
+
+            $availableQty = (float) DB::table('stocks')
+                ->where('product_id', $ing->ingredient_product_id)
+                ->where('warehouse_id', $warehouseId)
+                ->value('quantity') ?? 0.0;
+
+            $missingQty = max(0.0, $requiredQty - $availableQty);
+            if ($missingQty > 0) {
+                $feasible = false;
+            }
+
+            $costPrice = (float) $ing->ingredientProduct->cost_price;
+            $estimatedCost = round($requiredQty * $costPrice, 2);
+            $totalEstimatedCost += $estimatedCost;
+
+            $items[] = [
+                'ingredient_product_id' => $ing->ingredient_product_id,
+                'ingredient_name'       => $ing->ingredientProduct->name,
+                'sku'                   => $ing->ingredientProduct->sku,
+                'required_qty'          => $requiredQty,
+                'available_qty'         => $availableQty,
+                'missing_qty'           => $missingQty,
+                'unit_cost'             => $costPrice,
+                'estimated_cost'        => $estimatedCost,
+                'unit'                  => $ing->unit,
+            ];
+        }
+
+        return response()->json([
+            'success'              => true,
+            'feasible'             => $feasible,
+            'items'                => $items,
+            'total_estimated_cost' => $totalEstimatedCost,
+        ]);
+    }
 }

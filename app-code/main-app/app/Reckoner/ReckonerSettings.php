@@ -59,7 +59,7 @@ final class ReckonerSettings
         $cacheKey = "vq_reckoner_setting:{$tenant->id}:{$key}";
 
         return Cache::remember($cacheKey, 300, function () use ($key, $tenant) {
-            $row = Setting::query()
+            $row = Setting::withoutGlobalScopes()
                 ->where('tenant_id', $tenant->id)
                 ->where('key', $key)
                 ->first();
@@ -74,7 +74,7 @@ final class ReckonerSettings
 
     public static function set(string $key, mixed $value, Tenant $tenant): void
     {
-        Setting::query()->updateOrCreate(
+        Setting::withoutGlobalScopes()->updateOrCreate(
             ['tenant_id' => $tenant->id, 'key' => $key],
             ['value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value, 'group' => self::GROUP],
         );
@@ -103,7 +103,7 @@ final class ReckonerSettings
         $cacheKey = "vq_reckoner_dormant_days:{$tenant->id}";
 
         return (int) Cache::remember($cacheKey, 300, function () use ($tenant, $default) {
-            $row = Setting::query()
+            $row = Setting::withoutGlobalScopes()
                 ->where('tenant_id', $tenant->id)
                 ->where('key', 'reckoner.dormant_days')
                 ->first();

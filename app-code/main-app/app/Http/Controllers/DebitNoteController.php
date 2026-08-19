@@ -52,7 +52,7 @@ class DebitNoteController extends Controller
         $validated = $request->validate([
             'supplier_id' => 'required|exists:parties,id',
             'date' => 'required|date',
-            'status' => 'required|in:pending,approved',
+            'status' => 'required|in:pending,approved,refunded',
             'reason' => 'nullable|string',
             'warehouse_id' => 'nullable|exists:warehouses,id', // Required if returning items
             'items' => 'nullable|array',
@@ -99,8 +99,8 @@ class DebitNoteController extends Controller
                         'subtotal' => $subtotal
                     ]);
 
-                    // If Approved & Warehouse Selected -> Return Stock
-                    if ($validated['status'] === 'approved' && !empty($validated['warehouse_id'])) {
+                    // If Approved or Refunded & Warehouse Selected -> Return Stock
+                    if (in_array($validated['status'], ['approved', 'refunded']) && !empty($validated['warehouse_id'])) {
                         $this->returnStock($itemData['product_id'], $validated['warehouse_id'], $itemData['quantity'], $note->reference_number);
                     }
                 }
@@ -149,6 +149,69 @@ class DebitNoteController extends Controller
         return Inertia::render('DebitNotes/Show', [
             'note' => $note,
             'stockMovements' => $stockMovements,
+            'bankAccounts' => \App\Models\BankAccount::orderBy('name')->get(),
         ]);
+    }
+
+    public function refund(Request $request, $store_slug = null, $id = null)
+    {
+        $id = $id ?? $store_slug;
+        $note = \App\Models\DebitNote::findOrFail($id);
+
+        if ($note->status !== 'approved') {
+            return redirect()->back()->with('error', 'Only approved debit notes can be refunded.');
+        }
+
+        $validated = $request->validate([
+            'refund_method' => 'required|in:cash,bank',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'refund_date' => 'required|date|before_or_equal:today',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($note, $validated) {
+            $accounting = app(\App\Engines\AccountingService::class);
+
+            $paymentAccount = '1000'; // Cash
+            if ($validated['refund_method'] === 'bank') {
+                $paymentAccount = '1010'; // Default Bank
+                if (!empty($validated['bank_account_id'])) {
+                    $ba = \App\Models\BankAccount::find($validated['bank_account_id']);
+                    if ($ba && $ba->account_id) {
+                        $acc = \App\Models\Account::find($ba->account_id);
+                        if ($acc) {
+                            $paymentAccount = $acc->code;
+                        }
+                    }
+                }
+            }
+
+            // DR 1000/1010 Cash/Bank (asset increases)
+            // CR 2000 Accounts Payable (offsets the debit note's reduction of AP)
+            $accounting->createEntry([
+                'date'           => $validated['refund_date'],
+                'reference_type' => 'supplier_refund',
+                'reference'      => $note->id,
+                'description'    => "Refund received for Debit Note {$note->reference_number}",
+                'party_id'       => $note->supplier_id,
+            ], [
+                [
+                    'account_code' => $paymentAccount,
+                    'debit'        => $note->amount,
+                    'credit'       => 0,
+                ],
+                [
+                    'account_code' => '2000',
+                    'debit'        => 0,
+                    'credit'       => $note->amount,
+                    'party_id'     => $note->supplier_id,
+                ]
+            ]);
+
+            $note->update([
+                'status' => 'refunded'
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Debit note marked as refunded.');
     }
 }

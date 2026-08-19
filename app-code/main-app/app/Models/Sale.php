@@ -56,7 +56,7 @@ class Sale extends Model
         if (!$this->party_id || !$this->tenant_id) {
             return null;
         }
-        return \App\Services\LedgerService::partyNetBalance(
+        return \App\Queries\PartyBalanceQuery::partyNetBalance(
             $this->party_id,
             $this->tenant_id
         );

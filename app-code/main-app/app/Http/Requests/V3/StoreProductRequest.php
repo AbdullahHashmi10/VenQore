@@ -22,6 +22,7 @@ class StoreProductRequest extends FormRequest
             'bom_items'          => ['nullable', 'array'],
             'bom_items.*.product_id'   => ['required_with:bom_items', 'string', 'exists:products,id'],
             'bom_items.*.qty_per_unit' => ['required_with:bom_items', 'numeric', 'min:0.0001'],
+            'supplier_sku'       => ['nullable', 'string', 'max:100'],
         ];
     }
 }

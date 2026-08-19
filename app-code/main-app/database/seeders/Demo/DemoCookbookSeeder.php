@@ -3,7 +3,7 @@
 namespace Database\Seeders\Demo;
 
 use Illuminate\Database\Seeder;
-use App\Models\Recipe;
+use App\Models\Composition;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +41,7 @@ class DemoCookbookSeeder extends Seeder
 
         foreach ($recipes as $data) {
             $finishedProduct = $products->random();
-            $recipe = Recipe::create([
+            $recipe = Composition::create([
                 'tenant_id'      => $tenantId,
                 'name'           => $data['name'],
                 'product_id'     => $finishedProduct->id,
@@ -56,10 +56,10 @@ class DemoCookbookSeeder extends Seeder
             $usedProducts    = $products->random(min($ingredientCount, $products->count()));
 
             foreach ($usedProducts as $prod) {
-                DB::table('recipe_ingredients')->insert([
+                DB::table('composition_items')->insert([
                     'id'          => Str::uuid()->toString(),
                     'tenant_id'   => $tenantId,
-                    'recipe_id'   => $recipe->id,
+                    'composition_id' => $recipe->id,
                     'product_id'  => $prod->id,
                     'quantity'    => rand(1, 3),
                     'unit'        => 'PCS',

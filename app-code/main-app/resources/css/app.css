@@ -1,8 +1,12 @@
 @import './fonts.css';
 
-/* Theme tokens. GENERATED — see resources/js/theme/active.js to switch themes,
-   and resources/js/theme/themes/ to edit them. Must be imported before the
-   Tailwind layers so the variables exist by the time utilities reference them. */
+/* VenQore Design System v2.0 — single source of truth for tokens. */
+@import './venqore-tokens.css';
+
+/* Bklit UI ↔ VQ Bridge — maps --chart-1..5 to VQ series tokens */
+@import './bklit-bridge.css';
+
+/* Theme tokens. GENERATED — see resources/js/theme/active.js to switch themes. */
 @import './theme.generated.css';
 
 @tailwind base;

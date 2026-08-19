@@ -26,58 +26,40 @@ class OwnerDailyPulseService
         // Bind tenant to DI container for HasTenant and other scoping systems
         app()->instance('current.tenant', $tenant);
 
-        // 1. Sales today (Sum of net_sales on posted sales)
-        $salesValue = (float) Sale::posted()
-            ->whereDate('posted_at', $dateString)
-            ->sum('net_sales');
+        // 1. Resolve metrics via Reckoner
+        $reckoner = app(\App\Reckoner\Reckoner::class);
+        $user = \App\Models\User::where('tenant_id', $tenant->id)->first() ?? \App\Models\User::first();
 
-        // 2. Expense today (Sum of amount in expenses)
-        $expenseValue = (float) Expense::whereDate('date', $dateString)
-            ->sum('amount');
+        $customParams = ['from' => $dateString, 'to' => $dateString];
+        $keys = [
+            'sales.revenue',
+            'purchasing.spend',
+            'inventory.stock_value',
+            'finance.payables',
+            'finance.receivables',
+            'finance.total_liquidity',
+            'finance.expenses_total'
+        ];
 
-        // 2b. Purchases today — V3: purchases live in `purchases`
-        // (date -> purchase_date, total_amount -> total).
-        $purchasesValue = (float) \App\Models\Purchase::where('tenant_id', $tenant->id)
-            ->where('workflow_status', '!=', 'cancelled')
-            ->whereDate('purchase_date', $dateString)
-            ->sum('total');
-
-        // Instantiate FinancialReportingService
-        $reportingService = new FinancialReportingService();
-
-        // 3. Stock Value (FIFO stock valuation)
-        $stockValue = (float) $reportingService->getInventoryValue();
-
-        // 4. Receivables (Account 1200 debit-normal balance)
-        $receivablesValue = (float) $reportingService->getReceivables($dateString);
-
-        // 5. Payables (Account 2000 credit-normal balance)
-        $payablesValue = (float) $reportingService->getPayables($dateString);
-
-        // 6. Cash in Hand (Net balance for account code range 1000-1099)
-        $cashAccounts = Account::where('tenant_id', $tenant->id)
-            ->where('type', 'asset')
-            ->whereBetween('code', ['1000', '1099'])
-            ->pluck('id')
-            ->toArray();
-
-        if (empty($cashAccounts)) {
-            $cashValue = 0.0;
-        } else {
-            $totals = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_items.tenant_id', $tenant->id)
-                ->whereIn('journal_items.account_id', $cashAccounts)
-                ->where('journal_entries.tenant_id', $tenant->id)
-                ->where('journal_entries.date', '<=', $dateString)
-                ->where('journal_entries.is_reversed', 0)
-                ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
-                ->first();
-
-            $debit  = (float) ($totals->total_debit  ?? 0.0);
-            $credit = (float) ($totals->total_credit ?? 0.0);
-            $cashValue = $debit - $credit;
+        $requests = [];
+        foreach ($keys as $key) {
+            $requests[] = new \App\Reckoner\ReckonerRequest(
+                key: $key,
+                period: 'custom',
+                customPeriod: $customParams
+            );
         }
+
+        $results = $reckoner->readMany($requests, $user, $tenant);
+        $argsHash = md5(json_encode($customParams));
+
+        $salesValue = (float) ($results["sales.revenue|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $purchasesValue = (float) ($results["purchasing.spend|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $stockValue = (float) ($results["inventory.stock_value|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $payablesValue = (float) ($results["finance.payables|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $receivablesValue = (float) ($results["finance.receivables|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $cashValue = (float) ($results["finance.total_liquidity|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $expenseValue = (float) ($results["finance.expenses_total|custom|{$argsHash}"]->data['value'] ?? 0.0);
 
         // Update or create the snapshot
         return DailySnapshot::updateOrCreate(

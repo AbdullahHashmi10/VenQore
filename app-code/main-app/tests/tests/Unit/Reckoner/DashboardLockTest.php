@@ -73,7 +73,7 @@ class DashboardLockTest extends TestCase
             'reading_key' => 'sales.revenue',
             'period' => 'today',
             'chart' => 'stat',
-            'size' => 'small',
+            'size' => '4x4',
         ]);
 
         // Owner publishes & locks for cashiers
@@ -140,7 +140,7 @@ class DashboardLockTest extends TestCase
             'reading_key' => 'finance.net_profit',
             'period' => 'this_month',
             'chart' => 'stat',
-            'size' => 'small',
+            'size' => '4x4',
         ]);
 
         // Cashier has no permission for finance.net_profit (requires finance.balances / reports.financial)

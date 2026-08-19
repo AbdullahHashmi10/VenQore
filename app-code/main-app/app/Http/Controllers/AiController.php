@@ -653,7 +653,7 @@ class AiController extends Controller
                 return json_encode(['error' => 'Party not found']);
             }
 
-            $balance = \App\Services\LedgerService::partyNetBalance($party->id, $party->tenant_id, $party->type);
+            $balance = \App\Queries\PartyBalanceQuery::partyNetBalance($party->id, $party->tenant_id, $party->type);
             return json_encode(['party_name' => $party->name, 'balance' => $balance, 'type' => $party->type ?? 'customer']);
         }
 

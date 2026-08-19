@@ -236,71 +236,208 @@ export default function Dashboard() {
         <OneGlanceLayout activeMenu="Dashboard">
             <Head title="Composition Dashboard" />
 
-            {/* Injected Grid Layout Selector Styles */}
+            {/* VQ v2 Grid Layout Styles */}
             <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
                 .react-grid-layout {
                     position: relative;
-                    transition: height 200ms ease;
+                    transition: height var(--vq-dur-base, 280ms) ease;
                 }
                 .react-grid-item {
-                    transition: all 200ms ease;
-                    transition-property: left, top;
+                    transition: all var(--vq-dur-base, 280ms) var(--vq-ease-out, cubic-bezier(0,0,.2,1));
+                    transition-property: left, top, width, height;
                 }
                 .react-grid-item.cssTransforms {
-                    transition: property left, top 200ms ease;
+                    transition-property: left, top;
                 }
                 .react-grid-item.resizing {
-                    z-index: 10;
-                    opacity: 0.8;
+                    z-index: var(--vq-z-raised, 10);
+                    opacity: 0.82;
                 }
                 .react-grid-item.react-draggable-dragging {
-                    z-index: 50;
-                    opacity: 0.9;
+                    z-index: var(--vq-z-dropdown, 400);
+                    opacity: 0.92;
                     cursor: grabbing;
+                    box-shadow: var(--vq-elev-3, 0 16px 48px rgb(10 11 15 / .13));
+                    border-radius: var(--vq-r-lg, 14px);
                 }
                 .react-grid-item > .react-resizable-handle {
                     position: absolute;
                     width: 14px;
                     height: 14px;
-                    bottom: 4px;
-                    right: 4px;
+                    bottom: 5px;
+                    right: 5px;
                     cursor: se-resize;
-                    border-right: 2px solid rgb(203, 213, 225);
-                    border-bottom: 2px solid rgb(203, 213, 225);
+                    border-right: 2px solid var(--vq-line, #D9DDE0);
+                    border-bottom: 2px solid var(--vq-line, #D9DDE0);
+                    opacity: 0;
+                    transition: opacity var(--vq-dur-fast, 180ms);
+                    border-radius: 0 0 2px 0;
                 }
-                .dark .react-grid-item > .react-resizable-handle {
-                    border-right-color: rgb(71, 85, 105);
-                    border-bottom-color: rgb(71, 85, 105);
+                .react-grid-item:hover > .react-resizable-handle {
+                    opacity: 1;
+                }
+
+                /* VQ Dashboard button base */
+                .vq-db-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: var(--vq-control-sm, 32px);
+                    padding: 0 14px;
+                    border-radius: var(--vq-r-md, 10px);
+                    font-family: var(--vq-font-sans, 'Inter', system-ui, sans-serif);
+                    font-size: 12px;
+                    font-weight: var(--vq-fw-medium, 500);
+                    letter-spacing: 0;
+                    border: none;
+                    cursor: pointer;
+                    transition:
+                        background var(--vq-dur-fast, 180ms) var(--vq-ease),
+                        transform  var(--vq-dur-fast, 180ms) var(--vq-ease),
+                        box-shadow var(--vq-dur-fast, 180ms) var(--vq-ease);
+                    white-space: nowrap;
+                    text-decoration: none;
+                }
+                .vq-db-btn:hover { transform: translateY(-1px); }
+                .vq-db-btn:active { transform: none; }
+                .vq-db-btn:disabled { opacity: 0.42; cursor: not-allowed; transform: none; }
+
+                .vq-db-btn-primary {
+                    background: var(--vq-accent, #327882);
+                    color: var(--vq-on-accent, #fff);
+                }
+                .vq-db-btn-primary:hover { background: var(--vq-accent-hover, #21656F); }
+
+                .vq-db-btn-ghost {
+                    background: transparent;
+                    color: var(--vq-text-2, #595E64);
+                    box-shadow: inset 0 0 0 1px var(--vq-line, #D9DDE0);
+                }
+                .vq-db-btn-ghost:hover {
+                    background: var(--vq-sunken, #F4F6F8);
+                    color: var(--vq-text, #151A1F);
+                }
+
+                .vq-db-btn-dark {
+                    background: var(--vq-text, #151A1F);
+                    color: var(--vq-text-inverted, #fff);
+                }
+                .vq-db-btn-dark:hover { background: var(--vq-ink-800, #282D32); }
+
+                .vq-db-btn-publish {
+                    background: var(--vq-mod-reports-accent, #34739C);
+                    color: #fff;
+                }
+                .vq-db-btn-publish:hover { background: var(--vq-mod-reports-600, #236086); }
+
+                /* Tab switcher */
+                .vq-db-tabs {
+                    display: flex;
+                    align-items: center;
+                    background: var(--vq-sunken, #F4F6F8);
+                    border: 1px solid var(--vq-line-soft, #EBEDEF);
+                    padding: 3px;
+                    border-radius: var(--vq-r-lg, 14px);
+                    gap: 2px;
+                }
+                .vq-db-tab {
+                    padding: 5px 14px;
+                    border-radius: var(--vq-r-md, 10px);
+                    font-size: 12px;
+                    font-weight: var(--vq-fw-medium, 500);
+                    font-family: var(--vq-font-sans, 'Inter', sans-serif);
+                    color: var(--vq-text-2, #595E64);
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    transition: background var(--vq-dur-instant, 100ms), color var(--vq-dur-instant, 100ms);
+                    white-space: nowrap;
+                }
+                .vq-db-tab:hover { color: var(--vq-text, #151A1F); }
+                .vq-db-tab.active {
+                    background: var(--vq-raised, #fff);
+                    color: var(--vq-accent-text, #21656F);
+                    font-weight: var(--vq-fw-semi, 600);
+                    box-shadow: var(--vq-elev-1, 0 1px 2px rgb(10 11 15/.05));
                 }
             `}</style>
 
-            <div className="flex flex-col gap-6 w-full pt-2 pb-6 px-4">
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                width: '100%',
+                paddingTop: '8px',
+                paddingBottom: '40px',
+                paddingLeft: '20px',
+                paddingRight: '20px',
+                fontFamily: 'var(--vq-font-sans, Inter, system-ui, sans-serif)',
+            }}>
                 
-                {/* --- Dashboard Controls Panel --- */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-2xl">
-                            <Layout size={20} className="stroke-[2.5]" />
+                {/* ── Dashboard Controls Panel ── */}
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    paddingBottom: '20px',
+                    borderBottom: '1px solid var(--vq-line)',
+                }}>
+                    {/* Left: identity block */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: 'var(--vq-r-md)',
+                            background: 'var(--vq-accent-quiet)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--vq-accent-text)',
+                            flexShrink: 0,
+                        }}>
+                            <Layout size={18} />
                         </div>
                         <div>
-                            <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none mb-1">
-                                {currentDashboard?.name || 'Loading Dashboard...'}
+                            <h1 style={{
+                                fontSize: 'var(--vq-fs-h3)',
+                                lineHeight: 'var(--vq-lh-h3)',
+                                letterSpacing: 'var(--vq-ls-h3)',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                color: 'var(--vq-text)',
+                                margin: 0,
+                                marginBottom: '2px',
+                            }}>
+                                {currentDashboard?.name || 'Loading Dashboard…'}
                             </h1>
-                            <p className="text-3xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                            <p style={{
+                                fontFamily: 'var(--vq-font-mono)',
+                                fontSize: 'var(--vq-fs-eyebrow)',
+                                lineHeight: 'var(--vq-lh-eyebrow)',
+                                letterSpacing: 'var(--vq-ls-eyebrow)',
+                                textTransform: 'uppercase',
+                                color: 'var(--vq-text-3)',
+                                fontWeight: 'var(--vq-fw-medium)',
+                                margin: 0,
+                            }}>
                                 {currentDashboard?.is_locked ? '🔒 Locked by management' : '⚡ Personal layout'}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 select-none">
+                    {/* Right: action controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                         {/* Tab Switchers */}
                         {dashboards.length > 1 && (
-                            <div className="flex items-center bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/60 p-0.5 rounded-xl mr-2 text-3xs font-bold">
+                            <div className="vq-db-tabs" style={{ marginRight: '4px' }}>
                                 {dashboards.map(db => (
                                     <button
                                         key={db.id}
                                         onClick={() => loadDashboardDetail(db.id)}
-                                        className={`px-3 py-1.5 rounded-lg transition-colors ${currentDashboard?.id === db.id ? 'bg-white dark:bg-slate-900 text-indigo-500 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                        className={`vq-db-tab${currentDashboard?.id === db.id ? ' active' : ''}`}
                                     >
                                         {db.name}
                                     </button>
@@ -312,10 +449,10 @@ export default function Dashboard() {
                         {!currentDashboard?.is_locked && (
                             <button
                                 onClick={handleResetLayout}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-slate-800/30 dark:border-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                                className="vq-db-btn vq-db-btn-ghost"
                                 title="Reset dashboard to role defaults"
                             >
-                                <RotateCcw size={12} />
+                                <RotateCcw size={13} />
                                 <span>Reset</span>
                             </button>
                         )}
@@ -324,9 +461,9 @@ export default function Dashboard() {
                         {!currentDashboard?.is_locked && (
                             <button
                                 onClick={() => setIsBuilderOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                                className="vq-db-btn vq-db-btn-ghost"
                             >
-                                <Plus size={12} />
+                                <Plus size={13} />
                                 <span>Add Card</span>
                             </button>
                         )}
@@ -336,10 +473,10 @@ export default function Dashboard() {
                             <button
                                 onClick={handleSaveLayout}
                                 disabled={isSavingLayout}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                                className="vq-db-btn vq-db-btn-primary"
                             >
-                                <Save size={12} />
-                                <span>{isSavingLayout ? 'Saving...' : 'Save Layout'}</span>
+                                <Save size={13} />
+                                <span>{isSavingLayout ? 'Saving…' : 'Save Layout'}</span>
                             </button>
                         )}
 
@@ -347,34 +484,77 @@ export default function Dashboard() {
                         {isManager && (
                             <button
                                 onClick={handlePublishLayout}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-3xs rounded-xl shadow-xs transition-colors"
+                                className="vq-db-btn vq-db-btn-publish"
                             >
-                                <Globe size={12} />
+                                <Globe size={13} />
                                 <span>Publish</span>
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* --- Grid Layout View --- */}
+                {/* ── Grid Layout View ── */}
                 {currentDashboard?.cards?.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl p-12 text-center max-w-lg mx-auto mt-12 select-none">
-                        <Info size={36} className="text-slate-300 dark:text-slate-600 mb-3" />
-                        <h2 className="font-extrabold text-slate-700 dark:text-slate-300 text-sm tracking-tight mb-1">Your Dashboard is Empty</h2>
-                        <p className="text-3xs text-slate-400 dark:text-slate-500 font-semibold mb-4 leading-normal">Add metrics cards to create your customized sales, finance, and operations overview.</p>
+                    /* Empty state */
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1.5px dashed var(--vq-line)',
+                        borderRadius: 'var(--vq-r-xl)',
+                        padding: '64px 40px',
+                        textAlign: 'center',
+                        maxWidth: '480px',
+                        margin: '48px auto 0',
+                        userSelect: 'none',
+                    }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: 'var(--vq-r-lg)',
+                            background: 'var(--vq-sunken)',
+                            border: '1px solid var(--vq-line-soft)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--vq-text-3)',
+                            marginBottom: '20px',
+                        }}>
+                            <Info size={24} />
+                        </div>
+                        <h2 style={{
+                            fontSize: 'var(--vq-fs-h3)',
+                            fontWeight: 'var(--vq-fw-semi)',
+                            letterSpacing: 'var(--vq-ls-h3)',
+                            color: 'var(--vq-text)',
+                            margin: '0 0 8px',
+                        }}>
+                            Your Dashboard is Empty
+                        </h2>
+                        <p style={{
+                            fontSize: 'var(--vq-fs-small)',
+                            color: 'var(--vq-text-2)',
+                            margin: '0 0 24px',
+                            lineHeight: 'var(--vq-lh-small)',
+                            maxWidth: '34ch',
+                        }}>
+                            Add metric cards to create your customised sales, finance, and operations overview.
+                        </p>
                         <button
                             onClick={() => setIsBuilderOpen(true)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+                            className="vq-db-btn vq-db-btn-primary"
+                            style={{ height: 'var(--vq-control-lg)', paddingLeft: '20px', paddingRight: '20px' }}
                         >
-                            <Plus size={14} />
+                            <Plus size={15} />
                             <span>Add Card</span>
                         </button>
                     </div>
                 ) : (
-                    <div ref={gridRef} className="w-full">
+                    <div ref={gridRef} style={{ width: '100%' }}>
                         {width > 0 && (
                             <ReactGridLayout
-                                className="layout mt-2"
+                                className="layout"
                                 layout={activeLayout}
                                 cols={12}
                                 rowHeight={80}
@@ -383,7 +563,7 @@ export default function Dashboard() {
                                 isDraggable={!currentDashboard?.is_locked}
                                 isResizable={!currentDashboard?.is_locked}
                                 onLayoutChange={handleLayoutChange}
-                                draggableHandle=".font-bold" // dragging is initiated by header
+                                draggableHandle=".vq-card-drag-handle"
                             >
                                 {currentDashboard?.cards?.map(card => {
                                     const def = catalogue.find(m => m.key === card.reading_key);

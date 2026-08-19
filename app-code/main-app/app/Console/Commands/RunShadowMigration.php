@@ -122,7 +122,7 @@ class RunShadowMigration extends Command
                                 $tenantObj = \App\Models\Tenant::find($tenantId);
                                 if ($tenantObj) {
                                     app()->instance('current.tenant', $tenantObj);
-                                    app(\App\Services\V3\AccountingService::class)->createEntry([
+                                    app(\App\Engines\AccountingService::class)->createEntry([
                                         'date'           => $sale->created_at ? \Carbon\Carbon::parse($sale->created_at)->toDateString() : now()->toDateString(),
                                         'reference_type' => 'manual',
                                         'reference'      => $sale->reference_number ?? 'MIG-VAR',

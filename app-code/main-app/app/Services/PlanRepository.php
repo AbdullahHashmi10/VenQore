@@ -207,7 +207,7 @@ class PlanRepository
             return true; // BYOK AI key unblocks AI feature on LTD tiers
         }
         // Special T3-3 Cookbook on Counter rule for food-prep industries
-        if ($feature === 'recipes' || $feature === 'bill_of_materials') {
+        if ($feature === 'compositions' || $feature === 'bill_of_materials') {
             if ($tenant->plan === 'counter') {
                 $foodPrepIndustries = [
                     'cafe', 'restaurant', 'bakery', 'juice_tea_shop',
@@ -221,7 +221,7 @@ class PlanRepository
         }
 
         $aliases = [
-            'recipes' => 'bill_of_materials',
+            'compositions' => 'bill_of_materials',
             'cash_flow_report' => 'report_cash_flow',
             'cash_flow' => 'report_cash_flow',
             'stock_valuation_report' => 'report_stock_valuation',
@@ -261,8 +261,23 @@ class PlanRepository
             $dbKeys = Cache::remember('all_canonical_feature_keys', 300, function () {
                 return \Illuminate\Support\Facades\DB::table('plan_limits')->distinct()->pluck('key')->toArray();
             });
+
+            // Also include keys from the capabilities registry (Phase 1 additions such as
+            // optical_prescription, tailor_measurements, jewelry_metal_rates are only in
+            // capabilities, not in plan_limits).
+            $capabilityKeys = Cache::remember('all_capability_registry_keys', 300, function () {
+                try {
+                    return \Illuminate\Support\Facades\DB::table('capabilities')
+                        ->where('kind', 'capability')
+                        ->pluck('key')
+                        ->toArray();
+                } catch (\Throwable) {
+                    return [];
+                }
+            });
+
             $configKeys = array_keys(config('plans.counter', config('plans.starter', [])));
-            $keys = array_unique(array_merge($dbKeys, $configKeys, array_keys($rawLimits)));
+            $keys = array_unique(array_merge($dbKeys, $capabilityKeys, $configKeys, array_keys($rawLimits)));
 
             $map = [];
             foreach ($keys as $key) {

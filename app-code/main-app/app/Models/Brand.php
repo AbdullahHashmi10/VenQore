@@ -15,6 +15,6 @@ class Brand extends Model
 
     public function recipes()
     {
-        return $this->hasMany(Recipe::class);
+        return $this->hasMany(Composition::class);
     }
 }

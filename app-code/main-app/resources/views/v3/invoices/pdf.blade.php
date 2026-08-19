@@ -24,7 +24,7 @@
     .company-name { font-size: 22px; font-weight: bold; color: #111; }
     .invoice-title {
         font-size: 28px; font-weight: bold;
-        color: #2563eb; margin-bottom: 4px;
+        color: {{ $primaryColor }}; margin-bottom: 4px;
     }
     .invoice-number { font-size: 14px; color: #555; }
 
@@ -129,6 +129,9 @@
                 <th class="text-right">Unit Price</th>
                 <th class="text-right">Discount</th>
                 <th class="text-right">Tax %</th>
+                @if($showMargin)
+                <th class="text-right">Margin</th>
+                @endif
                 <th class="text-right">Total</th>
             </tr>
         </thead>
@@ -162,6 +165,13 @@
                         ? number_format($item->tax_rate, 1) . '%'
                         : '—' }}
                 </td>
+                @if($showMargin)
+                <td class="text-right">
+                    {{ $item->unit_price > 0
+                        ? number_format((($item->unit_price - $item->cost_price) / $item->unit_price) * 100, 1) . '%'
+                        : '0.0%' }}
+                </td>
+                @endif
                 <td class="text-right">
                     {{ number_format($item->line_total, 2) }}
                 </td>

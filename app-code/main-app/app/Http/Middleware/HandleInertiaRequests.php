@@ -222,6 +222,16 @@ class HandleInertiaRequests extends Middleware
             'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
             'pricing' => config('pricing'),
             'turnstile_site_key' => config('services.cloudflare.turnstile_site_key', ''),
+            'terms' => (function () use ($dbReady) {
+                if (!$dbReady || !$this->hasTable('tenant_terminology')) return [];
+                try {
+                    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                    $tenantId = $tenant?->id ?? null;
+                    return $tenantId ? \App\Support\Terms::forTenant($tenantId) : [];
+                } catch (\Throwable) {
+                    return [];
+                }
+            })(),
         ];
 
         return $shared;

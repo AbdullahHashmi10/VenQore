@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class DonationController extends Controller
 {
@@ -53,6 +54,13 @@ class DonationController extends Controller
                 'warehouse_id'=> ['required'],
                 'qty'         => ['required'],
             ]);
+
+            $product = DB::table('products')->where('id', $validated['product_id'])->first();
+            if ($product && $product->type === 'service') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'product_id' => ['Service products cannot be donated as physical inventory.']
+                ]);
+            }
 
             $deductions = $this->fifo->deductStock(
                 productId:   $validated['product_id'],

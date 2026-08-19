@@ -1,0 +1,26 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Charts — area & bar" subtitle="Library-free, draw-in on mount, slot-1 mint" -->
+<!doctype html><html><head><meta charset="utf-8">
+<title>Charts</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--vq-bg);font-family:var(--vq-font-sans)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.stack{display:flex;flex-direction:column;gap:14px}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { AreaChart, BarChart, Card, Tabs } = window.VenQoreDesignSystem_76c34c;
+function Demo(){
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1.35fr 1fr",gap:16,alignItems:"start"}}>
+      <Card eyebrow="Past 6 months spending" title="Purchases trend" action={<Tabs size="sm" tabs={["6M","1Y"]} value="6M" onChange={()=>{}}/>}>
+        <AreaChart data={[700,1400,2100,2400,2600,5200]} labels={["Mar","Apr","May","Jun","Jul","Aug"]} height={170}/>
+      </Card>
+      <Card eyebrow="This week" title="Project analytics">
+        <BarChart data={[3,7,5,9,4,6,2]} labels={["S","M","T","W","T","F","S"]} highlight={3} height={150}/>
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+</script></body></html>

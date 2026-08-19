@@ -29,6 +29,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders']);
 });
 
+// ── Work Orders & Service Jobs API ──────────────────────────────────────────
+use App\Http\Controllers\Api\WorkOrderController;
+
+Route::middleware(['auth:sanctum', 'plan.feature:work_orders'])->group(function () {
+    Route::get('/work-orders', [WorkOrderController::class, 'index']);
+    Route::post('/work-orders', [WorkOrderController::class, 'store'])->middleware('permission:sales.create');
+    Route::get('/work-orders/{id}', [WorkOrderController::class, 'show']);
+    Route::put('/work-orders/{id}', [WorkOrderController::class, 'update'])->middleware('permission:sales.edit');
+    Route::post('/work-orders/{id}/assign', [WorkOrderController::class, 'assign'])->middleware('permission:sales.edit');
+    Route::post('/work-orders/{id}/convert-invoice', [WorkOrderController::class, 'convertInvoice'])->middleware('permission:sales.edit');
+});
+
 // ── Phase 2.1: Lemon Squeezy Billing Webhooks ──────────────────────────────
 // Verified via HMAC-SHA256 signature (VerifyLemonSqueezySignature middleware)
 // Excluded from CSRF — this is a server-to-server POST from Lemon Squeezy
@@ -54,14 +66,16 @@ Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(functi
 // Security is handled via HMAC signature verification (webhook) and token (verify).
 use App\Http\Controllers\WooSync\WooWebhookController;
 
-Route::post('/woo/webhook/{uuid}', [WooWebhookController::class, 'receive'])
-    ->name('woo.webhook.receive');
+Route::middleware('plan.feature:woocommerce')->group(function () {
+    Route::post('/woo/webhook/{uuid}', [WooWebhookController::class, 'receive'])
+        ->name('woo.webhook.receive');
 
-Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
-    ->name('woo.verify');
+    Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
+        ->name('woo.verify');
 
-Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
-    ->name('woo.handshake');
+    Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
+        ->name('woo.handshake');
+});
 
 // ── Offline DRM Validation Endpoints ─────────────────────────────────────
 use App\Http\Controllers\DrmLicenseController;
@@ -84,11 +98,11 @@ Route::middleware('drm.license')->get('/drm/protected', function () {
 // Verify `CACHE_STORE` before relying on this. See T0-8.
 use App\Http\Controllers\VisitorChatController;
 
-Route::middleware(['throttle:5,1', 'visitor.chat.guard'])->group(function () {
+Route::middleware(['throttle:5,1', 'visitor.chat.guard', 'plan.feature:live_chat_widget'])->group(function () {
     Route::post('/{store_slug}/chatbot/session', [VisitorChatController::class, 'startSession']);
 });
 
-Route::middleware(['throttle:15,1', 'visitor.chat.guard'])->group(function () {
+Route::middleware(['throttle:15,1', 'visitor.chat.guard', 'plan.feature:live_chat_widget'])->group(function () {
     Route::post('/{store_slug}/chatbot/session/{uuid}/message', [VisitorChatController::class, 'sendMessage']);
     Route::post('/{store_slug}/chatbot/session/{uuid}/typing', [VisitorChatController::class, 'typing']);
 });
@@ -98,10 +112,10 @@ Route::middleware(['throttle:15,1', 'visitor.chat.guard'])->group(function () {
 // Called once at session start; cached client-side for the session lifetime.
 use App\Http\Controllers\VenaContextController;
 
-Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
-
-// Vena Assist co-pilot endpoint
-Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
+Route::middleware('plan.feature:ai_assistant')->group(function () {
+    Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
+    Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
+});
 
 
 

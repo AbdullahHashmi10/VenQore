@@ -13,6 +13,7 @@ class Supplier extends Model
 {
     use HasFactory, SoftDeletes, HasUuids, HasTenant;
 
+
     protected $guarded = [];
 
     public function purchaseOrders()

@@ -77,7 +77,7 @@ class MetricSnapshotter
             ) f WHERE f.first_day = ?
         ", [$tenantId, $date->toDateString()])->n;
 
-        $cashCollected = (float) DB::table('payment_allocations')
+        $cashCollected = (float) DB::table('allocations')
             ->where('tenant_id', $tenantId)
             ->where('status', 'active')
             ->whereBetween('created_at', [$start, $end])

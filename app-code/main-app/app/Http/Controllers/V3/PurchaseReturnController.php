@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,7 +15,7 @@ class PurchaseReturnController extends Controller
     public function __construct(
         private AccountingService $accounting,
         private FifoService       $fifo,
-        private \App\Services\V3\PurchaseService $purchaseService
+        private \App\Engines\PurchaseService $purchaseService
     ) {}
 
     public function create(string $purchaseId)

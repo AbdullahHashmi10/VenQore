@@ -12,10 +12,10 @@ use App\Models\Warehouse;
 use App\Models\BankAccount;
 use App\Models\Setting;
 use App\Models\ExpenseCategory;
-use App\Services\V3\AccountingService;
-use App\Services\V3\SaleService;
-use App\Services\V3\FifoService;
-use App\Services\V3\PaymentService;
+use App\Engines\AccountingService;
+use App\Engines\SaleService;
+use App\Engines\FifoService;
+use App\Engines\PaymentService;
 
 /**
  * ============================================================
@@ -957,7 +957,7 @@ class GoldenCompanySeeder extends Seeder
                 ->where('reference_type', 'sale')
                 ->where('reference', $sale->id)
                 ->update(['reference' => $fixedId]);
-            DB::table('payment_allocations')
+            DB::table('allocations')
                 ->where('sale_id', $sale->id)
                 ->update(['sale_id' => $fixedId]);
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
@@ -1055,7 +1055,7 @@ class GoldenCompanySeeder extends Seeder
         // Delete in FK order (children before parents)
         $tables = [
             'sale_item_batches',
-            'payment_allocations',
+            'allocations',
             'sale_items',
             'sales',
             'journal_items',

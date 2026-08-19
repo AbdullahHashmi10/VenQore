@@ -1,19 +1,39 @@
 import React, { useState } from 'react';
 import { X, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
+/**
+ * DashboardBuilderSheet — VenQore Design System v2.0
+ *
+ * A slide-in drawer following VQ elevation + motion rules:
+ *   --vq-z-drawer (500) for the panel itself
+ *   --vq-dur-slow (480ms) for open/close
+ *   --vq-elev-3 shadow on the panel edge
+ *   --vq-accent / --vq-accent-text for active step indicators
+ */
+
 const DOMAINS = [
-    { key: 'sales', label: 'Sales', desc: 'Revenue, orders, customer invoices.' },
-    { key: 'finance', label: 'Finance', desc: 'Cash accounts, profits, balance status.' },
-    { key: 'operations', label: 'Operations', desc: 'Inventory, stock levels, operations.' },
-    { key: 'staff', label: 'Staff', desc: 'Shift clock ins, staff counts.' },
+    { key: 'sales',      label: 'Sales',      desc: 'Revenue, orders, customer invoices.' },
+    { key: 'finance',    label: 'Finance',     desc: 'Cash accounts, profits, balance status.' },
+    { key: 'operations', label: 'Operations',  desc: 'Inventory, stock levels, operations.' },
+    { key: 'staff',      label: 'Staff',       desc: 'Shift clock ins, staff counts.' },
 ];
 
 const SIZES = [
-    { key: 'small', label: 'Small Card (3x2)', desc: 'Perfect for quick numbers and trends.' },
-    { key: 'medium', label: 'Medium Card (6x2)', desc: 'Shows detailed lines or bars.' },
-    { key: 'large', label: 'Large Card (6x4)', desc: 'Large grids and list tables.' },
-    { key: 'full', label: 'Full Width (12x3)', desc: 'Wide timeline trend layouts.' },
+    { key: '2x4', label: '2 Columns × 4 Rows', desc: 'Compact portrait layout.' },
+    { key: '2x6', label: '2 Columns × 6 Rows', desc: 'Tall portrait layout.' },
+    { key: '2x8', label: '2 Columns × 8 Rows', desc: 'Very tall portrait layout.' },
+    { key: '4x4', label: '4 Columns × 4 Rows', desc: 'Square-like layout.' },
+    { key: '4x6', label: '4 Columns × 6 Rows', desc: 'Balanced mid-size layout.' },
+    { key: '4x8', label: '4 Columns × 8 Rows', desc: 'Tall mid-size layout.' },
+    { key: '6x4', label: '6 Columns × 4 Rows', desc: 'Wide landscape layout.' },
+    { key: '6x6', label: '6 Columns × 6 Rows', desc: 'Large square-like layout.' },
+    { key: '6x8', label: '6 Columns × 8 Rows', desc: 'Large tall layout.' },
+    { key: '8x4', label: '8 Columns × 4 Rows', desc: 'Very wide landscape layout.' },
+    { key: '8x6', label: '8 Columns × 6 Rows', desc: 'Very wide tall layout.' },
+    { key: '8x8', label: '8 Columns × 8 Rows', desc: 'Maximum grid size.' },
 ];
+
+const STEP_LABELS = ['Domain', 'Metric', 'Visual', 'Size'];
 
 export default function DashboardBuilderSheet({
     isOpen,
@@ -27,7 +47,7 @@ export default function DashboardBuilderSheet({
     const [selectedDomain, setSelectedDomain] = useState('sales');
     const [selectedMetric, setSelectedMetric] = useState(null);
     const [selectedChart, setSelectedChart] = useState(null);
-    const [selectedSize, setSelectedSize] = useState('small');
+    const [selectedSize, setSelectedSize] = useState('4x4');
 
     // Step 1 -> Step 2 transition: Metric filter
     const metricsForDomain = catalogue.filter(m => m.domain === selectedDomain);
@@ -64,124 +84,410 @@ export default function DashboardBuilderSheet({
         onClose();
     };
 
-    return (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end select-none">
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300" onClick={onClose} />
+    /* ── shared card-row style ── */
+    const rowStyle = (active = false) => ({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        padding: '12px 14px',
+        border: `1px solid ${active ? 'var(--vq-accent)' : 'var(--vq-line)'}`,
+        borderRadius: 'var(--vq-r-lg)',
+        background: active ? 'var(--vq-accent-quiet)' : 'transparent',
+        textAlign: 'left',
+        cursor: 'pointer',
+        width: '100%',
+        transition: `border-color var(--vq-dur-fast), background var(--vq-dur-fast)`,
+        fontFamily: 'var(--vq-font-sans)',
+    });
 
-            {/* Sheet Content Panel */}
-            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl border-l border-slate-100 dark:border-slate-800 animate-in slide-in-from-right duration-300">
-                
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500">
-                            <Sparkles size={16} />
+    const backBtnStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        fontSize: 'var(--vq-fs-caption)',
+        fontWeight: 'var(--vq-fw-medium)',
+        fontFamily: 'var(--vq-font-mono)',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: 'var(--vq-accent-text)',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+    };
+
+    return (
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 'var(--vq-z-drawer)',
+            overflow: 'hidden',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            userSelect: 'none',
+        }}>
+            {/* Scrim */}
+            <div
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'var(--vq-scrim)',
+                    backdropFilter: 'blur(2px)',
+                    WebkitBackdropFilter: 'blur(2px)',
+                    transition: `opacity var(--vq-dur-slow) var(--vq-ease-out)`,
+                }}
+            />
+
+            {/* Panel */}
+            <div style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '420px',
+                background: 'var(--vq-raised)',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: 'var(--vq-elev-3)',
+                borderLeft: '1px solid var(--vq-line)',
+                animation: 'vq-slide-in var(--vq-dur-slow) var(--vq-ease) both',
+            }}>
+                <style>{`
+                    @keyframes vq-slide-in {
+                        from { transform: translateX(100%); }
+                        to   { transform: translateX(0); }
+                    }
+                `}</style>
+
+                {/* ── Header ── */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '18px 20px',
+                    borderBottom: '1px solid var(--vq-line)',
+                    flexShrink: 0,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                            width: '30px',
+                            height: '30px',
+                            borderRadius: 'var(--vq-r-md)',
+                            background: 'var(--vq-accent-quiet)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--vq-accent-text)',
+                            flexShrink: 0,
+                        }}>
+                            <Sparkles size={15} />
                         </div>
-                        <h2 className="font-extrabold text-slate-800 dark:text-slate-100 text-sm tracking-tight">Add Metric Card</h2>
+                        <h2 style={{
+                            fontSize: 'var(--vq-fs-h3)',
+                            fontWeight: 'var(--vq-fw-semi)',
+                            letterSpacing: 'var(--vq-ls-h3)',
+                            color: 'var(--vq-text)',
+                            margin: 0,
+                        }}>
+                            Add Metric Card
+                        </h2>
                     </div>
-                    <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '6px',
+                            cursor: 'pointer',
+                            color: 'var(--vq-text-3)',
+                            borderRadius: 'var(--vq-r-sm)',
+                            display: 'flex',
+                            transition: `color var(--vq-dur-instant), background var(--vq-dur-instant)`,
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.color = 'var(--vq-text)';
+                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.color = 'var(--vq-text-3)';
+                            e.currentTarget.style.background = 'none';
+                        }}
+                    >
                         <X size={18} />
                     </button>
                 </div>
 
-                {/* Steps Navigator */}
-                <div className="grid grid-cols-4 border-b border-slate-50 dark:border-slate-800/40 select-none py-2 text-center shrink-0">
+                {/* ── Step Navigator ── */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    borderBottom: '1px solid var(--vq-line-soft)',
+                    padding: '14px 20px',
+                    flexShrink: 0,
+                    gap: '4px',
+                }}>
                     {[1, 2, 3, 4].map(s => (
-                        <div key={s} className="flex flex-col items-center">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-4xs font-black mb-1 ${step >= s ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                                {s}
+                        <div key={s} style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '5px',
+                        }}>
+                            <div style={{
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: 'var(--vq-r-full)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '10px',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                fontFamily: 'var(--vq-font-mono)',
+                                background: step >= s ? 'var(--vq-accent)' : 'var(--vq-sunken)',
+                                color: step >= s ? 'var(--vq-on-accent)' : 'var(--vq-text-3)',
+                                border: `1px solid ${step >= s ? 'var(--vq-accent)' : 'var(--vq-line)'}`,
+                                transition: `background var(--vq-dur-fast), color var(--vq-dur-fast)`,
+                            }}>
+                                {step > s ? <Check size={11} /> : s}
                             </div>
-                            <span className={`text-4xs font-bold ${step === s ? 'text-indigo-500' : 'text-slate-400 dark:text-slate-600'}`}>
-                                {s === 1 ? 'Domain' : s === 2 ? 'Metric' : s === 3 ? 'Visual' : 'Size'}
+                            <span style={{
+                                fontFamily: 'var(--vq-font-mono)',
+                                fontSize: 'var(--vq-fs-eyebrow)',
+                                letterSpacing: 'var(--vq-ls-eyebrow)',
+                                textTransform: 'uppercase',
+                                fontWeight: 'var(--vq-fw-medium)',
+                                color: step === s ? 'var(--vq-accent-text)' : 'var(--vq-text-3)',
+                                transition: `color var(--vq-dur-fast)`,
+                            }}>
+                                {STEP_LABELS[s - 1]}
                             </span>
                         </div>
                     ))}
                 </div>
 
-                {/* Step Content */}
-                <div className="grow overflow-y-auto p-4 custom-scrollbar">
-                    
+                {/* ── Step Content ── */}
+                <div style={{
+                    flexGrow: 1,
+                    overflowY: 'auto',
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                }}>
+
                     {/* STEP 1: Domain Selection */}
                     {step === 1 && (
-                        <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                            <h3 className="font-extrabold text-xs text-slate-700 dark:text-slate-300 mb-1">Select a Domain</h3>
+                        <>
+                            <h3 style={{
+                                fontSize: 'var(--vq-fs-small)',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                letterSpacing: '-0.01em',
+                                color: 'var(--vq-text)',
+                                margin: '0 0 8px',
+                            }}>
+                                Select a Domain
+                            </h3>
                             {DOMAINS.map(d => (
                                 <button
                                     key={d.key}
                                     onClick={() => handleSelectDomain(d.key)}
-                                    className="flex flex-col items-start p-3 border border-slate-100 dark:border-slate-800/60 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 text-left transition-all duration-200"
+                                    style={rowStyle(selectedDomain === d.key)}
+                                    onMouseEnter={e => {
+                                        if (selectedDomain !== d.key) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
+                                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                                        }
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (selectedDomain !== d.key) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line)';
+                                            e.currentTarget.style.background = 'transparent';
+                                        }
+                                    }}
                                 >
-                                    <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 mb-0.5 capitalize">{d.label}</span>
-                                    <span className="text-3xs text-slate-400 dark:text-slate-500">{d.desc}</span>
+                                    <span style={{
+                                        fontSize: 'var(--vq-fs-small)',
+                                        fontWeight: 'var(--vq-fw-semi)',
+                                        color: 'var(--vq-text)',
+                                        marginBottom: '3px',
+                                        textTransform: 'capitalize',
+                                        display: 'block',
+                                    }}>
+                                        {d.label}
+                                    </span>
+                                    <span style={{
+                                        fontSize: 'var(--vq-fs-caption)',
+                                        color: 'var(--vq-text-2)',
+                                        lineHeight: 'var(--vq-lh-caption)',
+                                        display: 'block',
+                                    }}>
+                                        {d.desc}
+                                    </span>
                                 </button>
                             ))}
-                        </div>
+                        </>
                     )}
 
                     {/* STEP 2: Metric Picker */}
                     {step === 2 && (
-                        <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                            <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-extrabold text-xs text-slate-700 dark:text-slate-300">Select a Metric</h3>
-                                <button onClick={() => setStep(1)} className="flex items-center gap-1 text-4xs font-bold text-indigo-500 hover:underline">
-                                    <ArrowLeft size={10} /> Back
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <h3 style={{
+                                    fontSize: 'var(--vq-fs-small)',
+                                    fontWeight: 'var(--vq-fw-semi)',
+                                    color: 'var(--vq-text)',
+                                    margin: 0,
+                                }}>
+                                    Select a Metric
+                                </h3>
+                                <button onClick={() => setStep(1)} style={backBtnStyle}>
+                                    <ArrowLeft size={11} /> Back
                                 </button>
                             </div>
                             {metricsForDomain.length === 0 ? (
-                                <div className="text-center py-8 text-slate-400 text-3xs">
-                                    No metrics available for {selectedDomain}.
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '48px 0',
+                                    color: 'var(--vq-text-3)',
+                                    fontSize: 'var(--vq-fs-small)',
+                                    fontFamily: 'var(--vq-font-sans)',
+                                }}>
+                                    No metrics available for <strong style={{ color: 'var(--vq-text-2)' }}>{selectedDomain}</strong>.
                                 </div>
                             ) : (
                                 metricsForDomain.map(m => (
                                     <button
                                         key={m.key}
                                         onClick={() => handleSelectMetric(m)}
-                                        className="flex flex-col items-start p-3 border border-slate-100 dark:border-slate-800/60 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 text-left transition-all duration-200"
+                                        style={rowStyle(false)}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
+                                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line)';
+                                            e.currentTarget.style.background = 'transparent';
+                                        }}
                                     >
-                                        <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 mb-0.5">{m.label}</span>
-                                        <span className="text-3xs text-slate-400 dark:text-slate-500 leading-normal">{m.description}</span>
+                                        <span style={{
+                                            fontSize: 'var(--vq-fs-small)',
+                                            fontWeight: 'var(--vq-fw-semi)',
+                                            color: 'var(--vq-text)',
+                                            marginBottom: '3px',
+                                            display: 'block',
+                                        }}>
+                                            {m.label}
+                                        </span>
+                                        <span style={{
+                                            fontSize: 'var(--vq-fs-caption)',
+                                            color: 'var(--vq-text-2)',
+                                            lineHeight: 'var(--vq-lh-caption)',
+                                            display: 'block',
+                                        }}>
+                                            {m.description}
+                                        </span>
                                     </button>
                                 ))
                             )}
-                        </div>
+                        </>
                     )}
 
                     {/* STEP 3: Visual Configuration */}
                     {step === 3 && selectedMetric && (
-                        <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                            <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-extrabold text-xs text-slate-700 dark:text-slate-300">Select Chart Type</h3>
-                                <button onClick={() => setStep(2)} className="flex items-center gap-1 text-4xs font-bold text-indigo-500 hover:underline">
-                                    <ArrowLeft size={10} /> Back
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <h3 style={{
+                                    fontSize: 'var(--vq-fs-small)',
+                                    fontWeight: 'var(--vq-fw-semi)',
+                                    color: 'var(--vq-text)',
+                                    margin: 0,
+                                }}>
+                                    Select Chart Type
+                                </h3>
+                                <button onClick={() => setStep(2)} style={backBtnStyle}>
+                                    <ArrowLeft size={11} /> Back
                                 </button>
                             </div>
-                            
-                            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl mb-2 text-left">
-                                <div className="text-4xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Selected Metric</div>
-                                <div className="font-extrabold text-slate-700 dark:text-slate-200 text-xs">{selectedMetric.label}</div>
+
+                            {/* Selected metric badge */}
+                            <div style={{
+                                padding: '10px 14px',
+                                background: 'var(--vq-sunken)',
+                                border: '1px solid var(--vq-line-soft)',
+                                borderRadius: 'var(--vq-r-md)',
+                                marginBottom: '4px',
+                            }}>
+                                <span style={{
+                                    fontFamily: 'var(--vq-font-mono)',
+                                    fontSize: 'var(--vq-fs-eyebrow)',
+                                    letterSpacing: 'var(--vq-ls-eyebrow)',
+                                    textTransform: 'uppercase',
+                                    color: 'var(--vq-text-3)',
+                                    display: 'block',
+                                    marginBottom: '3px',
+                                }}>
+                                    Selected Metric
+                                </span>
+                                <span style={{
+                                    fontSize: 'var(--vq-fs-small)',
+                                    fontWeight: 'var(--vq-fw-semi)',
+                                    color: 'var(--vq-text)',
+                                }}>
+                                    {selectedMetric.label}
+                                </span>
                             </div>
 
                             {selectedMetric.charts.map(c => (
                                 <button
                                     key={c}
                                     onClick={() => handleSelectChart(c)}
-                                    className={`flex items-center justify-between p-3 border rounded-xl hover:bg-slate-50/50 dark:hover:bg-slate-800/20 text-left transition-all duration-200 ${selectedChart === c ? 'border-indigo-500 bg-indigo-500/5 dark:bg-indigo-500/5' : 'border-slate-100 dark:border-slate-800/60'}`}
+                                    style={{
+                                        ...rowStyle(selectedChart === c),
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (selectedChart !== c) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
+                                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                                        }
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (selectedChart !== c) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line)';
+                                            e.currentTarget.style.background = 'transparent';
+                                        }
+                                    }}
                                 >
-                                    <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 capitalize">{c}</span>
-                                    {selectedChart === c && <Check size={14} className="text-indigo-500" />}
+                                    <span style={{
+                                        fontSize: 'var(--vq-fs-small)',
+                                        fontWeight: selectedChart === c ? 'var(--vq-fw-semi)' : 'var(--vq-fw-medium)',
+                                        color: selectedChart === c ? 'var(--vq-accent-text)' : 'var(--vq-text)',
+                                        textTransform: 'capitalize',
+                                    }}>
+                                        {c}
+                                    </span>
+                                    {selectedChart === c && <Check size={15} style={{ color: 'var(--vq-accent)', flexShrink: 0 }} />}
                                 </button>
                             ))}
-                        </div>
+                        </>
                     )}
 
                     {/* STEP 4: Sizing / Placement */}
                     {step === 4 && (
-                        <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                            <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-extrabold text-xs text-slate-700 dark:text-slate-300">Select Card Size</h3>
-                                <button onClick={() => setStep(3)} className="flex items-center gap-1 text-4xs font-bold text-indigo-500 hover:underline">
-                                    <ArrowLeft size={10} /> Back
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <h3 style={{
+                                    fontSize: 'var(--vq-fs-small)',
+                                    fontWeight: 'var(--vq-fw-semi)',
+                                    color: 'var(--vq-text)',
+                                    margin: 0,
+                                }}>
+                                    Select Card Size
+                                </h3>
+                                <button onClick={() => setStep(3)} style={backBtnStyle}>
+                                    <ArrowLeft size={11} /> Back
                                 </button>
                             </div>
 
@@ -189,22 +495,109 @@ export default function DashboardBuilderSheet({
                                 <button
                                     key={s.key}
                                     onClick={() => setSelectedSize(s.key)}
-                                    className={`flex flex-col items-start p-3 border rounded-xl hover:bg-slate-50/50 dark:hover:bg-slate-800/20 text-left transition-all duration-200 ${selectedSize === s.key ? 'border-indigo-500 bg-indigo-500/5 dark:bg-indigo-500/5' : 'border-slate-100 dark:border-slate-800/60'}`}
+                                    style={rowStyle(selectedSize === s.key)}
+                                    onMouseEnter={e => {
+                                        if (selectedSize !== s.key) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
+                                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                                        }
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (selectedSize !== s.key) {
+                                            e.currentTarget.style.borderColor = 'var(--vq-line)';
+                                            e.currentTarget.style.background = 'transparent';
+                                        }
+                                    }}
                                 >
-                                    <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100 mb-0.5">{s.label}</span>
-                                    <span className="text-3xs text-slate-400 dark:text-slate-500">{s.desc}</span>
+                                    <span style={{
+                                        fontSize: 'var(--vq-fs-small)',
+                                        fontWeight: 'var(--vq-fw-semi)',
+                                        color: selectedSize === s.key ? 'var(--vq-accent-text)' : 'var(--vq-text)',
+                                        marginBottom: '3px',
+                                        display: 'block',
+                                    }}>
+                                        {s.label}
+                                    </span>
+                                    <span style={{
+                                        fontSize: 'var(--vq-fs-caption)',
+                                        color: 'var(--vq-text-2)',
+                                        display: 'block',
+                                    }}>
+                                        {s.desc}
+                                    </span>
                                 </button>
                             ))}
-                        </div>
+                        </>
                     )}
                 </div>
 
-                {/* Footer Controls */}
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800 shrink-0 flex items-center justify-end select-none">
+                {/* ── Footer Controls ── */}
+                <div style={{
+                    padding: '16px 20px',
+                    borderTop: '1px solid var(--vq-line)',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    gap: '8px',
+                }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            height: 'var(--vq-control-md)',
+                            padding: '0 18px',
+                            borderRadius: 'var(--vq-r-md)',
+                            fontFamily: 'var(--vq-font-sans)',
+                            fontSize: 'var(--vq-fs-small)',
+                            fontWeight: 'var(--vq-fw-medium)',
+                            color: 'var(--vq-text-2)',
+                            background: 'transparent',
+                            border: '1px solid var(--vq-line)',
+                            cursor: 'pointer',
+                            transition: `background var(--vq-dur-fast), color var(--vq-dur-fast)`,
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = 'var(--vq-sunken)';
+                            e.currentTarget.style.color = 'var(--vq-text)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--vq-text-2)';
+                        }}
+                    >
+                        Cancel
+                    </button>
+
                     {step === 4 ? (
                         <button
                             onClick={handleFinish}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                height: 'var(--vq-control-md)',
+                                padding: '0 20px',
+                                borderRadius: 'var(--vq-r-md)',
+                                fontFamily: 'var(--vq-font-sans)',
+                                fontSize: 'var(--vq-fs-small)',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                background: 'var(--vq-accent)',
+                                color: 'var(--vq-on-accent)',
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: 'var(--vq-elev-2)',
+                                transition: `background var(--vq-dur-fast), transform var(--vq-dur-fast)`,
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = 'var(--vq-accent-hover)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = 'var(--vq-accent)';
+                                e.currentTarget.style.transform = 'none';
+                            }}
                         >
                             <span>Add to Dashboard</span>
                             <Check size={14} />
@@ -213,7 +606,33 @@ export default function DashboardBuilderSheet({
                         <button
                             disabled={step === 1 && !selectedDomain}
                             onClick={() => setStep(step + 1)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors disabled:opacity-50"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                height: 'var(--vq-control-md)',
+                                padding: '0 18px',
+                                borderRadius: 'var(--vq-r-md)',
+                                fontFamily: 'var(--vq-font-sans)',
+                                fontSize: 'var(--vq-fs-small)',
+                                fontWeight: 'var(--vq-fw-semi)',
+                                background: 'var(--vq-text)',
+                                color: 'var(--vq-text-inverted)',
+                                border: 'none',
+                                cursor: 'pointer',
+                                opacity: (step === 1 && !selectedDomain) ? 0.42 : 1,
+                                transition: `background var(--vq-dur-fast), transform var(--vq-dur-fast)`,
+                            }}
+                            onMouseEnter={e => {
+                                if (!e.currentTarget.disabled) {
+                                    e.currentTarget.style.background = 'var(--vq-ink-800)';
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                }
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = 'var(--vq-text)';
+                                e.currentTarget.style.transform = 'none';
+                            }}
                         >
                             <span>Next Step</span>
                             <ArrowRight size={14} />

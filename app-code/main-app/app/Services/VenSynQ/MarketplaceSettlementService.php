@@ -7,7 +7,7 @@ use App\Models\EcommerceChannel;
 use App\Models\MarketplacePayout;
 use App\Models\Sale;
 use App\Models\Tenant;
-use App\Services\V3\AccountingService;
+use App\Engines\AccountingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 

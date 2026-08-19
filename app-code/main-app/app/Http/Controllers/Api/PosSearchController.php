@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -297,6 +298,29 @@ class PosSearchController extends Controller
     /**
      * Transform a Product Eloquent model to the shape the POS React expects.
      */
+    /**
+     * Fetch the 50 most recent sales for the POS Recent Invoices panel.
+     *
+     * GET /api/pos/recent-sales
+     */
+    public function recentSales(Request $request): JsonResponse
+    {
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+
+        $query = Sale::with(['items', 'customer'])->latest();
+        
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+
+        $sales = $query->take(50)->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $sales,
+        ]);
+    }
+
     private function transformProduct(Product $product): array
     {
         return [

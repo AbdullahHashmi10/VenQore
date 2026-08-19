@@ -20,7 +20,7 @@ class DashboardSanitizerTest extends TestCase
                 'reading_key' => 'sales.revenue',
                 'period' => 'today',
                 'chart' => 'stat',
-                'size' => 'small',
+                'size' => '4x4',
                 'x' => 15, // should clamp to 11
                 'y' => 600, // should clamp to 500
                 'title_override' => 'Override Revenue Title',
@@ -36,11 +36,11 @@ class DashboardSanitizerTest extends TestCase
         $this->assertSame('sales.revenue', $item['reading_key']);
         $this->assertSame('today', $item['period']);
         $this->assertSame('stat', $item['chart']);
-        $this->assertSame('small', $item['size']);
+        $this->assertSame('4x4', $item['size']);
         $this->assertSame(11, $item['x']); // clamped
         $this->assertSame(500, $item['y']); // clamped
-        $this->assertSame(3, $item['w']); // derived from small w=3
-        $this->assertSame(2, $item['h']); // derived from small h=2
+        $this->assertSame(4, $item['w']); // derived from 4x4 w=4
+        $this->assertSame(4, $item['h']); // derived from 4x4 h=4
         $this->assertSame('Override Revenue Title', $item['title_override']);
         $this->assertSame(['foo' => 'bar'], $item['args']);
     }
@@ -52,7 +52,7 @@ class DashboardSanitizerTest extends TestCase
                 'reading_key' => 'platform.active_tenant_count',
                 'period' => 'live',
                 'chart' => 'stat',
-                'size' => 'small',
+                'size' => '4x4',
             ]
         ];
 
@@ -69,7 +69,7 @@ class DashboardSanitizerTest extends TestCase
                 'reading_key' => 'finance.net_profit',
                 'period' => 'this_month',
                 'chart' => 'stat',
-                'size' => 'small',
+                'size' => '4x4',
             ]
         ];
 
@@ -88,7 +88,7 @@ class DashboardSanitizerTest extends TestCase
                 'reading_key' => 'sales.revenue',
                 'period' => 'today',
                 'chart' => 'stat',
-                'size' => 'small',
+                'size' => '4x4',
                 'x' => 0,
                 'y' => $i,
             ];

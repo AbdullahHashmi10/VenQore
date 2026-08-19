@@ -100,8 +100,8 @@ class StockTakeController extends Controller
 
     protected function adjustStock($productId, $warehouseId, $difference, $reference)
     {
-        /** @var \App\Services\V3\InventoryService $v3Inventory */
-        $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+        /** @var \App\Engines\InventoryService $v3Inventory */
+        $v3Inventory = resolve(\App\Engines\InventoryService::class);
         $v3Inventory->adjustStock(
             productId:   $productId,
             warehouseId: $warehouseId,

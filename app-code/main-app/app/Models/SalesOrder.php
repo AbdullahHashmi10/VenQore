@@ -28,7 +28,7 @@ class SalesOrder extends Model
         if (!$this->customer_id || !$this->tenant_id) {
             return null;
         }
-        return \App\Services\LedgerService::partyNetBalance(
+        return \App\Queries\PartyBalanceQuery::partyNetBalance(
             $this->customer_id,
             $this->tenant_id
         );

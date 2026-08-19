@@ -43,7 +43,7 @@ class DebitNote extends Model
         if (!$this->supplier_id || !$this->tenant_id) {
             return null;
         }
-        return \App\Services\LedgerService::partyNetBalance(
+        return \App\Queries\PartyBalanceQuery::partyNetBalance(
             $this->supplier_id,
             $this->tenant_id
         );

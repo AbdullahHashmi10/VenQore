@@ -11,7 +11,7 @@ use App\Models\JournalItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Services\V3\AccountingService;
+use App\Engines\AccountingService;
 
 class PosReturnController extends Controller
 {
@@ -62,6 +62,7 @@ class PosReturnController extends Controller
             DB::transaction(function () use ($request, $tenant, $warehouseId, $idempotencyKey, &$returnTotal, &$returnRef) {
                 $items   = $request->input('items');
                 $reason  = $request->input('reason', 'POS Open Return');
+                $refundReason = $request->input('refund_reason', $reason);
 
                 $returnTotal = collect($items)->sum(fn($i) => $i['price'] * $i['quantity']);
                 $returnRef   = 'RET-' . strtoupper(uniqid());
@@ -84,6 +85,7 @@ class PosReturnController extends Controller
                     'net_sales'        => -$returnTotal,
                     'invoice_total'    => -$returnTotal,
                     'notes'            => $reason,
+                    'refund_reason'    => $refundReason,
                     'posted_at'        => now(),
                 ]);
 
@@ -124,7 +126,7 @@ class PosReturnController extends Controller
 
                     $unitCost = \App\Models\Product::find($item['product_id'])?->cost_price ?? $item['price'];
 
-                    $newBatch = app(\App\Services\V3\FifoService::class)->receiveBatch(
+                    $newBatch = app(\App\Engines\FifoService::class)->receiveBatch(
                         productId:   $item['product_id'],
                         warehouseId: $warehouseId,
                         qty:         $item['quantity'],
@@ -175,7 +177,7 @@ class PosReturnController extends Controller
                 }
 
                 if (!empty($lines)) {
-                    app(\App\Services\V3\AccountingService::class)->createEntry([
+                    app(\App\Engines\AccountingService::class)->createEntry([
                         'date'            => now()->toDateString(),
                         'reference_type'  => 'sale_return',
                         'reference'       => $sale->id,

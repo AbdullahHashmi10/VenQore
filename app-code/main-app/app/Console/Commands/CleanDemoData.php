@@ -39,8 +39,8 @@ class CleanDemoData extends Command
         $tables = [
             'sales', 'sale_items',
             'invoices', 'invoice_items',
-            'transactions', 'transaction_allocations',
-            'payments', 'payment_allocations',
+            'transactions', 'allocations',
+            'payments', 'allocations',
             'expenses', 
             'stock_movements',
             'stocks', // Quantity data
@@ -58,7 +58,7 @@ class CleanDemoData extends Command
             'parties', 'customers', 'suppliers',
             
             // Manufacturing
-            'recipes', 'recipe_ingredients', 
+            'compositions', 'composition_items', 
             'production_logs', 'manufacturing_logs',
             
             // System

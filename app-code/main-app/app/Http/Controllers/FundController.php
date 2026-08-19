@@ -20,7 +20,7 @@ class FundController extends Controller
      */
     public function index()
     {
-        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $accountingSvc = resolve(\App\Engines\AccountingService::class);
         $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
         try {
             $cashBalance = (float) $accountingSvc->getBalance('1000');
@@ -190,7 +190,7 @@ class FundController extends Controller
      */
     public function history()
     {
-        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $accountingSvc = resolve(\App\Engines\AccountingService::class);
         $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
         
         try {
@@ -287,7 +287,7 @@ class FundController extends Controller
         DB::beginTransaction();
         try {
             $amount = (float) $request->amount;
-            $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountingSvc = resolve(\App\Engines\AccountingService::class);
 
             if ($request->account_type === 'cash') {
                 // Add to Cash Account (GL 1000)
@@ -345,7 +345,7 @@ class FundController extends Controller
             // For Bank transactions, reference must be the bank_account_id for v3Balance() to find it
             $journalRef = $request->account_type === 'bank' ? $request->bank_account_id : $fundTransaction->id;
 
-            app(\App\Services\V3\AccountingService::class)->createEntry([
+            app(\App\Engines\AccountingService::class)->createEntry([
                 'date'     => now()->toDateString(),
                 'reference_type' => 'fund_add',
                 'reference'   => $journalRef,
@@ -390,7 +390,7 @@ class FundController extends Controller
         DB::beginTransaction();
         try {
             $amount = (float) $request->amount;
-            $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountingSvc = resolve(\App\Engines\AccountingService::class);
 
             if ($request->account_type === 'cash') {
                 $account = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
@@ -461,7 +461,7 @@ class FundController extends Controller
             // For Bank transactions, reference must be the bank_account_id for v3Balance() to find it
             $journalRef = $request->account_type === 'bank' ? $request->bank_account_id : $fundTransaction->id;
 
-            app(\App\Services\V3\AccountingService::class)->createEntry([
+            app(\App\Engines\AccountingService::class)->createEntry([
                 'date'     => now()->toDateString(),
                 'reference_type' => 'fund_remove',
                 'reference'   => $journalRef,
@@ -517,7 +517,7 @@ class FundController extends Controller
         DB::beginTransaction();
         try {
             $amount = (float) $request->amount;
-            $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountingSvc = resolve(\App\Engines\AccountingService::class);
 
             // Deduct from source
             if ($request->from_type === 'cash') {
@@ -586,7 +586,7 @@ class FundController extends Controller
             if ($request->to_type === 'bank') $journalRef = $request->to_bank_id;
             elseif ($request->from_type === 'bank') $journalRef = $request->from_bank_id;
 
-            app(\App\Services\V3\AccountingService::class)->createEntry([
+            app(\App\Engines\AccountingService::class)->createEntry([
                 'date'     => now()->toDateString(),
                 'reference_type' => 'fund_transfer',
                 'reference'   => $journalRef,
@@ -634,7 +634,7 @@ class FundController extends Controller
         DB::beginTransaction();
         try {
             $newBalance = (float) $request->new_balance;
-            $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountingSvc = resolve(\App\Engines\AccountingService::class);
 
             if ($request->account_type === 'cash') {
                 $account = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
@@ -722,7 +722,7 @@ class FundController extends Controller
         $days = $request->get('days', 7);
         $startDate = Carbon::now()->subDays($days)->startOfDay();
 
-        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $accountingSvc = resolve(\App\Engines\AccountingService::class);
         $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
 
         $transactions = $cashAccount->journalItems()
@@ -740,7 +740,7 @@ class FundController extends Controller
                 ];
             });
 
-        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $accountingSvc = resolve(\App\Engines\AccountingService::class);
         return response()->json([
             'transactions' => $transactions,
             'balance' => (float) $accountingSvc->getBalance('1000')

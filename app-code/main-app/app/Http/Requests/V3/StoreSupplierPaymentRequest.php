@@ -14,6 +14,7 @@ class StoreSupplierPaymentRequest extends FormRequest
             'supplier_id'     => ['required', 'string', 'exists:parties,id'],
             'payment_date'    => ['required', 'date', 'before_or_equal:today'],
             'payment_method'  => ['required', 'in:cash,bank'],
+            'bank_account_id' => ['nullable', 'string', 'exists:bank_accounts,id'],
             'amount'          => ['required', 'numeric', 'min:0.01'],
             'reference'       => ['nullable', 'string', 'max:100'],
             'allocations'     => ['required', 'array', 'min:1'],

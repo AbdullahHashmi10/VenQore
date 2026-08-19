@@ -210,7 +210,7 @@ Route::prefix('tools')->name('tools.')->group(function () {
     // no POST endpoint needed at all.
     Route::get('/pos-roi-calculator', [\App\Http\Controllers\Marketing\Tools\PosRoiToolController::class, 'index'])->name('pos-roi');
 
-    // Recipe Costing Calculator — Calculators group. Pure client-side math
+    // Composition Costing Calculator — Calculators group. Pure client-side math
     // tool (ingredient unit conversion, cost per portion, target food-cost
     // % pricing), no POST endpoint needed at all.
     Route::get('/food-cost-calculator', [\App\Http\Controllers\Marketing\Tools\FoodCostToolController::class, 'index'])->name('food-cost');
@@ -374,13 +374,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::delete('/terminal-pairing-tokens/{id}', [\App\Http\Controllers\TerminalPairingController::class, 'destroy'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.destroy');
 
         // POS (on-demand API, no full catalog pre-load)
-        Route::get('/pos',                     [\App\Http\Controllers\PosController::class, 'index'])->name('pos');
         // GAP 1 FIX: Dead route removed. POS sales go through the legacy SaleController via Route::post('sales', ...) at line 1101.
         // Route::post('/pos/sale', ...) was wired to PosController::completeSale() which does not exist.
         Route::get('/pos/products',            [\App\Http\Controllers\Api\PosSearchController::class, 'search'])->name('pos.search');
         Route::get('/pos/products/featured',   [\App\Http\Controllers\Api\PosSearchController::class, 'featured'])->name('pos.featured');
         Route::get('/pos/categories',          [\App\Http\Controllers\Api\PosSearchController::class, 'categories'])->name('pos.categories');
         Route::get('/pos/barcode/{code}',      [\App\Http\Controllers\Api\PosSearchController::class, 'findByBarcode'])->name('pos.barcode');
+        Route::get('/pos/recent-sales',        [\App\Http\Controllers\Api\PosSearchController::class, 'recentSales'])->name('pos.recent-sales');
         // pos.open / pos.close removed 2026-08-02 — see PosController note above.
 
         // Staff management (within this store)
@@ -448,6 +448,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
         Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
         Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->name('restaurant.table.status');
+
+        // Occupancy API endpoints
+        Route::get('/api/occupancies', [\App\Http\Controllers\RestaurantDashboardController::class, 'getOccupancies'])->name('api.occupancies');
+        Route::post('/api/occupancies/occupy', [\App\Http\Controllers\RestaurantDashboardController::class, 'occupyPosition'])->middleware('permission:pos.checkout')->name('api.occupancies.occupy');
+        Route::post('/api/occupancies/release', [\App\Http\Controllers\RestaurantDashboardController::class, 'releasePosition'])->middleware('permission:pos.checkout')->name('api.occupancies.release');
         Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->name('restaurant.order.status');
 
         // Trial expired landing (within store context)
@@ -809,6 +814,14 @@ Route::get('/welcome-splash', function () {
     return Inertia::render('Welcome');
 })->middleware('auth')->name('welcome-splash');
 
+// ── "Build Your Workspace" — AI-Driven Frictionless Experience ────────────
+// provision() creates a tenant + user unauthenticated, so it is throttled
+// separately (and more tightly) than the read-only analyze() endpoint to stop
+// mass tenant creation.
+Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController::class, 'show'])->name('workspace.build');
+Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
+Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware('throttle:5,1')->name('workspace.provision');
+
 
 
 // ── Gift Access Links: public preview page ────────────────────────────────────
@@ -989,7 +1002,7 @@ Route::middleware([])->group(function () {
 
     // Reports are mostly mapped, but let's keep the block for anything that didn't match the specific ones
     Route::any('/reports/{any}',            fn() => \abort(403, 'DEPRECATED: Use /v3/reports/*'))
-         ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
+         ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|purchase-returns|item-wise-discount|daily-sales|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
 });
 
 Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
@@ -1010,6 +1023,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);
     });
     Route::post('/onboarding/step', [\App\Http\Controllers\OnboardingController::class, 'updateStep'])->name('onboarding.step');
+
+    // 7 Core Onboarding Screens (STEP 13)
+    Route::get('/onboarding/v2', [\App\Http\Controllers\OnboardingExperienceController::class, 'index'])->name('onboarding.v2');
+    Route::post('/onboarding/v2/ai-discovery', [\App\Http\Controllers\OnboardingExperienceController::class, 'aiDiscovery'])->name('onboarding.v2.ai-discovery');
+    Route::post('/onboarding/v2/apply-preset', [\App\Http\Controllers\OnboardingExperienceController::class, 'applyPreset'])->name('onboarding.v2.apply-preset');
+    Route::post('/onboarding/v2/complete', [\App\Http\Controllers\OnboardingExperienceController::class, 'completeOnboarding'])->name('onboarding.v2.complete');
+
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
 
@@ -1147,6 +1167,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
         Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
+        Route::get('/reports/purchase-returns', [\App\Http\Controllers\ReportController::class, 'purchaseReturns'])->middleware('plan.feature:purchase_orders')->name('reports.purchase-returns');
         Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
         Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
         Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->middleware('plan.feature:report_party_statement')->name('reports.party-statement');
@@ -1189,6 +1210,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->middleware('plan.feature:stock_aging')->name('reports.stock-aging');
         Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->middleware('plan.feature:report_party_statement')->name('reports.sale-purchase-by-party-group');
         Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
+        Route::get('/reports/refund-reasons', [\App\Http\Controllers\ReportController::class, 'refundReasons'])->name('reports.refund-reasons');
 
         // New reports: Point-In-Time Inventory, Customer Insights, Supplier Insights
         Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->middleware('plan.feature:point_in_time_inventory')->name('reports.point-in-time-inventory');
@@ -1207,13 +1229,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     });
 
     // Cookbook
-    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:recipes')->name('cookbook.index');
-    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:recipes')->name('cookbook.create');
-    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('plan.feature:recipes')->name('cookbook.store');
-    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:recipes')->name('cookbook.edit');
-    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('plan.feature:recipes')->name('cookbook.update');
-    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('plan.feature:recipes')->name('cookbook.destroy');
-    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('plan.feature:recipes')->name('cookbook.simulate');
+    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:compositions')->name('cookbook.index');
+    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:compositions')->name('cookbook.create');
+    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('plan.feature:compositions')->name('cookbook.store');
+    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:compositions')->name('cookbook.edit');
+    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('plan.feature:compositions')->name('cookbook.update');
+    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('plan.feature:compositions')->name('cookbook.destroy');
+    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('plan.feature:compositions')->name('cookbook.simulate');
 
     // growth-engine
     Route::middleware(['permission:reports.summary', 'plan.feature:growth_engine'])->group(function () {
@@ -1435,6 +1457,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.create');
     Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.show');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.index');
@@ -1505,10 +1528,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     Route::get('/sales/{sale}/print', [\App\Http\Controllers\SaleController::class, 'printReceipt'])->name('sales.print');
 
-    // Proposals
-    Route::resource('proposals', \App\Http\Controllers\ProposalController::class);
-    Route::post('/proposals/{proposal}/convert', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->name('proposals.convert');
-
     Route::get('/sales/lookup', [\App\Http\Controllers\SaleController::class, 'lookup'])->name('sales.lookup');
 
     // Parked Sales (Hold Bill) - MUST BE BEFORE /sales/{sale}
@@ -1566,6 +1585,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'store']);
     Route::patch('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'update']);
     Route::delete('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'destroy']);
+    Route::post('/api/manufacturing-rules/{id}/simulate', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'simulate'])->middleware('permission:inventory.edit');
 
     // Categories API
     Route::get('/api/categories', function () {
@@ -1592,7 +1612,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Custom Charges
     Route::get('/api/custom-charges', function () {
-        return \response()->json(\App\Models\CustomCharge::active()->get());
+        return \response()->json(\App\Models\AdHocLine::active()->get());
     })->name('api.custom-charges');
 
     Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
@@ -1757,6 +1777,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->name('debit-notes.create');
     Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->name('debit-notes.show');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:purchases.edit')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
@@ -1878,7 +1899,7 @@ Route::middleware(['auth', 'throttle:api'])->get(
 // problems report) — ReckonerController itself checks
 // app()->bound('current.tenant') and returns 400 rather than assume it, so
 // this route fails safely either way.
-Route::middleware(['auth', 'throttle:api'])->group(function () {
+Route::middleware(['auth', 'throttle:api', \App\Http\Middleware\ApiTenantResolver::class])->group(function () {
     Route::get('/api/reckoner/catalogue', [\App\Http\Controllers\Api\ReckonerController::class, 'catalogue'])
         ->name('api.reckoner.catalogue');
     Route::post('/api/reckoner/read', [\App\Http\Controllers\Api\ReckonerController::class, 'read'])

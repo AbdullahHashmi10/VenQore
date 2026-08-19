@@ -89,7 +89,7 @@ class RunDepreciation extends Command
                     'credit'     => 0,
                 ];
 
-                app(\App\Services\V3\AccountingService::class)->createEntry([
+                app(\App\Engines\AccountingService::class)->createEntry([
                     'date'           => $date->toDateString(),
                     'reference_type' => 'manual',
                     'reference'      => 'DEP-' . $date->format('Ymd'),

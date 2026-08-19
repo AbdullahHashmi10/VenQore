@@ -202,7 +202,7 @@ class VerifyMap extends Command
             'create-or-join', 'join', 'setup', 'pos', 'online-store', 'woocommerce', 'woo.plugin',
             'warehouses', 'attributes', 'categories', 'products.create', 'staff-attendance', 
             'staff.attendance', 'attendance.status', 'stock-transfers', 'stock-takes',
-            'recipes', 'serials', 'batches', 'debit-notes.create', 'debit-notes.index',
+            'compositions', 'serials', 'batches', 'debit-notes.create', 'debit-notes.index',
             'recurring-invoices', 'pre-sales', 'parked-sales', 'customers.create', 'presales.create',
             'marketing-campaigns'
         ];
@@ -346,7 +346,8 @@ class VerifyMap extends Command
         
         $isLedgerService = str_contains($content, 'FinancialReportingService') || 
                             str_contains($content, 'AccountingService') || 
-                            str_contains($content, 'LedgerService');
+                            str_contains($content, 'LedgerService') ||
+                            str_contains($content, 'PartyBalanceQuery');
                             
         $hasTransactionQuery = str_contains($content, 'Sale::') || 
                                str_contains($content, 'Purchase::') || 

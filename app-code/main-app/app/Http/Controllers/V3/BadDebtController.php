@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\AccountingService;
+use App\Engines\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -35,7 +35,7 @@ class BadDebtController extends Controller
         }
 
         // Outstanding = invoice total minus active allocations
-        $allocated = (float) DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
+        $allocated = (float) DB::table('allocations')->where('allocations.tenant_id', app('current.tenant')->id)
             ->where('sale_id', $saleId)
             ->where('status', 'active')
             ->sum('allocated_amount');

@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\Party;
 use App\Models\Warehouse;
 use App\Models\User;
-use App\Services\V3\SaleService;
+use App\Engines\SaleService;
 use Carbon\Carbon;
 
 class DemoSalesSeeder extends Seeder

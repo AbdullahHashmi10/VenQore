@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\InvoiceReminder;
 use App\Models\Sale;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceReminderController extends Controller
 {
@@ -84,9 +85,52 @@ class InvoiceReminderController extends Controller
     
     public function send(Request $request, $store_slug, $id) 
     {
-        $reminder = InvoiceReminder::findOrFail($id);
+        $reminder = InvoiceReminder::with(['invoice', 'customer'])->findOrFail($id);
         
-        // Set as sent
+        $phone = $reminder->customer->phone;
+        $amount = (float)($reminder->invoice->invoice_total ?? $reminder->invoice->total ?? 0.0);
+        $messageBody = "Dear {$reminder->customer->name}, this is a reminder that invoice #{$reminder->invoice->reference_number} is outstanding. Amount: " . $amount;
+
+        if (!$phone) {
+            return redirect()->back()->with('error', 'Customer does not have a phone number registered.');
+        }
+
+        if ($reminder->type === 'whatsapp') {
+            try {
+                if (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
+                    $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
+                    $twilio->messages->create(
+                        "whatsapp:" . $phone,
+                        [
+                            "from" => "whatsapp:" . config('services.twilio.whatsapp_from'),
+                            "body" => $messageBody
+                        ]
+                    );
+                } else {
+                    Log::info("Twilio Client not available or credentials missing. Simulated WhatsApp sent to {$phone}: {$messageBody}");
+                }
+            } catch (\Exception $e) {
+                Log::error("Failed to send Twilio WhatsApp reminder: " . $e->getMessage());
+            }
+        } else {
+            try {
+                if (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
+                    $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
+                    $twilio->messages->create(
+                        $phone,
+                        [
+                            "from" => config('services.twilio.sms_from', 'VenQore'),
+                            "body" => $messageBody
+                        ]
+                    );
+                } else {
+                    Log::info("Twilio Client not available or credentials missing. Simulated SMS sent to {$phone}: {$messageBody}");
+                }
+            } catch (\Exception $e) {
+                Log::error("Failed to send Twilio SMS reminder: " . $e->getMessage());
+            }
+        }
+
         $reminder->update([
             'status' => 'sent'
         ]);

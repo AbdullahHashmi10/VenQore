@@ -1,0 +1,37 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Forms — input, select, checkbox, switch, search" subtitle="48px fields, label above, mint focus ring" -->
+<!doctype html><html><head><meta charset="utf-8">
+<title>Form components</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--vq-bg);font-family:var(--vq-font-sans)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.stack{display:flex;flex-direction:column;gap:14px}.lbl{font-family:var(--vq-font-numeric);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { Input, Select, Checkbox, Switch, SearchField } = window.VenQoreDesignSystem_76c34c;
+function Demo(){
+  const [v,setV]=React.useState("Rana Traders");
+  const [c,setC]=React.useState(true);
+  const [s,setS]=React.useState(true);
+  return (
+    <div className="stack">
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+        <Input label="Business name" value={v} onChange={e=>setV(e.target.value)} />
+        <Input label="Opening balance" prefix="Rs" value="3,222.00" hint="Tabular figures, always" />
+        <Select label="Currency" options={["PKR — Rupee","USD — Dollar","AED — Dirham"]} />
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:14,alignItems:"end"}}>
+        <Input label="Email" value="ahmad@ranatraders.pk" error="That address is already registered" />
+        <Select size="sm" options={["Today","Month","Year"]} label="Period" />
+      </div>
+      <div className="row" style={{gap:24}}>
+        <SearchField width={300}/>
+        <Checkbox label="Track batch & expiry" checked={c} onChange={setC}/>
+        <Switch label="Month-end summary" checked={s} onChange={setS}/>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+</script></body></html>

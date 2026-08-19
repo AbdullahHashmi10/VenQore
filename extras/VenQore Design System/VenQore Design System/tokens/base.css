@@ -1,0 +1,70 @@
+/* The handful of globals the system depends on. Everything else is a token. */
+html {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--vq-bg);
+  color: var(--vq-text);
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-body);
+  line-height: var(--vq-lh-body);
+  letter-spacing: var(--vq-ls-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display voice is opt-in — Bricolage on headings, never on UI labels. */
+.vq-display, h1, h2, h3 {
+  font-family: var(--vq-font-display);
+  font-weight: var(--vq-fw-semi);
+  letter-spacing: var(--vq-ls-h1);
+  margin: 0;
+}
+
+/* Every number that means money, stock, or a count. */
+.vq-num, .vq-metric, td.vq-num {
+  font-family: var(--vq-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.vq-eyebrow {
+  font-family: var(--vq-font-numeric);
+  font-size: var(--vq-fs-eyebrow);
+  line-height: var(--vq-lh-eyebrow);
+  letter-spacing: var(--vq-ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--vq-fw-medium);
+  color: var(--vq-text-3);
+}
+
+a { color: var(--vq-accent-text); text-decoration-color: var(--vq-accent-quiet-line); text-underline-offset: 3px; transition: color var(--vq-dur-1) var(--vq-ease-out); }
+a:hover { color: var(--vq-accent-fill-hover); text-decoration-color: currentColor; }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--vq-focus);
+  outline-offset: 2px;
+  border-radius: var(--vq-r-sm);
+}
+
+p { max-width: var(--vq-measure); text-wrap: pretty; }
+
+/* Theme swaps are instant. A colour transition bound to a theme custom property
+   can be left painted at the OLD theme's resolved value, so the toggle adds
+   .vq-theming to <html>, flips data-theme, and removes it on the next frame. */
+html.vq-theming, html.vq-theming *, html.vq-theming *::before, html.vq-theming *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -80,7 +80,7 @@ class Appearance
      * is a different bug wearing the same hidden-page costume. Nobody sees
      * anything but Midnight Nebula and Classic until this flips back.
      */
-    public const NEW_EXPERIENCE_ENABLED = false;
+    public const NEW_EXPERIENCE_ENABLED = true;
 
     public static function defaults(): array
     {

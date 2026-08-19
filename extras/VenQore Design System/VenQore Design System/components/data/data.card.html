@@ -1,0 +1,56 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Data — KPI, ring, meters, table, activity" subtitle="Tabular figures, rules-only tables, chunky gauges" -->
+<!doctype html><html><head><meta charset="utf-8">
+<title>Data components</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--vq-bg);font-family:var(--vq-font-sans)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.stack{display:flex;flex-direction:column;gap:14px}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { StatCard, ProgressRing, BarMeter, DataTable, ActivityRow, Card, Badge } = window.VenQoreDesignSystem_76c34c;
+function Demo(){
+  return (
+    <div className="stack">
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
+        <StatCard tone="accent" label="Net balance" value="6,636,549" unit="Rs" delta="8.2%" caption="vs last month"/>
+        <StatCard label="Profit margin" value="54" unit="%" delta="2.1%" caption="net / revenue"/>
+        <StatCard label="Overdue" value="10,260" unit="Rs" delta="3.1%" deltaTone="down" caption="receivables"/>
+        <StatCard label="Pending actions" value="3" unit="items" caption="needs approval"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1.1fr 1fr",gap:14,alignItems:"start"}}>
+        <Card title="Inventory" action={<Badge tone="warning">Action needed</Badge>}>
+          <div style={{display:"flex",gap:18,alignItems:"center"}}>
+            <ProgressRing value={33} size={112} sublabel="Inventory"/>
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:12}}>
+              <BarMeter label="Healthy" value={75} color="var(--vq-success)"/>
+              <BarMeter label="Low" value={12} color="var(--vq-warning)"/>
+              <BarMeter label="Out" value={13} color="var(--vq-danger)"/>
+            </div>
+          </div>
+        </Card>
+        <Card title="Business activity">
+          <div>
+            <ActivityRow tone="in" title="Sale #SAL-R1-070826" meta="1 day ago" amount="+Rs 5,922.00"/>
+            <ActivityRow tone="out" title="Purchase #PUR-R1-2210" meta="1 week ago" amount="−Rs 1,700.00"/>
+            <ActivityRow tone="out" title="Purchase #PUR-R1-2209" meta="1 week ago" amount="−Rs 1,000.00"/>
+          </div>
+        </Card>
+      </div>
+      <Card title="Invoices" pad={12}>
+        <DataTable
+          columns={[{key:"ref",label:"Invoice"},{key:"party",label:"Customer"},{key:"status",label:"Status",render:r=><Badge tone={r.tone}>{r.status}</Badge>},{key:"amount",label:"Amount",numeric:true}]}
+          rows={[
+            {ref:"INV-2291",party:"Rana Traders",status:"Paid",tone:"success",amount:"128,400.00"},
+            {ref:"INV-2290",party:"Bilal Pharmacy",status:"Overdue",tone:"danger",amount:"10,260.00"},
+            {ref:"INV-2289",party:"Zoya Retail",status:"Draft",tone:"neutral",amount:"274,240.00"},
+          ]}
+          totals={{amount:"412,900.00"}}
+        />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+</script></body></html>

@@ -165,7 +165,7 @@ class DashboardController extends Controller
     private function purchasingDashboard(Carbon $now)
     {
         // Recent purchase orders — V3: purchases live in `purchases`.
-        // This previously read Invoice::where('type','purchase') with a fallback
+        // This previously queried the invoices table for type = purchase with a fallback
         // to `purchases` in a catch block. The catch never fired: an emptied
         // legacy table does not throw, it returns zero rows. Reading the right
         // table directly is the fix.
@@ -523,7 +523,7 @@ class DashboardController extends Controller
                 });
 
                 // V3: Use the unified ledger for the primary Cash account balance (GL 1000)
-                $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+                $accountingSvc = resolve(\App\Engines\AccountingService::class);
                 $cashBalance = (float) $accountingSvc->getBalance('1000');
 
                 $cashData = [

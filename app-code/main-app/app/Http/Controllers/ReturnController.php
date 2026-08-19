@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
-use App\Services\V3\FifoService;
-use App\Services\LedgerService;
+use App\Engines\FifoService;
+use App\Queries\PartyBalanceQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -94,7 +94,7 @@ class ReturnController extends Controller
             ->findOrFail($id);
 
         if ($return->party_id) {
-            $net        = LedgerService::partyNetBalance($return->party_id, $return->tenant_id ?? app('current.tenant')->id);
+            $net        = PartyBalanceQuery::partyNetBalance($return->party_id, $return->tenant_id ?? app('current.tenant')->id);
             $balanceDue = max(0, (float) abs($return->total) - (float) $return->payments->sum('amount'));
             $return->customer_net_balance  = $net;
             $return->customer_prev_balance = $net - $balanceDue;
@@ -241,7 +241,7 @@ class ReturnController extends Controller
             unset($data); // clean up foreach reference
 
             // 4. Financials / Accounting
-            $accounting = app(\App\Services\V3\AccountingService::class);
+            $accounting = app(\App\Engines\AccountingService::class);
             $journalItems = [];
 
             // DR: Sales Revenue (reduce income by subtotal since it was a return)

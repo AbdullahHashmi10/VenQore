@@ -10,10 +10,10 @@ use App\Models\Payment;
 use App\Models\StockMovement;
 use App\Models\ParkedSale;
 use App\Services\AutoManufacturingService;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use App\Services\FbrService;
-use App\Services\LedgerService;
+use App\Queries\PartyBalanceQuery;
 use App\Services\FinancialReportingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -160,6 +160,7 @@ class SaleController extends Controller
             //   multi-rate invoices without any extra branch.
             $sumLineNets = max(0, $subtotalGross - $totalItemDiscounts); // Σ(net after item discount)
             $totalTax    = 0.0;
+            $taxInclusive = (bool) $request->input('tax_inclusive', false);
 
             foreach ($lineItemsData as &$ld) {
                 // Each line's share of the global discount, weighted by its net.
@@ -168,17 +169,29 @@ class SaleController extends Controller
                     ? $globalDiscount * ($ld['net'] / $sumLineNets)
                     : 0.0;
                 $lineTaxable   = max(0.0, $ld['net'] - $lineShare);
-                $taxAmt        = round($lineTaxable * ($ld['tax_rate'] / 100), 2);
+                
+                if ($taxInclusive) {
+                    $taxAmt = round($lineTaxable - ($lineTaxable / (1 + $ld['tax_rate'] / 100)), 2);
+                } else {
+                    $taxAmt = round($lineTaxable * ($ld['tax_rate'] / 100), 2);
+                }
+                
                 $ld['tax_amt'] = $taxAmt;
                 $totalTax     += $taxAmt;
             }
             unset($ld); // release reference
 
-            $netSales       = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
             $deliveryCharge = (float)($request->delivery_charge ?? 0);
             $extraCharge    = (float)($request->extra_charge_value ?? 0);
             
-            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
+            if ($taxInclusive) {
+                $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount - $totalTax);
+                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($subtotalGross - $totalItemDiscounts - $globalDiscount + $deliveryCharge + $extraCharge, 2));
+            } else {
+                $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
+                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
+            }
+            
             $roundOff     = $invoiceTotal - ($netSales + $totalTax + $deliveryCharge + $extraCharge);
 
             // ── Credit Limit Check ──
@@ -293,6 +306,7 @@ class SaleController extends Controller
                     'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
                     'payment_method'       => $request->payment_method,
                     'due_date'             => \App\Services\PlanRepository::canUseFeature(app('current.tenant'), 'payment_due_dates') ? $request->input('due_date') : null,
+                    'is_dropship'          => $request->input('is_dropship', false),
                 ]);
             });
 
@@ -302,7 +316,7 @@ class SaleController extends Controller
                 $product = $ld['product'];
                 $totalQty = $ld['qty'] + $ld['free_qty'];
 
-                if ($isStockEnabled) {
+                if ($isStockEnabled && $product->type !== 'service' && !$sale->is_dropship) {
                     $stock = \App\Models\Stock::where('product_id', $ld['product_id'])->where('warehouse_id', $sale->warehouse_id)->first();
                     $avail = $stock ? $stock->quantity : 0;
 
@@ -374,10 +388,10 @@ class SaleController extends Controller
                 // product's flat cost_price is when stock tracking is DISABLED for the
                 // product (service / non-inventory items that legitimately have no batches).
                 $itemCogs = 0;
-                if ($isStockEnabled) {
+                if ($isStockEnabled && $product->type !== 'service') {
                     // Let InsufficientStockException propagate — the outer catch turns it
                     // into a clean 422 + full rollback. No fabrication, no partial post.
-                    $deductions = app(\App\Services\V3\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
+                    $deductions = app(\App\Engines\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
                     foreach ($deductions as $d) {
                         $itemCogs += $d['total_cost'];
                         DB::table('sale_item_batches')->insert([
@@ -401,7 +415,7 @@ class SaleController extends Controller
                 $totalCogs += $itemCogs;
 
                 // Legacy Stock Update
-                if ($isStockEnabled) {
+                if ($isStockEnabled && $product->type !== 'service') {
                     if ($ld['variant_id']) {
                         ProductVariant::find($ld['variant_id'])?->decrement('stock', $totalQty);
                     } else {
@@ -745,14 +759,14 @@ class SaleController extends Controller
             ->get(['id', 'name', 'code']);
 
         if ($sale->customer) {
-            $netBalance = LedgerService::partyNetBalance(
+            $netBalance = PartyBalanceQuery::partyNetBalance(
                 $sale->customer->id,
                 $sale->tenant_id
             );
             $sale->customer->current_balance = $netBalance;
 
             $sale->customer_net_balance  = $netBalance;
-            $sale->customer_prev_balance = LedgerService::partyBalanceExcludingDocument(
+            $sale->customer_prev_balance = PartyBalanceQuery::partyBalanceExcludingDocument(
                 $sale->customer->id,
                 $sale->tenant_id,
                 $sale->id
@@ -779,8 +793,8 @@ class SaleController extends Controller
         $settings = \App\Models\Setting::all()->pluck('value', 'key');
 
         if ($sale->party_id) {
-            $sale->customer_net_balance  = LedgerService::partyNetBalance($sale->party_id, $sale->tenant_id);
-            $sale->customer_prev_balance = LedgerService::partyBalanceExcludingDocument(
+            $sale->customer_net_balance  = PartyBalanceQuery::partyNetBalance($sale->party_id, $sale->tenant_id);
+            $sale->customer_prev_balance = PartyBalanceQuery::partyBalanceExcludingDocument(
                 $sale->party_id,
                 $sale->tenant_id,
                 $sale->id
@@ -837,7 +851,7 @@ class SaleController extends Controller
                     //   2. Restores FIFO inventory_batches exactly as deducted
                     //   3. Restores stock aggregates
                     //   4. Sets sale status = 'returned'
-                    (new \App\Services\SaleReversalService())->reverse(
+                    (new \App\Engines\SaleReversalService())->reverse(
                         sale:   $sale,
                         type:   'returned',
                         reason: $reason,
@@ -986,7 +1000,7 @@ class SaleController extends Controller
 
                     // Post the partial reversal journal entry
                     if (!empty($journalItems)) {
-                        app(\App\Services\V3\AccountingService::class)->createEntry([
+                        app(\App\Engines\AccountingService::class)->createEntry([
                             'date'        => now()->toDateString(),
                             'reference'   => 'PRET-' . $sale->reference_number,
                             'description' => "Partial return of {$sale->reference_number}. Reason: {$reason}",
@@ -1081,38 +1095,70 @@ class SaleController extends Controller
     }
 
     /**
-     * Park (Hold) a sale for later completion
+     * Park (Hold) a sale for later completion.
+     * Deploy D: writes directly to Occupancy (canonical). ParkedSale table retired.
      */
     public function park(Request $request)
     {
         $request->validate([
-            'cart_data' => 'required|array',
+            'cart_data'     => 'required|array',
             'customer_name' => 'nullable|string',
+            'invoice_number'        => 'nullable|string',
+            'is_dropship'           => 'boolean',
         ]);
 
-        $parkedSale = ParkedSale::create([
-            'cart_data' => $request->cart_data,
-            'user_id' => Auth::id(),
-            'customer_name' => $request->customer_name,
-            'expires_at' => now()->addHours(24), // Expires in 24 hours
+        $tenant = app('current.tenant');
+        $uuid   = (string) \Illuminate\Support\Str::uuid();
+
+        // Ensure a counter position exists for this tenant
+        $pos = \App\Models\Position::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'zone' => 'counter', 'code' => 'CTR'],
+            ['label' => 'Counter (Parked)', 'capacity' => 99, 'status' => 'active', 'sort_order' => 9999, 'source_type' => 'parked_sale_slot']
+        );
+
+        $occ = \App\Models\Occupancy::create([
+            'tenant_id'    => $tenant->id,
+            'position_id'  => $pos->id,
+            'source_type'  => 'parked_sale',
+            'source_id'    => $uuid,
+            'label'        => $request->customer_name ?? 'Parked Cart',
+            'session_data' => array_merge($request->cart_data, ['customer_name' => $request->customer_name]),
+            'opened_by'    => Auth::id(),
+            'opened_at'    => now(),
+            'expires_at'   => now()->addHours(24),
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Sale parked successfully',
-            'parked_sale_id' => $parkedSale->id,
+            'success'        => true,
+            'message'        => 'Sale parked successfully',
+            'parked_sale_id' => $occ->source_id,
         ]);
     }
 
     /**
-     * Get all active (non-expired) parked sales
+     * Get all active (non-expired) parked sales.
+     * Deploy D: reads from canonical Occupancy table.
      */
     public function getParkedSales()
     {
-        $parkedSales = ParkedSale::active()
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $tenant = app('current.tenant');
+
+        $parkedSales = \App\Models\Occupancy::where('tenant_id', $tenant->id)
+            ->where('source_type', 'parked_sale')
+            ->whereNull('closed_at')
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->where('opened_by', Auth::id())
+            ->orderBy('opened_at', 'desc')
+            ->get()
+            ->map(fn ($occ) => [
+                'id'            => $occ->source_id,
+                'cart_data'     => $occ->session_data,
+                'customer_name' => $occ->label !== 'Parked Cart' ? $occ->label : null,
+                'expires_at'    => $occ->expires_at,
+                'created_at'    => $occ->opened_at,
+            ]);
 
         return response()->json([
             'parked_sales' => $parkedSales,
@@ -1120,33 +1166,52 @@ class SaleController extends Controller
     }
 
     /**
-     * Recall (load) a parked sale
+     * Recall (load) a parked sale.
+     * Deploy D: reads from canonical Occupancy table via source_id.
      */
     public function recall($id)
     {
-        $parkedSale = ParkedSale::findOrFail($id);
+        $tenant = app('current.tenant');
 
-        // Check if expired
-        if ($parkedSale->isExpired()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This parked sale has expired',
-            ], 410); // 410 Gone
+        $occ = \App\Models\Occupancy::where('tenant_id', $tenant->id)
+            ->where('source_type', 'parked_sale')
+            ->where('source_id', (string) $id)
+            ->whereNull('closed_at')
+            ->first();
+
+        if (!$occ) {
+            return response()->json(['success' => false, 'message' => 'Parked sale not found.'], 404);
+        }
+
+        if ($occ->expires_at && $occ->expires_at->isPast()) {
+            return response()->json(['success' => false, 'message' => 'This parked sale has expired.'], 410);
         }
 
         return response()->json([
-            'success' => true,
-            'parked_sale' => $parkedSale,
+            'success'     => true,
+            'parked_sale' => [
+                'id'            => $occ->source_id,
+                'cart_data'     => $occ->session_data,
+                'customer_name' => $occ->label !== 'Parked Cart' ? $occ->label : null,
+                'expires_at'    => $occ->expires_at,
+                'created_at'    => $occ->opened_at,
+            ],
         ]);
     }
 
     /**
-     * Delete a parked sale
+     * Delete a parked sale.
+     * Deploy D: closes the Occupancy row (source_type=parked_sale).
      */
     public function deleteParked($id)
     {
-        $parkedSale = ParkedSale::findOrFail($id);
-        $parkedSale->delete();
+        $tenant = app('current.tenant');
+
+        \App\Models\Occupancy::where('tenant_id', $tenant->id)
+            ->where('source_type', 'parked_sale')
+            ->where('source_id', (string) $id)
+            ->whereNull('closed_at')
+            ->update(['closed_at' => now()]);
 
         return response()->json([
             'success' => true,
@@ -1163,7 +1228,7 @@ class SaleController extends Controller
         $sale->load(['items.product', 'customer', 'payments']);
         
         if ($sale->customer) {
-            $sale->customer->current_balance = LedgerService::partyNetBalance(
+            $sale->customer->current_balance = PartyBalanceQuery::partyNetBalance(
                 $sale->customer->id,
                 app('current.tenant')->id
             );
@@ -1195,10 +1260,11 @@ class SaleController extends Controller
                     ];
                 })->toArray();
                 
-                app(\App\Services\V3\AccountingService::class)->createEntry([
+                app(\App\Engines\AccountingService::class)->createEntry([
                     'date'           => now()->toDateString(),
                     'reference_type' => 'sale_reversal',
-                    'reference'      => $sale->id,
+                    'reference'      => $request->input('reference'),
+                    'is_dropship'      => $request->input('is_dropship', false),
                     'description'    => 'REVERSAL — ' . $entry->description,
                     'party_id'       => $entry->party_id,
                     'is_reversed'    => 1, // Rule: Reversal of an existing entry must be hidden from balances
@@ -1321,7 +1387,7 @@ class SaleController extends Controller
                 ]));
 
                 // 4.3 Deduct Stock via FIFO (mirrors store() flow exactly)
-                if ($isStockEnabled) {
+                if ($isStockEnabled && $product->type !== 'service') {
                     $qty = $line['quantity'];
 
                     // Check availability if negative stock is blocked (mirrors store() path)
@@ -1337,7 +1403,7 @@ class SaleController extends Controller
                         }
                     }
 
-                    $deductions = app(\App\Services\V3\FifoService::class)->deductStock($line['product_id'], $warehouseId, $qty);
+                    $deductions = app(\App\Engines\FifoService::class)->deductStock($line['product_id'], $warehouseId, $qty);
                     foreach ($deductions as $d) {
                         $itemCogs += $d['total_cost'];
                         DB::table('sale_item_batches')->insert([
@@ -1633,7 +1699,7 @@ class SaleController extends Controller
             $journalItems[] = ['account_id' => $inv->id, 'debit' => 0, 'credit' => $totalCogs, 'description' => "Inventory reduction — #{$sale->reference_number}"];
         }
 
-        return app(\App\Services\V3\AccountingService::class)->createEntry([
+        return app(\App\Engines\AccountingService::class)->createEntry([
             'date'           => $sale->posted_at ? $sale->posted_at->toDateString() : now()->toDateString(),
             'reference_type' => 'sale',
             'reference'      => $sale->id,
@@ -1651,7 +1717,7 @@ class SaleController extends Controller
 
         try {
             DB::transaction(function () use ($sale) {
-                $reversal = new \App\Services\SaleReversalService();
+                $reversal = new \App\Engines\SaleReversalService();
                 $reversal->reverse(
                     sale:   $sale,
                     type:   'cancelled',
@@ -1760,7 +1826,7 @@ class SaleController extends Controller
                 // Run the full financial + FIFO reversal.
                 // This creates the counter journal entry and restores inventory_batches.
                 $reason = request()->input('reason', 'Admin deletion by ' . optional(auth()->user())->name);
-                (new \App\Services\SaleReversalService())->reverse(
+                (new \App\Engines\SaleReversalService())->reverse(
                     sale:   $sale,
                     type:   'cancelled',
                     reason: $reason,

@@ -1,0 +1,31 @@
+<!-- @dsCard group="Components" viewport="700x290" name="Surfaces — card shells" subtitle="White floater, mint focal card, ink feature card" -->
+<!doctype html><html><head><meta charset="utf-8">
+<title>Card shells</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--vq-bg);font-family:var(--vq-font-sans)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.stack{display:flex;flex-direction:column;gap:14px}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { Card, Button, Badge, Select } = window.VenQoreDesignSystem_76c34c;
+function Demo(){
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,alignItems:"start"}}>
+      <Card eyebrow="Past 6 months" title="Purchases trend" action={<Select size="sm" options={["Month","Year"]}/>} lift>
+        <p style={{margin:0,font:"500 13px/1.5 var(--vq-font-sans)",color:"var(--vq-text-2)"}}>White floater on the soft page. Hairline border, soft two-part shadow, 2px lift when clickable.</p>
+      </Card>
+      <Card tone="accent" eyebrow="One per screen" title="Total projects">
+        <div className="vq-num" style={{font:"600 40px/1 var(--vq-font-numeric)",letterSpacing:"-.03em"}}>24</div>
+        <Button variant="secondary" size="sm">Open</Button>
+      </Card>
+      <Card tone="ink" eyebrow="Second loudest" title="Time tracker">
+        <div className="vq-num" style={{font:"600 34px/1 var(--vq-font-numeric)",letterSpacing:"-.03em"}}>01:24:08</div>
+        <div className="row"><Badge tone="success">Running</Badge></div>
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+</script></body></html>

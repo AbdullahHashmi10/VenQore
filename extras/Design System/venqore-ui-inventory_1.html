@@ -1,0 +1,344 @@
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore POS — Complete UI Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        numeric: ['Space Grotesk', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      borderRadius: {
+        none: '0px', xs: '2px', sm: '6px', md: '10px', DEFAULT: '12px',
+        lg: '12px', xl: '16px', '2xl': '20px', '3xl': '24px', full: '9999px',
+      },
+      colors: {
+        surface: 'rgb(var(--vq-bg-surface) / <alpha-value>)',
+        app: 'rgb(var(--vq-bg-app) / <alpha-value>)',
+        raised: 'rgb(var(--vq-bg-raised) / <alpha-value>)',
+        sunken: 'rgb(var(--vq-bg-sunken) / <alpha-value>)',
+      }
+    }
+  }
+}
+
+
+// Senior Mode Toggle
+const vqSeniorBtn = document.getElementById('vqsenior');
+function setVqSeniorMode(enable) {
+  document.documentElement.classList.toggle('senior-mode', enable);
+  document.body.classList.toggle('senior-mode', enable);
+  if (vqSeniorBtn) {
+    vqSeniorBtn.textContent = enable ? '👓 Senior (+30%): ON' : '👓 Senior (+30%): OFF';
+    vqSeniorBtn.classList.toggle('active', enable);
+  }
+  try { localStorage.setItem('vq-inventory-senior', enable ? 'true' : 'false'); } catch(e) {}
+}
+if (vqSeniorBtn) {
+  vqSeniorBtn.addEventListener('click', () => {
+    const isSenior = document.documentElement.classList.contains('senior-mode');
+    setVqSeniorMode(!isSenior);
+  });
+}
+try {
+  if (localStorage.getItem('vq-inventory-senior') === 'true') {
+    setVqSeniorMode(true);
+  }
+} catch(e) {}
+
+</script>
+<style>
+/* Base Navigation & Chrome */
+#vqnav {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 264px;
+  overflow-y: auto; background: #060708; border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px 14px; z-index: 100;
+}
+#vqnav h1 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700;
+  color: #F0F4F4; margin: 0 0 4px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px;
+}
+#vqnav h1::before {
+  content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 999px;
+  background: #0BAA8F; box-shadow: 0 0 10px #0BAA8F;
+}
+#vqnav .sub {
+  font-size: 11px; color: #818B8C; margin-bottom: 18px; line-height: 1.5;
+}
+#vqtheme {
+  display: block; width: 100%; margin: 0 0 16px; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08); background: #0C0E0F; color: #F0F4F4;
+  font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: all 180ms cubic-bezier(.16, 1, .3, 1);
+}
+#vqtheme:hover {
+  background: #141718; border-color: #0BAA8F; color: #23C4A6;
+  box-shadow: 0 0 12px rgba(11, 170, 143, 0.2);
+}
+#vqnav a {
+  display: block; padding: 7px 10px; border-radius: 6px; font-size: 12.5px;
+  color: #A8B2B3; text-decoration: none; transition: all 180ms cubic-bezier(.16, 1, .3, 1);
+}
+#vqnav a:hover {
+  background: #0C0E0F; color: #0BAA8F;
+}
+#vqmain {
+  margin-left: 264px; padding: 0 0 120px; background: transparent;
+}
+.vqcat {
+  padding: 56px 40px 8px; scroll-margin-top: 0;
+}
+.vqcat-h {
+  font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700;
+  color: #F0F4F4; letter-spacing: -0.02em; margin: 0 0 28px; padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.spec {
+  margin: 0 0 44px;
+}
+.spec-h {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 14px;
+}
+.spec-h b {
+  font-size: 14px; font-weight: 600; color: #F0F4F4;
+}
+.spec-h code {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #23C4A6;
+  background: rgba(11, 170, 143, 0.12); border: 1px solid rgba(11, 170, 143, 0.25);
+  padding: 2px 7px; border-radius: 6px;
+}
+.spec-h span {
+  font-size: 12px; color: #818B8C;
+}
+.stage {
+  background: #060708; border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px; padding: 28px; overflow: auto;
+}
+.stage.light {
+  background: #F0F4F4 !important; border-color: #CBD4D4 !important;
+}
+
+/* Light Mode Navigation Chrome */
+body.vq-light #vqnav {
+  background: #FFFFFF !important; border-right: 1px solid #CBD4D4 !important;
+}
+body.vq-light #vqnav h1 { color: #060708 !important; }
+body.vq-light #vqnav .sub { color: #818B8C !important; }
+body.vq-light #vqnav a { color: #3D4344 !important; }
+body.vq-light #vqnav a:hover { background: #F0F4F4 !important; color: #0BAA8F !important; }
+body.vq-light #vqtheme {
+  background: #FFFFFF !important; border-color: #CBD4D4 !important; color: #060708 !important;
+}
+body.vq-light .vqcat-h {
+  color: #060708 !important; border-bottom-color: #CBD4D4 !important;
+}
+body.vq-light .spec-h b { color: #060708 !important; }
+body.vq-light .spec-h span { color: #818B8C !important; }
+body.vq-light .spec-h code {
+  color: #088975 !important; background: rgba(11, 170, 143, 0.08) !important;
+  border-color: rgba(11, 170, 143, 0.2) !important;
+}
+
+
+/* ==========================================================================
+   VENQORE DESIGN SYSTEM — CLEAN DUAL-THEME STYLESHEET
+   ========================================================================== */
+
+/* Dark Mode Defaults */
+html.dark body, body:not(.vq-light) {
+  background-color: #060708;
+  color: #F0F4F4;
+}
+
+/* Light Mode Overrides */
+body.vq-light {
+  background-color: #F7FAFA !important;
+  color: #060708 !important;
+}
+
+/* Base Card Components */
+.stat-card, .mod-card {
+  position: relative;
+  background-color: #0C0E0F;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 1px solid var(--mod-color, rgba(11, 170, 143, 0.45));
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 180ms cubic-bezier(.16, 1, .3, 1), border-color 180ms ease, box-shadow 180ms ease;
+}
+.stat-card:hover, .mod-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.28);
+  border-top-color: var(--mod-color, #0BAA8F);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+}
+
+/* Light Mode Cards */
+body.vq-light .stat-card,
+body.vq-light .mod-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD4D4 !important;
+  border-top: 2px solid var(--mod-color, #0BAA8F) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+body.vq-light .stat-card:hover,
+body.vq-light .mod-card:hover {
+  border-color: #A8B2B3 !important;
+  border-top-color: var(--mod-color, #088975) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Metric / Stat Figures */
+.stat-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #FFFFFF;
+  line-height: 1.15;
+}
+body.vq-light .stat-val {
+  color: #060708 !important;
+}
+
+/* Eyebrows & Captions */
+.stat-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #A8B2B3;
+}
+body.vq-light .stat-eyebrow {
+  color: #5A6263 !important;
+}
+
+.stat-meta {
+  font-size: 12px;
+  color: #818B8C;
+}
+body.vq-light .stat-meta {
+  color: #5A6263 !important;
+}
+
+.stat-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+body.vq-light .stat-divider {
+  border-top-color: #E1E7E7 !important;
+}
+
+/* Status Badges (Dark Mode) */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  line-height: 1.2;
+}
+.status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status.success {
+  color: #32A87D;
+  background: rgba(50, 168, 125, 0.12);
+  border-color: rgba(50, 168, 125, 0.25);
+}
+.status.warning {
+  color: #FFCD5B;
+  background: rgba(166, 105, 10, 0.14);
+  border-color: rgba(166, 105, 10, 0.3);
+}
+.status.danger {
+  color: #E06D63;
+  background: rgba(196, 68, 58, 0.14);
+  border-color: rgba(196, 68, 58, 0.3);
+}
+.status.info {
+  color: #55C4EC;
+  background: rgba(27, 112, 150, 0.14);
+  border-color: rgba(27, 112, 150, 0.3);
+}
+
+/* Status Badges (Light Mode) */
+body.vq-light .status.success {
+  color: #12855C !important;
+  background: rgba(18, 133, 92, 0.10) !important;
+  border-color: rgba(18, 133, 92, 0.25) !important;
+}
+body.vq-light .status.warning {
+  color: #A6690A !important;
+  background: rgba(166, 105, 10, 0.10) !important;
+  border-color: rgba(166, 105, 10, 0.25) !important;
+}
+body.vq-light .status.danger {
+  color: #C4443A !important;
+  background: rgba(196, 68, 58, 0.10) !important;
+  border-color: rgba(196, 68, 58, 0.25) !important;
+}
+body.vq-light .status.info {
+  color: #1B7096 !important;
+  background: rgba(27, 112, 150, 0.10) !important;
+  border-color: rgba(27, 112, 150, 0.25) !important;
+}
+
+
+
+/* Senior Mode 30% Scale */
+html.senior-mode, body.senior-mode {
+  font-size: 20.8px !important;
+}
+html.senior-mode .stat-val {
+  font-size: 38px !important;
+}
+html.senior-mode .stat-eyebrow {
+  font-size: 16px !important;
+}
+html.senior-mode .spec-h b {
+  font-size: 18px !important;
+}
+html.senior-mode .vqcat-h {
+  font-size: 34px !important;
+}
+html.senior-mode button,
+html.senior-mode a.bg-gradient-to-r {
+  font-size: 16px !important;
+  padding: 12px 24px !important;
+}
+body.vq-light #vqsenior {
+  background: #FFFFFF !important;
+  border-color: #CBD4D4 !important;
+  color: #060708 !important;
+}
+#vqsenior.active {
+  background: #0BAA8F !important;
+  border-color: #23C4A6 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 14px rgba(11, 170, 143, 0.4) !important;
+}
+
+8721

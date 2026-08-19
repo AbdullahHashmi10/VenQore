@@ -30,6 +30,7 @@ class TenantDefaultSeeder
         static::seedInitialCashAccount($tenant);
         static::seedAiSettings($tenant);
         static::seedDefaultDashboards($tenant);
+        static::seedTemplateBuildingBlocks($tenant);
     }
 
     private static function seedDefaultDashboards(Tenant $tenant): void
@@ -49,29 +50,29 @@ class TenantDefaultSeeder
                         'reading_key' => 'sales.revenue',
                         'period' => 'this_month',
                         'chart' => 'stat',
-                        'size' => 'small',
-                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
+                        'size' => '4x4',
+                        'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4
                     ],
                     [
                         'reading_key' => 'finance.net_profit',
                         'period' => 'this_month',
                         'chart' => 'stat',
-                        'size' => 'small',
-                        'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2
-                    ],
-                    [
-                        'reading_key' => 'sales.revenue_trend',
-                        'period' => 'this_month',
-                        'chart' => 'line',
-                        'size' => 'medium',
-                        'x' => 0, 'y' => 2, 'w' => 6, 'h' => 3
+                        'size' => '4x4',
+                        'x' => 4, 'y' => 0, 'w' => 4, 'h' => 4
                     ],
                     [
                         'reading_key' => 'sales.top_products',
                         'period' => 'this_month',
                         'chart' => 'bar',
-                        'size' => 'large',
-                        'x' => 6, 'y' => 0, 'w' => 6, 'h' => 5
+                        'size' => '4x8',
+                        'x' => 8, 'y' => 0, 'w' => 4, 'h' => 8
+                    ],
+                    [
+                        'reading_key' => 'sales.revenue_trend',
+                        'period' => 'this_month',
+                        'chart' => 'line',
+                        'size' => '8x4',
+                        'x' => 0, 'y' => 4, 'w' => 8, 'h' => 4
                     ],
                 ]
             ],
@@ -88,29 +89,29 @@ class TenantDefaultSeeder
                         'reading_key' => 'finance.net_profit',
                         'period' => 'this_month',
                         'chart' => 'stat',
-                        'size' => 'small',
-                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
+                        'size' => '4x4',
+                        'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4
                     ],
                     [
                         'reading_key' => 'finance.balance_sheet_ok',
                         'period' => 'live',
                         'chart' => 'status',
-                        'size' => 'small',
-                        'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2
-                    ],
-                    [
-                        'reading_key' => 'finance.expenses_by_category',
-                        'period' => 'this_month',
-                        'chart' => 'ring',
-                        'size' => 'medium',
-                        'x' => 0, 'y' => 2, 'w' => 6, 'h' => 3
+                        'size' => '4x4',
+                        'x' => 4, 'y' => 0, 'w' => 4, 'h' => 4
                     ],
                     [
                         'reading_key' => 'inventory.stock_value',
                         'period' => 'live',
                         'chart' => 'stat',
-                        'size' => 'small',
-                        'x' => 6, 'y' => 0, 'w' => 6, 'h' => 2
+                        'size' => '4x4',
+                        'x' => 8, 'y' => 0, 'w' => 4, 'h' => 4
+                    ],
+                    [
+                        'reading_key' => 'finance.expenses_by_category',
+                        'period' => 'this_month',
+                        'chart' => 'ring',
+                        'size' => '8x6',
+                        'x' => 0, 'y' => 4, 'w' => 8, 'h' => 6
                     ],
                 ]
             ],
@@ -127,22 +128,22 @@ class TenantDefaultSeeder
                         'reading_key' => 'sales.revenue',
                         'period' => 'today',
                         'chart' => 'stat',
-                        'size' => 'small',
-                        'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2
-                    ],
-                    [
-                        'reading_key' => 'sales.live_feed',
-                        'period' => 'live',
-                        'chart' => 'feed',
-                        'size' => 'large',
-                        'x' => 3, 'y' => 0, 'w' => 9, 'h' => 5
+                        'size' => '4x4',
+                        'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4
                     ],
                     [
                         'reading_key' => 'sales.payment_breakdown',
                         'period' => 'today',
                         'chart' => 'pie',
-                        'size' => 'small',
-                        'x' => 0, 'y' => 2, 'w' => 3, 'h' => 3
+                        'size' => '4x4',
+                        'x' => 0, 'y' => 4, 'w' => 4, 'h' => 4
+                    ],
+                    [
+                        'reading_key' => 'sales.live_feed',
+                        'period' => 'live',
+                        'chart' => 'feed',
+                        'size' => '8x8',
+                        'x' => 4, 'y' => 0, 'w' => 8, 'h' => 8
                     ],
                 ]
             ]
@@ -343,6 +344,40 @@ class TenantDefaultSeeder
                     'value'      => $value,
                     'created_at' => $now,
                     'updated_at' => $now,
+                ]
+            );
+        }
+    }
+
+    private static function seedTemplateBuildingBlocks(Tenant $tenant): void
+    {
+        $rawKey = $tenant->industry_type ?? $tenant->business_type ?? $tenant->industry ?? 'retail_store';
+        $templateKey = \Database\Seeders\BusinessTemplatesSeeder::mapToTemplateKey((string) $rawKey);
+
+        $templates = \Database\Seeders\BusinessTemplatesSeeder::getTemplates();
+        $selectedTemplate = $templates[$templateKey] ?? $templates['retail_store'];
+
+        // 1. Seed capabilities into tenant_plan_overrides
+        foreach ($selectedTemplate['capabilities'] as $capKey) {
+            DB::table('tenant_plan_overrides')->updateOrInsert(
+                ['tenant_id' => $tenant->id, 'override_key' => $capKey],
+                [
+                    'override_value' => '1',
+                    'applied_by'     => 'system_template',
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]
+            );
+        }
+
+        // 2. Seed terminology into tenant_terminology
+        foreach ($selectedTemplate['terminology'] as $termKey => $terms) {
+            DB::table('tenant_terminology')->updateOrInsert(
+                ['tenant_id' => $tenant->id, 'term_key' => $termKey],
+                [
+                    'singular'   => $terms['singular'],
+                    'plural'     => $terms['plural'],
+                    'updated_at' => now(),
                 ]
             );
         }

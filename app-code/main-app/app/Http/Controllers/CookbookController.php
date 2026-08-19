@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recipe;
-use App\Models\RecipeIngredient;
+use App\Models\Composition;
+use App\Models\CompositionItem;
 use App\Models\Product;
-use App\Models\RecipeMedia;
+use App\Models\CompositionMedia;
 use App\Models\Warehouse;
 use App\Models\Category;
 use App\Models\ProductAttribute;
@@ -19,11 +19,11 @@ class CookbookController extends Controller
         \App\Services\PlanGate::enforce('bill_of_materials');
 
         $validated = $request->validate([
-            'recipe_id' => 'required|exists:recipes,id',
+            'recipe_id' => 'required|exists:compositions,id',
             'quantity' => 'required|numeric|min:0.01'
         ]);
 
-        $recipe = Recipe::with(['ingredients.ingredientProduct.stocks'])->findOrFail($validated['recipe_id']);
+        $recipe = Composition::with(['ingredients.ingredientProduct.stocks'])->findOrFail($validated['recipe_id']);
         $targetQty = $validated['quantity'];
         
         // Calculate ratio based on Yield
@@ -60,7 +60,7 @@ class CookbookController extends Controller
     {
         \App\Services\PlanGate::enforce('bill_of_materials');
 
-        $recipes = Recipe::with(['product', 'ingredients.ingredientProduct', 'media'])
+        $recipes = Composition::with(['product', 'ingredients.ingredientProduct', 'media'])
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
@@ -134,7 +134,7 @@ class CookbookController extends Controller
             'ingredients.*.wastage_percent' => 'nullable|numeric|min:0|max:100'
         ]);
 
-        $recipe = Recipe::create([
+        $recipe = Composition::create([
             'name' => $validated['name'],
             'description' => $validated['description'],
             'product_id' => $validated['product_id'],
@@ -147,8 +147,8 @@ class CookbookController extends Controller
         ]);
 
         foreach ($validated['ingredients'] as $ingredient) {
-            RecipeIngredient::create([
-                'recipe_id' => $recipe->id,
+            CompositionItem::create([
+                'composition_id' => $recipe->id,
                 'product_id' => $ingredient['product_id'],
                 'quantity' => $ingredient['quantity'],
                 'unit' => $ingredient['unit'] ?? 'units',
@@ -159,8 +159,8 @@ class CookbookController extends Controller
         if ($request->has('media')) {
             foreach ($request->media as $idx => $item) {
                 if (!empty($item['url'])) {
-                    RecipeMedia::create([
-                        'recipe_id' => $recipe->id,
+                    CompositionMedia::create([
+                        'composition_id' => $recipe->id,
                         'type' => $item['type'] ?? 'youtube',
                         'url' => $item['url'],
                         'title' => $item['title'] ?? null,
@@ -170,14 +170,14 @@ class CookbookController extends Controller
             }
         }
 
-        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Recipe created successfully');
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Composition created successfully');
     }
 
     public function edit($id)
     {
         \App\Services\PlanGate::enforce('bill_of_materials');
 
-        $recipe = Recipe::with(['ingredients', 'media'])->findOrFail($id);
+        $recipe = Composition::with(['ingredients', 'media'])->findOrFail($id);
 
         // Transform for form
         $recipeData = [
@@ -235,7 +235,7 @@ class CookbookController extends Controller
     {
         \App\Services\PlanGate::enforce('bill_of_materials');
 
-        $oldRecipe = Recipe::findOrFail($id);
+        $oldComposition = Composition::findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -255,20 +255,20 @@ class CookbookController extends Controller
         // Do not overwrite. Create new version.
         
         // Determine Parent ID (Root of the version tree)
-        $parentId = $oldRecipe->parent_recipe_id ?? $oldRecipe->id;
+        $parentId = $oldComposition->parent_recipe_id ?? $oldComposition->id;
 
         // Calculate next version number
-        $maxVersion = Recipe::where('id', $parentId)
+        $maxVersion = Composition::where('id', $parentId)
             ->orWhere('parent_recipe_id', $parentId)
             ->max('version_number');
             
         $newVersion = $maxVersion + 1;
 
         // Deactivate the old recipe (it becomes history)
-        $oldRecipe->update(['is_active' => false]);
+        $oldComposition->update(['is_active' => false]);
 
         // Create the new version
-        $newRecipe = Recipe::create([
+        $newComposition = Composition::create([
             'name' => $validated['name'],
             'description' => $validated['description'],
             'product_id' => $validated['product_id'],
@@ -283,8 +283,8 @@ class CookbookController extends Controller
         ]);
 
         foreach ($validated['ingredients'] as $ingredient) {
-            RecipeIngredient::create([
-                'recipe_id' => $newRecipe->id,
+            CompositionItem::create([
+                'composition_id' => $newComposition->id,
                 'product_id' => $ingredient['product_id'],
                 'quantity' => $ingredient['quantity'],
                 'unit' => $ingredient['unit'] ?? 'units',
@@ -296,8 +296,8 @@ class CookbookController extends Controller
         if ($request->has('media')) {
             foreach ($request->media as $idx => $item) {
                 if (!empty($item['url'])) {
-                    RecipeMedia::create([
-                        'recipe_id' => $newRecipe->id,
+                    CompositionMedia::create([
+                        'composition_id' => $newComposition->id,
                         'type' => $item['type'] ?? 'youtube',
                         'url' => $item['url'],
                         'title' => $item['title'] ?? null,
@@ -307,17 +307,17 @@ class CookbookController extends Controller
             }
         }
 
-        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', "Recipe updated to Version {$newVersion} successfully");
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', "Composition updated to Version {$newVersion} successfully");
     }
 
     public function destroy($id)
     {
         \App\Services\PlanGate::enforce('bill_of_materials');
 
-        $recipe = Recipe::findOrFail($id);
+        $recipe = Composition::findOrFail($id);
         $recipe->ingredients()->delete();
         $recipe->delete();
 
-        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Recipe deleted successfully');
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Composition deleted successfully');
     }
 }

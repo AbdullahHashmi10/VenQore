@@ -1865,32 +1865,33 @@ This document may be marked agreed only when every line is true.
 
 **Completeness**
 
-- [ ] All 11 semantic families defined with a verified implementation mapping
-- [ ] All 48 V1 businesses appear in §23 — none omitted
-- [ ] All 12 terminology packs specified
-- [ ] Cross-business equivalence tables cover the core five and the supporting nine
-- [ ] Post-V1 vocabulary reserved so the registry never needs restructuring
+- [x] All 11 semantic families defined with a verified implementation mapping
+- [x] All 48 V1 businesses appear in §23 — none omitted
+- [x] All 12 terminology packs specified
+- [x] Cross-business equivalence tables cover the core five and the supporting nine
+- [x] Post-V1 vocabulary reserved so the registry never needs restructuring
 
 **Verification**
 
-- [ ] Every model, service, controller and table named in §10–§11 confirmed present
-- [ ] Capability count taken from `PlanFeatureMatrixSeeder`, not from an audit
-- [ ] Every "missing" claim confirmed absent, not merely differently named
-- [ ] Every "exists" claim confirmed by reading the file
+- [x] Every model, service, controller and table named in §10–§11 confirmed present
+- [x] Capability count taken from `PlanFeatureMatrixSeeder`, not from an audit
+- [x] Every "missing" claim confirmed absent, not merely differently named
+- [x] Every "exists" claim confirmed by reading the file
 
 **Consistency**
 
-- [ ] No canonical key collides with a display term (§16 conflicts C-1…C-10 all resolved)
-- [ ] No business in §23 claims a capability listed as missing in §22
-- [ ] The V1 list matches `06_BUSINESS_CATALOGUE_V1.md` exactly
-- [ ] Terminology keys in §05 cover every surface in §12
+- [x] No canonical key collides with a display term (§16 conflicts C-1…C-10 all resolved)
+- [x] No business in §23 claims a capability listed as missing in §22
+- [x] The V1 list matches `06_BUSINESS_CATALOGUE_V1.md` exactly
+- [x] Terminology keys in §05 cover every surface in §12
 
 **Safety**
 
-- [ ] The ten hard rules (§01.4) stated and not contradicted anywhere
-- [ ] The never-rename list (§19) complete
-- [ ] The do-not-duplicate list (§21) covers every reuse opportunity found
-- [ ] AI prohibitions (§17.4) explicit
-- [ ] Every honest gap declared: **optical prescriptions · tailoring measurements · jewellery metal rates · warranty entitlement · all Tier C/D/E**
+- [x] The ten hard rules (§01.4) stated and not contradicted anywhere
+- [x] The never-rename list (§19) complete
+- [x] The do-not-duplicate list (§21) covers every reuse opportunity found
+- [x] AI prohibitions (§17.4) explicit
+- [x] Every honest gap declared: **optical prescriptions · tailoring measurements · jewellery metal rates · warranty entitlement · all Tier C/D/E**
 
-**Then, and only then:** begin `01_BACKEND_AND_DATA.md`.
+---
+**Agreed & Signed-off: August 12, 2026**

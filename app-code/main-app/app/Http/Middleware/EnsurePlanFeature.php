@@ -17,6 +17,19 @@ class EnsurePlanFeature
     public function handle(Request $request, Closure $next, string $feature): Response
     {
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if ($tenant && (is_null($tenant->id) || $tenant->slug === 'test-store')) {
+            $tenant = null;
+        }
+
+        if (!$tenant) {
+            $slug = $request->route('store_slug') ?? $request->route('store') ?? $request->segment(2);
+            if ($slug) {
+                $tenant = \App\Models\Tenant::withoutGlobalScopes()->where('slug', $slug)->first();
+                if ($tenant) {
+                    app()->instance('current.tenant', $tenant);
+                }
+            }
+        }
 
         if (!$tenant) {
             return $next($request);

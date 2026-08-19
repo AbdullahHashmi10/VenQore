@@ -1129,7 +1129,7 @@ class FinancialReportingService
                     'quantity'     => (float) $batch->quantity,
                     'cost_value'   => $cost,
                     'days'         => (int) $days,
-                    'category'     => $days > 180 ? '180+' : ($days > 90 ? '90-180' : ($days > 30 ? '30-90' : '0-30'))
+                    'category'     => $this->stockAgeBucket((int) $days)
                 ];
             });
     }
@@ -1180,7 +1180,8 @@ class FinancialReportingService
      */
     public function getInventoryValue(): float
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = app('current.tenant')?->id;
+        if (!$tenantId) return 0.0;
         return (float) DB::table('inventory_batches')
             ->where('tenant_id', $tenantId)
             ->whereNull('deleted_at')
@@ -1633,7 +1634,7 @@ class FinancialReportingService
 
         $rows = [];
         foreach ($sales as $sale) {
-            $allocated = (float) DB::table('payment_allocations')
+            $allocated = (float) DB::table('allocations')
                 ->where('tenant_id', $tenantId)->where('sale_id', $sale->id)
                 ->where('status', 'active')->sum('allocated_amount');
             $returnedAmount = (float) DB::table('sale_items')
@@ -1712,7 +1713,7 @@ class FinancialReportingService
 
         $rows = [];
         foreach ($purchases as $purchase) {
-            $allocated = (float) DB::table('payment_allocations')
+            $allocated = (float) DB::table('allocations')
                 ->where('tenant_id', $tenantId)->where('purchase_id', $purchase->id)
                 ->where('status', 'active')->sum('allocated_amount');
             $outstanding = round($purchase->total_amount - $allocated, 2);
@@ -2002,6 +2003,31 @@ class FinancialReportingService
         }
 
         return $credit - $debit;
+    }
+
+    /**
+     * Stock ageing bucket mapper.
+     * Drives boundaries from reckoner.stock_aging_buckets setting.
+     */
+    public function stockAgeBucket(int $days, ?\App\Models\Tenant $tenant = null): string
+    {
+        $tenant ??= app('current.tenant');
+        $raw = \App\Reckoner\ReckonerSettings::get('reckoner.stock_aging_buckets', $tenant);
+        $buckets = array_filter(array_map('intval', explode(',', (string) $raw)));
+        if (empty($buckets)) {
+            $buckets = [30, 90, 180];
+        }
+        sort($buckets);
+
+        $prev = 0;
+        foreach ($buckets as $b) {
+            if ($days <= $b) {
+                return $prev === 0 ? "0-{$b}" : "{$prev}-{$b}";
+            }
+            $prev = $b;
+        }
+
+        return "{$prev}+";
     }
 }
 

@@ -93,6 +93,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                 extra_charge_value: parseFloat(purchaseOrder.extra_charge_value) || 0,
                 status: purchaseOrder.status,
                 isReceived: purchaseOrder.status === 'received',
+                is_tax_inclusive: purchaseOrder.is_tax_inclusive || false,
                 expectedDeliveryDate: purchaseOrder.expected_delivery_date,
                 warehouseId: purchaseOrder.warehouse_id,
             });
@@ -830,6 +831,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                     tax: item.tax || 0
                 })),
                 notes: currentPurchase.notes,
+                is_tax_inclusive: currentPurchase.is_tax_inclusive || false,
                 amount_paid: currentPurchase.amountPaid,
                 payment_method: currentPurchase.paymentMethod,
                 discount: invoiceDiscount,
@@ -1927,6 +1929,20 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     <option value="net30">Net 30</option>
                                     <option value="net60">Net 60</option>
                                 </select>
+                            </div>
+                            
+                            {/* Tax Inclusive Toggle */}
+                            <div className="flex items-center justify-between p-2 mt-2 bg-indigo-900/20 rounded-lg border border-indigo-800/30">
+                                <label htmlFor="is_tax_inclusive" className="text-xs text-indigo-300 font-bold cursor-pointer">
+                                    Prices Include Tax
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    id="is_tax_inclusive"
+                                    checked={currentPurchase.is_tax_inclusive ?? false}
+                                    onChange={(e) => patchPurchase({ is_tax_inclusive: e.target.checked })}
+                                    className="rounded border-slate-600 bg-slate-800 text-indigo-500 shadow-sm focus:ring-indigo-500 cursor-pointer"
+                                />
                             </div>
 
                             {/* CHEQUE DETAILS-Conditional */}

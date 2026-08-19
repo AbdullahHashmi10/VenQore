@@ -62,32 +62,7 @@ class AdminDashboardController extends Controller
         $realTenants = $tenants->where('is_demo', false);
 
         // 2. Real-time dynamic MRR, Standard count, and Discounted count calculations
-        $activeRealTenants = $realTenants->where('status', 'active');
-        $standardCount = 0;
-        $discountedCount = 0;
-        $liveMrr = 0;
-
-        foreach ($activeRealTenants as $t) {
-            $basePrice = $planPrices[$t->plan] ?? 0;
-            
-            // Query actual active coupon redemptions for this tenant
-            // (platform-admin loop over all tenants — bypass the tenant scope).
-            $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)->with('coupon')->first();
-            if ($redemption && $redemption->coupon) {
-                $coupon = $redemption->coupon;
-                if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
-                    $discountVal = ($basePrice * ($coupon->discount_value / 100));
-                    $finalPrice = max(0, $basePrice - $discountVal);
-                } else {
-                    $finalPrice = max(0, $basePrice - $coupon->discount_value);
-                }
-                $discountedCount++;
-            } else {
-                $finalPrice = $basePrice;
-                $standardCount++;
-            }
-            $liveMrr += $finalPrice;
-        }
+        $liveMrr = app(\App\Reckoner\Reckoner::class)->read(new \App\Reckoner\ReckonerRequest('platform.mrr'), request()->user(), null)->data ?? 0;
 
         // Churn rate (last 30 days cancelled vs total at start of period)
         $cancelledLast30 = $realTenants
@@ -111,20 +86,7 @@ class AdminDashboardController extends Controller
             ->map(fn($group, $plan) => [
                 'plan'  => $plan,
                 'count' => $group->count(),
-                'mrr'   => $group->where('status', 'active')->sum(function($t) use ($planPrices) {
-                    // Recalculate with coupon redemptions for accurate breakdown
-                    $basePrice = $planPrices[$t->plan] ?? 0;
-                    $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)->with('coupon')->first();
-                    if ($redemption && $redemption->coupon) {
-                        $coupon = $redemption->coupon;
-                        if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
-                            return max(0, $basePrice - ($basePrice * ($coupon->discount_value / 100)));
-                        } else {
-                            return max(0, $basePrice - $coupon->discount_value);
-                        }
-                    }
-                    return $basePrice;
-                }),
+                'mrr'   => app(\App\Reckoner\Reckoner::class)->read(new \App\Reckoner\ReckonerRequest('platform.mrr'), request()->user(), null)->data ?? 0,
             ])
             ->values();
 

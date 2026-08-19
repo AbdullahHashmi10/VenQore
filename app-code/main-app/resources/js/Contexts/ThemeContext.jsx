@@ -48,17 +48,17 @@ const readTenantDefault = (settings) => {
 
 /** Resolve the theme for a given path, honouring explicit choice first. */
 const resolveTheme = (settings, pathname) => {
-    if (!isExceptionPath(pathname)) {
-        return true; // Always dark mode for non-excepted public pages
-    }
-
     const saved = readSavedTheme();
     if (saved) return saved === 'dark';
 
     const tenantDefault = readTenantDefault(settings);
     if (tenantDefault !== null) return tenantDefault;
 
-    return false; // Default to light mode for excepted public pages
+    if (isExceptionPath(pathname)) {
+        return false; // Default to light mode for excepted public pages
+    }
+
+    return true; // Default to dark mode for landing page and app pages
 };
 
 /**
@@ -116,7 +116,6 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     }, []);
 
     const toggleTheme = useCallback(() => {
-        if (!isExceptionPath(window.location.pathname)) return;
         setIsDarkMode((prev) => {
             const next = !prev;
             persist(next);
@@ -125,7 +124,6 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     }, [persist]);
 
     const setThemeExplicitly = useCallback((dark) => {
-        if (!isExceptionPath(window.location.pathname)) return;
         const next = typeof dark === 'function' ? dark(isDarkMode) : dark;
         persist(next);
         setIsDarkMode(next);

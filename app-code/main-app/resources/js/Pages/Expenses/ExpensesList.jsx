@@ -456,6 +456,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
         setFormData({
             date: new Date().toISOString().split('T')[0],
             expense_category_id: activeCategory !== 'all' ? activeCategory : '',
+            channel: '',
             category: '',
             amount: '',
             tax_amount: '',
@@ -476,8 +477,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
         setEditingExpense(expense);
         setSelectedParty(expense.party_id ? { id: expense.party_id, name: expense.payee } : null);
         setFormData({
-            date: expense.date || new Date().toISOString().split('T')[0],
+            date: expense.date ? expense.date.split('T')[0] : new Date().toISOString().split('T')[0],
             expense_category_id: expense.expense_category_id || '',
+            channel: expense.channel || '',
             category: expense.category || '',
             amount: expense.amount || '',
             tax_amount: expense.tax_amount || '',

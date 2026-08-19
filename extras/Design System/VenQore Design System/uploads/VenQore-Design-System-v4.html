@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VenQore — Design System 4.0 · Bloom</title>
+<meta name="description" content="VenQore Design System 4.0 — Bloom. The playful, confident, alive visual language for the AI that builds your business system.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@900,700,500,400&f[]=general-sans@700,600,500,400,300&display=swap">
+
+<style>
+/* ============================================================
+   VENQORE DESIGN SYSTEM 4.0 — "BLOOM"
+   Direction: warm, confident, kinetic. One brand teal, one AI
+   violet, and a small handful of module colors that stay true
+   in BOTH light and dark — the neutral scale is genuinely
+   neutral (cool graphite, not tinted), so color is the thing
+   that's alive, not the background.
+   ============================================================ */
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+html.no-smooth{ scroll-behavior:auto; }
+
+:root{
+  /* ---------- CANVAS & INK — LIGHT (genuinely neutral, not cream) ---------- */
+  --canvas:#F7F7F4;
+  --canvas-raised:#FFFFFF;
+  --canvas-sunken:#EFEEE9;
+  --canvas-inverse:#15161B;
+  --border:#E7E5DD;
+  --border-strong:#D6D3C7;
+
+  --ink-900:#15161B;
+  --ink-800:#24252C;
+  --ink-700:#43444E;
+  --ink-600:#5B5C67;
+  --ink-500:#797A85;
+  --ink-400:#9C9DA6;
+  --ink-300:#C3C3C9;
+  --ink-200:#DCDCDD;
+  --ink-100:#EEEEEA;
+  --ink-0:#FFFFFF;
+
+  /* ---------- BRAND TEAL — primary, saturated, confident ---------- */
+  --teal-50:#E7FBF4;
+  --teal-100:#C7F5E4;
+  --teal-200:#93E9CB;
+  --teal-300:#57D6AC;
+  --teal-400:#25BC8E;
+  --teal-500:#0EA37A;
+  --teal-600:#0A8768;
+  --teal-700:#086A54;
+  --teal-800:#0A5142;
+  --teal-900:#0A3C35;
+  --teal-glow:#39F7BE;
+  --teal-ink: var(--teal-700);
+
+  /* ---------- AI VIOLET — secondary, the "intelligence" signal ---------- */
+  --violet-50:#F3F0FF;
+  --violet-100:#E4DCFF;
+  --violet-200:#C9B8FF;
+  --violet-300:#A98BFC;
+  --violet-400:#8C63F7;
+  --violet-500:#7645EE;
+  --violet-600:#6030D6;
+  --violet-700:#4B22AC;
+  --violet-800:#391A80;
+  --violet-900:#281457;
+  --violet-glow:#B69CFF;
+  --violet-ink: var(--violet-700);
+
+  /* ---------- MODULE / ACCENT HUES — each stays legible in both modes ---------- */
+  --coral-100:#FFE2D4;
+  --coral-300:#FFA987;
+  --coral-400:#FF8256;
+  --coral-500:#F86430;
+  --coral-600:#DE4712;
+  --coral-ink:#B3390F;
+
+  --sun-100:#FFF1CE;
+  --sun-300:#FFDE93;
+  --sun-400:#FFC847;
+  --sun-500:#F0A600;
+  --sun-600:#C27F00;
+  --sun-ink:#8A5A00;
+
+  --sky-100:#DCEEFF;
+  --sky-300:#94C9FF;
+  --sky-400:#5DA7FF;
+  --sky-500:#2C82F0;
+  --sky-600:#1863C4;
+  --sky-ink:#134E9C;
+
+  --rose-100:#FFE1E8;
+  --rose-300:#FF9FB4;
+  --rose-400:#FF6D8C;
+  --rose-500:#EF3F65;
+  --rose-600:#C82650;
+  --rose-ink:#9F1E40;
+
+  /* ---------- SEMANTIC ---------- */
+  --success: var(--teal-600);
+  --success-soft: var(--teal-50);
+  --warning: var(--sun-ink);
+  --warning-soft: var(--sun-100);
+  --danger: var(--rose-600);
+  --danger-soft: var(--rose-100);
+  --info: var(--sky-ink);
+  --info-soft: var(--sky-100);
+
+  /* ---------- MODULE COLOR CODING — used consistently across the product ---------- */
+  --mod-sales:#F86430;       /* coral   — orders, POS, invoices    */
+  --mod-inventory:#7645EE;   /* violet  — stock, products, batches */
+  --mod-accounting:#0A8768;  /* teal    — ledger, banking, tax     */
+  --mod-purchasing:#C27F00;  /* sun     — POs, suppliers, expenses */
+  --mod-staff:#1863C4;       /* sky     — users, payroll, shifts   */
+  --mod-reports:#C82650;     /* rose    — alerts, exceptions       */
+
+  /* ---------- SCALE ---------- */
+  --radius-xs:8px;
+  --radius-sm:12px;
+  --radius-md:18px;
+  --radius-lg:24px;
+  --radius-xl:32px;
+  --radius-full:999px;
+
+  --shadow-xs: 0 1px 2px rgba(21,22,27,.05);
+  --shadow-sm: 0 2px 10px rgba(21,22,27,.06);
+  --shadow-md: 0 12px 28px -12px rgba(21,22,27,.16);
+  --shadow-lg: 0 28px 64px -20px rgba(21,22,27,.22);
+  --shadow-glow-teal: 0 0 0 1px rgba(14,163,122,.14), 0 20px 48px -16px rgba(14,163,122,.4);
+  --shadow-glow-violet: 0 0 0 1px rgba(118,69,238,.16), 0 20px 48px -16px rgba(118,69,238,.42);
+  --shadow-glow-coral: 0 0 0 1px rgba(248,100,48,.16), 0 20px 48px -16px rgba(248,100,48,.4);
+
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-in-out: cubic-bezier(.65,0,.35,1);
+  --dur-fast:140ms;
+  --dur-med:260ms;
+  --dur-slow:520ms;
+
+  --font-display:'Cabinet Grotesk', 'General Sans', sans-serif;
+  --font-body:'General Sans', 'Inter', sans-serif;
+  --font-mono:'Geist Mono', 'JetBrains Mono', monospace;
+  --font-flourish:'Instrument Serif', serif;
+
+  --header-h:76px;
+}
+
+[data-theme="dark"]{
+  /* Genuinely neutral graphite with a whisper of blue-violet — NOT green. */
+  --canvas:#0B0C10;
+  --canvas-raised:#15161C;
+  --canvas-sunken:#08090B;
+  --canvas-inverse:#F7F7F4;
+  --border:#24252E;
+  --border-strong:#34353F;
+
+  --ink-900:#F5F5F3;
+  --ink-800:#E4E4E2;
+  --ink-700:#C6C6CC;
+  --ink-600:#A2A3AC;
+  --ink-500:#84858F;
+  --ink-400:#63646D;
+  --ink-300:#44454E;
+  --ink-200:#2C2D36;
+  --ink-100:#1B1C22;
+  --ink-0:#0B0C10;
+
+  --teal-50:#0C2620;
+  --teal-100:#0E3A2E;
+  --teal-glow:#5CFFD1;
+  --teal-500:#2FE0AE;
+  --teal-600:#22C296;
+  --teal-700:#1AA080;
+  --teal-ink: var(--teal-500);
+
+  --violet-50:#1C1533;
+  --violet-100:#28194D;
+  --violet-glow:#C6ADFF;
+  --violet-500:#9E7CFF;
+  --violet-600:#8A63F7;
+  --violet-700:#7645EE;
+  --violet-ink: var(--violet-400);
+
+  --coral-ink:#FF9B71;
+  --sun-ink:#FFCE5C;
+  --sky-ink:#7CB4FF;
+  --rose-ink:#FF8CA6;
+
+  --success: var(--teal-500);
+  --success-soft:#0C2620;
+  --warning:#FFCE5C;
+  --warning-soft:#2B2108;
+  --danger:#FF7A93;
+  --danger-soft:#2C1620;
+  --info:#7CB4FF;
+  --info-soft:#0E2036;
+
+  --mod-sales:#FF8256;
+  --mod-inventory:#9E7CFF;
+  --mod-accounting:#2FE0AE;
+  --mod-purchasing:#FFC847;
+  --mod-staff:#5DA7FF;
+  --mod-reports:#FF6D8C;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm: 0 2px 12px rgba(0,0,0,.4);
+  --shadow-md: 0 14px 32px -14px rgba(0,0,0,.6);
+  --shadow-lg: 0 30px 68px -20px rgba(0,0,0,.65);
+  --shadow-glow-teal: 0 0 0 1px rgba(47,224,174,.2), 0 0 56px -8px rgba(47,224,174,.5);
+  --shadow-glow-violet: 0 0 0 1px rgba(158,124,255,.22), 0 0 56px -8px rgba(158,124,255,.5);
+  --shadow-glow-coral: 0 0 0 1px rgba(255,130,86,.2), 0 0 50px -8px rgba(255,130,86,.45);
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
+}
+
+body{
+  font-family:var(--font-body);
+  background:var(--canvas);
+  color:var(--ink-900);
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out);
+  overflow-x:hidden;
+}
+
+::selection{ background:var(--teal-glow); color:var(--teal-900); }
+[data-theme="dark"] ::selection{ background:var(--teal-700); color:var(--ink-0); }
+
+a{ color:inherit; text-decoration:none; }
+:focus-visible{ outline:2.5px solid var(--violet-500); outline-offset:3px; border-radius:6px; }
+img,svg{ display:block; max-width:100%; }
+
+.flourish{ font-family:var(--font-flourish); font-style:italic; font-weight:400; }
+h1,h2,h3,h4{ font-family:var(--font-display); letter-spacing:-.02em; }
+.mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:99px; }
+::-webkit-scrollbar-track{ background:transparent; }
+
+/* ================= HEADER ================= */
+.topbar{
+  position:sticky; top:0; z-index:60; height:var(--header-h);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 28px; background:color-mix(in srgb, var(--canvas) 78%, transparent);
+  backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border-bottom:1px solid var(--border);
+}
+.brand{ display:flex; align-items:center; gap:11px; font-family:var(--font-display); font-weight:700; font-size:18px; }
+.brand .mark{
+  width:34px; height:34px; border-radius:11px; position:relative; flex-shrink:0;
+  background:linear-gradient(155deg, var(--teal-400), var(--violet-500) 120%);
+  box-shadow:var(--shadow-glow-teal);
+  animation: mark-breathe 5s var(--ease-in-out) infinite;
+}
+.brand .mark::after{
+  content:''; position:absolute; inset:9px; border-radius:5px; background:var(--canvas-raised); opacity:.92;
+  mask:radial-gradient(circle at 35% 30%, transparent 30%, black 31%);
+}
+@keyframes mark-breathe{ 0%,100%{ transform:scale(1) rotate(0deg); } 50%{ transform:scale(1.06) rotate(6deg); } }
+.brand .ver{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; color:var(--teal-ink); background:var(--teal-50); border:1px solid var(--teal-200); padding:3px 8px; border-radius:99px; letter-spacing:.02em; margin-left:2px; }
+[data-theme="dark"] .brand .ver{ border-color:var(--teal-100); }
+
+.top-actions{ display:flex; align-items:center; gap:10px; }
+.icon-btn{
+  width:40px; height:40px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center;
+  background:var(--canvas-raised); border:1px solid var(--border); color:var(--ink-700); cursor:pointer;
+  transition:transform var(--dur-fast) var(--ease-spring), background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
+}
+.icon-btn:hover{ transform:translateY(-2px); border-color:var(--border-strong); color:var(--ink-900); }
+.icon-btn:active{ transform:translateY(0) scale(.94); }
+.icon-btn svg{ width:18px; height:18px; }
+#themeSwitch .sun{ display:none; } #themeSwitch .moon{ display:block; }
+[data-theme="dark"] #themeSwitch .sun{ display:block; } [data-theme="dark"] #themeSwitch .moon{ display:none; }
+
+.btn-copy-tokens{
+  display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:var(--radius-sm);
+  background:var(--ink-900); color:var(--canvas); border:none; font-family:var(--font-body); font-weight:600; font-size:13px;
+  cursor:pointer; transition:transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
+}
+[data-theme="dark"] .btn-copy-tokens{ background:var(--ink-900); color:var(--canvas); }
+.btn-copy-tokens:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.btn-copy-tokens:active{ transform:translateY(0) scale(.97); }
+
+/* ================= SHELL / SIDEBAR ================= */
+.wrap{ display:grid; grid-template-columns:256px 1fr; max-width:1500px; margin:0 auto; }
+.side{
+  position:sticky; top:var(--header-h); align-self:start;
+  height:calc(100vh - var(--header-h)); overflow-y:auto;
+  padding:32px 14px 40px 28px; border-right:1px solid var(--border);
+}
+.side-group{ margin-bottom:20px; }
+.side-label{ font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-400); padding:0 12px; margin-bottom:8px; }
+.side a{
+  display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--radius-xs);
+  font-size:13.5px; font-weight:500; color:var(--ink-600); margin-bottom:2px;
+  transition:background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+  position:relative;
+}
+.side a:hover{ background:var(--canvas-raised); color:var(--ink-900); transform:translateX(2px); }
+.side a.on{ background:var(--teal-50); color:var(--teal-ink); font-weight:700; }
+.side a .dot{ width:6px; height:6px; border-radius:99px; background:var(--ink-300); flex-shrink:0; transition:background var(--dur-fast), box-shadow var(--dur-fast); }
+.side a.on .dot{ background:var(--teal-500); box-shadow:0 0 0 4px var(--teal-100); }
+
+main{ min-width:0; }
+.section{ padding:76px 44px; border-bottom:1px solid var(--border); scroll-margin-top:calc(var(--header-h) + 12px); }
+.section:last-of-type{ border-bottom:none; }
+.section-head{ max-width:760px; margin-bottom:40px; }
+.eyebrow{
+  display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:11px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--violet-ink); background:var(--violet-50);
+  border:1px solid var(--violet-100); padding:5px 11px 5px 9px; border-radius:99px; margin-bottom:16px;
+}
+[data-theme="dark"] .eyebrow{ border-color:var(--violet-100); }
+.eyebrow .pulse{ width:6px; height:6px; border-radius:99px; background:var(--violet-500); position:relative; }
+.eyebrow .pulse::after{ content:''; position:absolute; inset:-4px; border-radius:99px; background:var(--violet-500); opacity:.4; animation:pulse-ring 1.8s var(--ease-out) infinite; }
+@keyframes pulse-ring{ 0%{ transform:scale(.6); opacity:.5; } 100%{ transform:scale(2.4); opacity:0; } }
+.section-head h2{ font-size:clamp(30px,3.4vw,42px); font-weight:700; line-height:1.05; margin-bottom:14px; }
+.section-head p{ font-size:16px; line-height:1.6; color:var(--ink-600); max-width:620px; }
+
+.dsfoot{ display:flex; align-items:center; justify-content:space-between; padding:32px 44px; font-size:12.5px; color:var(--ink-400); }
+
+/* ================= HERO ================= */
+.hero{
+  position:relative; padding:96px 44px 72px; overflow:hidden; border-bottom:1px solid var(--border);
+  background:
+    radial-gradient(680px 420px at 88% -10%, color-mix(in srgb, var(--violet-500) 20%, transparent), transparent 70%),
+    radial-gradient(620px 420px at 8% 110%, color-mix(in srgb, var(--teal-400) 24%, transparent), transparent 70%);
+}
+.hero-blob{ position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.7; }
+.hero-blob svg{ width:100%; height:100%; }
+.hero-inner{ position:relative; z-index:1; max-width:900px; }
+.hero h1{ font-size:clamp(42px,6vw,80px); font-weight:700; line-height:.98; letter-spacing:-.03em; margin-bottom:22px; }
+.hero h1 .flourish{ font-size:1.08em; background:linear-gradient(100deg, var(--teal-500), var(--violet-500) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p.lede{ font-size:19px; line-height:1.6; color:var(--ink-600); max-width:560px; margin-bottom:36px; }
+.hero-cta{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:56px; }
+.hero-meta{ display:flex; gap:28px; flex-wrap:wrap; }
+.hero-meta .m-item{ display:flex; flex-direction:column; gap:4px; }
+.hero-meta .m-val{ font-family:var(--font-display); font-size:26px; font-weight:700; }
+.hero-meta .m-label{ font-size:12px; color:var(--ink-500); font-weight:500; }
+
+/* ================= BUTTONS ================= */
+.btn{
+  --btn-bg:var(--ink-900); --btn-fg:var(--canvas); --btn-border:transparent;
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  height:48px; padding:0 22px; border-radius:var(--radius-full); border:1.5px solid var(--btn-border);
+  background:var(--btn-bg); color:var(--btn-fg); font-family:var(--font-body); font-weight:600; font-size:14.5px;
+  cursor:pointer; position:relative; overflow:hidden; white-space:nowrap;
+  transition:transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-med) var(--ease-out), background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
+}
+.btn svg{ width:17px; height:17px; transition:transform var(--dur-med) var(--ease-spring); }
+.btn:hover{ transform:translateY(-3px); }
+.btn:active{ transform:translateY(-1px) scale(.97); }
+.btn:hover svg.arr{ transform:translateX(3px); }
+.btn.primary{ --btn-bg:var(--teal-600); --btn-fg:#fff; }
+[data-theme="dark"] .btn.primary{ --btn-bg:var(--teal-500); --btn-fg:#04231c; }
+.btn.primary:hover{ box-shadow:var(--shadow-glow-teal); }
+.btn.violet{ --btn-bg:var(--violet-600); --btn-fg:#fff; }
+[data-theme="dark"] .btn.violet{ --btn-bg:var(--violet-500); --btn-fg:#1a0f3d; }
+.btn.violet:hover{ box-shadow:var(--shadow-glow-violet); }
+.btn.dark{ --btn-bg:var(--ink-900); --btn-fg:var(--canvas); }
+.btn.dark:hover{ box-shadow:var(--shadow-lg); }
+.btn.ghost{ --btn-bg:var(--canvas-raised); --btn-fg:var(--ink-900); --btn-border:var(--border-strong); }
+.btn.ghost:hover{ border-color:var(--ink-900); }
+.btn.subtle{ --btn-bg:transparent; --btn-fg:var(--ink-700); }
+.btn.subtle:hover{ --btn-bg:var(--ink-100); }
+.btn.danger{ --btn-bg:var(--rose-500); --btn-fg:#fff; }
+.btn.sm{ height:38px; padding:0 16px; font-size:13px; gap:7px; }
+.btn.lg{ height:56px; padding:0 28px; font-size:16px; }
+.btn.icon-only{ width:48px; padding:0; }
+.btn.block{ width:100%; }
+.btn[disabled]{ opacity:.45; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
+.btn .spin{ width:15px; height:15px; border-radius:99px; border:2px solid currentColor; border-right-color:transparent; animation:spin .7s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.btn-row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+
+/* ================= GENERIC CARD ================= */
+.card{
+  background:var(--canvas-raised); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:24px; box-shadow:var(--shadow-xs);
+  transition:transform var(--dur-med) var(--ease-spring), box-shadow var(--dur-med) var(--ease-out), border-color var(--dur-med);
+}
+.card.hoverable:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:var(--border-strong); }
+.card h4{ font-size:15px; font-weight:700; margin-bottom:2px; }
+.card .sub{ font-size:12.5px; color:var(--ink-500); }
+
+.grid{ display:grid; gap:20px; }
+.grid.cols-2{ grid-template-columns:repeat(2,1fr); }
+.grid.cols-3{ grid-template-columns:repeat(3,1fr); }
+.grid.cols-4{ grid-template-columns:repeat(4,1fr); }
+.grid.cols-5{ grid-template-columns:repeat(5,1fr); }
+.grid.cols-6{ grid-template-columns:repeat(6,1fr); }
+@media (max-width:1200px){ .grid.cols-4{ grid-template-columns:repeat(2,1fr); } .grid.cols-5{ grid-template-columns:repeat(3,1fr); } .grid.cols-6{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:760px){ .grid.cols-2,.grid.cols-3,.grid.cols-4,.grid.cols-5,.grid.cols-6{ grid-template-columns:repeat(2,1fr); } }
+
+/* ================= COLOR SWATCHES ================= */
+.ramp-block{ margin-bottom:36px; }
+.ramp-title{ display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
+.ramp-title h3{ font-family:var(--font-display); font-size:19px; font-weight:700; }
+.ramp-title span{ font-size:12.5px; color:var(--ink-500); font-family:var(--font-mono); }
+.ramp-row{ display:grid; grid-template-columns:repeat(10,1fr); gap:10px; }
+.swatch{
+  aspect-ratio:1/1; border-radius:var(--radius-sm); position:relative; cursor:pointer; overflow:hidden;
+  border:1px solid rgba(0,0,0,.06); transition:transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
+  display:flex; align-items:flex-end; padding:9px;
+}
+.swatch:hover{ transform:translateY(-4px) scale(1.03); box-shadow:var(--shadow-md); z-index:2; }
+.swatch .sw-hex{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; }
+.swatch .copied{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700;
+  background:rgba(0,0,0,.55); color:#fff; opacity:0; transition:opacity var(--dur-fast);
+}
+.swatch.is-copied .copied{ opacity:1; }
+@media (max-width:900px){ .ramp-row{ grid-template-columns:repeat(5,1fr); } }
+
+.mod-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.mod-tag{ display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:99px; font-size:13px; font-weight:700; }
+.mod-tag .d{ width:8px; height:8px; border-radius:99px; }
+
+/* ================= TOKEN TABLE ================= */
+.tok-table{ width:100%; border-collapse:collapse; }
+.tok-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-500); font-weight:700; padding:0 0 10px; }
+.tok-table td{ padding:12px 0; border-top:1px solid var(--border); font-size:13.5px; vertical-align:middle; }
+.tok-table code{ font-family:var(--font-mono); background:var(--ink-100); padding:3px 7px; border-radius:6px; font-size:12.5px; }
+
+/* ================= TYPOGRAPHY SPECIMENS ================= */
+.specimen{ display:flex; align-items:baseline; justify-content:space-between; gap:24px; padding:22px 0; border-top:1px solid var(--border); }
+.specimen:first-child{ border-top:none; }
+.specimen .word{ font-family:var(--font-display); font-weight:700; letter-spacing:-.02em; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.specimen .meta{ display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
+.specimen .meta b{ font-family:var(--font-mono); font-size:12.5px; }
+.specimen .meta span{ font-size:11.5px; color:var(--ink-500); }
+
+.type-role-card{ padding:26px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--canvas-raised); }
+.type-role-card .tag{ font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-500); margin-bottom:14px; display:block; }
+.type-role-card .fd{ font-family:var(--font-display); font-size:34px; font-weight:700; margin-bottom:8px; }
+.type-role-card .fb{ font-family:var(--font-body); font-size:15px; color:var(--ink-600); line-height:1.6; margin-bottom:6px; }
+.type-role-card .fm{ font-family:var(--font-mono); font-size:13px; color:var(--ink-600); }
+.type-role-card .ff{ font-family:var(--font-flourish); font-style:italic; font-size:26px; color:var(--violet-ink); }
+
+/* ================= SPACING / RADIUS / ELEVATION ================= */
+.tok-row{ display:flex; align-items:center; gap:20px; padding:14px 0; border-top:1px solid var(--border); }
+.tok-row:first-child{ border-top:none; }
+.tok-row .box{ background:linear-gradient(135deg, var(--teal-400), var(--violet-500)); flex-shrink:0; }
+.tok-row .lbl{ font-family:var(--font-mono); font-size:13px; width:70px; flex-shrink:0; color:var(--ink-700); }
+.tok-row .desc{ font-size:13px; color:var(--ink-500); }
+
+.elev-card{
+  background:var(--canvas-raised); border-radius:var(--radius-md); padding:20px; text-align:center;
+  font-family:var(--font-mono); font-size:12.5px; color:var(--ink-600); border:1px solid var(--border);
+}
+
+.ease-card{ background:var(--canvas-raised); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; }
+.ease-card svg{ width:100%; height:80px; }
+.ease-card .lbl{ font-family:var(--font-mono); font-size:12px; color:var(--ink-600); margin-top:10px; }
+
+.hover-demo{
+  height:120px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-weight:700; font-size:15px; color:#fff; cursor:pointer; text-align:center; padding:12px;
+  transition:transform var(--dur-med) var(--ease-spring), box-shadow var(--dur-med);
+}
+.hover-demo:hover{ transform:translateY(-8px) rotate(-1deg) scale(1.02); }
+.hover-demo.t1{ background:linear-gradient(135deg,var(--teal-400),var(--teal-700)); } .hover-demo.t1:hover{ box-shadow:var(--shadow-glow-teal); }
+.hover-demo.t2{ background:linear-gradient(135deg,var(--violet-400),var(--violet-700)); } .hover-demo.t2:hover{ box-shadow:var(--shadow-glow-violet); }
+.hover-demo.t3{ background:linear-gradient(135deg,var(--coral-400),var(--coral-600)); } .hover-demo.t3:hover{ box-shadow:var(--shadow-glow-coral); }
+
+/* ================= FORM ELEMENTS ================= */
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field label{ font-size:12.5px; font-weight:700; color:var(--ink-700); }
+.input, .select{
+  height:46px; padding:0 15px; border-radius:var(--radius-sm); border:1.5px solid var(--border-strong);
+  background:var(--canvas-raised); color:var(--ink-900); font-family:var(--font-body); font-size:14px; width:100%;
+  transition:border-color var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+}
+.input::placeholder{ color:var(--ink-400); }
+.input:focus, .select:focus{ outline:none; border-color:var(--teal-500); box-shadow:0 0 0 4px var(--teal-100); }
+[data-theme="dark"] .input:focus,[data-theme="dark"] .select:focus{ box-shadow:0 0 0 4px var(--teal-50); }
+.input.textarea{ height:auto; padding:13px 15px; min-height:96px; resize:vertical; }
+.field .hint{ font-size:12px; color:var(--ink-500); }
+.field .hint.err{ color:var(--danger); }
+
+.check-row, .radio-row{ display:flex; align-items:center; gap:10px; }
+.fake-check{
+  width:21px; height:21px; border-radius:7px; border:1.6px solid var(--border-strong); background:var(--canvas-raised);
+  display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; cursor:pointer; flex-shrink:0;
+  transition:all var(--dur-fast) var(--ease-spring);
+}
+.fake-check.on{ background:var(--teal-600); border-color:var(--teal-600); transform:scale(1.06); }
+.fake-radio{
+  width:21px; height:21px; border-radius:99px; border:1.6px solid var(--border-strong); background:var(--canvas-raised);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all var(--dur-fast) var(--ease-spring);
+}
+.fake-radio::after{ content:''; width:9px; height:9px; border-radius:99px; background:var(--violet-600); opacity:0; transition:opacity var(--dur-fast), transform var(--dur-fast); transform:scale(.4); }
+.fake-radio.on{ border-color:var(--violet-600); }
+.fake-radio.on::after{ opacity:1; transform:scale(1); }
+
+.toggle{ width:46px; height:27px; border-radius:99px; background:var(--ink-300); position:relative; cursor:pointer; flex-shrink:0; transition:background var(--dur-med) var(--ease-out); }
+.toggle::after{ content:''; position:absolute; width:21px; height:21px; border-radius:99px; background:#fff; top:3px; left:3px; box-shadow:var(--shadow-sm); transition:transform var(--dur-med) var(--ease-spring); }
+.toggle.on{ background:var(--teal-600); }
+.toggle.on::after{ transform:translateX(19px); }
+
+.tab-bar{ display:inline-flex; background:var(--ink-100); border-radius:99px; padding:4px; gap:2px; }
+.tab-bar .t{ padding:9px 18px; border-radius:99px; font-size:13px; font-weight:600; color:var(--ink-500); cursor:pointer; transition:all var(--dur-fast) var(--ease-spring); }
+.tab-bar .t.active{ background:var(--canvas-raised); color:var(--ink-900); box-shadow:var(--shadow-sm); }
+
+/* ================= BADGES / TAGS / AVATARS ================= */
+.badge{ display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:99px; font-size:12px; font-weight:700; }
+.badge.success{ background:var(--success-soft); color:var(--success); }
+.badge.warning{ background:var(--warning-soft); color:var(--warning); }
+.badge.danger{ background:var(--danger-soft); color:var(--danger); }
+.badge.info{ background:var(--info-soft); color:var(--info); }
+.badge.violet{ background:var(--violet-50); color:var(--violet-ink); }
+.badge .bdot{ width:6px; height:6px; border-radius:99px; background:currentColor; }
+
+.avatar-stack{ display:flex; }
+.avatar{ width:34px; height:34px; border-radius:99px; border:2.5px solid var(--canvas-raised); display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700; color:#fff; margin-left:-10px; }
+.avatar:first-child{ margin-left:0; }
+
+/* ================= DASHBOARD WIDGETS ================= */
+.stat-card{ position:relative; overflow:hidden; }
+.stat-card .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.stat-card .ico{ width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; }
+.stat-card .ico svg{ width:19px; height:19px; }
+.stat-card .val{ font-family:var(--font-display); font-size:30px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px; }
+.stat-card .lbl{ font-size:12.5px; color:var(--ink-500); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+.stat-card .delta{ display:inline-flex; align-items:center; gap:4px; font-size:12.5px; font-weight:700; margin-top:10px; }
+.stat-card .delta.up{ color:var(--success); } .stat-card .delta.down{ color:var(--danger); }
+.stat-card .delta svg{ width:13px; height:13px; }
+.stat-card .spark{ position:absolute; right:-6px; bottom:-6px; opacity:.5; }
+
+.dcard{ background:var(--canvas-raised); border:1px solid var(--border); border-radius:var(--radius-md); padding:22px; margin-bottom:20px; box-shadow:var(--shadow-xs); }
+.dcard:last-child{ margin-bottom:0; }
+.dcard .dhead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.dcard .dhead h4{ font-size:14.5px; font-weight:700; }
+.dcard .dhead .sub{ font-size:11.5px; color:var(--ink-500); font-weight:500; text-transform:uppercase; letter-spacing:.04em; }
+
+.act-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--border); }
+.act-row:first-child{ border-top:none; }
+.act-row .l{ display:flex; align-items:center; gap:11px; font-size:13.5px; font-weight:600; }
+.act-icon{ width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; font-weight:700; }
+.act-row .time{ font-size:11.5px; color:var(--ink-400); font-weight:500; }
+
+.donut-legend{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.donut-legend .li{ display:flex; align-items:center; justify-content:space-between; font-size:13px; }
+.donut-legend .li .l{ display:flex; align-items:center; gap:8px; color:var(--ink-600); font-weight:600; }
+.donut-legend .li .d{ width:9px; height:9px; border-radius:99px; }
+.donut-legend .li b{ font-family:var(--font-mono); }
+
+.alert-mini{ display:flex; align-items:center; gap:9px; padding:11px 13px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; margin-bottom:8px; }
+.alert-mini:last-child{ margin-bottom:0; }
+
+.mini-bars{ display:flex; align-items:flex-end; gap:4px; height:36px; }
+.mini-bars span{ width:6px; border-radius:3px 3px 0 0; background:var(--teal-400); animation:bar-rise .6s var(--ease-spring) backwards; }
+@keyframes bar-rise{ from{ transform:scaleY(0); transform-origin:bottom; } to{ transform:scaleY(1); transform-origin:bottom; } }
+
+.ring-wrap{ position:relative; width:112px; height:112px; margin:0 auto; }
+.ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.ring-wrap .rv{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring-wrap .rv b{ font-family:var(--font-display); font-size:22px; font-weight:700; }
+.ring-wrap .rv span{ font-size:9.5px; color:var(--ink-500); text-transform:uppercase; letter-spacing:.05em; }
+
+/* ================= DASHBOARD SHELL (example section) ================= */
+.dash-frame{ border-radius:var(--radius-lg); border:1px solid var(--border); overflow:hidden; box-shadow:var(--shadow-lg); background:var(--canvas-sunken); }
+.dash-frame .fbar{ display:flex; align-items:center; gap:8px; padding:14px 18px; border-bottom:1px solid var(--border); background:var(--canvas-raised); }
+.dash-frame .fdot{ width:11px; height:11px; border-radius:99px; }
+.dash-shell{ display:grid; grid-template-columns:76px 1fr 300px; min-height:640px; background:var(--canvas); }
+.dash-nav{ border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:22px 0; gap:8px; background:var(--canvas-raised); }
+.dash-nav .dn-mark{ width:36px; height:36px; border-radius:11px; background:linear-gradient(155deg,var(--teal-400),var(--violet-500)); margin-bottom:18px; }
+.dash-nav .dn-item{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--ink-400); cursor:pointer; transition:all var(--dur-fast) var(--ease-spring); }
+.dash-nav .dn-item svg{ width:19px; height:19px; }
+.dash-nav .dn-item:hover{ background:var(--ink-100); color:var(--ink-800); transform:translateX(2px); }
+.dash-nav .dn-item.active{ background:var(--teal-600); color:#fff; box-shadow:var(--shadow-glow-teal); }
+.dash-main{ padding:26px 26px 40px; overflow:hidden auto; }
+.dash-main .dm-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:14px; }
+.dash-main .dm-head h2{ font-size:23px; font-weight:700; }
+.dash-main .dm-head .sub{ font-size:12.5px; color:var(--ink-500); margin-top:3px; }
+.dash-side{ border-left:1px solid var(--border); padding:26px 22px; background:var(--canvas-raised); overflow-y:auto; }
+@media (max-width:1180px){ .dash-shell{ grid-template-columns:76px 1fr; } .dash-side{ display:none; } }
+
+.chip-search{ display:flex; align-items:center; gap:10px; height:42px; padding:0 14px; border-radius:var(--radius-sm); background:var(--ink-100); flex:1; max-width:340px; color:var(--ink-500); font-size:13px; }
+.chip-search svg{ width:16px; height:16px; flex-shrink:0; }
+.hdr-chip{ display:flex; align-items:center; gap:7px; height:38px; padding:0 14px; border-radius:99px; font-size:12.5px; font-weight:700; white-space:nowrap; }
+
+.progress-track{ height:8px; border-radius:99px; background:var(--ink-100); overflow:hidden; }
+.progress-fill{ height:100%; border-radius:99px; transition:width 1s var(--ease-spring); }
+
+/* ================= TABLES / EMPTY / TOAST ================= */
+.dtable{ width:100%; border-collapse:collapse; }
+.dtable th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-500); font-weight:700; padding:0 12px 10px; }
+.dtable td{ padding:13px 12px; border-top:1px solid var(--border); font-size:13.5px; }
+.dtable tr:hover td{ background:var(--ink-100); }
+.dtable td:first-child, .dtable th:first-child{ padding-left:0; }
+
+.empty-state{ text-align:center; padding:44px 20px; }
+.empty-state .ee-ico{ width:58px; height:58px; border-radius:16px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; background:var(--violet-50); color:var(--violet-ink); }
+.empty-state .ee-ico svg{ width:26px; height:26px; }
+.empty-state h4{ font-size:15px; margin-bottom:6px; }
+.empty-state p{ font-size:13px; color:var(--ink-500); max-width:280px; margin:0 auto 18px; }
+
+.toast{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:var(--radius-sm); background:var(--canvas-raised); border:1px solid var(--border); box-shadow:var(--shadow-md); }
+.toast .t-ico{ width:34px; height:34px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.toast .t-ico svg{ width:17px; height:17px; }
+.toast .t-body b{ display:block; font-size:13.5px; margin-bottom:2px; }
+.toast .t-body span{ font-size:12px; color:var(--ink-500); }
+
+/* ================= SHIMMER (loading) ================= */
+.shimmer{ position:relative; overflow:hidden; background:var(--ink-100); border-radius:var(--radius-sm); }
+.shimmer::after{ content:''; position:absolute; inset:0; transform:translateX(-100%);
+  background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink-0) 60%, transparent), transparent);
+  animation:shimmer-sweep 1.6s ease-in-out infinite; }
+[data-theme="dark"] .shimmer::after{ background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent); }
+@keyframes shimmer-sweep{ to{ transform:translateX(100%); } }
+
+/* ================= REVEAL ON SCROLL ================= */
+.reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s var(--ease-out), transform .7s var(--ease-out); }
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+/* ================= RESPONSIVE ================= */
+.blob-layer{ position:absolute; border-radius:50%; filter:blur(60px); opacity:.55; will-change:transform; }
+.blob-layer.b1{ width:420px; height:420px; top:-160px; right:-80px; background:radial-gradient(circle, var(--teal-300), transparent 70%); animation:drift1 16s var(--ease-in-out) infinite; }
+.blob-layer.b2{ width:380px; height:380px; bottom:-180px; left:-60px; background:radial-gradient(circle, var(--violet-300), transparent 70%); animation:drift2 19s var(--ease-in-out) infinite; }
+.blob-layer.b3{ width:260px; height:260px; top:40%; left:38%; background:radial-gradient(circle, var(--coral-300), transparent 72%); opacity:.28; animation:drift3 13s var(--ease-in-out) infinite; }
+[data-theme="dark"] .blob-layer{ opacity:.4; }
+[data-theme="dark"] .blob-layer.b3{ opacity:.22; }
+@keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-40px,30px) scale(1.12); } }
+@keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(30px,-30px) scale(1.08); } }
+@keyframes drift3{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(20px,20px) scale(1.15); } }
+
+@media (max-width:1080px){
+  .wrap{ grid-template-columns:1fr; }
+  .side{ display:none; }
+  .section{ padding:56px 22px; }
+  .topbar{ padding:0 18px; }
+  .grid.cols-3,.grid.cols-4{ grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<noscript><style>.reveal{ opacity:1 !important; transform:none !important; }</style></noscript>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark"></span>
+    VenQore <span class="ver">System 4.0 · Bloom</span>
+  </div>
+  <div class="top-actions">
+    <button class="btn-copy-tokens" id="copyTokensBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy core tokens
+    </button>
+    <button class="icon-btn" id="themeSwitch" aria-label="Toggle theme">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="side-group">
+      <div class="side-label">Foundations</div>
+      <a href="#overview"><span class="dot"></span>Overview</a>
+      <a href="#color"><span class="dot"></span>Color</a>
+      <a href="#type"><span class="dot"></span>Typography</a>
+      <a href="#scale"><span class="dot"></span>Space &amp; radius</a>
+      <a href="#motion"><span class="dot"></span>Elevation &amp; motion</a>
+    </div>
+    <div class="side-group">
+      <div class="side-label">Components</div>
+      <a href="#buttons"><span class="dot"></span>Buttons</a>
+      <a href="#forms"><span class="dot"></span>Forms &amp; controls</a>
+      <a href="#badges"><span class="dot"></span>Badges &amp; avatars</a>
+      <a href="#widgets"><span class="dot"></span>Cards &amp; widgets</a>
+    </div>
+    <div class="side-group">
+      <div class="side-label">Applied</div>
+      <a href="#dashboard"><span class="dot"></span>Dashboard example</a>
+      <a href="#voice"><span class="dot"></span>Voice &amp; motion rules</a>
+    </div>
+  </aside>
+
+  <main>
+
+    <section class="hero" id="overview">
+      <div class="hero-blob" id="heroBlob">
+        <div class="blob-layer b1"></div>
+        <div class="blob-layer b2"></div>
+        <div class="blob-layer b3"></div>
+      </div>
+      <div class="hero-inner">
+        <span class="eyebrow"><span class="pulse"></span>Design system 4.0 — codename Bloom</span>
+        <h1>Software that feels<br><span class="flourish">wide awake.</span></h1>
+        <p class="lede">Bloom is the visual language for the AI that builds your business system — one confident teal, one violet intelligence signal, and a small family of module colors that stay true whether the lights are on or off.</p>
+        <div class="hero-cta">
+          <button class="btn primary lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+            Explore the system
+          </button>
+          <button class="btn ghost lg" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">
+            See it applied
+            <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+        <div class="hero-meta">
+          <div class="m-item"><span class="m-val"><span data-count="6">0</span></span><span class="m-label">Named hues, used on purpose</span></div>
+          <div class="m-item"><span class="m-val"><span data-count="2">0</span> modes</span><span class="m-label">Both first-class, not an afterthought</span></div>
+          <div class="m-item"><span class="m-val"><span data-count="42">0</span>+</span><span class="m-label">Components ready to ship</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="color">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>01 · Color</span>
+        <h2>One brand, six voices.</h2>
+        <p>Teal carries the brand. Violet carries the intelligence. Everything else — coral, sun, sky, rose — is assigned to a real module and used nowhere else, so color becomes a map, not decoration. Click any swatch to copy its hex.</p>
+      </div>
+
+      <div class="ramp-block">
+        <div class="ramp-title"><h3>Teal — brand &amp; success</h3><span>--teal-*</span></div>
+        <div class="ramp-row" data-ramp="teal"></div>
+      </div>
+      <div class="ramp-block">
+        <div class="ramp-title"><h3>Violet — the AI signal</h3><span>--violet-*</span></div>
+        <div class="ramp-row" data-ramp="violet"></div>
+      </div>
+      <div class="ramp-block">
+        <div class="ramp-title"><h3>Neutral — graphite, not tinted</h3><span>--ink-*</span></div>
+        <div class="ramp-row" data-ramp="ink"></div>
+      </div>
+
+      <div class="grid cols-3" style="margin-bottom:36px;">
+        <div class="ramp-block" style="margin-bottom:0;">
+          <div class="ramp-title"><h3>Coral</h3><span>sales</span></div>
+          <div class="ramp-row" data-ramp="coral" style="grid-template-columns:repeat(5,1fr);"></div>
+        </div>
+        <div class="ramp-block" style="margin-bottom:0;">
+          <div class="ramp-title"><h3>Sun</h3><span>purchasing</span></div>
+          <div class="ramp-row" data-ramp="sun" style="grid-template-columns:repeat(5,1fr);"></div>
+        </div>
+        <div class="ramp-block" style="margin-bottom:0;">
+          <div class="ramp-title"><h3>Sky</h3><span>staff</span></div>
+          <div class="ramp-row" data-ramp="sky" style="grid-template-columns:repeat(5,1fr);"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:32px;">
+        <h4 style="margin-bottom:14px;">Module color coding</h4>
+        <p class="sub" style="margin-bottom:16px; max-width:520px;">Every business module owns one color, everywhere it appears — a nav icon, a badge, a chart line. Recognition without reading.</p>
+        <div class="mod-row" id="modRow"></div>
+      </div>
+
+      <div class="grid cols-4">
+        <div class="card"><div class="badge success" style="margin-bottom:12px;"><span class="bdot"></span>Success</div><p class="sub">Healthy stock, paid invoices, completed runs.</p></div>
+        <div class="card"><div class="badge warning" style="margin-bottom:12px;"><span class="bdot"></span>Warning</div><p class="sub">Low stock, due soon, needs a look.</p></div>
+        <div class="card"><div class="badge danger" style="margin-bottom:12px;"><span class="bdot"></span>Danger</div><p class="sub">Out of stock, overdue, failed sync.</p></div>
+        <div class="card"><div class="badge info" style="margin-bottom:12px;"><span class="bdot"></span>Info</div><p class="sub">FYI, tips, quiet system notices.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="type">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>02 · Typography</span>
+        <h2>Four faces, four jobs.</h2>
+        <p>Cabinet Grotesk carries personality at display size. General Sans is the calm workhorse for UI and body copy — warm, not clinical. Geist Mono handles anything that's actually a number. Instrument Serif is the one flourish, used sparingly.</p>
+      </div>
+
+      <div class="grid cols-4" style="margin-bottom:44px;">
+        <div class="type-role-card">
+          <span class="tag">Display</span>
+          <div class="fd">Cabinet Grotesk</div>
+          <p class="fb">Headlines, hero numbers, section titles. Confident, a little quirky — never used below 20px.</p>
+        </div>
+        <div class="type-role-card">
+          <span class="tag">Body / UI</span>
+          <div class="fb" style="font-size:22px; font-weight:600; color:var(--ink-900); margin-bottom:8px;">General Sans</div>
+          <p class="fb">Every label, button, paragraph, and table cell in the product.</p>
+        </div>
+        <div class="type-role-card">
+          <span class="tag">Numeric / mono</span>
+          <div class="fm" style="font-size:22px; font-weight:700; color:var(--ink-900); margin-bottom:8px;">Rs 84,219.30</div>
+          <p class="fb">Geist Mono. Every currency figure, ID, and timestamp gets tabular numerals.</p>
+        </div>
+        <div class="type-role-card">
+          <span class="tag">Flourish</span>
+          <div class="ff" style="margin-bottom:8px;">the system.</div>
+          <p class="fb">Instrument Serif italic — one accent word per page, maximum.</p>
+        </div>
+      </div>
+
+      <div class="card" style="padding:8px 28px;">
+        <div class="specimen"><span class="word" style="font-size:56px;">Build the system.</span><span class="meta"><b>56 / 700</b><span>Display XL</span></span></div>
+        <div class="specimen"><span class="word" style="font-size:40px;">Purchases trend</span><span class="meta"><b>40 / 700</b><span>Display L</span></span></div>
+        <div class="specimen"><span class="word" style="font-size:28px;">Executive overview</span><span class="meta"><b>28 / 700</b><span>Display M</span></span></div>
+        <div class="specimen"><span class="word" style="font-family:var(--font-body); font-weight:600; font-size:18px;">Net balance across all accounts</span><span class="meta"><b>18 / 600</b><span>UI heading</span></span></div>
+        <div class="specimen"><span class="word" style="font-family:var(--font-body); font-weight:400; font-size:15px;">Ring up sales, track stock, see exact profit.</span><span class="meta"><b>15 / 400</b><span>Body</span></span></div>
+        <div class="specimen"><span class="word" style="font-family:var(--font-mono); font-weight:500; font-size:13px; text-transform:uppercase; letter-spacing:.06em;">Caption · Label · Meta</span><span class="meta"><b>13 / 500</b><span>Caption</span></span></div>
+      </div>
+    </section>
+
+    <section class="section" id="scale">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>03 · Space &amp; radius</span>
+        <h2>Rounder as things get bigger.</h2>
+        <p>An 4/8px spacing rhythm, and a radius scale that grows with the surface — small controls stay crisp, big cards get soft. Nothing is ever a hard 0 or a full pill by accident.</p>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h4 style="margin-bottom:16px;">Radius</h4>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:8px;"></div><span class="lbl">xs · 8</span><span class="desc">Chips, checkboxes, tiny icons</span></div>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:12px;"></div><span class="lbl">sm · 12</span><span class="desc">Inputs, buttons, small tags</span></div>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:18px;"></div><span class="lbl">md · 18</span><span class="desc">Cards, dropdowns, modals</span></div>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:24px;"></div><span class="lbl">lg · 24</span><span class="desc">Panels, dashboard frame</span></div>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:32px;"></div><span class="lbl">xl · 32</span><span class="desc">Hero surfaces, illustrations</span></div>
+          <div class="tok-row"><div class="box" style="width:40px;height:40px;border-radius:999px;"></div><span class="lbl">full</span><span class="desc">Buttons, badges, avatars</span></div>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:16px;">Spacing</h4>
+          <div class="tok-row"><div class="box" style="width:4px;height:20px;border-radius:3px;"></div><span class="lbl">4</span><span class="desc">Icon-to-label gaps</span></div>
+          <div class="tok-row"><div class="box" style="width:8px;height:20px;border-radius:3px;"></div><span class="lbl">8</span><span class="desc">Tight stacks, chip padding</span></div>
+          <div class="tok-row"><div class="box" style="width:12px;height:20px;border-radius:3px;"></div><span class="lbl">12</span><span class="desc">Form field gaps</span></div>
+          <div class="tok-row"><div class="box" style="width:20px;height:20px;border-radius:3px;"></div><span class="lbl">20</span><span class="desc">Card padding, grid gaps</span></div>
+          <div class="tok-row"><div class="box" style="width:32px;height:20px;border-radius:3px;"></div><span class="lbl">32</span><span class="desc">Section sub-blocks</span></div>
+          <div class="tok-row"><div class="box" style="width:56px;height:20px;border-radius:3px;"></div><span class="lbl">56+</span><span class="desc">Section rhythm</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="motion">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>04 · Elevation &amp; motion</span>
+        <h2>Nothing just sits there.</h2>
+        <p>Shadows do double duty as depth <em>and</em> color — a hovered teal card glows teal, not generic black. Motion always springs, never linear-eases; it's the difference between a UI that responds and one that just changes state.</p>
+      </div>
+
+      <div class="grid cols-4" style="margin-bottom:36px;">
+        <div class="elev-card" style="box-shadow:var(--shadow-xs);">shadow-xs</div>
+        <div class="elev-card" style="box-shadow:var(--shadow-sm);">shadow-sm</div>
+        <div class="elev-card" style="box-shadow:var(--shadow-md);">shadow-md</div>
+        <div class="elev-card" style="box-shadow:var(--shadow-lg);">shadow-lg</div>
+      </div>
+
+      <div class="grid cols-3" style="margin-bottom:36px;">
+        <div class="hover-demo t1">Hover me — teal glow</div>
+        <div class="hover-demo t2">Hover me — violet glow</div>
+        <div class="hover-demo t3">Hover me — coral glow</div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="ease-card">
+          <svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M4,56 C4,56 30,56 50,30 C70,4 96,4 96,4" fill="none" stroke="var(--teal-500)" stroke-width="2.5"/></svg>
+          <div class="lbl">ease-spring · buttons, hovers, toggles</div>
+        </div>
+        <div class="ease-card">
+          <svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M4,56 C22,20 40,4 96,4" fill="none" stroke="var(--violet-500)" stroke-width="2.5"/></svg>
+          <div class="lbl">ease-out · reveals, entrances</div>
+        </div>
+        <div class="ease-card">
+          <svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M4,56 C36,56 64,4 96,4" fill="none" stroke="var(--coral-500)" stroke-width="2.5"/></svg>
+          <div class="lbl">ease-in-out · theme, layout shifts</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="buttons">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>05 · Buttons</span>
+        <h2>Every button springs.</h2>
+        <p>Full pill radius, a 3px lift on hover, a quick squash on click. Primary is teal, AI-initiated actions get violet, destructive stays a calm rose rather than a shouting red.</p>
+      </div>
+
+      <div class="card" style="padding:32px;">
+        <div class="btn-row" style="margin-bottom:22px;">
+          <button class="btn primary">Create sale</button>
+          <button class="btn violet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+            Ask AI to build this
+          </button>
+          <button class="btn dark">Save changes</button>
+          <button class="btn ghost">Cancel</button>
+          <button class="btn subtle">Learn more</button>
+          <button class="btn danger">Delete item</button>
+        </div>
+        <div class="btn-row" style="margin-bottom:22px;">
+          <button class="btn primary lg">Large</button>
+          <button class="btn primary">Default</button>
+          <button class="btn primary sm">Small</button>
+          <button class="btn ghost icon-only" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+          <button class="btn primary" disabled>Disabled</button>
+          <button class="btn primary"><span class="spin"></span>Processing…</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary lg">
+            Start free trial
+            <svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="forms">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>06 · Forms &amp; controls</span>
+        <h2>Inputs that feel touchable.</h2>
+        <p>A visible teal focus ring, generous tap targets, and toggles/checks that spring rather than snap — small moments that make the product feel handmade, not generated.</p>
+      </div>
+
+      <div class="card" style="padding:32px;">
+        <div class="grid cols-3" style="margin-bottom:28px;">
+          <div class="field">
+            <label>Business name</label>
+            <input class="input" type="text" placeholder="e.g. Raza Electronics" value="Raza Electronics">
+          </div>
+          <div class="field">
+            <label>Monthly revenue</label>
+            <input class="input mono" type="text" placeholder="Rs 0.00" value="Rs 84,219.30">
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <select class="select">
+              <option>Retail &amp; POS</option>
+              <option>Wholesale distribution</option>
+              <option>Services</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:28px;">
+          <label>What should the AI build first?</label>
+          <textarea class="input textarea" placeholder="Describe your business…">A phone shop with two branches, needs inventory sync and staff payroll.</textarea>
+          <span class="hint">This becomes the first module VenQore scaffolds for you.</span>
+        </div>
+
+        <div class="grid cols-3">
+          <div>
+            <label style="font-size:12.5px; font-weight:700; color:var(--ink-700); display:block; margin-bottom:12px;">Checkboxes</label>
+            <div class="check-row" style="margin-bottom:10px;"><div class="fake-check on">✓</div><span>Send low-stock alerts</span></div>
+            <div class="check-row" style="margin-bottom:10px;"><div class="fake-check">✓</div><span>Weekly email digest</span></div>
+            <div class="check-row"><div class="fake-check">✓</div><span>Share data with accountant</span></div>
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:700; color:var(--ink-700); display:block; margin-bottom:12px;">Radio</label>
+            <div class="radio-row" style="margin-bottom:10px;"><div class="fake-radio on"></div><span>Cash basis</span></div>
+            <div class="radio-row"><div class="fake-radio"></div><span>Accrual basis</span></div>
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:700; color:var(--ink-700); display:block; margin-bottom:12px;">Toggles &amp; tabs</label>
+            <div class="check-row" style="margin-bottom:14px;"><div class="toggle on"></div><span>Dark mode follows system</span></div>
+            <div class="tab-bar"><span class="t active">Day</span><span class="t">Week</span><span class="t">Month</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="badges">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>07 · Badges &amp; avatars</span>
+        <h2>Status at a glance.</h2>
+        <p>Soft-fill badges, never outline-only — they should read as color blocks from across the room. Avatars stack with a visible ring so overlaps stay legible on any card color.</p>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h4 style="margin-bottom:16px;">Status badges</h4>
+          <div class="btn-row">
+            <span class="badge success"><span class="bdot"></span>Healthy</span>
+            <span class="badge warning"><span class="bdot"></span>Low stock</span>
+            <span class="badge danger"><span class="bdot"></span>Out of stock</span>
+            <span class="badge info"><span class="bdot"></span>Syncing</span>
+            <span class="badge violet"><span class="bdot"></span>AI suggested</span>
+          </div>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:16px;">Avatar stack</h4>
+          <div class="avatar-stack">
+            <div class="avatar" style="background:var(--coral-500);">AR</div>
+            <div class="avatar" style="background:var(--violet-500);">SK</div>
+            <div class="avatar" style="background:var(--sky-500);">FM</div>
+            <div class="avatar" style="background:var(--teal-600);">+4</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="widgets">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>08 · Cards &amp; widgets</span>
+        <h2>The dashboard's real vocabulary.</h2>
+        <p>Every stat card, chart, and feed row a real dashboard needs — built once here, reused everywhere. This is the set that replaces the flat gray boxes from v3.</p>
+      </div>
+
+      <div class="grid cols-4" style="margin-bottom:20px;">
+        <div class="card stat-card hoverable">
+          <div class="top"><div class="ico" style="background:var(--teal-50); color:var(--teal-ink);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div><span class="badge success">Healthy</span></div>
+          <div class="val mono"><span data-count="87299">0</span></div>
+          <div class="lbl">Net balance (Rs)</div>
+          <div class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15 12 9l-6 6"/></svg>12.4% this month</div>
+        </div>
+
+        <div class="card stat-card hoverable">
+          <div class="top"><div class="ico" style="background:var(--violet-50); color:var(--violet-ink);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+          </div><span class="badge violet">AI insight</span></div>
+          <div class="val"><span data-count="6">0</span></div>
+          <div class="lbl">Opportunities found today</div>
+          <div class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15 12 9l-6 6"/></svg>Rs 14,561 potential</div>
+        </div>
+
+        <div class="card stat-card hoverable">
+          <div class="top"><div class="ico" style="background:var(--sun-100); color:var(--sun-ink);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v8M8 3v8M3 11h18"/></svg>
+          </div><span class="badge warning">3 items</span></div>
+          <div class="val"><span data-count="3">0</span></div>
+          <div class="lbl">Pending actions</div>
+          <div class="delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>Needs review</div>
+        </div>
+
+        <div class="card stat-card hoverable">
+          <div class="top"><div class="ico" style="background:var(--rose-100); color:var(--rose-ink);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+          </div><span class="badge danger">Overdue</span></div>
+          <div class="val mono">2,132,989</div>
+          <div class="lbl">Receivables (Rs)</div>
+          <div class="delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>9% from 3 accounts</div>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="dcard" style="margin-bottom:0;">
+          <div class="dhead"><h4>Purchases trend</h4><span class="sub">6 months</span></div>
+          <svg viewBox="0 0 300 110" style="width:100%; height:100px;">
+            <defs><linearGradient id="areaFillDs" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--teal-400)" stop-opacity=".4"/><stop offset="1" stop-color="var(--teal-400)" stop-opacity="0"/>
+            </linearGradient></defs>
+            <path d="M0,90 L50,82 L100,75 L150,70 L200,50 L250,20 L300,8 L300,110 L0,110 Z" fill="url(#areaFillDs)"/>
+            <path d="M0,90 L50,82 L100,75 L150,70 L200,50 L250,20 L300,8" fill="none" stroke="var(--teal-500)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="dcard" style="margin-bottom:0;">
+          <div class="dhead"><h4>Inventory health</h4><span class="badge warning">Action needed</span></div>
+          <div class="ring-wrap">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--ink-100)" stroke-width="10"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--teal-500)" stroke-width="10" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="60" id="ringDemo2"/>
+            </svg>
+            <div class="rv"><b>78%</b><span>Healthy</span></div>
+          </div>
+          <div class="donut-legend">
+            <div class="li"><span class="l"><span class="d" style="background:var(--teal-500);"></span>Healthy</span><b>78%</b></div>
+            <div class="li"><span class="l"><span class="d" style="background:var(--sun-400);"></span>Low</span><b>13%</b></div>
+            <div class="li"><span class="l"><span class="d" style="background:var(--rose-500);"></span>Out</span><b>9%</b></div>
+          </div>
+        </div>
+
+        <div class="dcard" style="margin-bottom:0;">
+          <div class="dhead"><h4>Recent activity</h4><span class="sub">View all</span></div>
+          <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--teal-50); color:var(--teal-ink);">+</div>Sale #SAL‑0182</div><b class="mono" style="color:var(--success);">+Rs1,244</b></div>
+          <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--coral-100); color:var(--coral-ink);">−</div>Purchase #PUR‑071</div><b class="mono" style="color:var(--danger);">−Rs1,700</b></div>
+          <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--violet-50); color:var(--violet-ink);">✦</div>AI restocked 3 SKUs</div><b class="mono" style="color:var(--ink-500);">auto</b></div>
+        </div>
+      </div>
+
+      <div class="grid cols-3" style="margin-top:20px;">
+        <div class="dcard" style="margin-bottom:0;">
+          <div class="dhead"><h4>Alerts</h4></div>
+          <div class="alert-mini" style="background:var(--warning-soft); color:var(--warning);">⚠ 13% inventory running low</div>
+          <div class="alert-mini" style="background:var(--danger-soft); color:var(--danger);">⛔ 9% products out of stock</div>
+          <div class="alert-mini" style="background:var(--success-soft); color:var(--success);">✓ Profit up Rs53,544 today</div>
+        </div>
+        <div class="dcard" style="margin-bottom:0;">
+          <div class="dhead"><h4>Nothing here yet</h4></div>
+          <div class="empty-state" style="padding:14px 0 0;">
+            <div class="ee-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></div>
+            <h4>No opportunities right now</h4>
+            <p>Check back later, or ask the AI to run an analysis now.</p>
+            <button class="btn violet sm">Run analysis</button>
+          </div>
+        </div>
+        <div class="dcard" style="margin-bottom:0; display:flex; flex-direction:column; gap:12px; justify-content:center;">
+          <div class="toast"><div class="t-ico" style="background:var(--success-soft); color:var(--success);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div class="t-body"><b>Invoice #1042 paid</b><span>Just now · Rs 12,480</span></div></div>
+          <div class="toast"><div class="t-ico" style="background:var(--violet-50); color:var(--violet-ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></div><div class="t-body"><b>AI drafted next week's PO</b><span>2 min ago</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dashboard">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>09 · Applied</span>
+        <h2>The same dashboard. Toggle the corner.</h2>
+        <p>This is the executive dashboard, rebuilt in Bloom. Flip light/dark up top — nothing goes flat, nothing turns green-black. Color stays legible because the canvas underneath it stays neutral.</p>
+      </div>
+
+      <div class="dash-frame">
+        <div class="fbar">
+          <span class="fdot" style="background:#FF5F57;"></span><span class="fdot" style="background:#FEBC2E;"></span><span class="fdot" style="background:#28C840;"></span>
+          <div class="chip-search" style="margin:0 auto; max-width:280px; height:30px; justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            app.venqore.com/dashboard
+          </div>
+          <span class="badge success"><span class="bdot"></span>Live sync</span>
+        </div>
+
+        <div class="dash-shell">
+          <nav class="dash-nav">
+            <div class="dn-mark"></div>
+            <div class="dn-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+            <div class="dn-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></div>
+            <div class="dn-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7Z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg></div>
+            <div class="dn-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="dn-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+          </nav>
+
+          <div class="dash-main">
+            <div class="dm-head">
+              <div><h2>Executive overview</h2><div class="sub">Welcome back, Ahmad — here's the shape of the week.</div></div>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <div class="chip-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Search anything…</div>
+                <span class="hdr-chip" style="background:var(--violet-50); color:var(--violet-ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>Growth engine</span>
+                <div class="avatar" style="background:var(--coral-500);">AR</div>
+              </div>
+            </div>
+
+            <div class="grid cols-3" style="margin-bottom:20px;">
+              <div class="card stat-card"><div class="top"><span class="lbl" style="text-transform:none; font-size:12.5px;">Performance · today</span></div><div class="val mono" style="font-size:24px;">Rs <span data-count="68852">0</span></div><div class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15 12 9l-6 6"/></svg>Gross profit Rs 14,561</div></div>
+              <div class="card stat-card"><div class="top"><span class="lbl" style="text-transform:none; font-size:12.5px;">Outstanding · month</span></div><div class="val mono" style="font-size:24px; color:var(--danger);">Rs <span data-count="2132989">0</span></div><div class="delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>To receive · 0 to pay</div></div>
+              <div class="card stat-card"><div class="top"><span class="lbl" style="text-transform:none; font-size:12.5px;">Net profit · month</span></div><div class="val" style="font-size:24px; color:var(--success);">Good</div><div class="delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15 12 9l-6 6"/></svg>Rs 14,561 current status</div></div>
+            </div>
+
+            <div class="dcard">
+              <div class="dhead"><h4>Revenue analytics</h4><div class="tab-bar"><span class="t">Today</span><span class="t active">Month</span><span class="t">Year</span></div></div>
+              <svg viewBox="0 0 600 160" style="width:100%; height:150px;">
+                <defs><linearGradient id="mainAreaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="var(--violet-400)" stop-opacity=".35"/><stop offset="1" stop-color="var(--violet-400)" stop-opacity="0"/>
+                </linearGradient></defs>
+                <path d="M0,130 L80,120 L160,125 L240,90 L320,95 L400,55 L480,60 L560,20 L600,15 L600,160 L0,160 Z" fill="url(#mainAreaFill)"/>
+                <path d="M0,130 L80,120 L160,125 L240,90 L320,95 L400,55 L480,60 L560,20 L600,15" fill="none" stroke="var(--violet-500)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M0,150 L80,148 L160,146 L240,140 L320,135 L400,128 L480,120 L560,108 L600,100" fill="none" stroke="var(--teal-500)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>
+              </svg>
+            </div>
+
+            <div class="grid cols-3">
+              <div class="dcard" style="margin-bottom:0;">
+                <div class="dhead"><h4>Top products</h4></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--sky-100); color:var(--sky-ink);">TP</div>ThinkPad X1 Carbon</div><b class="mono">Rs16,735</b></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--violet-50); color:var(--violet-ink);">RG</div>ASUS ROG Zephyrus</div><b class="mono">Rs12,171</b></div>
+              </div>
+              <div class="dcard" style="margin-bottom:0;">
+                <div class="dhead"><h4>Low stock</h4><span class="sub">View all</span></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--danger-soft); color:var(--danger);">!</div>Galaxy S24 Ultra</div><button class="btn primary sm">Order</button></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--danger-soft); color:var(--danger);">!</div>iPhone 15 Pro</div><button class="btn primary sm">Order</button></div>
+              </div>
+              <div class="dcard" style="margin-bottom:0;">
+                <div class="dhead"><h4>Recent purchases</h4><span class="sub">Month</span></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--sun-100); color:var(--sun-ink);">PO</div>PUR‑R1‑0192</div><b class="mono" style="color:var(--danger);">−Rs1,700</b></div>
+                <div class="act-row"><div class="l"><div class="act-icon" style="background:var(--sun-100); color:var(--sun-ink);">PO</div>PUR‑R1‑0191</div><b class="mono" style="color:var(--danger);">−Rs1,000</b></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="dash-side">
+            <div class="sub" style="margin-bottom:2px;">Total balance</div>
+            <div class="val mono" style="font-size:28px; font-weight:700; margin-bottom:16px;">Rs <span data-count="6636549">0</span></div>
+            <div class="grid cols-3" style="gap:8px; margin-bottom:20px;">
+              <button class="btn primary sm" style="flex-direction:column; height:56px; border-radius:14px;">Sale</button>
+              <button class="btn ghost sm" style="flex-direction:column; height:56px; border-radius:14px;">Purchase</button>
+              <button class="btn dark sm" style="flex-direction:column; height:56px; border-radius:14px;">+ Action</button>
+            </div>
+
+            <div class="dcard" style="background:var(--canvas-sunken); box-shadow:none;">
+              <div class="dhead"><h4 style="font-size:13px;">Cash in hand</h4><span class="badge success" style="font-size:10.5px;">Main</span></div>
+              <div class="val mono" style="font-size:19px;">Rs 6,636,549</div>
+            </div>
+            <div class="dcard" style="background:var(--canvas-sunken); box-shadow:none;">
+              <div class="dhead"><h4 style="font-size:13px;">Stock value</h4></div>
+              <div class="val mono" style="font-size:19px;">Rs 87,299,019</div>
+            </div>
+
+            <div class="dhead" style="margin-top:6px;"><h4 style="font-size:13px;">Alerts</h4></div>
+            <div class="alert-mini" style="background:var(--warning-soft); color:var(--warning);">25% out of stock</div>
+            <div class="alert-mini" style="background:var(--success-soft); color:var(--success);">Profit Rs3,222 today</div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="voice" style="border-bottom:none;">
+      <div class="section-head">
+        <span class="eyebrow"><span class="pulse"></span>10 · Rules of the road</span>
+        <h2>What "alive" actually means here.</h2>
+        <p>Five rules that keep every future screen — landing page or dense dashboard — recognizably part of the same system, in either mode.</p>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card" style="border-left:3px solid var(--teal-500);">
+          <h4 style="margin-bottom:8px;">1. Neutral stays neutral</h4>
+          <p class="sub">The canvas and ink scale never carry a hue. If a background looks tinted green, blue, or cream, it's wrong — that tint is what flattened v3's dark mode. Color belongs to the accents, not the base.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--violet-500);">
+          <h4 style="margin-bottom:8px;">2. One glow per surface</h4>
+          <p class="sub">A card can have a colored shadow on hover, or a colored icon chip, or a colored badge — pick one focal point of color per card, not three competing for attention.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--coral-500);">
+          <h4 style="margin-bottom:8px;">3. Motion always springs</h4>
+          <p class="sub">Hover and click transitions use <code style="font-family:var(--font-mono); font-size:12px; background:var(--ink-100); padding:2px 6px; border-radius:5px;">ease-spring</code>, never linear. A 3–4px lift plus a soft glow is enough — resist animating everything at once.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--sun-500);">
+          <h4 style="margin-bottom:8px;">4. Modules keep their color forever</h4>
+          <p class="sub">Sales is always coral, inventory always violet, accounting always teal. Once assigned in the sidebar icon, that color follows the module into charts, badges, and empty states.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--sky-500);">
+          <h4 style="margin-bottom:8px;">5. Numbers are mono, everything else isn't</h4>
+          <p class="sub">Any figure a user might compare — money, dates, IDs — renders in Geist Mono with tabular numerals. Labels, buttons, and prose stay in General Sans.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--rose-500);">
+          <h4 style="margin-bottom:8px;">6. Say what happened, plainly</h4>
+          <p class="sub">"Profit up Rs 53,544 today," not "Great news!" Confidence comes from specificity, not exclamation points — that's what makes the product feel alive without feeling loud.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="dsfoot">
+  <span>VenQore Design System 4.0 — Bloom · August 2026</span>
+  <span>Built for the AI that builds the system</span>
+</footer>
+
+<script>
+// ---------- theme toggle ----------
+const root = document.documentElement;
+const themeSwitch = document.getElementById('themeSwitch');
+function setTheme(t){
+  root.setAttribute('data-theme', t);
+  try{ localStorage.setItem('vq-theme-v4', t); }catch(e){}
+}
+try{
+  const saved = localStorage.getItem('vq-theme-v4');
+  if(saved) setTheme(saved);
+}catch(e){}
+themeSwitch.addEventListener('click', ()=> setTheme(root.getAttribute('data-theme')==='dark' ? 'light':'dark'));
+
+// ---------- copy tokens ----------
+document.getElementById('copyTokensBtn').addEventListener('click', async ()=>{
+  const css = getComputedStyle(root);
+  const names = ['--teal-500','--teal-600','--violet-500','--violet-600','--coral-500','--sun-500','--sky-500','--rose-500','--ink-900','--canvas'];
+  const out = ':root{\n' + names.map(n=>`  ${n}: ${css.getPropertyValue(n).trim()};`).join('\n') + '\n}';
+  try{ await navigator.clipboard.writeText(out); }catch(e){}
+  const btn = document.getElementById('copyTokensBtn');
+  const original = btn.innerHTML;
+  btn.innerHTML = 'Copied ✓';
+  setTimeout(()=> btn.innerHTML = original, 1400);
+});
+
+// ---------- color ramps ----------
+const ramps = {
+  teal:   [['50','var(--teal-50)'],['100','var(--teal-100)'],['200','var(--teal-200)'],['300','var(--teal-300)'],['400','var(--teal-400)'],['500','var(--teal-500)'],['600','var(--teal-600)'],['700','var(--teal-700)'],['800','var(--teal-800)'],['900','var(--teal-900)']],
+  violet: [['50','var(--violet-50)'],['100','var(--violet-100)'],['200','var(--violet-200)'],['300','var(--violet-300)'],['400','var(--violet-400)'],['500','var(--violet-500)'],['600','var(--violet-600)'],['700','var(--violet-700)'],['800','var(--violet-800)'],['900','var(--violet-900)']],
+  ink:    [['0','var(--ink-0)'],['100','var(--ink-100)'],['200','var(--ink-200)'],['300','var(--ink-300)'],['500','var(--ink-500)'],['600','var(--ink-600)'],['700','var(--ink-700)'],['800','var(--ink-800)'],['900','var(--ink-900)']],
+  coral:  [['100','var(--coral-100)'],['300','var(--coral-300)'],['400','var(--coral-400)'],['500','var(--coral-500)'],['600','var(--coral-600)']],
+  sun:    [['100','var(--sun-100)'],['300','var(--sun-300)'],['400','var(--sun-400)'],['500','var(--sun-500)'],['600','var(--sun-600)']],
+  sky:    [['100','var(--sky-100)'],['300','var(--sky-300)'],['400','var(--sky-400)'],['500','var(--sky-500)'],['600','var(--sky-600)']],
+};
+document.querySelectorAll('[data-ramp]').forEach(el=>{
+  const key = el.getAttribute('data-ramp');
+  ramps[key].forEach(([label,cssVar])=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = cssVar;
+    const numLabel = parseInt(label,10);
+    const isDark = key==='ink' ? (numLabel>=500) : (numLabel>=500);
+    sw.innerHTML = `<div class="sw-hex" style="color:${isDark?'#fff':'inherit'}">${label}</div><div class="copied">Copied!</div>`;
+    sw.addEventListener('click', async ()=>{
+      const varName = cssVar.replace('var(','').replace(')','');
+      const hex = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      try{ await navigator.clipboard.writeText(hex); }catch(e){}
+      sw.classList.add('is-copied');
+      setTimeout(()=> sw.classList.remove('is-copied'), 900);
+    });
+    el.appendChild(sw);
+  });
+});
+
+// ---------- module tags ----------
+const modules = [
+  ['Sales & POS','var(--mod-sales)'],
+  ['Inventory','var(--mod-inventory)'],
+  ['Accounting','var(--mod-accounting)'],
+  ['Purchasing','var(--mod-purchasing)'],
+  ['Staff & HR','var(--mod-staff)'],
+  ['Reports','var(--mod-reports)'],
+];
+const modRow = document.getElementById('modRow');
+modules.forEach(([name,color])=>{
+  const t = document.createElement('span');
+  t.className = 'mod-tag';
+  t.style.background = `color-mix(in srgb, ${color} 14%, var(--canvas-raised))`;
+  t.style.color = color;
+  t.innerHTML = `<span class="d" style="background:${color}"></span>${name}`;
+  modRow.appendChild(t);
+});
+
+// ---------- interactive form demo bits ----------
+document.querySelectorAll('.fake-check').forEach(el=> el.addEventListener('click', ()=>{
+  el.classList.toggle('on'); el.textContent = el.classList.contains('on') ? '✓' : '';
+}));
+document.querySelectorAll('.fake-radio').forEach(el=> el.addEventListener('click', ()=>{
+  el.parentElement.parentElement.querySelectorAll('.fake-radio').forEach(r=> r.classList.remove('on'));
+  el.classList.add('on');
+}));
+document.querySelectorAll('.toggle').forEach(el=> el.addEventListener('click', ()=> el.classList.toggle('on')));
+document.querySelectorAll('.tab-bar .t').forEach(t=> t.addEventListener('click', ()=>{
+  t.parentElement.querySelectorAll('.t').forEach(x=> x.classList.remove('active'));
+  t.classList.add('active');
+}));
+
+// ---------- mini bars (unused placeholder hook, kept for future widgets) ----------
+document.querySelectorAll('.mini-bars').forEach(bars=>{
+  [40,55,35,70,50,85,65].forEach((h,i)=>{
+    const b = document.createElement('span');
+    b.style.height = h+'%';
+    b.style.animationDelay = (i*70)+'ms';
+    bars.appendChild(b);
+  });
+});
+
+// ---------- scrollspy ----------
+const links = [...document.querySelectorAll('.side a')];
+const secs = links.map(a=> document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      links.forEach(l=> l.classList.remove('on'));
+      const m = links.find(l=> l.getAttribute('href') === '#'+e.target.id);
+      if(m) m.classList.add('on');
+    }
+  });
+},{ rootMargin:'-15% 0px -75% 0px' });
+secs.forEach(s=> io.observe(s));
+
+// ---------- count-up ----------
+document.querySelectorAll('[data-count]').forEach(el=>{
+  const target = parseInt(el.getAttribute('data-count'),10);
+  let done = false;
+  const io2 = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting && !done){
+        done = true;
+        const start = performance.now();
+        const dur = 1200;
+        function tick(now){
+          const p = Math.min(1, (now-start)/dur);
+          const eased = 1 - Math.pow(1-p, 3);
+          el.textContent = Math.round(eased*target).toLocaleString();
+          if(p<1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+    });
+  },{ threshold:.4 });
+  io2.observe(el);
+});
+
+// ---------- progress ring ----------
+const ring2 = document.getElementById('ringDemo2');
+if(ring2){ requestAnimationFrame(()=>{ ring2.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.34,1.56,.64,1)'; ring2.style.strokeDashoffset = 264 - (264*0.78); }); }
+
+// ---------- reveal on scroll ----------
+document.querySelectorAll('.card, .dcard, .type-role-card, .elev-card, .hover-demo').forEach(el=> el.classList.add('reveal'));
+const io3 = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io3.unobserve(e.target); } });
+},{ threshold:.1, rootMargin:'0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el=> io3.observe(el));
+setTimeout(()=> document.querySelectorAll('.reveal:not(.in)').forEach(el=> el.classList.add('in')), 2500);
+</script>
+</body>
+</html>

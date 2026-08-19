@@ -18,7 +18,7 @@ class FinanceController extends Controller
         // NEVER read Account::balance (denormalised cache — drifts on any direct DB insert).
         // NEVER read parties.current_balance (legacy column, superseded by ledger queries).
         
-        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $accountingSvc = resolve(\App\Engines\AccountingService::class);
         $tenantId = app('current.tenant')->id;
 
         // V3: Direct ledger sums for the overview cards
@@ -222,7 +222,7 @@ class FinanceController extends Controller
         $bankAccount = BankAccount::create($validated);
 
         if (!empty($validated['opening_balance']) && $validated['opening_balance'] > 0) {
-            $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountSvc = resolve(\App\Engines\AccountingService::class);
             
             $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrFail();
             $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(
@@ -272,7 +272,7 @@ class FinanceController extends Controller
         $bankAccount->update($validated);
 
         if ($diff != 0) {
-            $accountSvc = resolve(\App\Services\V3\AccountingService::class);
+            $accountSvc = resolve(\App\Engines\AccountingService::class);
             
             $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrFail();
             $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(

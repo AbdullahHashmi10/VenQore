@@ -1358,19 +1358,52 @@ export default function LandingPage() {
                                 </span>
                             </h1>
 
-                            <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed mb-10 font-medium hero-fade">
-                                Ring up sales, track stock, and see exact profits in real time, all without touching a spreadsheet or opening a ledger.
-                            </p>
+                            {/* Hero Interactive AI Prompt — Start With The Question */}
+                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-slate-900/90 dark:bg-slate-900/90 border border-indigo-500/30 rounded-3xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
+                                <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                                    <Bot size={16} />
+                                    <span>What does your business need?</span>
+                                </div>
 
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5 hero-fade-2">
-                                <MagBtn href="/register" variant="primary">
-                                    Start Free Trial <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                                </MagBtn>
-                                <MagBtn href="/demo" variant="ghost">
-                                    <Play size={15} fill="currentColor" /> Launch Live Demo
-                                </MagBtn>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        id="hero-ai-prompt"
+                                        placeholder="Tell us about your business... (e.g. I run a cafe with dine-in, takeaway & pastry kitchen)"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && e.target.value) {
+                                                window.location.href = `/build-workspace?prompt=${encodeURIComponent(e.target.value)}`;
+                                            }
+                                        }}
+                                        className="w-full px-5 py-4 bg-slate-950 border border-slate-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all pr-32"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const val = document.getElementById('hero-ai-prompt')?.value || '';
+                                            window.location.href = `/build-workspace?prompt=${encodeURIComponent(val)}`;
+                                        }}
+                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
+                                    >
+                                        <span>Build Workspace</span>
+                                        <ArrowRight size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-slate-400 text-[11px]">
+                                        Try: <button onClick={() => { document.getElementById('hero-ai-prompt').value = "I run a grocery store with 2 counters and sell on credit."; }} className="text-indigo-400 hover:underline text-left">"Grocery store with 2 counters"</button>
+                                    </span>
+                                    <a
+                                        href="/build-workspace"
+                                        className="text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1"
+                                    >
+                                        <span>Browse Templates</span>
+                                        <ArrowRight size={12} />
+                                    </a>
+                                </div>
                             </div>
-                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-slate-600 mb-16 hero-fade-2">14-day free trial · No credit card · Live in 15 minutes</p>
+
+                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-12 hero-fade-2">No upfront signup required · Experience value first · Live in 30 seconds</p>
                         </div>
 
                         {/* Living command center */}

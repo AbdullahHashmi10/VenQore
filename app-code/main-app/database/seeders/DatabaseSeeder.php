@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Stock;
-use App\Models\Recipe;
-use App\Models\RecipeIngredient;
+use App\Models\Composition;
+use App\Models\CompositionItem;
 use App\Models\Party;
 use App\Models\ProductBarcode;
 use Illuminate\Database\Seeder;
@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ProductAttributeSeeder::class,
             AccountSeeder::class,
             BlogPostSeeder::class,
+            CapabilitiesRegistrySeeder::class,
         ]);
 
         // 1. Admin User (Commented out to allow the first web registration to become the primary owner/platform_admin)
@@ -33,7 +34,7 @@ class DatabaseSeeder extends Seeder
 
         /* 
          * DEMO DATA REMOVED FOR CLEAN SLATE
-         * Products, Recipes, Stock, and Parties are no longer seeded by default.
+         * Products, Compositions, Stock, and Parties are no longer seeded by default.
          */
     }
 }

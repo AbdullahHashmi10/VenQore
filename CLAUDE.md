@@ -7,6 +7,7 @@ This is the authoritative context file for AI agents working in this codebase. R
 | File | What it is |
 |---|---|
 | **`PHASE_0_STATUS.md`** | **Start here.** What is done, what is next, and the rules for working in this repo right now |
+| `DESIGN-RULES.md` | Authoritative design and styling rules (v2.0) — colors, radii, hover effects, type scale |
 | `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` | The authoritative technical plan — phases, tasks, acceptance criteria |
 | `VENQORE_PRICING_AND_STRATEGY.md` | Pricing, plan limits, AI quotas and the reasoning behind them |
 
@@ -190,8 +191,8 @@ resources/js/
 - **Multi-unit** support (base unit + secondary unit with conversion ratio).
 
 ### Transactions
-- Core model: `Transaction` — covers Sales, Purchases, Returns, Expenses.
-- `TransactionAllocation` — links payments to invoices (partial payment support).
+- Core models: `Sale`, `Purchase`, `Expense`, and `Invoice`.
+- `Allocation` — links payments to invoices/sales/purchases (partial payment support).
 - `JournalEntry` / `JournalItem` — double-entry accounting auto-generated on each transaction.
 
 ### POS Terminal
@@ -223,8 +224,7 @@ resources/js/
 | `TenantUser` | Pivot: user ↔ tenant with role & permissions |
 | `Product` | Product catalogue |
 | `Stock` | Stock batches (FIFO) |
-| `Transaction` | Sales, purchases, returns, expenses |
-| `TransactionAllocation` | Payment-to-invoice linking |
+| `Allocation` | Payment-to-invoice linking (unified) |
 | `Party` | Customer or Supplier |
 | `JournalEntry` / `JournalItem` | Double-entry accounting |
 | `Warehouse` | Physical location for stock |
@@ -292,7 +292,7 @@ Cutover switches live in `config/venqore.php` (`purchase_cutover`, `purchase_cut
 - **Inertia responses** use `Inertia::render('PageName', [...data])`.
 - **React components** use Tailwind utility classes (no separate CSS files).
 - **All DB queries must include `tenant_id` scope** — never query cross-tenant.
-- **PurchaseService Safety:** `App\Services\PurchaseService` is **decommissioned** — an inert stub that throws on construction. Do not wire it up, do not restore it, delete the file when convenient. The canonical engine is `App\Services\V3\PurchaseService`. (The old warning about `PaymentAllocation` needing a `JournalEntry` ID rather than a `Payment` ID still applies to any code writing that table — the DB trigger enforces it.)
+- **Purchase Engine:** The canonical purchase engine is `App\Engines\PurchaseService`. (The old warning about `Allocation` needing a `JournalEntry` ID rather than a `Payment` ID still applies to any code writing that table — the DB trigger enforces it.)
 - **No Trailing NUL-Bytes:** Never commit or save files ending with trailing NUL (`\x00`) bytes. CI automatically runs a python scan to block pushes with NUL-byte corruption.
 - Route names follow `feature.action` convention (e.g., `sales.store`, `inventory.index`).
 - Use `route()` Ziggy helper in React for named routes.

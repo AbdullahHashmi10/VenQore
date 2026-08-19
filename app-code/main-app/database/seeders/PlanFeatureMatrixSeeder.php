@@ -279,7 +279,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'report_tax_rate_breakdown'  => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
 
             // Group 9 — Platform HQ & Infrastructure
-            'ai_assistant'               => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'ai_assistant'               => ['trial' => '1', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'superadmin_command_center'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'redis_plan_gates'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'limit_override_manager'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
@@ -340,6 +340,13 @@ class PlanFeatureMatrixSeeder extends Seeder
             'email_support'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'chat_support'               => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
             'phone_support'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+
+            // Group 13 — V3 Modular Building Blocks Conversion
+            'optical_prescription'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'tailor_measurements'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'jewelry_metal_rates'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'work_orders'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'service_contracts'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
         ];
 
         // Seed/Update limits for all 7 plans (incorporating LTD equivalents) in a single transaction

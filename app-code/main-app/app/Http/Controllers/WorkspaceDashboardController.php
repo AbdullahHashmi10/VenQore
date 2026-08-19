@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DashboardLayout;
-use App\Services\Dashboard\WidgetDataService;
-use App\Services\Dashboard\WidgetRegistry;
+use App\Models\LayoutPreference;
+use App\Services\Dashboard\DashboardRegistry;
+use App\Traits\ResolvesDashboardWidgets;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -26,6 +26,8 @@ use Inertia\Inertia;
  */
 class WorkspaceDashboardController extends Controller
 {
+    use ResolvesDashboardWidgets;
+
     public function index(Request $request)
     {
         abort_unless(\App\Support\Appearance::NEW_EXPERIENCE_ENABLED, 404);
@@ -35,7 +37,7 @@ class WorkspaceDashboardController extends Controller
 
         abort_unless($tenant, 403, 'Tenant context not resolved.');
 
-        $available = WidgetRegistry::availableFor($user, $tenant);
+        $available = DashboardRegistry::availableFor($user, $tenant);
         $layout = $this->resolveLayout($user, $tenant, $available);
 
         return Inertia::render('Workspace/Dashboard', [
@@ -50,7 +52,7 @@ class WorkspaceDashboardController extends Controller
                 'default_size' => $widget['default_size'],
             ])->values(),
 
-            'sizePresets' => WidgetRegistry::SIZES,
+            'sizePresets' => DashboardRegistry::SIZES,
             'layout' => $layout,
             'greetingName' => $user->name,
         ]);
@@ -82,14 +84,14 @@ class WorkspaceDashboardController extends Controller
             'layout.*.size' => ['nullable', 'string', 'max:16'],
         ]);
 
-        $available = WidgetRegistry::availableFor($user, $tenant);
-        $clean = WidgetRegistry::sanitizeLayout($validated['layout'], $available);
+        $available = DashboardRegistry::availableFor($user, $tenant);
+        $clean = DashboardRegistry::sanitizeLayout($validated['layout'], $available);
 
-        DashboardLayout::updateOrCreate(
+        LayoutPreference::updateOrCreate(
             [
                 'tenant_id' => $tenant->id,
                 'user_id' => $user->id,
-                'dashboard_key' => DashboardLayout::DEFAULT_KEY,
+                'surface' => LayoutPreference::DEFAULT_KEY,
             ],
             ['layout' => $clean],
         );
@@ -114,14 +116,14 @@ class WorkspaceDashboardController extends Controller
 
         abort_unless($tenant, 403, 'Tenant context not resolved.');
 
-        DashboardLayout::where('tenant_id', $tenant->id)
+        LayoutPreference::where('tenant_id', $tenant->id)
             ->where('user_id', $user->id)
-            ->where('dashboard_key', DashboardLayout::DEFAULT_KEY)
+            ->where('surface', LayoutPreference::DEFAULT_KEY)
             ->delete();
 
         return response()->json([
             'ok' => true,
-            'layout' => WidgetRegistry::defaultLayout($user, $tenant),
+            'layout' => DashboardRegistry::defaultLayout($user, $tenant),
         ]);
     }
 
@@ -134,7 +136,7 @@ class WorkspaceDashboardController extends Controller
      * nothing and returns nothing, rather than returning a number they are not
      * entitled to.
      */
-    public function data(Request $request, WidgetDataService $widgets)
+    public function data(Request $request)
     {
         abort_unless(\App\Support\Appearance::NEW_EXPERIENCE_ENABLED, 404);
 
@@ -148,11 +150,11 @@ class WorkspaceDashboardController extends Controller
             'widgets.*' => ['string', 'max:64'],
         ]);
 
-        $available = WidgetRegistry::availableFor($user, $tenant);
+        $available = DashboardRegistry::availableFor($user, $tenant);
         $permitted = array_values(array_intersect($validated['widgets'], array_keys($available)));
 
         return response()->json([
-            'widgets' => $widgets->resolve($permitted),
+            'widgets' => $this->resolveWidgets($permitted, $user, $tenant),
             // Sent alongside so the client can format money without a second
             // source of truth for the store's currency.
             'currency' => [
@@ -176,19 +178,41 @@ class WorkspaceDashboardController extends Controller
      */
     protected function resolveLayout($user, $tenant, array $available): array
     {
-        $saved = DashboardLayout::where('tenant_id', $tenant->id)
+        $membership = app()->bound('current.membership') ? app('current.membership') : null;
+        $storeRole = $membership?->role;
+
+        // 1. User-specific layout preference
+        $saved = LayoutPreference::where('tenant_id', $tenant->id)
             ->where('user_id', $user->id)
-            ->where('dashboard_key', DashboardLayout::DEFAULT_KEY)
+            ->where('surface', LayoutPreference::DEFAULT_KEY)
             ->first();
 
+        // 2. Role-specific layout preference
+        if (! $saved && $storeRole) {
+            $saved = LayoutPreference::where('tenant_id', $tenant->id)
+                ->whereNull('user_id')
+                ->where('role', $storeRole)
+                ->where('surface', LayoutPreference::DEFAULT_KEY)
+                ->first();
+        }
+
+        // 3. Store-wide layout preference
+        if (! $saved) {
+            $saved = LayoutPreference::where('tenant_id', $tenant->id)
+                ->whereNull('user_id')
+                ->whereNull('role')
+                ->where('surface', LayoutPreference::DEFAULT_KEY)
+                ->first();
+        }
+
         if ($saved && is_array($saved->layout)) {
-            $clean = WidgetRegistry::sanitizeLayout($saved->layout, $available);
+            $clean = DashboardRegistry::sanitizeLayout($saved->layout, $available);
 
             if (! empty($clean)) {
                 return $clean;
             }
         }
 
-        return WidgetRegistry::defaultLayout($user, $tenant);
+        return DashboardRegistry::defaultLayout($user, $tenant);
     }
 }

@@ -8,7 +8,7 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Services\LedgerService;
+use App\Queries\PartyBalanceQuery;
 
 class SyncController extends Controller
 {
@@ -85,15 +85,18 @@ class SyncController extends Controller
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
 
+        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($storeId);
+        $hasKhata = $tenant ? \App\Services\PlanRepository::canUseFeature($tenant, 'customer_khata') : true;
+
         $customers = \App\Models\Party::where('tenant_id', $storeId)
             ->where('type', 'customer')
             ->get()
-            ->map(function($party) use ($storeId) {
-                $party->current_balance = LedgerService::partyNetBalance(
+            ->map(function($party) use ($storeId, $hasKhata) {
+                $party->current_balance = $hasKhata ? PartyBalanceQuery::partyNetBalance(
                     $party->id,
                     $storeId,
                     'customer'
-                );
+                ) : 0.0;
                 return $party;
             });
 
@@ -108,15 +111,18 @@ class SyncController extends Controller
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
 
+        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($storeId);
+        $hasKhata = $tenant ? \App\Services\PlanRepository::canUseFeature($tenant, 'supplier_khata') : true;
+
         $suppliers = \App\Models\Party::where('tenant_id', $storeId)
             ->where('type', 'supplier')
             ->get()
-            ->map(function($party) use ($storeId) {
-                $party->current_balance = LedgerService::partyNetBalance(
+            ->map(function($party) use ($storeId, $hasKhata) {
+                $party->current_balance = $hasKhata ? PartyBalanceQuery::partyNetBalance(
                     $party->id,
                     $storeId,
                     'supplier'
-                );
+                ) : 0.0;
                 return $party;
             });
 
@@ -130,6 +136,11 @@ class SyncController extends Controller
     {
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
+
+        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($storeId);
+        if ($tenant && ! \App\Services\PlanRepository::canUseFeature($tenant, 'stock_levels_view')) {
+            return response()->json([]);
+        }
 
         $batches = DB::table('inventory_batches')
             ->select('product_id', 'warehouse_id', DB::raw('SUM(remaining_qty) as total'))

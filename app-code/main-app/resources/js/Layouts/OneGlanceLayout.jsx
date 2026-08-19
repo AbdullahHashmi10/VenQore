@@ -73,6 +73,7 @@ import PlanUsageBanner from '@/Components/PlanUsageBanner';
 import SubscriptionExpiryBanner from '@/Components/SubscriptionExpiryBanner';
 import PlanNotificationBell from '@/Components/PlanNotificationBell';
 import { useTheme } from '@/Contexts/ThemeContext';
+import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false }) {
@@ -217,6 +218,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     const showExpandedSidebar = isSidebarOpen || mobileSidebarOpen;
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const { isDarkMode, setIsDarkMode } = useTheme();
+    const { appearance, update: updateAppearance, isDark } = useAppearance();
+
+    const isEffectiveDarkMode = store ? isDark : isDarkMode;
+
+    const toggleAppTheme = () => {
+        if (store) {
+            updateAppearance({ mode: isDark ? 'light' : 'dark' });
+        } else {
+            setIsDarkMode(!isDarkMode);
+        }
+    };
     const [isLargeText, setIsLargeText] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -1194,7 +1206,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 )}
 
                 {/* --- MAIN CONTENT --- */}
-                <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-slate-50 dark:bg-slate-950 transition-opacity duration-500 ease-in-out opacity-100`}>
+                <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-500 ease-in-out opacity-100`}>
                     
                     {/* Limit Grace Countdown Banner */}
                     <LimitGraceBanner />
@@ -1465,17 +1477,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             </button>
  
                                             <button
-                                                onClick={() => setIsDarkMode(!isDarkMode)}
-                                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isDarkMode
+                                                onClick={toggleAppTheme}
+                                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
                                                     ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
                                                     : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-                                                    <span className="text-sm font-semibold">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                                                    {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                                                    <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                                                 </div>
-                                                <div className={`w-8 h-4 rounded-full relative transition-colors ${isDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                                                <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
                                                 </div>
                                             </button>
                                         </div>
@@ -1542,17 +1554,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 </button>
  
                                                 <button
-                                                    onClick={() => setIsDarkMode(!isDarkMode)}
-                                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isDarkMode
+                                                    onClick={toggleAppTheme}
+                                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
                                                         ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
                                                         : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
                                                 >
                                                     <div className="flex items-center gap-2">
-                                                        {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-                                                        <span className="text-sm font-semibold">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                                                        {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                                                        <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                                                     </div>
-                                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${isDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
                                                     </div>
                                                 </button>
                                             </div>

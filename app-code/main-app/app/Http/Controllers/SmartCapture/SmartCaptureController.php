@@ -86,7 +86,9 @@ class SmartCaptureController extends Controller
         }
 
         $check = $this->entitlement->checkScan();
-        $config = $this->extractionService->resolveConfig('scan');
+        // Pass the resolved entitlement mode explicitly — resolveConfig() picks
+        // the free vs. paid platform key off this, never off the feature name.
+        $config = $this->extractionService->resolveConfig('scan', $check['mode']);
 
         return response()->json([
             'success' => true,
@@ -365,6 +367,10 @@ class SmartCaptureController extends Controller
                         'name' => $chosenParty->name,
                         'type' => $chosenParty->type,
                     ] : null,
+                    // Drives which platform API key resolveConfig() picks — a
+                    // free-tier tenant must always land on the free key, never
+                    // the paid one, regardless of which feature/model is used.
+                    'entitlement_mode'   => $check['mode'],
                 ]
             );
 

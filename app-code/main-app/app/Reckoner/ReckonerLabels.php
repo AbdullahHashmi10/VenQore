@@ -35,6 +35,7 @@ final class ReckonerLabels
         'finance.trial_balance_diff' => ['Out of Balance (Dr)', 'Out of Balance (Cr)'],
         'sales.by_party_flow' => ['Net Receivable', 'Net Payable'],
         'finance.profit_trend' => ['Profit Trend', 'Loss Trend'],
+        'finance.total_liquidity' => ['Total Liquidity', 'Negative Liquidity'],
     ];
 
     /**

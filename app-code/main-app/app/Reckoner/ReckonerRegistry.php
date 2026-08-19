@@ -37,7 +37,11 @@ final class ReckonerRegistry
 
     public static function all(): array
     {
-        return self::$cache ??= [
+        if (self::$cache !== null) {
+            return self::$cache;
+        }
+
+        $all = [
 
             /* ── Sales ────────────────────────────────────────────────── */
             'sales.revenue' => [
@@ -67,6 +71,34 @@ final class ReckonerRegistry
                 'method' => 'revenue',
                 'cache_ttl' => 60,
                 'drill_route' => 'reports.sales',
+            ],
+
+            'sales.max_sale' => [
+                'key' => 'sales.max_sale',
+                'domain' => 'sales',
+                'label' => 'Largest Sale (excl. tax)',
+                'generic' => 'Largest Sale',
+                'description' => 'The largest individual sale amount, excluding tax, within the period.',
+                'help' => 'Calculated by querying the max of net_sales across all posted sales in the period.',
+                'shape' => ReckonerShape::SCALAR,
+                'unit' => 'currency',
+                'precision' => 2,
+                'direction' => 'higher_is_better',
+                'signed' => false,
+                'periods' => ReckonerPeriod::KEYS,
+                'default_period' => 'this_month',
+                'supports_comparison' => false,
+                'supports_series' => false,
+                'series_granularity' => [],
+                'permissions' => ['sales.view'],
+                'feature' => null,
+                'capability' => null,
+                'scope' => 'tenant',
+                'source' => SalesSource::class,
+                'method' => 'maxSale',
+                'cache_ttl' => 60,
+                'drill_route' => 'sales.index',
+                'implemented' => true,
             ],
 
             'sales.gross_margin_pct' => [
@@ -294,6 +326,33 @@ final class ReckonerRegistry
                 'drill_route' => 'reports.financial',
             ],
 
+            'finance.total_liquidity' => [
+                'key' => 'finance.total_liquidity',
+                'domain' => 'finance',
+                'label' => 'Total Liquidity',
+                'generic' => 'Total Liquidity',
+                'description' => 'Total cash and bank account balance.',
+                'help' => 'SUM of debit - credit on accounts in the 1000-1099 range.',
+                'shape' => ReckonerShape::SCALAR,
+                'unit' => 'currency',
+                'precision' => 2,
+                'direction' => 'higher_is_better',
+                'signed' => true,
+                'periods' => ['as_of', 'live'],
+                'default_period' => 'live',
+                'supports_comparison' => false,
+                'supports_series' => false,
+                'series_granularity' => [],
+                'permissions' => ['finance.balances'],
+                'feature' => null,
+                'capability' => null,
+                'scope' => 'tenant',
+                'source' => FinanceSource::class,
+                'method' => 'totalLiquidity',
+                'cache_ttl' => 60,
+                'drill_route' => 'reports.financial',
+            ],
+
             'finance.balance_sheet_ok' => [
                 'key' => 'finance.balance_sheet_ok',
                 'domain' => 'finance',
@@ -453,7 +512,7 @@ final class ReckonerRegistry
                 domain: 'finance',
                 label: 'Paid to Suppliers',
                 description: 'Cash actually paid against purchase bills this period.',
-                help: '§7.6: the cash figure — SUM of active payment_allocations against purchases '
+                help: '§7.6: the cash figure — SUM of active allocations against purchases '
                     .'whose purchase_date falls in this period. See purchasing.spend for what you '
                     .'bought (accrual). Never label either one just "Purchases".',
                 unit: 'currency',
@@ -766,6 +825,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => true,
                 'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => null,
@@ -792,6 +852,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => true,
                 'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
                 'permissions' => ['finance.balances'],
                 'feature' => null,
                 'capability' => null,
@@ -818,6 +879,7 @@ final class ReckonerRegistry
                 'default_period' => 'today',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => null,
@@ -844,6 +906,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['finance.transactions'],
                 'feature' => null,
                 'capability' => null,
@@ -870,6 +933,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => 'has_inventory',
@@ -896,6 +960,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => 'has_parties',
@@ -922,6 +987,7 @@ final class ReckonerRegistry
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['inventory.view'],
                 'feature' => null,
                 'capability' => 'has_inventory',
@@ -948,6 +1014,7 @@ final class ReckonerRegistry
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['finance.balances'],
                 'feature' => null,
                 'capability' => 'has_parties',
@@ -974,6 +1041,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => false,
                 'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
                 'permissions' => ['finance.balances'],
                 'feature' => null,
                 'capability' => null,
@@ -1000,6 +1068,7 @@ final class ReckonerRegistry
                 'default_period' => 'this_month',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => null,
@@ -1026,6 +1095,7 @@ final class ReckonerRegistry
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['admin.settings_manage'],
                 'feature' => null,
                 'capability' => null,
@@ -1052,6 +1122,7 @@ final class ReckonerRegistry
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
+                'series_granularity' => [],
                 'permissions' => ['sales.view'],
                 'feature' => null,
                 'capability' => null,
@@ -1062,6 +1133,12 @@ final class ReckonerRegistry
                 'drill_route' => 'sales.index',
             ],
         ];
+
+        foreach ($all as $key => &$def) {
+            $def['implemented'] = $def['implemented'] ?? true;
+        }
+
+        return self::$cache = $all;
     }
 
     /**
@@ -1114,6 +1191,7 @@ final class ReckonerRegistry
             'method' => $method,
             'cache_ttl' => 60,
             'drill_route' => $drillRoute,
+            'implemented' => true,
         ];
     }
 

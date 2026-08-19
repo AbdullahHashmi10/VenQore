@@ -163,7 +163,7 @@ class MigrateOpeningBalances extends Command
 
                     if (!$exists) {
                         DB::transaction(function() use ($tenant, $migrationDate, $party, $desc, $idempKey, $adminUserId, $drAccountId, $crAccountId, $absBalance) {
-                            $accountingSvc = app(\App\Services\V3\AccountingService::class);
+                            $accountingSvc = app(\App\Engines\AccountingService::class);
                             $accountingSvc->createEntry([
                                 'tenant_id'       => $tenant->id,
                                 'date'            => $migrationDate,
@@ -219,7 +219,7 @@ class MigrateOpeningBalances extends Command
 
         $this->warn("Deleting {$entries->count()} journal entries and their items...");
 
-        app(\App\Services\V3\AccountingService::class)->deleteEntries($entries->toArray());
+        app(\App\Engines\AccountingService::class)->deleteEntries($entries->toArray());
 
         $this->info("Reversed. All ob_migrate journal entries have been deleted.");
         return self::SUCCESS;

@@ -175,7 +175,7 @@ class MigrateV3Ledger extends Command
      *
      * This step backfilled journal entries from `invoices` rows of type
      * 'purchase'. Those rows no longer exist; purchases live in `purchases` and
-     * post their own journal through App\Services\V3\PurchaseService.
+     * post their own journal through App\Engines\PurchaseService.
      *
      * Kept as a no-op rather than deleted so an operator who runs this old
      * command gets a clear message instead of a silent "0 migrated".

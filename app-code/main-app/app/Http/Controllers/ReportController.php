@@ -142,6 +142,17 @@ class ReportController extends Controller
             ->selectRaw('COALESCE(SUM(debit),0) - COALESCE(SUM(credit),0) as net')
             ->value('net');
 
+        $user = request()->user()
+            ?? \App\Models\User::whereHas('tenants', fn($q) => $q->where('tenants.id', app('current.tenant')->id))->first()
+            ?? \App\Models\User::first();
+
+        $maxSaleResult = app(\App\Reckoner\Reckoner::class)->read(
+            new \App\Reckoner\ReckonerRequest('sales.max_sale', 'custom', ['from' => $startDate, 'to' => $endDate]),
+            $user,
+            app('current.tenant')
+        );
+        $maxSale = (float) ($maxSaleResult->data['value'] ?? 0.0);
+
         $stats = [
             'total_sales'    => $totalSales,
             'total_paid'     => $totalPaid,
@@ -149,7 +160,7 @@ class ReportController extends Controller
             'count'          => $count,
             'avg_ticket'     => $count > 0 ? $totalSales / $count : 0,
             'total_discount' => $sales->sum('discount') ?? 0,
-            'max_sale'       => $sales->max('net_sales') ?? 0,
+            'max_sale'       => $maxSale,
             'unpaid_count'   => $sales->filter(fn($s) => ($s->total - $s->payments->sum('amount')) > 0)->count()
         ];
 
@@ -200,6 +211,13 @@ class ReportController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
+        $chartData = $sales->map(function ($row) {
+            return [
+                'name' => $row->date,
+                'value' => (float)$row->revenue,
+            ];
+        })->reverse()->values()->toArray();
+
         return Inertia::render('Reports/GenericReport', [
             'title' => 'Daily Sales Report',
             'columns' => [
@@ -211,6 +229,13 @@ class ReportController extends Controller
             ],
             'data' => $sales,
             'reports' => $sales,
+            'chartData' => $chartData,
+            'chartConfig' => [
+                'type' => 'area',
+                'dataKey' => 'value',
+                'xAxisKey' => 'name',
+                'color' => '#6366f1'
+            ],
             'filters' => [
                 'range' => $range,
                 'start_date' => $startDate,
@@ -663,15 +688,18 @@ class ReportController extends Controller
              
              return $product;
         })->filter(function ($product) {
-            return $product->stock_quantity <= $product->effective_threshold;
+            return $product->stock_quantity > 0 && $product->stock_quantity <= $product->effective_threshold;
         })->values();
 
         $stats = [
-            'low_stock_count' => $products->count(),
-            'out_of_stock_count' => $products->where('stock_quantity', '<=', 0)->count(),
-            'total_shortage' => $products->sum(function($p) {
+            'low_stock_count'   => $products->count(),
+            // §7.13 fix: out_of_stock must be sourced from the full unfiltered
+            // snapshot, not from $products which is already guaranteed to contain
+            // only qty > 0. Filtering <= 0 from a > 0 set is permanently zero.
+            'out_of_stock_count' => collect($stockSums)->filter(fn ($qty) => (float) $qty <= 0)->count(),
+            'total_shortage'    => $products->sum(function ($p) {
                 return max(0, $p->effective_threshold - $p->stock_quantity);
-            })
+            }),
         ];
 
         return Inertia::render('Reports/LowStock', [
@@ -1221,71 +1249,20 @@ class ReportController extends Controller
     public function saleAging(Request $request)
     {
         ReportTierGate::enforce('reports.sale-aging');
-        // Phase 4 — AR aging uses the Ledger, not sale.paid_amount
-        // For each party with an AR balance, we calculate how many days the oldest
-        // unpaid sale has been outstanding.
-        $tenantId = app('current.tenant')->id;
-        $arAccount = Account::where('code', '1200')->first();
 
-        if (!$arAccount) {
-            return Inertia::render('Reports/SaleAging', ['invoices' => [], 'stats' => []]);
-        }
+        $reportResult = (new FinancialReportingService())->getAgedReceivables();
+        $sales = collect($reportResult['rows'] ?? [])->map(fn($row) => [
+            'invoice_number' => $row['invoice_number'],
+            'party'          => $row['party_name'] ?? 'N/A',
+            'amount'         => (float) $row['outstanding'],
+            'days'           => (int) $row['age_days'],
+            'category'       => $row['bucket']
+        ])->all();
 
-        // Query: all posted sales that are not fully paid (used for aging)
-        $sales = Sale::where('status', 'posted')
-            ->where('payment_status', '!=', 'paid')
-            ->with('party')
-            ->get()
-            ->map(function ($sale) use ($arAccount, $tenantId) {
-                // Per-sale outstanding: AR debits minus AR credits for this sale (by reference)
-                $saleRef = $sale->reference_number;
-
-                // Defense-in-depth: journal_items.account_id and
-                // journal_entries.party_id are themselves tenant-owned
-                // foreign keys, so this wasn't a live cross-tenant leak —
-                // but every other raw-query report in this file scopes by
-                // tenant_id explicitly, and this was the one exception.
-                // Scoping explicitly here matches the file's own convention
-                // and removes the landmine for the next person who copies
-                // this method as a template.
-                $arDr = (float) DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $tenantId)
-                    ->where('journal_items.account_id', $arAccount->id)
-                    ->where('journal_entries.reference', $saleRef)
-                    ->sum('journal_items.debit');
-
-                $arCr = (float) DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $tenantId)
-                    ->where('journal_items.account_id', $arAccount->id)
-                    ->where('journal_entries.party_id', $sale->party_id)
-                    ->whereDate('journal_entries.date', '>=', $sale->posted_at ? Carbon::parse($sale->posted_at)->toDateString() : $sale->created_at->toDateString())
-                    ->sum('journal_items.credit');
-
-                // Fallback: use total if no ledger entries found
-                $outstanding = $arDr > 0 ? max(0, $arDr - $arCr) : (float) $sale->net_sales; // FIX-10: use net_sales not total
-
-                $days = Carbon::parse($sale->posted_at ?? $sale->created_at)->diffInDays(now());
-
-                return [
-                    'invoice_number' => $sale->reference_number,
-                    'party'          => $sale->party->name ?? 'N/A',
-                    'amount'         => $outstanding,
-                    'days'           => $days,
-                    'category'       => $days > 90 ? '90+' : ($days > 60 ? '60-90' : ($days > 30 ? '30-60' : '0-30'))
-                ];
-            })
-            ->filter(fn($s) => $s['amount'] > 0)
-            ->values();
-
-        $stats = [
-            ['label' => 'Current (0-30 days)',  'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '0-30')->sum('amount'))],
-            ['label' => '31-60 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '30-60')->sum('amount'))],
-            ['label' => '61-90 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '60-90')->sum('amount'))],
-            ['label' => 'Over 90 days',         'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '90+')->sum('amount')), 'type' => 'down'],
-            ['label' => 'Total Outstanding AR', 'value' => \App\Helpers\SettingsHelper::formatNumber($sales->sum('amount'))],
-        ];
+        $user = request()->user()
+            ?? \App\Models\User::whereHas('tenants', fn($q) => $q->where('tenants.id', app('current.tenant')->id))->first()
+            ?? \App\Models\User::first();
+        $stats = app(\App\Reckoner\Reckoner::class)->read(new \App\Reckoner\ReckonerRequest('finance.receivables_aging'), $user, app('current.tenant'))->data ?? null;
 
         return Inertia::render('Reports/SaleAging', [
             'invoices' => $sales,
@@ -2103,11 +2080,21 @@ class ReportController extends Controller
             };
             $totalRevenue = (float) app(FinancialReportingService::class)
                 ->getProfitAndLoss($statsStart->toDateString(), $statsEnd->toDateString())['revenue'];
+            $userForMax = request()->user()
+                ?? \App\Models\User::whereHas('tenants', fn($q) => $q->where('tenants.id', app('current.tenant')->id))->first()
+                ?? \App\Models\User::first();
+            $maxSaleResult = app(\App\Reckoner\Reckoner::class)->read(
+                new \App\Reckoner\ReckonerRequest('sales.max_sale', 'custom', ['from' => $statsStart->toDateString(), 'to' => $statsEnd->toDateString()]),
+                $userForMax,
+                app('current.tenant')
+            );
+            $maxSale = (float) ($maxSaleResult->data['value'] ?? 0.0);
+
             $stats = [
                 'total_revenue' => $totalRevenue,
                 'total_transactions' => $sales->count(),
                 'avg_ticket' => $sales->count() > 0 ? $totalRevenue / $sales->count() : 0,
-                'max_sale' => $sales->max('total') ?? 0
+                'max_sale' => $maxSale
             ];
         }
 
@@ -2479,6 +2466,54 @@ class ReportController extends Controller
         return response()->json([
             'purchases' => $purchases,
             'other_products' => $otherProducts
+        ]);
+    }
+
+    public function purchaseReturns(Request $request)
+    {
+        ReportTierGate::enforce('reports.purchases');
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+        $supplierId = $request->input('supplier_id');
+
+        $query = \App\Models\DebitNote::with(['supplier', 'items.product'])
+            ->whereBetween('date', [$startDate, $endDate]);
+
+        if ($supplierId) {
+            $query->where('supplier_id', $supplierId);
+        }
+
+        $returns = $query->orderByDesc('date')->get();
+
+        return Inertia::render('Reports/PurchaseReturns', [
+            'returns' => $returns,
+            'filters' => array_merge(
+                $request->only(['from_date', 'to_date', 'supplier_id']),
+                ['range' => $range]
+            ),
+            'suppliers' => \App\Models\Supplier::get()
+        ]);
+    }
+
+    public function refundReasons(Request $request)
+    {
+        $tenantId = app('current.tenant')?->id;
+        
+        $query = Sale::where('status', 'returned');
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
+        }
+        
+        $reasons = $query->selectRaw('refund_reason, COUNT(*) as count, SUM(ABS(total)) as total_amount')
+            ->groupBy('refund_reason')
+            ->orderByDesc('count')
+            ->get();
+            
+        if ($request->wantsJson()) {
+            return response()->json(['data' => $reasons]);
+        }
+        
+        return Inertia::render('Reports/RefundReasons', [
+            'reasons' => $reasons,
         ]);
     }
 }

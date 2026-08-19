@@ -6,6 +6,7 @@ return [
         'reports.sale-orders',
         'reports.daily-sales',
         'reports.purchases',
+        'reports.purchase-returns',
         'reports.low-stock',
         'reports.stock-valuation',
         'reports.expenses',

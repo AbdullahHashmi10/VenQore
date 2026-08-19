@@ -375,10 +375,11 @@ class LedgerTruthAuditCommand extends Command
 
         $debitNote     = $safeQuery('debit_notes');
         $parkedSale    = $safeQuery('parked_sales');
+        $occupancy     = $safeQuery('occupancies');
         $serial        = $safeQuery('product_serials');
         $batch         = $safeQuery('batches');
         $recurringInv  = $safeQuery('recurring_invoices');
-        $recipe        = $safeQuery('recipes');
+        $recipe        = $safeQuery('compositions');
         $aiRec         = $safeQuery('ai_recommendations');
         $attendance    = $safeQuery('staff_attendances');
 
@@ -441,7 +442,7 @@ class LedgerTruthAuditCommand extends Command
 
             // Model-specific mapping hooks
             'debit_note'    => $debitNote?->id      ?? 'MISSING-DEBIT-NOTE',
-            'parked_sale'   => $parkedSale?->id     ?? 'MISSING-PARKED-SALE',
+            'parked_sale'   => $parkedSale?->id     ?? $occupancy?->id ?? 'MISSING-PARKED-SALE',
             'serial'        => $serial?->id         ?? 'MISSING-SERIAL',
             'batch'         => $batch?->id          ?? 'MISSING-BATCH',
             'recurring_inv' => $recurringInv?->id   ?? 'MISSING-RECURRING',
@@ -463,7 +464,7 @@ class LedgerTruthAuditCommand extends Command
     {
         /** @var FinancialReportingService $frs */
         $frs  = app(FinancialReportingService::class);
-        $tax  = app(\App\Services\V3\TaxService::class);
+        $tax  = app(\App\Engines\TaxService::class);
 
         $now        = Carbon::create(2025, 1, 28, 9, 0, 0);
         $mStart     = $now->copy()->startOfMonth();

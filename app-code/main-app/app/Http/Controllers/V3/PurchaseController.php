@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V3\ReceivePurchaseRequest;
 use App\Http\Requests\V3\StorePurchaseRequest;
 use App\Http\Requests\V3\UpdatePurchaseRequest;
-use App\Services\V3\AccountingService;
-use App\Services\V3\InventoryService;
-use App\Services\V3\TaxService;
+use App\Engines\AccountingService;
+use App\Engines\InventoryService;
+use App\Engines\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +27,7 @@ class PurchaseController extends Controller
         private AccountingService $accounting,
         private InventoryService  $inventory,
         private TaxService        $tax,
-        private \App\Services\V3\PurchaseService $purchaseService
+        private \App\Engines\PurchaseService $purchaseService
     ) {}
 
     public function index(Request $request)

@@ -163,7 +163,7 @@ class SystemResetController extends Controller
                 'invoice_reminders',
                 'invoices',
                 'invoice_items',
-                'payment_allocations',
+                'allocations',
 
                 // Parties
                 'customers',
@@ -290,7 +290,7 @@ class SystemResetController extends Controller
                         'invoices', 'invoice_items',
                         'recurring_invoices',
                         'returns', 'return_items',
-                        'payment_allocations'
+                        'allocations'
                     ];
 
                     foreach ($tables as $table) {

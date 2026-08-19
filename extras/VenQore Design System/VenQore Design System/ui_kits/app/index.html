@@ -1,0 +1,35 @@
+<!-- @dsCard group="App" viewport="1440x900" name="VenQore app — dashboard, blueprint, ledger" subtitle="Click the rail to move between screens; theme toggle bottom-left" -->
+<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><title>VenQore — app UI kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0}</style>
+</head><body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react" src="AppShell.jsx"></script>
+<script type="text/babel" data-presets="react" src="DashboardScreen.jsx"></script>
+<script type="text/babel" data-presets="react" src="BlueprintScreen.jsx"></script>
+<script type="text/babel" data-presets="react" src="LedgerScreen.jsx"></script>
+<script type="text/babel" data-presets="react">
+const { Button } = window.VenQoreDesignSystem_76c34c;
+const META = {
+  dashboard: { title: "Business dashboard", subtitle: "Executive overview", actions: <><Button variant="secondary" size="sm">Settings</Button><Button size="sm">New sale</Button></> },
+  blueprint: { title: "Blueprint", subtitle: "AI builder · draft 3", actions: <Button variant="secondary" size="sm">Version history</Button> },
+  ledger: { title: "Invoices", subtitle: "Core Ledger", actions: <Button variant="secondary" size="sm">Reconcile</Button> },
+};
+function App() {
+  const [screen, setScreen] = React.useState("dashboard");
+  const key = META[screen] ? screen : "dashboard";
+  const m = META[key];
+  return (
+    <window.AppShell screen={key} onNavigate={setScreen} title={m.title} subtitle={m.subtitle} actions={m.actions}>
+      {key === "dashboard" ? <window.DashboardScreen/> : key === "blueprint" ? <window.BlueprintScreen/> : <window.LedgerScreen/>}
+    </window.AppShell>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body></html>

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductionRun;
 use App\Models\Product;
 use App\Models\Warehouse;
-use App\Models\Recipe;
+use App\Models\Composition;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en" class="light style-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>VenQore — Design with AI</title>
+  <meta name="description" content="Build, deploy, and scale AI-powered applications with enterprise-grade infrastructure. From ideation to production in minutes.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#327882',
+              accent: '#327882',
+              textDark: '#5DA5B0',
+              textLight: '#21656F'
+            },
+            teal: {
+              50: '#ECF9FB',
+              100: '#D7F1F5',
+              200: '#B4E1E8',
+              300: '#8BC8D2',
+              400: '#5DA5B0',
+              500: '#327882',
+              600: '#21656F',
+              700: '#124E56',
+              800: '#0C393F',
+              900: '#08272B',
+              950: '#021416'
+            },
+            ink: {
+              0: '#FFFFFF',
+              25: '#F9FAFC',
+              50: '#F4F6F8',
+              100: '#EBEDEF',
+              200: '#D9DDE0',
+              300: '#BFC3C8',
+              400: '#9A9FA5',
+              550: '#6C7278',
+              600: '#595E64',
+              700: '#3F444A',
+              800: '#282D32',
+              900: '#151A1F',
+              950: '#0A0B0F',
+              1000: '#030509'
+            }
+          },
+          borderRadius: {
+            'sm': '6px',
+            'DEFAULT': '10px',
+            'lg': '16px',
+            'xl': '24px',
+            '4xl': '24px' // Cap round 4xl at 24px (xl) for financial product rigor
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Custom Styles -->
+  <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body class="min-h-screen antialiased selection:bg-[#327882] selection:text-white">
+
+  <!-- Real-time WebGL Fluid Canvas (Full-page viewport persistent) -->
+  <canvas id="fluid-canvas" class="pointer-events-none fixed inset-0 z-[2]"></canvas>
+
+  <!-- Top Header Blur Mask -->
+  <div class="pointer-events-none fixed top-0 left-0 z-40 h-32 w-full header-blur" style="mask-image: linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.1) 80%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.1) 80%, transparent 100%);" aria-hidden="true"></div>
+
+  <!-- Header Navigation -->
+  <header class="fixed top-0 z-50 w-full">
+    <div class="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+           <!-- Brand Logo (ICON.png + VenQore) -->
+      <div>
+        <a class="flex items-center gap-2.5 group text-zinc-900 dark:text-white" aria-label="VenQore home" href="#">
+          <img src="ICON.png" alt="VenQore Logo" class="h-8 w-auto text-current transition-transform group-hover:scale-105 object-contain">
+          <span class="text-xl font-bold tracking-tight text-current">VenQore</span>
+        </a>
+      </div>
+      <!-- Clean Plain Navigation Links -->
+      <nav class="hidden lg:block" aria-label="Main navigation">
+        <ul class="flex items-center gap-8 text-zinc-900 dark:text-white font-medium text-sm transition-colors duration-200">
+          <li class="relative group">
+            <a href="#" class="hover:opacity-70 transition-opacity flex items-center gap-1">
+              Product
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="m6 9 6 6 6-6"/></svg>
+            </a>
+          </li>
+          <li class="relative group">
+            <a href="#" class="hover:opacity-70 transition-opacity flex items-center gap-1">
+              Solutions
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="m6 9 6 6 6-6"/></svg>
+            </a>
+          </li>
+          <li><a href="pricing.html" class="hover:opacity-70 transition-opacity">Pricing</a></li>
+          <li><a href="#" class="hover:opacity-70 transition-opacity">Docs</a></li>
+          <li class="relative group">
+            <a href="#" class="hover:opacity-70 transition-opacity flex items-center gap-1">
+              Company
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="m6 9 6 6 6-6"/></svg>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="hidden lg:flex items-center gap-6">
+        <a href="#" class="text-sm font-medium text-zinc-900 dark:text-white hover:opacity-70 transition-opacity">Sign in</a>
+        <a href="#join" class="px-5 py-2.5 rounded-full font-semibold text-xs bg-[#327882] text-white hover:opacity-90 transition-all shadow-sm">Start building &rarr;</a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button type="button" class="flex h-10 w-10 items-center justify-center lg:hidden text-white mix-blend-difference" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Theme Switcher & Gradient Customizer Floating Panel -->
+  <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+    <!-- Palette Toggle Button -->
+    <button id="gradient-panel-toggle" class="w-10 h-10 cursor-pointer rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md text-white flex items-center justify-center opacity-40 hover:opacity-100 transition-all duration-300 shadow-lg hover:scale-110" aria-label="Open Customizer Drawer" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+
+    <button id="theme-toggle" class="w-10 h-10 cursor-pointer rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md text-white flex items-center justify-center opacity-40 hover:opacity-100 transition-all duration-300 shadow-lg hover:scale-110" aria-label="Toggle theme" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+    </button>
+  </div>
+
+  <!-- Master Customizer Drawer (Slide-out panel) -->
+  <div id="customizer-drawer" class="fixed top-0 right-0 h-full w-[340px] max-w-[90vw] z-50 bg-zinc-950/95 border-l border-white/10 shadow-2xl backdrop-blur-xl translate-x-full transition-transform duration-300 flex flex-col text-white font-mono text-[10px] select-none">
+    
+    <!-- Drawer Header -->
+    <div class="flex items-center justify-between p-4 border-b border-white/10">
+      <span class="text-xs font-bold tracking-widest text-[#327882] uppercase">Master Settings</span>
+      <button id="btn-close-drawer" class="text-gray-400 hover:text-white p-1 text-sm focus:outline-none" type="button">✕</button>
+    </div>
+
+    <!-- Drawer Content (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
+      
+      <!-- SECTION 1: BACKGROUND GRADIENT -->
+      <div class="flex flex-col gap-2">
+        <span class="text-[9px] font-bold text-[#327882] uppercase tracking-wider">1. Background Gradient</span>
+        <div class="flex border-b border-white/10 pb-2">
+          <button id="tab-light" class="flex-1 py-1 text-center font-bold border-b-2 border-white text-white focus:outline-none" type="button">Light Mode</button>
+          <button id="tab-dark" class="flex-1 py-1 text-center opacity-50 border-b-2 border-transparent hover:opacity-100 text-white focus:outline-none" type="button">Dark Mode</button>
+        </div>
+
+        <!-- Light Mode Gradient Controls -->
+        <div id="panel-content-light" class="flex flex-col gap-2.5 mt-2">
+          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Hero Background</span>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Top Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-top-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#021416">
+              <input type="text" id="text-bg-top-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#021416">
+              <input type="range" id="slider-bg-top-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="10">
+              <span id="val-bg-top-pos-l" class="w-6 text-right">10%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Mid Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-mid-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#327882">
+              <input type="text" id="text-bg-mid-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#327882">
+              <input type="range" id="slider-bg-mid-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="50">
+              <span id="val-bg-mid-pos-l" class="w-6 text-right">50%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Bottom Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-bottom-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#ecf9fb">
+              <input type="text" id="text-bg-bottom-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#ECF9FB">
+              <input type="range" id="slider-bg-bottom-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="90">
+              <span id="val-bg-bottom-pos-l" class="w-6 text-right">90%</span>
+            </div>
+          </div>
+
+          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-2">Footer Background</span>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Top Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-top-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#ecf9fb">
+              <input type="text" id="text-foot-top-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#ECF9FB">
+              <input type="range" id="slider-foot-top-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="30">
+              <span id="val-foot-top-pos-l" class="w-6 text-right">30%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Mid Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-mid-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#327882">
+              <input type="text" id="text-foot-mid-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#327882">
+              <input type="range" id="slider-foot-mid-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="70">
+              <span id="val-foot-mid-pos-l" class="w-6 text-right">70%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Bottom Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-bottom-l" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#021416">
+              <input type="text" id="text-foot-bottom-l" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#021416">
+              <input type="range" id="slider-foot-bottom-pos-l" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="100">
+              <span id="val-foot-bottom-pos-l" class="w-6 text-right">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Mode Gradient Controls -->
+        <div id="panel-content-dark" class="hidden flex flex-col gap-2.5 mt-2">
+          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Hero Background</span>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Top Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-top-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#ecf9fb">
+              <input type="text" id="text-bg-top-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#ECF9FB">
+              <input type="range" id="slider-bg-top-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="10">
+              <span id="val-bg-top-pos-d" class="w-6 text-right">10%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Mid Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-mid-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#327882">
+              <input type="text" id="text-bg-mid-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#327882">
+              <input type="range" id="slider-bg-mid-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="51">
+              <span id="val-bg-mid-pos-d" class="w-6 text-right">51%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Bottom Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-bg-bottom-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#021416">
+              <input type="text" id="text-bg-bottom-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#021416">
+              <input type="range" id="slider-bg-bottom-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="90">
+              <span id="val-bg-bottom-pos-d" class="w-6 text-right">90%</span>
+            </div>
+          </div>
+
+          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-2">Footer Background</span>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Top Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-top-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#021416">
+              <input type="text" id="text-foot-top-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#021416">
+              <input type="range" id="slider-foot-top-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="30">
+              <span id="val-foot-top-pos-d" class="w-6 text-right">30%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Mid Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-mid-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#327882">
+              <input type="text" id="text-foot-mid-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#327882">
+              <input type="range" id="slider-foot-mid-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="70">
+              <span id="val-foot-mid-pos-d" class="w-6 text-right">70%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400">Bottom Color:</span>
+            <div class="flex items-center gap-1.5">
+              <input type="color" id="picker-foot-bottom-d" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#ecf9fb">
+              <input type="text" id="text-foot-bottom-d" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#ECF9FB">
+              <input type="range" id="slider-foot-bottom-pos-d" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="100">
+              <span id="val-foot-bottom-pos-d" class="w-6 text-right">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-3 border-t border-white/5 pt-2">Footer Watermark Logo</span>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Color:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="color" id="picker-watermark" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#021416">
+            <input type="text" id="text-watermark" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#021416">
+            <input type="range" id="slider-watermark-opacity" class="w-12 h-1 rounded-full accent-[#327882] bg-white/20 outline-none" min="0" max="100" value="80">
+            <span id="val-watermark-opacity" class="w-6 text-right">80%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: FLUID INTERACTION PROPERTIES -->
+      <div class="flex flex-col gap-3 border-t border-white/5 pt-3">
+        <span class="text-[9px] font-bold text-[#327882] uppercase tracking-wider">2. Fluid Dynamics</span>
+        
+        <!-- Fluid Splat Color -->
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Splat Color:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="color" id="picker-splat-color" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#051414">
+            <input type="text" id="text-splat-color" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#051414">
+          </div>
+        </div>
+
+        <!-- Ink Opacity -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Ink Density Opacity:</span>
+            <span id="val-opacity">45</span>
+          </div>
+          <input type="range" id="slider-opacity" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="10" max="100" value="45">
+        </div>
+
+        <!-- Splat Radius -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Splat Radius:</span>
+            <span id="val-radius">0.2</span>
+          </div>
+          <input type="range" id="slider-radius" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.05" max="0.8" step="0.01" value="0.2">
+        </div>
+
+        <!-- Curl/Vorticity -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Vorticity (Curl):</span>
+            <span id="val-vorticity">12</span>
+          </div>
+          <input type="range" id="slider-vorticity" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0" max="50" value="12">
+        </div>
+
+        <!-- Splat Force -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Splat Force:</span>
+            <span id="val-force">8500</span>
+          </div>
+          <input type="range" id="slider-force" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="1000" max="15000" step="500" value="8500">
+        </div>
+
+        <!-- Density Dissipation -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Density Dissipation:</span>
+            <span id="val-dissipation">0.97</span>
+          </div>
+          <input type="range" id="slider-dissipation" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.9" max="0.99" step="0.005" value="0.97">
+        </div>
+
+        <!-- Velocity Dissipation -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Velocity Dissipation:</span>
+            <span id="val-velocity-dissipation">0.97</span>
+          </div>
+          <input type="range" id="slider-velocity-dissipation" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.9" max="0.99" step="0.005" value="0.97">
+        </div>
+
+        <!-- Pressure -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Pressure Force:</span>
+            <span id="val-pressure">0.7</span>
+          </div>
+          <input type="range" id="slider-pressure" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.1" max="1.0" step="0.05" value="0.7">
+        </div>
+
+        <!-- Pressure Iterations -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Pressure Iterations:</span>
+            <span id="val-iterations">20</span>
+          </div>
+          <input type="range" id="slider-iterations" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="5" max="40" value="20">
+        </div>
+
+        <!-- Resolution Toggles -->
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Sim Resolution:</span>
+          <select id="select-sim-res" class="bg-zinc-900 border border-white/10 rounded px-1.5 py-0.5 text-white">
+            <option value="128">128</option>
+            <option value="256" selected>256</option>
+            <option value="512">512</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Dye Resolution:</span>
+          <select id="select-dye-res" class="bg-zinc-900 border border-white/10 rounded px-1.5 py-0.5 text-white">
+            <option value="512">512</option>
+            <option value="1024">1024</option>
+            <option value="2048" selected>2048</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECTION 3: WebGL RENDER FACTORIES -->
+      <div class="flex flex-col gap-3 border-t border-white/5 pt-3">
+        <span class="text-[9px] font-bold text-[#327882] uppercase tracking-wider">3. WebGL Rendering</span>
+        
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Specular Shading:</span>
+          <input type="checkbox" id="check-shading">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Freeze Simulation:</span>
+          <input type="checkbox" id="check-paused">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Custom Core Color:</span>
+          <input type="checkbox" id="check-invert-core" checked>
+        </div>
+
+        <!-- Core color rows (shown when custom core is active) -->
+        <div id="row-core-color" class="flex items-center justify-between">
+          <span class="text-gray-400">Core Color:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="color" id="picker-core-color" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#0c393f">
+            <input type="text" id="text-core-color" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#0C393F">
+          </div>
+        </div>
+        <div id="row-core-threshold" class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Blend Threshold:</span>
+            <span id="val-core-threshold">0.1</span>
+          </div>
+          <input type="range" id="slider-core-threshold" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.1" max="2.0" step="0.05" value="0.1">
+        </div>
+      </div>
+
+      <!-- SECTION 4: CANVAS LAYOUT CSS -->
+      <div class="flex flex-col gap-3 border-t border-white/5 pt-3">
+        <span class="text-[9px] font-bold text-[#327882] uppercase tracking-wider">4. Canvas CSS Styles</span>
+        
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Blend Mode:</span>
+          <select id="select-blend-mode" class="bg-zinc-900 border border-white/10 rounded px-1.5 py-0.5 text-white">
+            <option value="normal" selected>normal</option>
+            <option value="difference">difference</option>
+            <option value="multiply">multiply</option>
+            <option value="screen">screen</option>
+            <option value="color-dodge">color-dodge</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>CSS Blur Filter:</span>
+            <span id="val-blur">1px</span>
+          </div>
+          <input type="range" id="slider-blur" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0" max="10" value="1">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>CSS Opacity:</span>
+            <span id="val-opacity-css">0.9</span>
+          </div>
+          <input type="range" id="slider-opacity-css" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.1" max="1.0" step="0.05" value="0.9">
+        </div>
+      </div>
+
+      <!-- SECTION 5: LASERFLOW PROPERTIES -->
+      <div class="flex flex-col gap-3 border-t border-white/5 pt-3">
+        <span class="text-[9px] font-bold text-[#327882] uppercase tracking-wider">5. LaserFlow Watermark</span>
+        
+        <!-- Laser Color -->
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Laser Color:</span>
+          <div class="flex items-center gap-1.5">
+            <input type="color" id="picker-laser-color" class="w-5 h-5 rounded-full cursor-pointer border-0 bg-transparent shrink-0" value="#327882">
+            <input type="text" id="text-laser-color" class="w-12 h-5 bg-white/5 border border-white/10 rounded text-[8px] text-center text-white font-mono uppercase focus:outline-none focus:border-[#327882]" value="#327882">
+          </div>
+        </div>
+
+        <!-- Laser Opacity -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Laser Opacity:</span>
+            <span id="val-laser-opacity">100%</span>
+          </div>
+          <input type="range" id="slider-laser-opacity" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0" max="100" value="100">
+        </div>
+
+        <!-- Horizontal Position (X Offset) -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Horizontal Offset (X):</span>
+            <span id="val-laser-x">0.07</span>
+          </div>
+          <input type="range" id="slider-laser-x" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="-1.0" max="1.0" step="0.01" value="0.07">
+        </div>
+
+        <!-- Vertical Position (Y Offset) -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Vertical Offset (Y):</span>
+            <span id="val-laser-y">0.02</span>
+          </div>
+          <input type="range" id="slider-laser-y" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="-1.0" max="1.0" step="0.01" value="0.02">
+        </div>
+
+        <!-- Width Sizing (H Sizing) -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Laser Width Scale:</span>
+            <span id="val-laser-width">1.6</span>
+          </div>
+          <input type="range" id="slider-laser-width" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.1" max="4.0" step="0.05" value="1.6">
+        </div>
+
+        <!-- Height Sizing (V Sizing) -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Laser Height Scale:</span>
+            <span id="val-laser-height">1.5</span>
+          </div>
+          <input type="range" id="slider-laser-height" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.5" max="5.0" step="0.1" value="1.5">
+        </div>
+
+        <!-- Laser Flow Speed -->
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between text-gray-400">
+            <span>Flow Speed:</span>
+            <span id="val-laser-speed">0.95</span>
+          </div>
+          <input type="range" id="slider-laser-speed" class="w-full h-1 rounded bg-white/20 accent-[#327882]" min="0.0" max="2.0" step="0.05" value="0.95">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="p-3 border-t border-white/10 flex gap-2">
+      <button id="btn-splats" class="flex-1 py-2 rounded bg-[#327882]/20 hover:bg-[#327882]/35 text-white transition-colors border border-[#327882]/30 focus:outline-none" type="button">Splat</button>
+      <button id="btn-copy-gradient" class="flex-1 py-2 rounded bg-emerald-600/30 hover:bg-emerald-600/45 text-white font-bold transition-colors border border-emerald-500/40 focus:outline-none" type="button">Copy Config</button>
+      <button id="btn-reset" class="py-2 px-3 rounded bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10 focus:outline-none" type="button">Reset</button>
+    </div>
+
+  </div>
+
+  <main id="main-content">
+    
+    <!-- HERO SECTION -->
+    <section class="relative min-h-screen w-full flex flex-col justify-between pt-28 sm:pt-36 lg:pt-48 overflow-hidden">
+      
+      <!-- Hero Gradient Background Overlay (Confined to Hero Section) -->
+      <div class="hero-gradient-overlay pointer-events-none absolute inset-0 z-0" aria-hidden="true"></div>
+
+      <div class="relative z-10 mx-auto flex max-w-4xl flex-col items-start sm:items-center justify-center gap-6 px-4 text-left sm:text-center">
+        
+        <!-- Camouflaged Headline: White on Light theme, Black on Dark theme -->
+        <h1 id="main-heading" class="text-4xl font-medium tracking-tight text-white dark:text-black transition-colors duration-300 sm:text-6xl md:text-7xl lg:text-8xl leading-tight fold-text-container">
+          <span class="block">Tell us your business.</span>
+          <span class="block">We'll build the <em class="font-serif-italic">system.</em></span>
+        </h1>
+
+        <!-- Transparent Prompt Container -->
+        <div class="w-full mt-6 sm:mt-12 flex flex-col items-center">
+          <!-- Textarea Input Row (Fully transparent with a clean bottom line) -->
+          <div class="w-full max-w-2xl flex items-center gap-4 border-b border-white/20 dark:border-black/20 pb-2 relative">
+            <div id="shiny-placeholder" class="absolute left-2 pointer-events-none text-lg shiny-text transition-opacity duration-200">Describe your business...</div>
+            <textarea id="prompt-input" class="flex-1 resize-none bg-transparent text-lg text-white dark:text-black focus:ring-2 focus:ring-[#327882]/50 focus:outline-none rounded-md px-2 py-2" rows="1"></textarea>
+            
+            <!-- Inline Action Buttons (Mic & Go) -->
+            <div class="flex items-center gap-2">
+              <button type="button" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 dark:bg-black/5 text-white dark:text-black border border-white/10 dark:border-black/5 transition-colors hover:bg-white/20 dark:hover:bg-black/10" aria-label="Voice input">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg>
+              </button>
+              <button id="send-prompt-btn" type="button" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white dark:bg-black text-black dark:text-white transition-transform hover:scale-105 active:scale-95 shadow-md" aria-label="Send message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Centered Action Buttons -->
+          <div class="mt-8 flex flex-wrap justify-center gap-4">
+            <button id="btn-select-business" type="button" class="px-8 py-3 rounded-full font-semibold text-sm bg-white dark:bg-black text-black dark:text-white border border-white/10 dark:border-black/10 hover:bg-white/90 dark:hover:bg-black/90 transition-all shadow-md">Select your business</button>
+            <button type="button" class="px-8 py-3 rounded-full font-semibold text-sm bg-[#327882] text-white hover:opacity-90 transition-all shadow-md">Book a Call</button>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Bottom Hero Sub-text & Down Arrow -->
+      <div class="relative z-10 mx-auto mt-16 flex w-full max-w-4xl items-center justify-between px-4 pb-12 sm:px-6 lg:px-8">
+        <p class="max-w-sm text-sm text-black dark:text-white transition-colors duration-300">VenQore uses advanced AI to transform your ideas into stunning designs. Just describe what you need.</p>
+        <a href="#join" aria-label="Scroll to waitlist section">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down h-12 w-12 text-black dark:text-white transition-colors duration-300 animate-bounce-slow hover:opacity-75"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER SECTION MATCHING EXACT SCREENSHOT -->
+  <footer class="relative overflow-hidden bg-transparent px-4 pt-20 text-gray-400 sm:px-6 lg:px-8 transition-colors duration-300">
+    
+    <div class="footer-bg"></div>
+    
+    <!-- Deep Mint Bottom Mesh Overlay -->
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-3/4 opacity-60 bg-gradient-to-t from-[#0f3b30] via-[#134e40]/30 to-transparent" aria-hidden="true"></div>
+
+    <!-- WAITLIST CTA BANNER -->
+    <div id="join" class="relative z-10 mx-auto max-w-7xl pb-16">
+      <div class="mesh-gradient-card relative overflow-hidden rounded-3xl p-8 sm:p-14 border border-white/10 shadow-lg">
+        <div class="relative z-10 max-w-xl">
+          <h2 class="text-3xl font-medium tracking-tight sm:text-4xl text-white">Get early access</h2>
+          <p class="mt-3 text-lg text-gray-300">Every week, we ship new AI-powered design features. Join and be first in line to shape what we build next.</p>
+          
+          <form id="waitlist-form" class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <input type="email" placeholder="you@company.com" class="h-12 flex-1 rounded-xl px-5 placeholder:text-gray-500 focus:outline-none focus:border-[#327882]" required>
+            <button type="submit" class="h-12 cursor-pointer rounded-full px-8 font-medium transition-transform hover:scale-105 active:scale-95">Join waitlist</button>
+          </form>
+          <p class="mt-4 text-xs text-gray-400">We respect your inbox. No spam, just product updates. <a class="underline hover:text-white" href="#">Privacy Policy</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10 mx-auto max-w-7xl pb-20">
+      <div class="flex flex-col gap-12 lg:flex-row lg:justify-between">
+        
+        <!-- Link Columns -->
+        <div class="grid flex-1 gap-8 sm:grid-cols-3">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider font-mono">Product</h3>
+            <ul class="mt-4 space-y-3">
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#features">Features</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#pricing">Pricing</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Changelog</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Roadmap</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider font-mono">Company</h3>
+            <ul class="mt-4 space-y-3">
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">About</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Blog</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Careers</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Press</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider font-mono">Resources</h3>
+            <ul class="mt-4 space-y-3">
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Documentation</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Help Center</a></li>
+              <li><a class="text-base font-normal text-gray-400 transition-colors hover:text-white" href="#">Community</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Social Badges -->
+        <div class="lg:text-right">
+          <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider font-mono">Social</h3>
+          <div class="mt-4 flex gap-3 lg:justify-end">
+            <a class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-110" aria-label="Facebook" href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+            <a class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-110" aria-label="Twitter" href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+            </a>
+            <a class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20 hover:scale-110" aria-label="LinkedIn" href="#">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copyright Bar -->
+      <div class="relative z-10 mx-auto max-w-7xl py-8 mb-[12vw] sm:mb-[10vw]">
+        <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <p class="text-sm text-gray-500">© 2026 VenQore, Inc. All rights reserved.</p>
+          <div class="flex gap-6">
+            <a class="text-sm text-gray-500 transition-colors hover:text-white" href="#">Terms</a>
+            <a class="text-sm text-gray-500 transition-colors hover:text-white" href="#">Privacy</a>
+            <a class="text-sm text-gray-500 transition-colors hover:text-white" href="#">Cookies</a>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Giant Stylized Watermark Background Logo (Absolute Bottom Cut-Off) -->
+      <div class="watermark-wrapper absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[20%] w-full select-none pointer-events-none z-20 flex justify-center items-center overflow-hidden">
+        <h1 class="text-[16vw] sm:text-[14vw] font-black tracking-tighter text-[#327882]/15 uppercase leading-none relative z-10">VenQore</h1>
+      </div>
+    </footer>
+
+  <!-- SVG Gooey Nav Filter -->
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
+    <defs>
+      <filter id="gooey-nav-filter">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Business Selector Modal -->
+  <div id="modal-business" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="relative w-full max-w-sm bg-zinc-950 border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4 overflow-hidden mx-4">
+      
+      <!-- Close Button -->
+      <button id="btn-close-modal" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors cursor-pointer" aria-label="Close modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <h3 class="text-xl font-bold text-white mt-2">Select Business Category</h3>
+      <p class="text-[11px] text-gray-400 text-center px-4 leading-normal">Scroll or press Arrow keys to choose your sector. Confirm to set prompt.</p>
+
+      <!-- AnimatedList Mount Container -->
+      <div id="business-list" class="w-full h-[260px] relative my-2 overflow-hidden"></div>
+
+      <!-- Action Footer -->
+      <button id="btn-confirm-business" type="button" class="w-full py-3 rounded-full font-semibold text-sm bg-[#327882] text-white hover:opacity-90 transition-all shadow-md mt-2 cursor-pointer">Confirm Selection</button>
+    </div>
+  </div>
+
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- WebGL Fluid Simulation Engine -->
+  <script src="fluid.js"></script>
+
+  <!-- LaserFlow Component Effect -->
+  <script src="laserflow.js"></script>
+
+  <!-- AnimatedList Vanilla Module -->
+  <script src="animatedlist.js?v=4"></script>
+
+  <!-- Application Logic -->
+  <script src="main.js?v=4"></script>
+</body>
+</html>

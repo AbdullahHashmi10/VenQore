@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore — Master Design System · Final Direction</title>
+<meta name="description" content="VenQore master design system: final consolidated visual language, component rules, dashboard grid, ReactBits policy, bugs and migration rules.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --teal-50:#ECF9FB;--teal-100:#D7F1F5;--teal-200:#B4E1E8;--teal-300:#8BC8D2;
+  --teal-400:#5DA5B0;--teal-500:#327882;--teal-600:#21656F;--teal-700:#124E56;--teal-800:#0C393F;--teal-900:#08272B;--teal-950:#021416;
+  --ink-0:#FFFFFF;--ink-25:#F9FAFC;--ink-50:#F4F6F8;--ink-100:#EBEDEF;--ink-200:#D9DDE0;--ink-300:#BFC3C8;
+  --ink-400:#9A9FA5;--ink-500:#777C83;--ink-550:#6C7278;--ink-600:#595E64;--ink-700:#3F444A;--ink-800:#282D32;--ink-900:#151A1F;--ink-950:#0A0B0F;--ink-1000:#030509;
+  --success:#1A7F51;--success-d:#54CC8E;--warning:#A85B05;--warning-d:#EFB146;--danger:#BD3838;--danger-d:#F17070;--info:#0070A6;--info-d:#61B9EA;
+  --ai:#F26A47;--ai-soft:#FFE7DF;
+  --canvas:var(--ink-950);--surface:#12141A;--raised:#1A1D25;--sunken:#0E1117;--line:rgba(255,255,255,.10);--line-soft:rgba(255,255,255,.06);--text:#F4F6F8;--text2:#BFC3C8;--text3:#9A9FA5;
+  --accent:var(--teal-500);--accent-hover:var(--teal-600);--accent-text:var(--teal-400);
+  --radius-sm:6px;--radius-md:12px;--radius-lg:20px;--radius-full:999px;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;--space-20:80px;--space-24:96px;--space-32:128px;
+  --ease:cubic-bezier(.16,1,.3,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --dur-instant:100ms;--dur-fast:180ms;--dur-base:280ms;--dur-slow:480ms;--dur-ambient:8s;
+  --z-base:0;--z-sticky:100;--z-dropdown:400;--z-drawer:500;--z-modal:600;--z-popover:700;--z-tooltip:800;--z-toast:900;--z-debug:1000;
+  --maxw:1240px;
+}
+[data-theme="light"]{
+  --canvas:#FFFFFF;--surface:#F9FAFC;--raised:#FFFFFF;--sunken:#F4F6F8;--line:#D9DDE0;--line-soft:#EBEDEF;--text:#151A1F;--text2:#595E64;--text3:#6C7278;
+  --accent-text:#21656F;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--text);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum";transition:background .28s var(--ease),color .28s var(--ease)}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.top{position:sticky;top:0;z-index:var(--z-sticky);display:flex;align-items:center;gap:18px;min-height:64px;padding:12px 28px;background:color-mix(in srgb,var(--canvas) 84%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.02em}
+.brandmark{width:30px;height:30px;border-radius:10px;background:var(--teal-500);display:grid;place-items:center;color:#fff;font-weight:600;font-size:12px;box-shadow:0 8px 24px rgba(50,120,130,.22)}
+.topnav{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text3);margin-left:8px}
+.topnav a:hover{color:var(--text)}
+.theme{margin-left:auto;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:var(--radius-full);height:40px;padding:0 14px;cursor:pointer}
+.hero{padding:96px 0 88px;background:radial-gradient(65% 120% at 20% 5%,rgba(50,120,130,.10),transparent 65%),var(--canvas)}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
+h1,h2,h3,h4{letter-spacing:-.025em;margin:0 0 14px;line-height:1.1}
+h1{font-size:clamp(42px,7vw,72px);font-weight:600;max-width:980px}
+h1 em,h2 em,h3 em{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400}
+h2{font-size:36px;font-weight:600}
+h3{font-size:22px;font-weight:600;margin-top:30px}
+h4{font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.11em;font-family:"JetBrains Mono",monospace}
+.lede{font-size:19px;color:var(--text2);max-width:760px;margin:18px 0 0}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-full);font:11px "JetBrains Mono",monospace;color:var(--text2)}
+.pill.good{border-color:rgba(84,204,142,.24);color:var(--success-d)}.pill.warn{border-color:rgba(239,177,70,.24);color:var(--warning-d)}.pill.bad{border-color:rgba(241,112,112,.24);color:var(--danger-d)}.pill.ai{border-color:rgba(242,106,71,.28);color:#FF9B82}
+nav.side{position:fixed;left:24px;top:88px;width:215px;max-height:calc(100vh - 112px);overflow:auto;padding:8px 0 12px;border-right:1px solid var(--line-soft)}
+nav.side a{display:block;padding:8px 12px;border-radius:10px;margin-right:14px;color:var(--text3);font-size:12px}nav.side a:hover,nav.side a.on{background:var(--surface);color:var(--text)}
+nav.side .group{margin:14px 12px 6px;font:10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--text3)}
+main{margin-left:240px;padding-bottom:80px}.section{padding:72px 28px;border-top:1px solid var(--line-soft)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px}.card p{margin:8px 0 0;color:var(--text2)}
+.card .label{font:10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.13em;color:var(--text3)}
+.callout{margin:18px 0;padding:16px 18px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-radius:0 var(--radius-md) var(--radius-md) 0}.callout.bad{border-left-color:var(--danger)}.callout.warn{border-left-color:var(--warning)}.callout.ai{border-left-color:var(--ai)}
+.ok{color:var(--success-d)}.no{color:var(--danger-d)}.muted{color:var(--text3)}
+.swatches{display:grid;grid-template-columns:repeat(8,1fr);border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;margin:14px 0}.sw{min-height:86px;padding:8px;display:flex;flex-direction:column;justify-content:flex-end;font:10px "JetBrains Mono",monospace}.sw b{font-weight:500}.sw span{opacity:.65}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius-lg)}table{width:100%;border-collapse:collapse;font-size:13px}th{padding:12px;text-align:left;color:var(--text3);font:10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.10em;border-bottom:1px solid var(--line)}td{padding:12px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--text2)}td strong{color:var(--text);font-weight:600}tbody tr:last-child td{border-bottom:0}.num{text-align:right;font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+code{font:12px "JetBrains Mono",monospace;background:var(--sunken);padding:2px 6px;border:1px solid var(--line-soft);border-radius:6px}
+pre{background:#070A0E;color:#DDE7E8;border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px;overflow:auto;font:12px/1.6 "JetBrains Mono",monospace}
+.rule-list{display:grid;gap:10px;margin-top:16px}.rule{padding:13px 14px;border:1px solid var(--line-soft);background:var(--surface);border-radius:12px}.rule b{display:block;color:var(--text);margin-bottom:3px}.rule span{color:var(--text2);font-size:13px}
+/* Mesh is intentionally isolated to a single optional card. */
+.mesh-card{position:relative;overflow:hidden;min-height:230px;background:#0A0B0F;border-radius:var(--radius-lg);border:1px solid rgba(255,255,255,.10);display:flex;align-items:flex-end;padding:22px;color:#F4F6F8}
+.mesh-card::before{content:"";position:absolute;inset:0;background:radial-gradient(50% 60% at 18% 12%,rgba(50,120,130,.55),transparent 68%),radial-gradient(46% 52% at 82% 78%,rgba(18,78,86,.62),transparent 66%),radial-gradient(38% 40% at 60% 25%,rgba(93,165,176,.22),transparent 70%)}
+.mesh-card .mesh-copy{position:relative;z-index:1;max-width:450px}.mesh-card .mesh-copy p{color:#BFC3C8}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{height:44px;padding:0 22px;border-radius:var(--radius-full);border:1px solid transparent;cursor:pointer;transition:background var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease);font-size:14px;font-weight:500}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--teal-500);color:#fff}.btn.primary:hover{background:var(--teal-600)}.btn.secondary{background:#151A1F;color:#fff}.btn.secondary:hover{background:#282D32}.btn.outline{background:transparent;border-color:var(--line);color:var(--text)}.btn.outline:hover{background:var(--sunken);border-color:var(--ink-400)}.btn.ghost{background:transparent;color:var(--accent-text);padding:0 6px}.btn.danger{background:var(--danger);color:#fff}.btn.ai{background:var(--ai);color:#fff;box-shadow:0 10px 30px rgba(242,106,71,.18)}.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.field{display:grid;gap:7px}.field label{font-size:13px;color:var(--text2)}.field input,.field select,.field textarea{width:100%;min-height:48px;padding:0 15px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--raised);color:var(--text);font:16px Inter,sans-serif;outline:none}.field textarea{padding:13px 15px;min-height:110px}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(50,120,130,.15)}.field small{font-size:12px;color:var(--text3)}
+.dropdown{width:min(360px,100%);background:var(--raised);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:0 18px 52px rgba(0,0,0,.22);padding:6px;position:relative;z-index:var(--z-dropdown)}.dropdown .item{padding:11px 12px;border-radius:8px;display:flex;justify-content:space-between;gap:12px;color:var(--text2);font-size:14px}.dropdown .item:hover,.dropdown .item.active{background:var(--sunken);color:var(--text)}
+.nav-demo{display:grid;grid-template-columns:240px 1fr;gap:20px}.rail{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:10px}.rail-item{height:42px;display:flex;align-items:center;gap:10px;padding:0 12px;border-radius:12px;color:var(--text2);font-size:13px}.rail-item:hover{background:var(--sunken);color:var(--text)}.rail-item.active{background:color-mix(in srgb,var(--teal-500) 16%,var(--surface));color:var(--text);box-shadow:inset 3px 0 0 var(--teal-500);font-weight:600}.icon-dot{width:16px;height:16px;border-radius:5px;background:currentColor;opacity:.5}
+.avatar-stack{display:flex}.avatar{width:38px;height:38px;border-radius:50%;border:3px solid var(--raised);display:grid;place-items:center;margin-left:-10px;font-size:11px;font-weight:600}.avatar:first-child{margin-left:0}.avatar.a{background:var(--teal-600);color:#fff}.avatar.b{background:#F26A47;color:#fff}.avatar.c{background:#34739C;color:#fff}.avatar.d{background:#836925;color:#fff}
+.status{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:var(--radius-full);font:11px "JetBrains Mono",monospace;border:1px solid var(--line)}.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.status.success{color:var(--success-d)}.status.warning{color:var(--warning-d)}.status.danger{color:var(--danger-d)}.status.info{color:var(--info-d)}.status.ai{color:#FF9B82}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kpi{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-lg);padding:18px}.kpi .k{font:10px "JetBrains Mono",monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.12em}.kpi .v{margin:10px 0;font:600 32px/1 "JetBrains Mono",monospace}.delta{font-size:12px;color:var(--text2)}
+.grid-spec{display:grid;grid-template-columns:repeat(12,1fr);gap:8px}.grid-spec span{height:34px;border-radius:6px;background:var(--teal-800);border:1px solid rgba(139,200,210,.18);display:grid;place-items:center;font:10px "JetBrains Mono",monospace;color:var(--teal-200)}
+.card-size-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.size{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font:11px "JetBrains Mono",monospace}.size b{display:block;font-size:15px;color:var(--text);margin-bottom:4px}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px}.chart-bars{height:180px;display:flex;gap:10px;align-items:flex-end}.bar{flex:1;border-radius:7px 7px 3px 3px;background:var(--teal-500)}.bar:nth-child(2){background:#AE7200}.bar:nth-child(3){background:#B266A8}.bar:nth-child(4){background:#3382D6}.bar:nth-child(5){background:#8CCB2E}
+.react-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.rb{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface)}.rb strong{display:block}.rb .where{margin-top:6px;font-size:12px;color:var(--text3)}
+.sev{border-left:3px solid var(--danger);background:var(--surface);border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 18px;border-radius:0 12px 12px 0;margin-bottom:10px}.sev.high{border-left-color:var(--warning)}.sev.medium{border-left-color:#8BC8D2}.sev.low{border-left-color:var(--teal-500)}.sev .tag{font:10px "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--danger-d)}.sev.high .tag{color:var(--warning-d)}.sev.medium .tag{color:var(--teal-300)}.sev h4{margin:5px 0 6px;font:600 15px Inter,sans-serif;text-transform:none;letter-spacing:0;color:var(--text)}.sev p{margin:0;color:var(--text2);font-size:13px}
+.two-col{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:18px}.sticky-note{position:sticky;top:88px;align-self:start}
+footer{border-top:1px solid var(--line-soft);padding:32px 28px;color:var(--text3);font-size:12px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media(max-width:1100px){nav.side{display:none}main{margin-left:0}.section{padding-left:28px;padding-right:28px}.grid4,.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.topnav{display:none}.wrap{padding:0 20px}.hero{padding:64px 0}.section{padding:52px 20px}.grid2,.grid3,.grid4,.nav-demo,.react-grid,.two-col{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.card-size-grid{grid-template-columns:repeat(2,1fr)}.swatches{grid-template-columns:repeat(4,1fr)}h2{font-size:30px}h1{font-size:44px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a href="#overview" class="brand"><span class="brandmark">VQ</span><span>VenQore · Master System</span></a>
+  <nav class="topnav">
+    <a href="#found">Found</a><a href="#colour">Colour</a><a href="#type">Type</a><a href="#grid">Grid</a><a href="#components">Components</a><a href="#reactbits">ReactBits</a><a href="#bugs">Bugs</a><a href="#migration">Migration</a>
+  </nav>
+  <button class="theme" id="theme">☾ Dark</button>
+</header>
+<nav class="side" aria-label="Design system sections">
+  <div class="group">Start here</div>
+  <a href="#overview">00 · Overview</a><a href="#found">01 · What we found</a><a href="#laws">02 · Design laws</a>
+  <div class="group">Foundations</div>
+  <a href="#colour">03 · Colour</a><a href="#modules">04 · Module accents</a><a href="#type">05 · Typography</a><a href="#shape">06 · Shape & spacing</a><a href="#elevation">07 · Elevation</a><a href="#zindex">08 · Z-index</a><a href="#motion">09 · Motion</a><a href="#gradient">10 · Visual assets</a>
+  <div class="group">Applied</div>
+  <a href="#components">11 · Components</a><a href="#tables">12 · Tables</a><a href="#charts">13 · Charts</a><a href="#dashboard">14 · Dashboard grid</a><a href="#reactbits">15 · ReactBits</a><a href="#line">16 · Marketing vs product</a>
+  <div class="group">Ship it</div>
+  <a href="#bugs">17 · Bugs & problems</a><a href="#migration">18 · Migration & CI</a>
+</nav>
+<main>
+<section class="hero" id="overview">
+  <div class="wrap">
+    <span class="eyebrow">VenQore · Final consolidated direction · August 2026</span>
+    <h1>One system, from the landing page to the <em>general ledger.</em></h1>
+    <p class="lede">This is the master design language assembled from the versions you reviewed. It keeps the parts you repeatedly liked, removes the parts you rejected, preserves the useful audit findings, and gives the product one set of rules to follow everywhere.</p>
+    <div class="meta"><span class="pill">Brand · Deep Slate Teal</span><span class="pill">Type · Inter + Instrument Serif + JetBrains Mono</span><span class="pill">Grid · 12 / 6 / 4</span><span class="pill">Radius · 12 / 20 / Full</span><span class="pill ai">AI signal · Coral</span><span class="pill">Motion · restrained + spring</span></div>
+  </div>
+</section>
+
+<section class="section" id="found"><div class="wrap">
+  <span class="eyebrow">01 · What we found</span><h2>The numbers that made this necessary.</h2>
+  <div class="table-wrap"><table><thead><tr><th>Finding</th><th class="num">Count</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><strong>indigo-* colour classes</strong></td><td class="num">6,726</td><td>The app visually reads as an indigo product instead of VenQore.</td></tr>
+    <tr><td><strong>teal-* colour classes</strong></td><td class="num">108</td><td>The actual brand appears far less often than off-system colours.</td></tr>
+    <tr><td><strong>Other off-system colours</strong></td><td class="num">8,685</td><td>Emerald, amber, rose, purple, violet, blue and similar palettes were used without one governing spec.</td></tr>
+    <tr><td><strong>Distinct hand-written z-index values</strong></td><td class="num">31</td><td>Stacking became an arms race instead of a hierarchy.</td></tr>
+    <tr><td><strong>Distinct corner radii</strong></td><td class="num">~20</td><td>Including values as large as 56px on a financial product.</td></tr>
+    <tr><td><strong>hover:scale-* usages</strong></td><td class="num">184</td><td>Including 7× scale-150. This created clipping and instability.</td></tr>
+    <tr><td><strong>Typefaces in play</strong></td><td class="num">2+</td><td>Inter on site, Figtree in app, plus multiple proposed families across the iterations.</td></tr>
+    <tr><td><strong>Chart libraries</strong></td><td class="num">3</td><td>Recharts, visx packages and d3 pieces created inconsistent chart language.</td></tr>
+  </tbody></table></div>
+</div></section>
+
+<section class="section" id="laws"><div class="wrap">
+  <span class="eyebrow">02 · Principles</span><h2>The laws that survive every version.</h2>
+  <div class="grid2">
+    <div class="card"><h4>1 · No raw values in components</h4><p>Colours, radii, z-index and other system values live in tokens. If a component needs a value that is not a token, the system is missing a token.</p></div>
+    <div class="card"><h4>2 · Teal is the brand</h4><p>Primary actions, focus, identity and active states use VenQore teal. Semantic colours and AI colour do not compete with the brand.</p></div>
+    <div class="card"><h4>3 · Module colour is wayfinding</h4><p>Module colour tells the user where they are. It belongs in chrome, navigation, headers, breadcrumbs and module accents — not inside financial data.</p></div>
+    <div class="card"><h4>4 · Meaning is never colour alone</h4><p>Negative values also get a minus sign/parentheses. Status gets an icon or dot and a word. Colour reinforces meaning; it does not carry it alone.</p></div>
+    <div class="card" style="grid-column:1/-1"><h4>5 · Marketing may be expressive. Product may not.</h4><p>Public pages can use ambient motion, expressive typography and a richer visual stage. The product prioritizes clarity, data, touch targets and controlled state feedback.</p></div>
+  </div>
+</div></section>
+
+<section class="section" id="colour"><div class="wrap">
+  <span class="eyebrow">03 · Foundations</span><h2>Colour that feels alive without losing trust.</h2>
+  <div class="grid2">
+    <div class="card"><h3>Brand teal</h3><p><strong>#327882</strong> remains the core VenQore identity. Use the ramp for fills, active states, links, focus and supporting tints.</p><div class="swatches">
+      <div class="sw" style="background:#ECF9FB;color:#08272B"><b>50</b><span>#ECF9FB</span></div><div class="sw" style="background:#D7F1F5;color:#08272B"><b>100</b><span>#D7F1F5</span></div><div class="sw" style="background:#B4E1E8;color:#08272B"><b>200</b><span>#B4E1E8</span></div><div class="sw" style="background:#8BC8D2;color:#08272B"><b>300</b><span>#8BC8D2</span></div><div class="sw" style="background:#5DA5B0;color:#021416"><b>400</b><span>#5DA5B0</span></div><div class="sw" style="background:#327882;color:#fff"><b>500</b><span>#327882</span></div><div class="sw" style="background:#21656F;color:#fff"><b>600</b><span>#21656F</span></div><div class="sw" style="background:#0C393F;color:#fff"><b>800</b><span>#0C393F</span></div>
+    </div></div>
+    <div class="card"><h3>Living neutrals</h3><p>The background remains neutral enough to keep data trustworthy, with a very subtle cool/green relationship to the teal rather than a visibly tinted canvas.</p><div class="rule-list"><div class="rule"><b>Light</b><span>#FFFFFF page · #F9FAFC surface · #F4F6F8 sunken</span></div><div class="rule"><b>Dark</b><span>#0A0B0F page · #12141A surface · #1A1D25 raised</span></div><div class="rule"><b>Never</b><span>Pure black as the default canvas, muddy pure greys, or a green-tinted base that fights content.</span></div></div></div>
+  </div>
+  <div class="callout"><strong>Important:</strong> lively colour should come from accents, glows, controlled gradients and state changes — not by tinting every background.</div>
+</div></section>
+
+<section class="section" id="modules"><div class="wrap">
+  <span class="eyebrow">04 · Foundations</span><h2>Module accents are wayfinding, not semantics.</h2>
+  <p class="lede" style="font-size:16px">This preserves the useful v2 idea while fixing the problem you identified: Reports must not look like Danger, and HR must not collapse into Info.</p>
+  <div class="table-wrap"><table><thead><tr><th>Module family</th><th>Accent direction</th><th>Where allowed</th><th>Where forbidden</th></tr></thead><tbody>
+    <tr><td><strong>Accounting & Finance</strong></td><td style="color:#5DA5B0">Teal</td><td>Sidebar, module header, breadcrumb, icon, empty-state art</td><td>Financial values, statuses, KPI figures</td></tr>
+    <tr><td><strong>Reports & Analytics</strong></td><td style="color:#61B9EA">Information Blue</td><td>Chrome only</td><td>Danger/error states</td></tr>
+    <tr><td><strong>Sales & POS</strong></td><td style="color:#F26A47">Coral</td><td>Chrome only</td><td>Danger/error states</td></tr>
+    <tr><td><strong>Inventory & Stock</strong></td><td style="color:#B266A8">Orchid</td><td>Chrome only</td><td>Success/warning semantics</td></tr>
+    <tr><td><strong>Purchasing & Supply</strong></td><td style="color:#C57FA0">Rosewood</td><td>Chrome only</td><td>Danger semantics</td></tr>
+    <tr><td><strong>Parties & CRM</strong></td><td style="color:#945674">Berry</td><td>Chrome only</td><td>Status semantics</td></tr>
+    <tr><td><strong>Staff & HR</strong></td><td style="color:#D38A3A">Warm Orange</td><td>Chrome only</td><td>Info blue</td></tr>
+    <tr><td><strong>Manufacturing</strong></td><td style="color:#B0954F">Gold</td><td>Chrome only</td><td>Warning semantic token</td></tr>
+    <tr><td><strong>Marketing & Growth</strong></td><td style="color:#8CCB2E">Lime</td><td>Chrome only</td><td>Success semantic token</td></tr>
+    <tr><td><strong>Channels & Sync</strong></td><td style="color:#1E7E6A">Sea Green</td><td>Chrome only</td><td>Brand teal fills</td></tr>
+  </tbody></table></div>
+</div></section>
+
+<section class="section" id="type"><div class="wrap">
+  <span class="eyebrow">05 · Foundations</span><h2>Big, clear, measured.</h2>
+  <div class="grid3">
+    <div class="card"><h3>Inter</h3><p>UI, headings, body, buttons and navigation. Use 400 / 500 / 600. <strong>600 is the weight ceiling.</strong></p></div>
+    <div class="card"><h3><em>Instrument Serif</em></h3><p>Italic only. Use as a signature accent — normally one or two words in a major heading, primarily on public pages.</p></div>
+    <div class="card"><h3>JetBrains Mono</h3><p>Numbers, tables, IDs, version labels, code, compact metadata and technical values. Enable tabular numerals.</p></div>
+  </div>
+  <div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>Role</th><th>Size</th><th>Line height</th><th>Weight</th><th>Rule</th></tr></thead><tbody>
+    <tr><td>Display</td><td>60px desktop</td><td>1.04</td><td>600</td><td>Marketing hero only</td></tr>
+    <tr><td>H1</td><td>40px</td><td>1.10</td><td>600</td><td>Page heading</td></tr>
+    <tr><td>H2</td><td>32px</td><td>1.15</td><td>600</td><td>Section heading</td></tr>
+    <tr><td>H3</td><td>20px</td><td>1.30</td><td>600</td><td>Card/subsection title</td></tr>
+    <tr><td>Body</td><td>16px</td><td>1.60</td><td>400</td><td>Default readable text</td></tr>
+    <tr><td>Small</td><td>14px</td><td>1.55</td><td>400/500</td><td>Supporting UI text</td></tr>
+    <tr><td>Caption</td><td>13px</td><td>1.50</td><td>400</td><td>Use sparingly</td></tr>
+    <tr><td>Eyebrow</td><td>11px</td><td>1.20</td><td>500</td><td>Mono, uppercase, tracked</td></tr>
+  </tbody></table></div>
+  <div class="callout warn"><strong>Your correction:</strong> do not build screens around tiny fonts. Labels may be compact; primary content and numbers should stay easy to read. The system is allowed to be dense, but never visually cramped.</div>
+</div></section>
+
+<section class="section" id="shape"><div class="wrap">
+  <span class="eyebrow">06 · Foundations</span><h2>Shape & spacing: simple enough to remember.</h2>
+  <div class="grid3">
+    <div class="card"><h4>Radius 1</h4><h3>12px</h3><p>Inputs, selects, dropdowns, small cards, menus, chips that are not pills.</p></div>
+    <div class="card"><h4>Radius 2</h4><h3>20px</h3><p>Cards, dashboards, panels, large feature blocks and primary surfaces.</p></div>
+    <div class="card"><h4>Radius 3</h4><h3>Full</h3><p>Buttons, status pills, tags and avatars.</p></div>
+  </div>
+  <div class="card" style="margin-top:18px"><h4>Spacing scale · 4px base</h4><div class="rule-list"><div class="rule"><b>4 / 8 / 12 / 16</b><span>Micro spacing, icon-label gaps, form gaps, compact stacks.</span></div><div class="rule"><b>20 / 24 / 32</b><span>Card padding, grid gutters, component grouping.</span></div><div class="rule"><b>40 / 48 / 64</b><span>Major internal blocks and product section rhythm.</span></div><div class="rule"><b>80 / 96 / 128</b><span>Marketing section rhythm; not app row density.</span></div></div></div>
+  <div class="callout"><strong>Shape rule:</strong> no 30–56px random container radii. The old system had ~20 distinct radii; this system uses three visual shapes so the interface reads as one product.</div>
+</div></section>
+
+<section class="section" id="elevation"><div class="wrap">
+  <span class="eyebrow">07 · Foundations</span><h2>Depth without noise.</h2>
+  <div class="grid4"><div class="card" style="box-shadow:none"><h4>0 · Flat</h4><p>Border only.</p></div><div class="card" style="box-shadow:0 1px 2px rgba(0,0,0,.06)"><h4>1 · Card</h4><p>Subtle lift.</p></div><div class="card" style="box-shadow:0 10px 28px rgba(0,0,0,.16)"><h4>2 · Raised</h4><p>Popover / elevated panel.</p></div><div class="card" style="box-shadow:0 22px 60px rgba(0,0,0,.24)"><h4>3 · Overlay</h4><p>Modal / major overlay.</p></div></div>
+  <div class="callout"><strong>Glow rule:</strong> a surface can have one coloured focal point at a time. Use a teal/coral/AI glow when it helps hierarchy. Do not make every card glow.</div>
+</div></section>
+
+<section class="section" id="zindex"><div class="wrap">
+  <span class="eyebrow">08 · Foundations</span><h2>Named layers, not z-index roulette.</h2>
+  <div class="table-wrap"><table><thead><tr><th>Token</th><th class="num">Level</th><th>Use</th></tr></thead><tbody>
+    <tr><td><code>z-base</code></td><td class="num">0</td><td>Normal document content</td></tr><tr><td><code>z-sticky</code></td><td class="num">100</td><td>Sticky headers / table headers</td></tr><tr><td><code>z-dropdown</code></td><td class="num">400</td><td>Selects, comboboxes, menus, context menus</td></tr><tr><td><code>z-drawer</code></td><td class="num">500</td><td>Side drawers / filters</td></tr><tr><td><code>z-modal</code></td><td class="num">600</td><td>Dialog / confirm</td></tr><tr><td><code>z-popover</code></td><td class="num">700</td><td>Popover anchored inside modal</td></tr><tr><td><code>z-tooltip</code></td><td class="num">800</td><td>Tooltips — portalled to body</td></tr><tr><td><code>z-toast</code></td><td class="num">900</td><td>Notifications</td></tr><tr><td><code>z-debug</code></td><td class="num">1000</td><td>Development-only debug overlays</td></tr>
+  </tbody></table></div>
+  <div class="callout bad"><strong>Clipping rule:</strong> if a tooltip or menu is invisible, check <code>overflow-hidden</code> before changing z-index. A z-index cannot escape an overflow clipping ancestor. Anything that must escape is portalled to <code>body</code>.</div>
+</div></section>
+
+<section class="section" id="motion"><div class="wrap">
+  <span class="eyebrow">09 · Foundations</span><h2>Motion is feedback, not decoration.</h2>
+  <div class="table-wrap"><table><thead><tr><th>Token</th><th>Duration</th><th>Easing</th><th>Use</th></tr></thead><tbody>
+    <tr><td><code>instant</code></td><td>100ms</td><td>ease-out</td><td>Hover colour, focus ring</td></tr><tr><td><code>fast</code></td><td>180ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Buttons, chips, small state changes</td></tr><tr><td><code>base</code></td><td>280ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Dropdowns, tabs, accordions</td></tr><tr><td><code>slow</code></td><td>480ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Reveals, drawers, modals</td></tr><tr><td><code>ambient</code></td><td>6–10s</td><td>ease-in-out</td><td>Marketing-only ambient visuals</td></tr>
+  </tbody></table></div>
+  <div class="grid2" style="margin-top:18px"><div class="card"><h4>Hover contract</h4><div class="rule-list"><div class="rule"><b>Button</b><span>Darken one ramp step + lift 1px. Never scale.</span></div><div class="rule"><b>Card</b><span>Lift 2px + elevation up one level.</span></div><div class="rule"><b>Sidebar/nav item</b><span>Background + text only. Never transform.</span></div><div class="rule"><b>Standalone icon</b><span>Colour only. Never scale.</span></div><div class="rule"><b>Avatar/chip</b><span>Ring appears. No scale.</span></div><div class="rule"><b>Media thumbnail</b><span>Only legitimate scale+clip, inside a fixed-ratio frame.</span></div></div></div><div class="card"><h4>Never animate</h4><div class="rule-list"><div class="rule"><b>Financial figures</b><span>No count-up on ledger/KPI financial values.</span></div><div class="rule"><b>Layout after paint</b><span>No unexpected shifting caused by animation.</span></div><div class="rule"><b>Ambient loops below fold</b><span>Marketing ambient effects stop below the hero.</span></div><div class="rule"><b>Reduced motion</b><span>Freeze/replace decorative motion; preserve usability.</span></div></div></div></div>
+  <div class="callout"><strong>Blueprint exception:</strong> a staged module/blueprint animation can be slow and legible because it communicates how the system is assembled. That is product storytelling, not random UI motion.</div>
+</div></section>
+
+<section class="section" id="gradient"><div class="wrap">
+  <span class="eyebrow">10 · Visual assets</span><h2>The mesh exists as a component, not as the system.</h2>
+  <div class="two-col">
+    <div class="mesh-card"><div class="mesh-copy"><div class="label">OPTIONAL VISUAL CARD · MARKETING / FEATURED SURFACE</div><h3 style="font-size:30px;margin-top:8px">Mesh gradient</h3><p>This is the exact visual idea retained from v1 that you liked. It is intentionally isolated here as a reusable card/hero asset. It is <strong>not</strong> the default background for the product and should not be repeated across every screen.</p><div class="meta"><span class="pill">Dark base</span><span class="pill">3 radial fields</span><span class="pill">Marketing-first</span></div></div></div>
+    <div class="card sticky-note"><h4>Usage contract</h4><div class="rule-list"><div class="rule"><b>Allowed</b><span>One featured marketing card, hero treatment, selected premium section.</span></div><div class="rule"><b>Not allowed</b><span>Global dashboard background, every card, every module, repeated page-to-page.</span></div><div class="rule"><b>Text</b><span>Keep text on a stable dark surface area; do not cross a dark/light midpoint behind copy.</span></div><div class="rule"><b>Motion</b><span>Optional ambient drift on public pages only. Static fallback below 768px and under reduced motion.</span></div></div></div>
+  </div>
+</div></section>
+
+<section class="section" id="components"><div class="wrap">
+  <span class="eyebrow">11 · Components</span><h2>The component library.</h2>
+  <h3>Buttons</h3><div class="card"><div class="btnrow"><button class="btn primary">Create sale</button><button class="btn secondary">Import data</button><button class="btn outline">See how it works</button><button class="btn ghost">Read the docs →</button><button class="btn ai">Build with AI</button><button class="btn danger">Delete invoice</button></div><div class="callout" style="margin-bottom:0"><strong>Contract:</strong> one primary per view · 44px minimum / 48px mobile · generous horizontal padding · visible focus ring · no hover scaling.</div></div>
+  <h3>Forms</h3><div class="grid2"><div class="card"><div class="field"><label>Business name</label><input value="AMD Outlets"></div><div style="height:14px"></div><div class="field"><label>Opening balance</label><input value="184,320.00"></div></div><div class="card"><h4>Form rules</h4><div class="rule-list"><div class="rule"><b>16px minimum input text</b><span>Keep touch input readable and avoid accidental zoom behaviour.</span></div><div class="rule"><b>Label above field</b><span>Placeholder is never the only label.</span></div><div class="rule"><b>Focus</b><span>Accent border + visible ring.</span></div><div class="rule"><b>Hero prompt exception</b><span>Borderless/hairline field with 18–20px type may remain intentionally editorial.</span></div></div></div></div>
+  <h3>Dropdown / select</h3><div class="grid2"><div class="dropdown"><div class="item active"><span>Today</span><span>⌘1</span></div><div class="item"><span>This week</span><span>⌘2</span></div><div class="item"><span>This month</span><span>⌘3</span></div><div class="item"><span>Custom range</span><span>›</span></div></div><div class="card"><h4>Final dropdown direction</h4><p>We do not inherit any prior dropdown wholesale. Use a compact floating surface, 12px radius, clear active row, keyboard state, optional search, and body-level portal. No giant bubbly menus.</p></div></div>
+  <h3>Navigation</h3><div class="nav-demo"><div class="rail"><div class="rail-item active"><span class="icon-dot"></span>Accounting</div><div class="rail-item"><span class="icon-dot"></span>Sales &amp; POS</div><div class="rail-item"><span class="icon-dot"></span>Inventory</div><div class="rail-item"><span class="icon-dot"></span>Purchasing</div><div class="rail-item"><span class="icon-dot"></span>Reports</div><div class="rail-item"><span class="icon-dot"></span>Staff &amp; HR</div></div><div class="card"><h4>Active state</h4><p>Tint + subtle 3px rule + weight 600. No icon zoom, no huge shadow, no indigo. Hover is background/text change only.</p><div class="avatar-stack" style="margin-top:20px"><span class="avatar a">AH</span><span class="avatar b">RA</span><span class="avatar c">MK</span><span class="avatar d">+</span></div><p style="margin-top:10px">Avatar stacks remain a useful social/data-display component from the earlier visual direction.</p></div></div>
+  <h3>Badges / status</h3><div class="card"><div class="btnrow"><span class="status success">Reconciled</span><span class="status warning">Needs approval</span><span class="status danger">Overdue</span><span class="status info">System notice</span><span class="status ai">AI suggestion</span></div><p>Status never relies on colour alone; the word/icon still carries the meaning.</p></div>
+  <h3>Cards</h3><div class="grid3"><div class="card"><div class="label">01 · Core action</div><h3>Describe</h3><p>Tell VenQore what your business does.</p></div><div class="card"><div class="label">02 · Blueprint</div><h3>Review</h3><p>Confirm modules, fields and roles.</p></div><div class="card"><div class="label">03 · Launch</div><h3>Go live</h3><p>Approve the system and start operating.</p></div></div>
+  <h3>Empty / loading states</h3><div class="grid2"><div class="card"><h4>Empty state</h4><p>Module icon at restrained alpha + plain description + one primary action. Never just “No data”. Say what is missing and what action creates it.</p></div><div class="card"><h4>Loading</h4><p>Skeleton/shimmer is allowed when it communicates system state. It is not decoration.</p></div></div>
+</div></section>
+
+<section class="section" id="tables"><div class="wrap">
+  <span class="eyebrow">12 · Data</span><h2>Tables are a first-class ERP component.</h2>
+  <div class="table-wrap"><table><thead><tr><th>Account</th><th>Reference</th><th>Status</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>
+    <tr><td>Trade receivables</td><td><code>INV-2291</code></td><td><span class="status success">Posted</span></td><td class="num">18,400.00</td><td class="num">—</td></tr>
+    <tr><td>Sales — retail</td><td><code>INV-2291</code></td><td><span class="status success">Posted</span></td><td class="num">—</td><td class="num">15,593.22</td></tr>
+    <tr><td>Output tax</td><td><code>INV-2291</code></td><td><span class="status success">Posted</span></td><td class="num">—</td><td class="num">2,806.78</td></tr>
+    <tr><td>Purchase returns</td><td><code>DN-0114</code></td><td><span class="status warning">Approval</span></td><td class="num">—</td><td class="num" style="color:var(--danger-d)">(1,240.00)</td></tr>
+    <tr><td><strong>Total</strong></td><td></td><td></td><td class="num"><strong>18,400.00</strong></td><td class="num"><strong>18,400.00</strong></td></tr>
+  </tbody></table></div>
+  <div class="grid2" style="margin-top:18px"><div class="card"><h4>Do</h4><div class="rule-list"><div class="rule"><b>Numbers right-aligned + mono + tabular</b><span>Non-negotiable.</span></div><div class="rule"><b>Labels left-aligned + sans</b><span>Only status chips may centre.</span></div><div class="rule"><b>Row 48px / header 40px</b><span>Use compact but touch-friendly rhythm.</span></div><div class="rule"><b>Negative numbers</b><span>Danger colour + parentheses/sign.</span></div><div class="rule"><b>Totals</b><span>1px rule above, weight 600, no filled background.</span></div></div></div><div class="card"><h4>Don't</h4><div class="rule-list"><div class="rule"><b>Vertical rules</b><span>They recreate the spreadsheet look.</span></div><div class="rule"><b>Module accents inside data</b><span>Keep wayfinding out of financial meaning.</span></div><div class="rule"><b>Colour-only semantics</b><span>Always add text/sign/icon.</span></div><div class="rule"><b>Zebra + borders together</b><span>Pick one.</span></div></div></div></div>
+</div></section>
+
+<section class="section" id="charts"><div class="wrap">
+  <span class="eyebrow">13 · Data visualisation</span><h2>Charts: one system, fixed colour order.</h2>
+  <div class="grid2"><div class="card"><h3>Library policy</h3><p><strong>Standardize on Recharts.</strong> Quarantine visx only where custom scales/zoom genuinely require it. Do not import d3 directly into ordinary chart components.</p><p style="margin-top:12px">The original analysis identified three chart stacks: Recharts, many visx packages, and d3 pieces. That fragmentation creates different axes, tooltip behaviour and colour defaults.</p></div><div class="chart"><h4>Example series order</h4><div class="chart-bars"><span class="bar" style="height:56%"></span><span class="bar" style="height:72%"></span><span class="bar" style="height:45%"></span><span class="bar" style="height:85%"></span><span class="bar" style="height:64%"></span></div><p class="muted" style="font-size:12px">Fixed order · never randomly cycle the palette · ninth series folds into Other/small multiples.</p></div></div>
+  <div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>Rule</th><th>Decision</th></tr></thead><tbody><tr><td>Series order</td><td>Fixed slots; slot 1 is VenQore teal.</td></tr><tr><td>More than eight series</td><td>Fold into Other, facet, or redesign; never keep cycling colours.</td></tr><tr><td>Diverging charts</td><td>Two hues + neutral grey midpoint. Never a saturated hue at zero.</td></tr><tr><td>Sequential data</td><td>One hue light → dark; teal ramp is preferred for brand-aligned magnitude.</td><tr><td>Dual-axis charts</td><td>Avoid unless the analytical case is truly unavoidable.</td></tr><tr><td>Animation</td><td>Prefer state transition; never count a financial KPI as if it were a game score.</td></tr></tbody></table></div>
+</div></section>
+
+<section class="section" id="dashboard"><div class="wrap">
+  <span class="eyebrow">14 · Dashboard architecture</span><h2>The grid becomes the contract.</h2>
+  <div class="card"><h4>Responsive foundations</h4><div class="grid-spec"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span></div><div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>Viewport</th><th>Grid</th><th>Gutter</th><th>Notes</th></tr></thead><tbody><tr><td>Desktop</td><td><strong>12 columns</strong></td><td>24px</td><td>Primary layout grid.</td></tr><tr><td>Tablet</td><td><strong>6 columns</strong></td><td>20px</td><td>Cards and panels reflow to six logical tracks.</td></tr><tr><td>Mobile</td><td><strong>4 columns</strong></td><td>16px</td><td>Cards use full-width or simple two/four-track compositions.</td></tr></tbody></table></div></div>
+  <h3>Dashboard card vocabulary</h3><div class="card-size-grid"><div class="size"><b>1 × 1</b>Micro tile</div><div class="size"><b>1 × 2</b>Small KPI</div><div class="size"><b>1 × 4</b>Wide KPI strip</div><div class="size"><b>1 × 6</b>Full-width compact</div><div class="size"><b>2 × 2</b>Small chart / activity</div><div class="size"><b>2 × 4</b>Standard chart</div><div class="size"><b>2 × 6</b>Wide chart</div><div class="size"><b>4 × 2</b>List / activity</div><div class="size"><b>4 × 4</b>Major widget</div><div class="size"><b>4 × 6</b>Large chart/table</div><div class="size"><b>6 × 2</b>Tall activity</div><div class="size"><b>6 × 4</b>Tall analysis</div><div class="size"><b>6 × 6</b>Maximum board</div></div>
+  <div class="callout"><strong>Important:</strong> users are not designing CSS. Every dashboard widget receives <strong>minimum / preferred / maximum</strong> size constraints and valid aspect ratios. Resize handles snap only to supported presets.</div>
+  <div class="grid2"><div class="card"><h4>Examples</h4><div class="rule-list"><div class="rule"><b>KPI</b><span>Min 1×2 · preferred 1×2 / 1×4 · max 2×4.</span></div><div class="rule"><b>Chart</b><span>Min 2×2 · preferred 2×4 · max 6×6.</span></div><div class="rule"><b>Table</b><span>Min 4×4 · preferred 4×6 · max 6×6.</span></div><div class="rule"><b>Activity feed</b><span>Min 2×2 · preferred 4×2 · max 6×4.</span></div></div></div><div class="card"><h4>Don't allow</h4><div class="rule-list"><div class="rule"><b>Oversized KPI</b><span>Do not let a simple number consume a whole board.</span></div><div class="rule"><b>Too-small chart</b><span>Protect axis labels and legends by enforcing minimum size.</span></div><div class="rule"><b>Arbitrary dimensions</b><span>No free pixel-level resizing — only snapped system sizes.</span></div></div></div></div>
+</div></section>
+
+<section class="section" id="reactbits"><div class="wrap">
+  <span class="eyebrow">15 · Applied</span><h2>ReactBits — where it belongs.</h2>
+  <div class="callout"><strong>Governing rule:</strong> ReactBits is primarily a marketing dependency. Inside the ERP it is allowed only when the animation communicates useful state or a very small set of approved interaction patterns.</div>
+  <div class="react-grid">
+    <div class="rb"><strong>AnimatedList</strong><span class="where">Landing · business category picker</span><p>Keep. Good for choosing among categories. Cap visible items; keep keyboard navigation.</p></div>
+    <div class="rb"><strong>ShinyText</strong><span class="where">Landing · hero prompt</span><p>Keep once. It says “type here” and earns the shimmer.</p></div>
+    <div class="rb"><strong>FoldText</strong><span class="where">Landing · hero headline</span><p>Keep once on first paint. Never re-run on scroll.</p></div>
+    <div class="rb"><strong>LaserFlow</strong><span class="where">Landing · footer watermark</span><p>Keep as a single page signature.</p></div>
+    <div class="rb"><strong>OptionWheel</strong><span class="where">Landing · alternate picker</span><p>Choose one picker pattern, not two competing answers to the same question.</p></div>
+    <div class="rb"><strong>SplitText</strong><span class="where">App</span><p>Remove. Animating headings inside an ERP adds motion without information.</p></div>
+    <div class="rb"><strong>DecryptedText</strong><span class="where">App</span><p>Remove. Scrambling readable financial/UI text is hostile to clarity.</p></div>
+    <div class="rb"><strong>GooeyNav</strong><span class="where">Marketing / navigation</span><p>Allowed when it genuinely improves the public navigation; do not import expressive effects into the dense app shell.</p></div>
+    <div class="rb"><strong>Skeleton / shimmer</strong><span class="where">Product loading</span><p>Approved because it communicates load state, not decoration.</p></div>
+  </div>
+</div></section>
+
+<section class="section" id="line"><div class="wrap">
+  <span class="eyebrow">16 · The line</span><h2>Marketing versus product.</h2>
+  <div class="table-wrap"><table><thead><tr><th></th><th>Public pages</th><th>Inside the app</th></tr></thead><tbody>
+    <tr><td><strong>Background</strong></td><td>Stable dark hero, optional mesh card, selected expressive assets</td><td>Neutral canvas + controlled surfaces</td></tr>
+    <tr><td><strong>Serif italic</strong></td><td>One/two-word signature accent</td><td>Rarely needed; prefer sans for daily work</td></tr>
+    <tr><td><strong>Ambient motion</strong></td><td>Hero/above fold, reduced-motion aware</td><td>Never as background decoration</td></tr>
+    <tr><td><strong>Hover scale</strong></td><td>Only media thumbnails</td><td>Only media thumbnails</td></tr>
+    <tr><td><strong>Theme</strong></td><td>Dark hero → light body may be used on public pages</td><td>Full light/dark product theme</td></tr>
+    <tr><td><strong>Density</strong></td><td>Comfortable</td><td>Compact but readable</td></tr>
+    <tr><td><strong>Type</strong></td><td>Display can reach 60px</td><td>H1 generally caps around 32px; data does the talking</td></tr>
+    <tr><td><strong>Colour</strong></td><td>Teal + ink + a small expressive accent</td><td>Teal + ink + module chrome + semantic data + restrained AI signal</td></tr>
+  </tbody></table></div>
+</div></section>
+
+<section class="section" id="bugs"><div class="wrap">
+  <span class="eyebrow">17 · Ship it</span><h2>The bugs and problems we found.</h2>
+  <div class="sev"><span class="tag">Critical · launch blocker</span><h4>Customizer/debug drawer is exposed</h4><p>Vorticity, splat force, pressure iterations and dye resolution controls appear on a public-facing page. Gate it behind <code>?debug=1</code> or remove it from production.</p></div>
+  <div class="sev"><span class="tag">Critical</span><h4>Template copy is still present</h4><p>The design system analysis found placeholder/incorrect copy such as “VenQore — Design with AI”, “future of creativity” and unrelated design-generation language. Replace with the actual VenQore positioning and copy bible.</p></div>
+  <div class="sev"><span class="tag">Critical</span><h4>Dark-mode accent text contrast failure</h4><p><code>#327882</code> used as text on dark backgrounds yields the documented 3.88:1 failure. Use <code>#5DA5B0</code> for accent text on dark surfaces.</p></div>
+  <div class="sev high"><span class="tag">High</span><h4>Sidebar hover clipping</h4><p><code>overflow-hidden</code> on the row + <code>group-hover:scale-125</code> on the icon clips the icon and hover ring. Remove the transform/clip conflict.</p></div>
+  <div class="sev high"><span class="tag">High</span><h4>Collapsed tooltip clipping</h4><p>The tooltip sits inside an overflow-clipped parent even though it is positioned at <code>left-full</code>. Port it to body; z-index cannot escape the clipping ancestor.</p></div>
+  <div class="sev high"><span class="tag">High</span><h4>Fluid canvas covers the gradient layer</h4><p>The original build placed the canvas above the intended gradient. Restack the layers or convert the overlay into the controlling scrim. In the final master system, the mesh is now isolated as an optional card, not a global surface.</p></div>
+  <div class="sev high"><span class="tag">High</span><h4>Dual-theme gradient inversion is hard to maintain</h4><p>Switching text from white to black because the background changes from dark to light creates hand-tuned rules that will drift. Prefer a stable dark hero/light body marketing direction and a proper light/dark toggle inside the product.</p></div>
+  <div class="sev high"><span class="tag">High</span><h4>Tailwind CDN on production</h4><p>The audit identified the browser-loaded CDN build as a prototyping approach. Build and ship a real stylesheet.</p></div>
+  <div class="sev medium"><span class="tag">Medium</span><h4>Oversized navigation</h4><p>The earlier public navigation was 96px tall. Bring the standard shell toward ~64px so the first content appears sooner.</p></div>
+  <div class="sev medium"><span class="tag">Medium</span><h4>Footer links are placeholders</h4><p>Links pointing to <code>#</code> must be wired or removed before launch.</p></div>
+  <div class="sev medium"><span class="tag">Systemic</span><h4>31 z-index values</h4><p>Codemod to named layers. Do not add another arbitrary z-index.</p></div>
+  <div class="sev medium"><span class="tag">Systemic</span><h4>~20 corner radii</h4><p>Collapse to the final 12px / 20px / full visual vocabulary.</p></div>
+  <div class="sev medium"><span class="tag">Systemic</span><h4>184 hover-scale usages</h4><p>Delete them except the explicitly approved media-thumbnail pattern.</p></div>
+  <div class="sev medium"><span class="tag">Systemic</span><h4>Multiple chart stacks</h4><p>Standardize on Recharts. Quarantine visx. Avoid direct d3 imports in ordinary chart components.</p></div>
+  <div class="callout warn"><strong>Also keep in the fix list:</strong> focus-ring removal on the hero input, off-system indigo/purple classes, 700+ font weights, and any component that hardcodes colours/radii/z-index instead of tokens.</div>
+</div></section>
+
+<section class="section" id="migration"><div class="wrap">
+  <span class="eyebrow">18 · Ship it</span><h2>Migration order and CI guardrails.</h2>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Action</th><th>Goal</th></tr></thead><tbody>
+    <tr><td>1</td><td><strong>Ship tokens</strong></td><td>One source of truth for colour, type, shape, motion and stacking.</td></tr>
+    <tr><td>2</td><td><strong>Fix SidebarItem.jsx</strong></td><td>Remove the clipping root cause before touching lower-visibility details.</td></tr>
+    <tr><td>3</td><td><strong>Codemod z-index</strong></td><td>31 values → named layers.</td></tr>
+    <tr><td>4</td><td><strong>Codemod radius</strong></td><td>Collapse oversized and inconsistent corners to the new system.</td></tr>
+    <tr><td>5</td><td><strong>Delete hover:scale-*</strong></td><td>Remove the 184-file instability pattern outside approved media frames.</td></tr>
+    <tr><td>6</td><td><strong>Colour module-by-module</strong></td><td>Replace indigo/off-system colours with brand/module/semantic tokens.</td></tr>
+    <tr><td>7</td><td><strong>Standardize typography</strong></td><td>One sans stack across site and app; mono for comparable data.</td></tr>
+    <tr><td>8</td><td><strong>Standardize charts</strong></td><td>Recharts as default with one palette and one tooltip/axis language.</td></tr>
+    <tr><td>9</td><td><strong>Build dashboard constraints</strong></td><td>12/6/4 responsive grid + snapped widget sizes + min/preferred/max.</td></tr>
+    <tr><td>10</td><td><strong>Lock ReactBits map</strong></td><td>Do not introduce new animation dependencies into the product casually.</td></tr>
+  </tbody></table></div>
+  <h3>CI grep checks</h3>
+  <pre># no raw hex in JSX
+ grep -rnE '#[0-9a-fA-F]{3,8}\b' resources/js --include=*.jsx
+
+# no arbitrary z-index
+ grep -rnE 'z-\[[0-9]+\]' resources/js --include=*.jsx
+
+# no oversized / arbitrary radii
+ grep -rnE 'rounded-(3xl|\[[0-9.]+(rem|px)\])' resources/js --include=*.jsx
+
+# no hover scaling
+ grep -rnE '(group-)?hover:scale-' resources/js --include=*.jsx
+
+# no weight 700+
+ grep -rnE 'font-(bold|extrabold|black)' resources/js --include=*.jsx
+
+# no off-system palettes
+ grep -rnE '\b(bg|text|border)-(indigo|violet|purple|slate|zinc|gray|neutral)-[0-9]{2,3}' resources/js --include=*.jsx
+
+# no dual-axis charts unless explicitly reviewed
+ grep -rn 'yAxisId' resources/js --include=*.jsx</pre>
+  <div class="callout"><strong>CI policy:</strong> start these checks as reporting-only while the migration burns down. Once counts reach zero, make them blocking.</div>
+</div></section>
+
+<section class="section" id="final"><div class="wrap">
+  <span class="eyebrow">Final reference</span><h2>What is now locked.</h2>
+  <div class="grid3">
+    <div class="card"><h4>KEEP</h4><p>Deep teal identity · energetic but controlled colour · big readable typography · italic serif signature · mono numbers · v3 avatar stacks · v4/v5 buttons · v5 card depth · active states · controlled spring motion · ReactBits mapping · marketing/product split.</p></div>
+    <div class="card"><h4>CHANGE</h4><p>Radius vocabulary → 12/20/full · desktop grid → 12 columns · tablet → 6 · mobile → 4 · AI signal → coral/rose instead of violet · module colours corrected so they cannot collide with semantic states.</p></div>
+    <div class="card"><h4>REJECT</h4><p>Tiny typography everywhere · huge consumer radii · global mesh backgrounds · violet-by-default AI · random indigo/purple UI · hover scale spam · count-up financial figures · arbitrary z-index/radius values · unconstrained dashboard resizing.</p></div>
+  </div>
+  <div class="callout ai"><strong>Mesh reminder:</strong> the v1 mesh is retained only as the optional visual card in section 10. It is deliberately not used as the default page background, dashboard background, card background, or repeated decorative layer.</div>
+</div></section>
+</main>
+<footer><span>VenQore Master Design System · consolidated final direction</span><span>Source basis: Combined version file + your explicit selections and rejections</span></footer>
+<script>
+const root=document.documentElement,btn=document.getElementById('theme');
+function setTheme(t){root.dataset.theme=t;localStorage.setItem('vq-master-theme',t);btn.textContent=t==='dark'?'☾ Dark':'☀ Light'}
+try{setTheme(localStorage.getItem('vq-master-theme')||'dark')}catch(e){setTheme('dark')}
+btn.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+const links=[...document.querySelectorAll('nav.side a')];
+const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){links.forEach(x=>x.classList.remove('on'));const a=links.find(x=>x.getAttribute('href')==='#'+e.target.id);if(a)a.classList.add('on')}})},{rootMargin:'-12% 0px -78% 0px'});
+sections.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

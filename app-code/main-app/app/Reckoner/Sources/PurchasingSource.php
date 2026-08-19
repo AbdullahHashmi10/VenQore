@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\DB;
  * `paid_amount` is never read from a stored column (CLAUDE.md, "Purchases
  * live in `purchases`. Full stop." — a stored column drifts). The real
  * derivation, confirmed against V3\PaymentService (the only writer of
- * purchase payment state): SUM(payment_allocations.allocated_amount) where
+ * purchase payment state): SUM(allocations.allocated_amount) where
  * purchase_id is set and status = 'active'. Voided/reversed allocations are
  * status = 'reversed' and excluded automatically by that filter — there is
  * no separate "non-reversed journal entry" join needed once you go through
- * payment_allocations rather than the ledger directly, because
+ * allocations rather than the ledger directly, because
  * PaymentService::voidAllocations() is the only place a purchase payment is
  * ever unwound, and it always flips status to 'reversed'.
  *
@@ -63,13 +63,13 @@ final class PurchasingSource implements ReckonerSource
                     ->whereBetween('purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
                     ->count(),
 
-                'finance.paid_to_suppliers' => (float) DB::table('payment_allocations')
-                    ->join('purchases', 'payment_allocations.purchase_id', '=', 'purchases.id')
-                    ->where('payment_allocations.tenant_id', $tenantId)
-                    ->where('payment_allocations.status', 'active')
-                    ->whereNotNull('payment_allocations.purchase_id')
+                'finance.paid_to_suppliers' => (float) DB::table('allocations')
+                    ->join('purchases', 'allocations.purchase_id', '=', 'purchases.id')
+                    ->where('allocations.tenant_id', $tenantId)
+                    ->where('allocations.status', 'active')
+                    ->whereNotNull('allocations.purchase_id')
                     ->whereBetween('purchases.purchase_date', [$period->start->toDateString(), $period->end->toDateString()])
-                    ->sum('payment_allocations.allocated_amount'),
+                    ->sum('allocations.allocated_amount'),
 
                 default => null,
             };

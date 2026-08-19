@@ -1,0 +1,48 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Navigation — rail, tabs, theme" subtitle="Active wash + mint rule, sliding tab thumb" -->
+<!doctype html><html><head><meta charset="utf-8">
+<title>Navigation components</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:20px;background:var(--vq-bg);font-family:var(--vq-font-sans)}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.stack{display:flex;flex-direction:column;gap:14px}</style></head>
+<body><div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { SidebarItem, Tabs, ThemeToggle, Card } = window.VenQoreDesignSystem_76c34c;
+const G = (d) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+const icons = {
+  dash: G(<><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>),
+  sales: G(<><path d="M3 5h2l2.4 11h11L21 8H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></>),
+  stock: G(<><path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z"/><path d="m4 7 8 4 8-4M12 21V11"/></>),
+  people: G(<><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 11a3 3 0 1 0 0-6"/><path d="M18 20c0-2.4-1-4.5-2.6-5.7"/></>),
+};
+function Demo(){
+  const [tab,setTab]=React.useState("Month");
+  const [nav,setNav]=React.useState("Dashboard");
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"250px 1fr 90px",gap:16,alignItems:"start"}}>
+      <Card pad={10}>
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          <SidebarItem icon={icons.dash} label="Dashboard" active={nav==="Dashboard"} onClick={()=>setNav("Dashboard")}/>
+          <SidebarItem icon={icons.sales} label="Sales & POS" badge={12} active={nav==="Sales & POS"} onClick={()=>setNav("Sales & POS")}/>
+          <SidebarItem icon={icons.stock} label="Inventory" active={nav==="Inventory"} onClick={()=>setNav("Inventory")}/>
+          <SidebarItem icon={icons.people} label="Customers" active={nav==="Customers"} onClick={()=>setNav("Customers")}/>
+        </div>
+      </Card>
+      <div className="stack">
+        <Tabs tabs={["Today","Month","Year"]} value={tab} onChange={setTab}/>
+        <Tabs size="sm" tabs={["Overview","Ledger","Reports","Settings"]} value="Ledger" onChange={()=>{}}/>
+      </div>
+      <Card pad={10}>
+        <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
+          <SidebarItem icon={icons.dash} label="Dashboard" collapsed active/>
+          <SidebarItem icon={icons.sales} label="Sales" collapsed/>
+          <ThemeToggle/>
+        </div>
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+</script></body></html>

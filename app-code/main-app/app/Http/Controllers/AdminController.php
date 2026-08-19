@@ -246,7 +246,7 @@ class AdminController extends Controller
                 'today_net' => $todayMovement['today_net'] ?? $todayMovement['net'],
                 'net_balance' => (function() {
                     try {
-                        $accSvc = app(\App\Services\V3\AccountingService::class);
+                        $accSvc = app(\App\Engines\AccountingService::class);
                         return $accSvc->getBalance('1000') + $accSvc->getBalance('1010');
                     } catch (\Exception $e) {
                         return 0.00;

@@ -6,7 +6,6 @@ use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Mail\PaymentReminderMail;
 use App\Helpers\SettingsHelper;
-use App\Services\LedgerService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

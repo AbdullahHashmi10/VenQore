@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\AccountingService;
-use App\Services\V3\FifoService;
+use App\Engines\AccountingService;
+use App\Engines\FifoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -37,6 +37,13 @@ class DisasterClaimController extends Controller
 
             // Deduct inventory FIFO and accumulate cost
             foreach ($validated['items'] as $item) {
+                $product = DB::table('products')->where('id', $item['product_id'])->first();
+                if ($product && $product->type === 'service') {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => ['Service products cannot have physical inventory disaster loss.']
+                    ]);
+                }
+
                 $deductions = $this->fifo->deductStock(
                     productId:   $item['product_id'],
                     warehouseId: $item['warehouse_id'],

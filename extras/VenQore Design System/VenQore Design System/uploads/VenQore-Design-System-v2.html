@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore Design System v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   VenQore Design System v2.0 — tokens.css
+   The single source of truth. Every colour, size, radius, shadow, duration and
+   stacking level in VenQore resolves to a name in this file.
+
+   Rule zero: no component may contain a raw hex, a raw px radius, or a raw
+   z-index. If you need a value that isn't here, the system is missing a token —
+   add it here first.
+
+   Load order:  tokens.css  →  tailwind base  →  components
+   ============================================================================ */
+
+:root {
+  /* ── 1. BRAND RAMP — slate teal, hue 208°, chroma 0.071 ──────────────────
+     Low chroma on purpose. This is a product whose argument is "trust my
+     arithmetic"; a low-chroma brand reads considered rather than loud. */
+  --vq-teal-50: #ECF9FB;
+  --vq-teal-100: #D7F1F5;
+  --vq-teal-200: #B4E1E8;
+  --vq-teal-300: #8BC8D2;
+  --vq-teal-400: #5DA5B0;
+  --vq-teal-500: #327882;
+  --vq-teal-600: #21656F;
+  --vq-teal-700: #124E56;
+  --vq-teal-800: #0C393F;
+  --vq-teal-900: #08272B;
+  --vq-teal-950: #021416;
+
+  /* ── 2. INK RAMP — cool neutral, hue 250°, chroma 0.012 ──────────────────
+     A faint blue cast so neutrals sit *with* the teal rather than beside it.
+     Never use a pure grey (#808080) anywhere; it goes dirty against this ramp. */
+  --vq-ink-0: #FFFFFF;
+  --vq-ink-25: #F9FAFC;
+  --vq-ink-50: #F4F6F8;
+  --vq-ink-100: #EBEDEF;
+  --vq-ink-200: #D9DDE0;
+  --vq-ink-300: #BFC3C8;
+  --vq-ink-400: #9A9FA5;
+  --vq-ink-550: #6C7278;
+  --vq-ink-600: #595E64;
+  --vq-ink-700: #3F444A;
+  --vq-ink-800: #282D32;
+  --vq-ink-900: #151A1F;
+  --vq-ink-950: #0A0B0F;
+  --vq-ink-1000: #030509;
+
+  /* ── 3. MODULE ACCENTS ───────────────────────────────────────────────────
+     Wayfinding only. A module accent tells you *where you are*, never *how
+     something is doing*. Chroma is capped at 0.095 — below every semantic
+     colour — so an alert always out-shouts the furniture.
+
+     HARD RULE: a module accent never appears inside a data region.
+     Not in a table cell, not in a chart, not in a status chip, not on a KPI
+     figure. It lives in chrome: sidebar, page header rule, module badge,
+     breadcrumb, empty-state art, and nothing else. */
+
+  /* Accounting & Finance — brand teal. Ledger, banking, reconciliation, payments, tax */
+  --vq-mod-accounting-50: #ECF9FB;
+  --vq-mod-accounting-100: #D7F1F5;
+  --vq-mod-accounting-200: #B4E1E8;
+  --vq-mod-accounting-300: #8BC8D2;
+  --vq-mod-accounting-400: #5DA5B0;
+  --vq-mod-accounting-500: #327882;
+  --vq-mod-accounting-600: #21656F;
+  --vq-mod-accounting-700: #124E56;
+  --vq-mod-accounting-800: #0C393F;
+  --vq-mod-accounting-900: #08272B;
+  --vq-mod-accounting-950: #021416;
+
+  /* Reports & Analytics — hue 240°. Reports, dashboards, exports, scheduled sends */
+  --vq-mod-reports-50: #EEF8FF;
+  --vq-mod-reports-100: #D9EFFF;
+  --vq-mod-reports-200: #B4DEFC;
+  --vq-mod-reports-300: #8BC4EC;
+  --vq-mod-reports-400: #5EA0CD;
+  --vq-mod-reports-500: #34739C;
+  --vq-mod-reports-600: #236086;
+  --vq-mod-reports-700: #154A6A;
+  --vq-mod-reports-800: #0E364E;
+  --vq-mod-reports-900: #092536;
+  --vq-mod-reports-950: #03121E;
+
+  /* Sales & POS — hue 268°. POS, invoices, sales orders, returns, quotes */
+  --vq-mod-sales-50: #F2F6FF;
+  --vq-mod-sales-100: #E3EBFF;
+  --vq-mod-sales-200: #C7D7FF;
+  --vq-mod-sales-300: #A5BBF2;
+  --vq-mod-sales-400: #7F96D3;
+  --vq-mod-sales-500: #566AA2;
+  --vq-mod-sales-600: #45588C;
+  --vq-mod-sales-700: #33436F;
+  --vq-mod-sales-800: #253152;
+  --vq-mod-sales-900: #182139;
+  --vq-mod-sales-950: #0A1020;
+
+  /* Inventory & Stock — hue 296°. Products, stock ops, batches, serials, transfers */
+  --vq-mod-inventory-50: #F7F4FF;
+  --vq-mod-inventory-100: #EDE7FF;
+  --vq-mod-inventory-200: #DAD0FC;
+  --vq-mod-inventory-300: #C0B2EC;
+  --vq-mod-inventory-400: #9D8CCC;
+  --vq-mod-inventory-500: #71619C;
+  --vq-mod-inventory-600: #5F5086;
+  --vq-mod-inventory-700: #493C6A;
+  --vq-mod-inventory-800: #352B4E;
+  --vq-mod-inventory-900: #241D36;
+  --vq-mod-inventory-950: #120D1E;
+
+  /* Purchasing & Supply — hue 324°. Purchase orders, suppliers, debit notes, expenses */
+  --vq-mod-purchasing-50: #FDF2FD;
+  --vq-mod-purchasing-100: #F8E4F9;
+  --vq-mod-purchasing-200: #ECCAEF;
+  --vq-mod-purchasing-300: #D7ABDA;
+  --vq-mod-purchasing-400: #B584B9;
+  --vq-mod-purchasing-500: #875A8B;
+  --vq-mod-purchasing-600: #734976;
+  --vq-mod-purchasing-700: #59365C;
+  --vq-mod-purchasing-800: #422744;
+  --vq-mod-purchasing-900: #2D1A2F;
+  --vq-mod-purchasing-950: #180B19;
+
+  /* Parties & CRM — hue 350°. Customers, contacts, reminders, loyalty */
+  --vq-mod-parties-50: #FFF2F8;
+  --vq-mod-parties-100: #FFE2EE;
+  --vq-mod-parties-200: #F8C8DD;
+  --vq-mod-parties-300: #E5A7C4;
+  --vq-mod-parties-400: #C57FA0;
+  --vq-mod-parties-500: #945674;
+  --vq-mod-parties-600: #7F4561;
+  --vq-mod-parties-700: #63334B;
+  --vq-mod-parties-800: #492437;
+  --vq-mod-parties-900: #331825;
+  --vq-mod-parties-950: #1C0A13;
+
+  /* Staff & HR — hue 22°. Users, roles, attendance, shifts, payroll */
+  --vq-mod-staff-50: #FFF3F2;
+  --vq-mod-staff-100: #FFE4E2;
+  --vq-mod-staff-200: #FEC8C5;
+  --vq-mod-staff-300: #EDA8A4;
+  --vq-mod-staff-400: #CC807D;
+  --vq-mod-staff-500: #9B5654;
+  --vq-mod-staff-600: #854544;
+  --vq-mod-staff-700: #693332;
+  --vq-mod-staff-800: #4D2424;
+  --vq-mod-staff-900: #351818;
+  --vq-mod-staff-950: #1D0A0A;
+
+  /* Manufacturing — hue 55°. BOM, work orders, assemblies, wastage */
+  --vq-mod-production-50: #FFF4EC;
+  --vq-mod-production-100: #FFE6D5;
+  --vq-mod-production-200: #F8CEB2;
+  --vq-mod-production-300: #E6AF89;
+  --vq-mod-production-400: #C6885E;
+  --vq-mod-production-500: #955D35;
+  --vq-mod-production-600: #804C26;
+  --vq-mod-production-700: #643918;
+  --vq-mod-production-800: #4A2910;
+  --vq-mod-production-900: #331B0A;
+  --vq-mod-production-950: #1C0C03;
+
+  /* Marketing & Growth — hue 88°. Campaigns, growth engine, proposals, pre-sales */
+  --vq-mod-growth-50: #FBF6E9;
+  --vq-mod-growth-100: #F5EAD1;
+  --vq-mod-growth-200: #E8D6AA;
+  --vq-mod-growth-300: #D2BA7E;
+  --vq-mod-growth-400: #B0954F;
+  --vq-mod-growth-500: #836925;
+  --vq-mod-growth-600: #6F5713;
+  --vq-mod-growth-700: #564205;
+  --vq-mod-growth-800: #3F3004;
+  --vq-mod-growth-900: #2B2004;
+  --vq-mod-growth-950: #171001;
+
+  /* VenSynQ & Channels — hue 175°. WooCommerce, Amazon, eBay, TikTok, storefront */
+  --vq-mod-channels-50: #EAFAF5;
+  --vq-mod-channels-100: #D4F4EA;
+  --vq-mod-channels-200: #AEE5D5;
+  --vq-mod-channels-300: #81CEB9;
+  --vq-mod-channels-400: #4FAB95;
+  --vq-mod-channels-500: #1E7E6A;
+  --vq-mod-channels-600: #036A58;
+  --vq-mod-channels-700: #005243;
+  --vq-mod-channels-800: #003C31;
+  --vq-mod-channels-900: #012921;
+  --vq-mod-channels-950: #001510;
+
+  /* Platform & Admin — neutral ink. Settings, billing, licences, super admin, HQ */
+  --vq-mod-platform-50: #F4F6F8;
+  --vq-mod-platform-100: #EBEDEF;
+  --vq-mod-platform-200: #D9DDE0;
+  --vq-mod-platform-300: #BFC3C8;
+  --vq-mod-platform-400: #9A9FA5;
+  --vq-mod-platform-500: #6C7278;
+  --vq-mod-platform-600: #595E64;
+  --vq-mod-platform-700: #3F444A;
+  --vq-mod-platform-800: #282D32;
+  --vq-mod-platform-900: #151A1F;
+  --vq-mod-platform-950: #0A0B0F;
+
+  /* ── 4. SEMANTIC — state, not decoration ────────────────────────────────
+     In a financial product semantic colour is DATA. The moment a user learns
+     green means "reconciled", a green button becomes a lie. Keep brand and
+     semantic completely separate, and never encode meaning in colour alone:
+     a negative figure also gets a minus sign and parentheses; a passing check
+     also gets a ✓; every status chip carries an icon and a word. */
+  --vq-success:        #1A7F51;   /* posted · reconciled · in stock · passing  5.0:1 */
+  --vq-success-bg:     #E9F7F0;
+  --vq-success-line:   #A8DCC4;
+  --vq-warning:        #A85B05;   /* low stock · nearing expiry · needs approval 5.0:1 */
+  --vq-warning-bg:     #FDF3E4;
+  --vq-warning-line:   #EBC48A;
+  --vq-danger:         #BD3838;   /* out of balance · failed · overdue · destructive 5.6:1 */
+  --vq-danger-bg:      #FCEDED;
+  --vq-danger-line:    #EFB3B3;
+  /* Info is deliberately NOT blue. A neutral system notice should look
+     neutral — and it frees hue 240° for the Reports module. */
+  --vq-info:           #595E64;
+  --vq-info-bg:        #F4F6F8;
+  --vq-info-line:      #D9DDE0;
+
+  /* ── 5. CHART PALETTE — validated, do not hand-edit ─────────────────────
+     Categorical slots are assigned in fixed order and NEVER cycled. A 9th
+     series folds into "Other", becomes small multiples, or the chart is wrong.
+     Verified with the Machado-Oliveira-Fernandes 2009 CVD model at severity 1.0:
+       worst adjacent pair  ΔE 15.1 (light) / 15.0 (dark)   — target ≥ 8
+       worst normal-vision  ΔE 19.7 (light) / 19.2 (dark)   — floor  ≥ 15
+       every slot ≥ 3:1 against its surface, L in band, C ≥ 0.10 */
+  --vq-series-1: #0091A0;   /* teal */
+  --vq-series-2: #AE7200;   /* bronze */
+  --vq-series-3: #BB5798;   /* magenta */
+  --vq-series-4: #798A00;   /* olive */
+  --vq-series-5: #3382D6;   /* blue */
+  --vq-series-6: #CA564B;   /* rust */
+  --vq-series-7: #8C69CD;   /* violet */
+  --vq-series-8: #009869;   /* jade */
+
+  /* Scatter, bubble, choropleth and small multiples put ANY two marks side by
+     side, so they take the harder all-pairs test — which caps them at three
+     series. More than three: fold to "Other", or facet. */
+  --vq-scatter-1: #AE7200;
+  --vq-scatter-2: #BB5798;
+  --vq-scatter-3: #3382D6;
+
+  /* Sequential — magnitude. One hue, light→dark. */
+  --vq-seq-1: #5DA5B0;
+  --vq-seq-2: #327882;
+  --vq-seq-3: #21656F;
+  --vq-seq-4: #124E56;
+  --vq-seq-5: #0C393F;
+
+  /* Diverging — polarity around a baseline (budget variance, over/under).
+     Two hues plus a NEUTRAL GREY midpoint. Never a hue at the midpoint. */
+  --vq-div-neg-3: #9C2F2E;
+  --vq-div-neg-2: #B36660;
+  --vq-div-neg-1: #C59893;
+  --vq-div-mid:   #E6E8EA;
+  --vq-div-pos-1: #7BAFB2;
+  --vq-div-pos-2: #079096;
+  --vq-div-pos-3: #00686C;
+
+  /* ── 6. SEMANTIC SURFACES & TEXT — light theme ─────────────────────────── */
+  --vq-bg:            var(--vq-ink-0);      /* page */
+  --vq-sunken:        var(--vq-ink-50);     /* alternating bands, code, stripes */
+  --vq-surface:       var(--vq-ink-25);     /* cards, panels */
+  --vq-raised:        var(--vq-ink-0);      /* menus, popovers, modals */
+  --vq-overlay:       var(--vq-ink-0);
+  --vq-scrim:         rgb(10 11 15 / .48);
+
+  --vq-text:          var(--vq-ink-900);    /* 17.5:1 */
+  --vq-text-2:        var(--vq-ink-600);    /*  6.5:1 */
+  --vq-text-3:        var(--vq-ink-550);    /*  4.9:1 — the lightest legal text */
+  --vq-text-inverted: var(--vq-ink-0);
+
+  --vq-accent:        var(--vq-teal-500);   /* fills, active states */
+  --vq-accent-hover:  var(--vq-teal-600);
+  --vq-accent-text:   var(--vq-teal-600);   /* links, inline accent — 6.7:1 */
+  --vq-accent-quiet:  var(--vq-teal-50);    /* tint backgrounds — takes INK text */
+  --vq-on-accent:     var(--vq-ink-0);
+
+  --vq-line:          var(--vq-ink-200);    /* borders, dividers */
+  --vq-line-soft:     var(--vq-ink-100);    /* table rows, subtle rules */
+  --vq-line-strong:   var(--vq-ink-300);
+  --vq-focus:         var(--vq-teal-500);
+  --vq-focus-ring:    rgb(50 120 130 / .28);
+
+  /* Chart chrome — recessive by design. */
+  --vq-chart-surface: var(--vq-ink-0);
+  --vq-chart-grid:    var(--vq-ink-100);
+  --vq-chart-axis:    var(--vq-ink-300);
+  --vq-chart-label:   var(--vq-ink-550);
+
+  /* ── 7. TYPE ────────────────────────────────────────────────────────────
+     ONE sans across marketing and product. The current split — Inter on the
+     site, Figtree in the app — is why they read as two companies. */
+  --vq-font-sans:  'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --vq-font-serif: 'Instrument Serif', Georgia, serif;   /* italic, one word/page */
+  --vq-font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --vq-font-numeric: var(--vq-font-mono);
+
+  --vq-fs-display: 60px;  --vq-lh-display: 1.04;  --vq-ls-display: -0.033em;
+  --vq-fs-h1:      40px;  --vq-lh-h1:      1.10;  --vq-ls-h1:      -0.028em;
+  --vq-fs-h2:      32px;  --vq-lh-h2:      1.15;  --vq-ls-h2:      -0.025em;
+  --vq-fs-h3:      20px;  --vq-lh-h3:      1.30;  --vq-ls-h3:      -0.015em;
+  --vq-fs-lede:    19px;  --vq-lh-lede:    1.55;  --vq-ls-lede:    -0.006em;
+  --vq-fs-body:    16px;  --vq-lh-body:    1.60;  --vq-ls-body:     0em;
+  --vq-fs-small:   14px;  --vq-lh-small:   1.55;  --vq-ls-small:    0em;
+  --vq-fs-caption: 13px;  --vq-lh-caption: 1.50;  --vq-ls-caption:  0em;
+  --vq-fs-eyebrow: 11px;  --vq-lh-eyebrow: 1.20;  --vq-ls-eyebrow:  0.14em;
+
+  --vq-fw-regular: 400;
+  --vq-fw-medium:  500;
+  --vq-fw-semi:    600;   /* the ceiling. 700 is not in this system. */
+
+  /* ── 8. SPACE — 4px base ────────────────────────────────────────────── */
+  --vq-space-0:  0px;    --vq-space-1:  4px;    --vq-space-2:  8px;
+  --vq-space-3: 12px;    --vq-space-4: 16px;    --vq-space-5: 20px;
+  --vq-space-6: 24px;    --vq-space-8: 32px;    --vq-space-10: 40px;
+  --vq-space-12: 48px;   --vq-space-16: 64px;   --vq-space-20: 80px;
+  --vq-space-24: 96px;   --vq-space-32: 128px;
+
+  /* ── 9. RADIUS — 10px base, 24px ceiling ────────────────────────────────
+     A financial product should not look like a toy. Nothing above 24px except
+     --vq-r-full. Nesting: inner radius = outer radius − inner padding. */
+  --vq-r-none: 0px;
+  --vq-r-xs:   4px;    /* checkbox, cell-level chip */
+  --vq-r-sm:   6px;    /* badge, tag, tooltip */
+  --vq-r-md:  10px;    /* BASE — button, input, select, menu item */
+  --vq-r-lg:  14px;    /* card, panel, dropdown surface */
+  --vq-r-xl:  20px;    /* modal, drawer, sheet */
+  --vq-r-2xl: 24px;    /* CEILING — marketing feature block, hero card */
+  --vq-r-full: 999px;  /* pill button, avatar, toggle, tab pill */
+
+  /* ── 10. ELEVATION — four levels, no more ───────────────────────────────
+     Light mode uses shadow. Dark mode uses SURFACE LIGHTNESS, not shadow —
+     a black shadow on a near-black background is invisible, and reaching for
+     one anyway is the single most common dark-mode mistake.
+     Shadows are always neutral. A teal-tinted shadow looks like a bug. */
+  --vq-elev-0: none;
+  --vq-elev-1: 0 1px 2px rgb(10 11 15 / .05);
+  --vq-elev-2: 0 4px 16px rgb(10 11 15 / .07);
+  --vq-elev-3: 0 16px 48px rgb(10 11 15 / .13);
+  --vq-elev-border-0: inset 0 0 0 1px var(--vq-line);
+
+  /* ── 11. MOTION — mechanical precision, never playfulness ───────────────
+     Things assemble, settle and lock. Nothing bounces, nothing wobbles,
+     nothing overshoots. An accounting product that springs is telling you
+     something untrue about itself. */
+  --vq-dur-instant: 100ms;   /* hover colour, focus ring */
+  --vq-dur-fast:    180ms;   /* buttons, chips, small state changes */
+  --vq-dur-base:    280ms;   /* dropdowns, tabs, accordions */
+  --vq-dur-slow:    480ms;   /* scroll reveals, drawers, modals */
+  --vq-dur-ambient: 8000ms;  /* gradient drift, fluid field — marketing only */
+  --vq-ease:        cubic-bezier(.16, 1, .3, 1);
+  --vq-ease-out:    cubic-bezier(0, 0, .2, 1);
+  --vq-ease-in:     cubic-bezier(.4, 0, 1, 1);
+
+  /* ── 12. Z-INDEX — the whole ladder, in one place ───────────────────────
+     The current app carries 31 distinct hand-written z-index values from
+     z-[5] to z-[99999]. That is not a stacking order, it is an arms race.
+     These twelve names are the only legal values. Gaps of 100 leave room to
+     slot something between two rungs without starting another war.
+
+     The ladder is ordered by how much of the screen a thing owns, and by
+     what has to be dismissable on top of what. */
+  --vq-z-base:        0;     /* page content */
+  --vq-z-raised:     10;     /* hover-lifted card, sticky first column */
+  --vq-z-sticky:    100;     /* sticky table header, sticky section bar */
+  --vq-z-nav:       200;     /* app top bar */
+  --vq-z-rail:      300;     /* left sidebar / nav rail */
+  --vq-z-dropdown:  400;     /* select, combobox, autocomplete, context menu */
+  --vq-z-drawer:    500;     /* right panel, filter drawer, cart — scrim at 499 */
+  --vq-z-modal:     600;     /* dialog, confirm — scrim at 599 */
+  --vq-z-popover:   700;     /* popover anchored inside a modal */
+  --vq-z-tooltip:   800;     /* always above the thing it describes */
+  --vq-z-toast:     900;     /* notifications — must clear an open modal */
+  --vq-z-command:  1000;     /* command palette / global search */
+  --vq-z-scrim-offset: -1;   /* every scrim = its owner's level minus one */
+  --vq-z-debug:    9999;     /* dev overlays only. Never ships. */
+
+  /* ── 13. DENSITY — control heights ──────────────────────────────────── */
+  --vq-control-sm: 32px;
+  --vq-control-md: 40px;
+  --vq-control-lg: 44px;   /* the touch-target floor. Not negotiable. */
+  --vq-control-xl: 48px;   /* mobile primary, hero input */
+  --vq-row-h:      48px;   /* data table row */
+  --vq-row-head-h: 40px;
+  --vq-rail-w:     264px;  /* sidebar expanded */
+  --vq-rail-w-min:  72px;  /* sidebar collapsed */
+  --vq-topbar-h:    64px;
+  --vq-page-max:  1280px;
+  --vq-measure:     72ch;  /* prose line length ceiling */
+}
+
+/* ============================================================================
+   DARK THEME
+   Selected, not flipped. Dark is not "light with the values inverted" — the
+   accent that writes on white is not the accent that writes on near-black.
+   ============================================================================ */
+:root[data-theme='dark'], .dark {
+  --vq-bg:            var(--vq-ink-950);   /* not pure black */
+  --vq-sunken:        var(--vq-ink-1000);
+  --vq-surface:       #12141A;
+  --vq-raised:        #1A1D25;
+  --vq-overlay:       #1A1D25;
+  --vq-scrim:         rgb(3 5 9 / .64);
+
+  --vq-text:          var(--vq-ink-50);    /* not pure white — 18.2:1 */
+  --vq-text-2:        var(--vq-ink-300);   /* 11.1:1 */
+  --vq-text-3:        var(--vq-ink-400);   /*  7.4:1 */
+  --vq-text-inverted: var(--vq-ink-950);
+
+  --vq-accent:        var(--vq-teal-500);  /* fills only, white text on top */
+  --vq-accent-hover:  var(--vq-teal-400);
+  --vq-accent-text:   var(--vq-teal-400);  /* 7.0:1 — NOT teal-500, which is 3.88:1 */
+  --vq-accent-quiet:  rgb(50 120 130 / .16);
+  --vq-on-accent:     var(--vq-ink-0);
+
+  --vq-line:          rgb(255 255 255 / .10);
+  --vq-line-soft:     rgb(255 255 255 / .06);
+  --vq-line-strong:   rgb(255 255 255 / .18);
+  --vq-focus:         var(--vq-teal-400);
+  --vq-focus-ring:    rgb(93 165 176 / .32);
+
+  --vq-success:       #54CC8E;  --vq-success-bg: rgb(84 204 142 / .12);  --vq-success-line: rgb(84 204 142 / .30);
+  --vq-warning:       #EFB146;  --vq-warning-bg: rgb(239 177 70 / .12);  --vq-warning-line: rgb(239 177 70 / .30);
+  --vq-danger:        #F17070;  --vq-danger-bg:  rgb(241 112 112 / .12); --vq-danger-line:  rgb(241 112 112 / .30);
+  --vq-info:          var(--vq-ink-300); --vq-info-bg: rgb(255 255 255 / .06); --vq-info-line: rgb(255 255 255 / .12);
+
+  --vq-chart-surface: #12141A;
+  --vq-chart-grid:    rgb(255 255 255 / .07);
+  --vq-chart-axis:    rgb(255 255 255 / .18);
+  --vq-chart-label:   var(--vq-ink-400);
+
+  /* Dark chart series — the same eight hues re-stepped for a dark surface. */
+  --vq-series-1: #0097A8;   /* teal */
+  --vq-series-2: #B57700;   /* bronze */
+  --vq-series-3: #BE609C;   /* magenta */
+  --vq-series-4: #7F9110;   /* olive */
+  --vq-series-5: #4188D8;   /* blue */
+  --vq-series-6: #CD6055;   /* rust */
+  --vq-series-7: #9171CF;   /* violet */
+  --vq-series-8: #009F6E;   /* jade */
+  --vq-scatter-1: #B57700;
+  --vq-scatter-2: #BE609C;
+  --vq-scatter-3: #4188D8;
+
+  --vq-seq-1: #124E56; --vq-seq-2: #21656F; --vq-seq-3: #327882;
+  --vq-seq-4: #5DA5B0; --vq-seq-5: #8BC8D2;
+
+  --vq-div-neg-3: #CC5B55; --vq-div-neg-2: #954C47; --vq-div-neg-1: #623C39;
+  --vq-div-mid:   #2A2F35;
+  --vq-div-pos-1: #1C5153; --vq-div-pos-2: #007378; --vq-div-pos-3: #00959C;
+
+  /* Elevation in dark = surface lightness. Shadows stay only for true overlays. */
+  --vq-elev-1: none;
+  --vq-elev-2: none;
+  --vq-elev-3: 0 16px 48px rgb(0 0 0 / .48);
+}
+
+/* Module accent — the one step each module writes with. Light theme. */
+:root {
+  --vq-mod-accounting-accent: #327882;
+  --vq-mod-reports-accent: #34739C;
+  --vq-mod-sales-accent: #566AA2;
+  --vq-mod-inventory-accent: #71619C;
+  --vq-mod-purchasing-accent: #875A8B;
+  --vq-mod-parties-accent: #945674;
+  --vq-mod-staff-accent: #9B5654;
+  --vq-mod-production-accent: #955D35;
+  --vq-mod-growth-accent: #836925;
+  --vq-mod-channels-accent: #1E7E6A;
+  --vq-mod-platform-accent: #6C7278;
+}
+
+/* Dark module accents: shift one step lighter so they clear the dark surface. */
+:root[data-theme='dark'], .dark {
+  --vq-mod-accounting-accent: #5DA5B0;
+  --vq-mod-reports-accent: #5EA0CD;
+  --vq-mod-sales-accent: #7F96D3;
+  --vq-mod-inventory-accent: #9D8CCC;
+  --vq-mod-purchasing-accent: #B584B9;
+  --vq-mod-parties-accent: #C57FA0;
+  --vq-mod-staff-accent: #CC807D;
+  --vq-mod-production-accent: #C6885E;
+  --vq-mod-growth-accent: #B0954F;
+  --vq-mod-channels-accent: #4FAB95;
+  --vq-mod-platform-accent: #9A9FA5;
+}
+
+/* ============================================================================
+   BASE — the handful of global declarations the system depends on
+   ============================================================================ */
+html {
+  /* cv11 disambiguates 1 / l / I; ss01 tidies the alternates; tnum is the one
+     that matters — tabular figures make columns of money line up. In a
+     financial product, proportional figures in a table are a typo you can see
+     from across the room, and almost nobody remembers to switch them on. */
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--vq-bg);
+  color: var(--vq-text);
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-body);
+  line-height: var(--vq-lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every number that means money, quantity or a count. */
+.vq-num, td.vq-num, .vq-kpi-value {
+  font-family: var(--vq-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  text-align: right;
+}
+
+/* One focus style, everywhere, and it is always visible.
+   Hiding it is the keyboard equivalent of hiding the cursor. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--vq-focus);
+  outline-offset: 2px;
+  border-radius: var(--vq-r-sm);
+}
+
+p, .vq-measure { max-width: var(--vq-measure); }
+
+/* ── The reduced-motion contract ──────────────────────────────────────────
+   Not a nicety. Motion at the scale of the marketing hero triggers vestibular
+   symptoms in some people. One media query covers the whole system. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+
+/* ── document chrome ─────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--vq-bg);color:var(--vq-text);font-family:var(--vq-font-sans);
+     font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{display:grid;grid-template-columns:236px minmax(0,1fr);max-width:1360px;margin:0 auto;gap:0}
+/* nav */
+nav.side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 18px 40px;
+   border-right:1px solid var(--vq-line);background:var(--vq-bg)}
+.brandmark{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.brandmark .m{width:26px;height:26px;border-radius:7px;background:var(--vq-accent);
+   display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px;flex:0 0 auto}
+.brandmark b{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.vtag{font-family:var(--vq-font-mono);font-size:10px;color:var(--vq-text-3);
+   letter-spacing:.12em;text-transform:uppercase;margin:0 0 22px 35px;display:block}
+nav.side a{display:block;padding:6px 10px;border-radius:var(--vq-r-sm);color:var(--vq-text-2);
+   text-decoration:none;font-size:13.5px;transition:background var(--vq-dur-instant),color var(--vq-dur-instant)}
+nav.side a:hover{background:var(--vq-sunken);color:var(--vq-text)}
+nav.side a.on{background:var(--vq-accent-quiet);color:var(--vq-accent-text);font-weight:500}
+nav.side .grp{font-family:var(--vq-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+   color:var(--vq-text-3);margin:20px 0 7px 10px}
+nav.side .num{font-family:var(--vq-font-mono);font-size:10.5px;color:var(--vq-text-3);
+   margin-right:8px;display:inline-block;width:16px}
+/* main */
+main{padding:0 44px 120px;min-width:0}
+section{padding:70px 0 10px;scroll-margin-top:0}
+section+section{border-top:1px solid var(--vq-line)}
+.eyebrow{font-family:var(--vq-font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+   color:var(--vq-accent-text);font-weight:500;margin-bottom:14px;display:block}
+h1{font-size:52px;line-height:1.05;letter-spacing:-.033em;font-weight:600;margin-bottom:20px}
+h2{font-size:32px;line-height:1.15;letter-spacing:-.025em;font-weight:600;margin-bottom:14px}
+h3{font-size:19px;line-height:1.3;letter-spacing:-.015em;font-weight:600;margin:34px 0 12px}
+h4{font-size:15px;font-weight:600;margin:24px 0 8px}
+p{color:var(--vq-text-2);max-width:70ch;margin-bottom:14px}
+p.lede{font-size:19px;line-height:1.55;letter-spacing:-.006em;color:var(--vq-text-2);margin-bottom:26px}
+em.serif{font-family:var(--vq-font-serif);font-style:italic;font-weight:400;color:var(--vq-text)}
+strong{color:var(--vq-text);font-weight:600}
+code{font-family:var(--vq-font-mono);font-size:12px}
+a{color:var(--vq-accent-text)}
+ul{margin:0 0 16px 20px;color:var(--vq-text-2);max-width:70ch}
+li{margin-bottom:6px}
+.muted{color:var(--vq-text-3)}
+.mono{font-family:var(--vq-font-mono);font-size:12px}
+.num{font-family:var(--vq-font-mono);font-variant-numeric:tabular-nums;text-align:right}
+/* hero */
+.hero{padding:80px 0 60px}
+.stats{display:flex;gap:34px;flex-wrap:wrap;margin-top:34px;padding-top:26px;border-top:1px solid var(--vq-line)}
+.stat b{display:block;font-family:var(--vq-font-mono);font-size:30px;font-weight:500;
+   letter-spacing:-.02em;color:var(--vq-text);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--vq-text-3)}
+/* cards + grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:var(--vq-r-lg);padding:22px}
+.card h4{margin-top:0}
+.callout{border-left:3px solid var(--vq-accent);background:var(--vq-accent-quiet);
+   padding:16px 20px;border-radius:0 var(--vq-r-md) var(--vq-r-md) 0;margin:22px 0}
+.callout p{margin:0;color:var(--vq-text-2)}
+.callout.bad{border-left-color:var(--vq-danger);background:var(--vq-danger-bg)}
+.callout.good{border-left-color:var(--vq-success);background:var(--vq-success-bg)}
+/* swatches */
+.sws{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.sw{flex:1 1 130px;min-width:118px}
+.sw-c{border-radius:var(--vq-r-md);display:flex;align-items:flex-end;padding:9px 11px;
+   font-size:12px;font-weight:500;border:1px solid var(--vq-line)}
+.sw code{display:block;margin-top:6px;color:var(--vq-text-2)}
+.sw em{display:block;font-style:normal;font-size:11px;color:var(--vq-text-3);margin-top:2px}
+.ramp{margin:16px 0 26px}
+.ramp-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.ramp-h strong{font-size:13px}
+.ramp-h span{font-size:11.5px;color:var(--vq-text-3);font-family:var(--vq-font-mono)}
+.ramp-b{display:flex;border-radius:var(--vq-r-md);overflow:hidden;border:1px solid var(--vq-line)}
+.rcell{flex:1;padding:12px 6px 10px;text-align:center;min-width:0}
+.rcell b{display:block;font-size:10.5px;font-weight:600;font-family:var(--vq-font-mono)}
+.rcell code{font-size:9px;opacity:.7}
+/* tables */
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+th{font-family:var(--vq-font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+   color:var(--vq-text-3);font-weight:500;text-align:left;padding:0 12px 10px;
+   border-bottom:1px solid var(--vq-line);white-space:nowrap}
+th.num{text-align:right}
+td{padding:11px 12px;border-bottom:1px solid var(--vq-line-soft);color:var(--vq-text-2);vertical-align:top}
+td strong{font-weight:500}
+tr:last-child td{border-bottom:none}
+.dot{display:inline-block;width:9px;height:9px;border-radius:999px;margin-right:8px;vertical-align:middle}
+code.chip{padding:3px 7px;border-radius:var(--vq-r-xs);font-size:11px}
+/* z ladder */
+.ladder{margin:20px 0}
+.rung{display:grid;grid-template-columns:96px 62px 1fr;align-items:center;gap:14px;
+   padding:9px 14px;border-radius:var(--vq-r-sm);margin-bottom:3px;
+   background:linear-gradient(90deg,var(--vq-accent-quiet),transparent 62%)}
+.rung .n{font-family:var(--vq-font-mono);font-size:12px;color:var(--vq-accent-text);font-weight:500}
+.rung .v{font-family:var(--vq-font-mono);font-size:12px;color:var(--vq-text-3);text-align:right;font-variant-numeric:tabular-nums}
+.rung .d{font-size:13px;color:var(--vq-text-2)}
+/* demo components */
+.demo{background:var(--vq-sunken);border:1px solid var(--vq-line);border-radius:var(--vq-r-lg);
+   padding:26px;margin:16px 0}
+.demo-l{font-family:var(--vq-font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+   color:var(--vq-text-3);margin-bottom:16px;display:block}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border:none;
+   border-radius:var(--vq-r-full);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;
+   transition:background var(--vq-dur-fast) var(--vq-ease),transform var(--vq-dur-fast) var(--vq-ease),
+              box-shadow var(--vq-dur-fast) var(--vq-ease)}
+.btn-primary{background:var(--vq-accent);color:var(--vq-on-accent)}
+.btn-primary:hover{background:var(--vq-accent-hover);transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--vq-text);box-shadow:inset 0 0 0 1px var(--vq-line-strong)}
+.btn-secondary:hover{background:var(--vq-sunken);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--vq-text-2)}
+.btn-ghost:hover{background:var(--vq-sunken);color:var(--vq-text)}
+.btn-danger{background:var(--vq-danger);color:var(--vq-text-inverted)}
+.btn-danger:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none!important}
+.field{max-width:340px}
+.field label{display:block;font-size:13px;color:var(--vq-text-2);margin-bottom:6px}
+.field input{width:100%;height:48px;padding:0 16px;font-family:inherit;font-size:16px;
+   background:var(--vq-bg);color:var(--vq-text);border:1px solid var(--vq-line);
+   border-radius:var(--vq-r-md);transition:border-color var(--vq-dur-fast),box-shadow var(--vq-dur-fast)}
+.field input:focus{outline:none;border-color:var(--vq-focus);box-shadow:0 0 0 3px var(--vq-focus-ring)}
+.field input::placeholder{color:var(--vq-text-3)}
+.field .hint{font-size:12px;color:var(--vq-text-3);margin-top:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--vq-r-sm);
+   font-size:12px;font-weight:500;line-height:1.4}
+.pill.ok{background:var(--vq-success-bg);color:var(--vq-success);box-shadow:inset 0 0 0 1px var(--vq-success-line)}
+.pill.warn{background:var(--vq-warning-bg);color:var(--vq-warning);box-shadow:inset 0 0 0 1px var(--vq-warning-line)}
+.pill.bad{background:var(--vq-danger-bg);color:var(--vq-danger);box-shadow:inset 0 0 0 1px var(--vq-danger-line)}
+.pill.neutral{background:var(--vq-info-bg);color:var(--vq-info);box-shadow:inset 0 0 0 1px var(--vq-info-line)}
+/* fake sidebar */
+.railwrap{display:flex;gap:24px;flex-wrap:wrap}
+.rail{width:236px;background:var(--vq-surface);border:1px solid var(--vq-line);
+   border-radius:var(--vq-r-lg);padding:10px}
+.rail-i{display:flex;align-items:center;gap:11px;height:40px;padding:0 12px;border-radius:var(--vq-r-lg);
+   color:var(--vq-text-2);font-size:13.5px;font-weight:500;cursor:pointer;position:relative;
+   transition:background var(--vq-dur-instant),color var(--vq-dur-instant)}
+.rail-i:hover{background:var(--vq-sunken);color:var(--vq-text)}
+.rail-i .ic{width:16px;height:16px;border-radius:4px;background:currentColor;opacity:.5;flex:0 0 auto}
+.rail-i.act{background:var(--vq-accent-quiet);color:var(--vq-accent-text);font-weight:600}
+.rail-i.act .ic{opacity:1}
+.rail-i.act::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;
+   border-radius:0 3px 3px 0;background:var(--vq-accent)}
+/* data table demo */
+.dt{width:100%;border-collapse:collapse;font-size:13px}
+.dt th{height:40px;padding:0 14px;border-bottom:1px solid var(--vq-line)}
+.dt td{height:48px;padding:0 14px;border-bottom:1px solid var(--vq-line-soft);color:var(--vq-text)}
+.dt tbody tr:hover td{background:var(--vq-sunken)}
+.dt td.n{font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums;text-align:right}
+.dt tr.tot td{border-top:1px solid var(--vq-line);border-bottom:none;font-weight:600}
+.neg{color:var(--vq-danger)}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.kpi .k{font-family:var(--vq-font-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+   color:var(--vq-text-3)}
+.kpi .v{font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums;font-size:32px;
+   font-weight:500;letter-spacing:-.02em;color:var(--vq-text);margin:6px 0 4px}
+/* series */
+.serieswrap{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+.series{display:flex;flex-direction:column;gap:5px}
+.series-bar{height:34px;border-radius:var(--vq-r-sm)}
+.series b{font-family:var(--vq-font-mono);font-size:11px;color:var(--vq-text-3)}
+.series span{font-size:12.5px;color:var(--vq-text-2)}
+.series code{font-size:11px;color:var(--vq-text-3)}
+.steps{display:flex;border-radius:var(--vq-r-md);overflow:hidden;height:40px;border:1px solid var(--vq-line);margin:12px 0}
+.step{flex:1}
+/* chart */
+.chart{background:var(--vq-chart-surface);border:1px solid var(--vq-line);
+   border-radius:var(--vq-r-lg);padding:20px 22px}
+.chart .ttl{font-size:14px;font-weight:600;color:var(--vq-text);margin-bottom:2px}
+.chart .sub{font-size:12px;color:var(--vq-text-3);margin-bottom:16px}
+.ax{font-family:var(--vq-font-mono);font-size:9.5px;fill:var(--vq-chart-label)}
+.lg{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--vq-text-2)}
+.lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+/* do/dont */
+.dd{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--vq-line);
+   border-radius:var(--vq-r-lg);overflow:hidden;margin:18px 0}
+.dd>div{padding:18px 20px}
+.dd .do{background:var(--vq-success-bg)}
+.dd .dont{background:var(--vq-danger-bg);border-left:1px solid var(--vq-line)}
+.dd h5{font-size:12px;font-family:var(--vq-font-mono);letter-spacing:.12em;text-transform:uppercase;
+   margin-bottom:10px}
+.dd .do h5{color:var(--vq-success)} .dd .dont h5{color:var(--vq-danger)}
+.dd ul{margin-left:16px;font-size:13px}
+/* toggle */
+.tgl{position:fixed;bottom:22px;right:22px;z-index:var(--vq-z-toast);height:40px;padding:0 16px;
+   border-radius:var(--vq-r-full);border:1px solid var(--vq-line);background:var(--vq-raised);
+   color:var(--vq-text);font-family:var(--vq-font-mono);font-size:11px;letter-spacing:.1em;
+   text-transform:uppercase;cursor:pointer;box-shadow:var(--vq-elev-3)}
+pre{background:var(--vq-sunken);border:1px solid var(--vq-line);border-radius:var(--vq-r-md);
+   padding:15px 17px;overflow-x:auto;font-family:var(--vq-font-mono);font-size:12px;
+   line-height:1.65;color:var(--vq-text-2);margin:12px 0}
+pre .c{color:var(--vq-text-3)} pre .r{color:var(--vq-danger)} pre .g{color:var(--vq-success)}
+.foot{padding:44px 0 0;border-top:1px solid var(--vq-line);margin-top:60px;
+   font-size:12.5px;color:var(--vq-text-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media(max-width:1080px){
+  .wrap{grid-template-columns:1fr} nav.side{display:none} main{padding:0 22px 80px}
+  .grid2,.grid3,.kpis,.serieswrap,.dd{grid-template-columns:1fr}
+  h1{font-size:38px}
+}
+</style>
+</head>
+<body>
+<button class="tgl" id="tgl">Light</button>
+<div class="wrap">
+<nav class="side">
+  <div class="brandmark"><div class="m">V</div><b>VenQore</b></div>
+  <span class="vtag">Design System 2.0</span>
+  <div class="grp">Start here</div>
+  <a href="#top" class="on"><span class="num">00</span>Overview</a>
+  <a href="#audit"><span class="num">01</span>What we found</a>
+  <a href="#laws"><span class="num">02</span>The five laws</a>
+  <div class="grp">Foundations</div>
+  <a href="#colour"><span class="num">03</span>Colour</a>
+  <a href="#modules"><span class="num">04</span>Module accents</a>
+  <a href="#semantic"><span class="num">05</span>Semantic</a>
+  <a href="#type"><span class="num">06</span>Type</a>
+  <a href="#shape"><span class="num">07</span>Shape &amp; space</a>
+  <a href="#elevation"><span class="num">08</span>Elevation</a>
+  <a href="#zindex"><span class="num">09</span>Z-index</a>
+  <a href="#motion"><span class="num">10</span>Motion &amp; hover</a>
+  <div class="grp">Applied</div>
+  <a href="#components"><span class="num">11</span>Components</a>
+  <a href="#tables"><span class="num">12</span>Data &amp; tables</a>
+  <a href="#charts"><span class="num">13</span>Charts</a>
+  <a href="#reactbits"><span class="num">14</span>ReactBits map</a>
+  <a href="#line"><span class="num">15</span>Marketing vs product</a>
+  <div class="grp">Ship it</div>
+  <a href="#bugs"><span class="num">16</span>The bugs</a>
+  <a href="#migration"><span class="num">17</span>Migration</a>
+</nav>
+<main>
+
+<section id="top" class="hero">
+  <span class="eyebrow">VenQore Design System · v2.0 · August 2026</span>
+  <h1>One system, from the landing page<br>to the <em class="serif">general ledger.</em></h1>
+  <p class="lede">v1.0 got the colour right. This is the version that covers the product — every
+  surface, every state, every stacking level, every chart — and closes the gap between a
+  marketing site that looks considered and an app that looks assembled.</p>
+  <div class="stats">
+    <div class="stat"><b>209</b><span>tokens</span></div>
+    <div class="stat"><b>11</b><span>module accents</span></div>
+    <div class="stat"><b>12</b><span>z-index rungs, down from 31</span></div>
+    <div class="stat"><b>8</b><span>chart slots, CVD-verified</span></div>
+    <div class="stat"><b>3</b><span>type weights</span></div>
+    <div class="stat"><b>1</b><span>typeface</span></div>
+  </div>
+</section>
+
+<section id="audit">
+  <span class="eyebrow">01 · What we found</span>
+  <h2>The numbers that made this necessary</h2>
+  <p>Measured across 463 <code>.jsx</code> files in <code>resources/js</code>. None of this is
+  a criticism of the theme architecture — <code>theme/contract.js</code> is genuinely well built.
+  The problem is that components bypass it, because there was never a list to consult.</p>
+  <table>
+    <thead><tr><th>Finding</th><th class="num">Count</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><strong>indigo-*</strong> colour classes</td><td class="num">6,726</td><td>The app is an indigo product</td></tr>
+      <tr><td><strong>teal-*</strong> colour classes</td><td class="num">108</td><td>The brand appears 1.6% as often as a colour nobody chose</td></tr>
+      <tr><td>emerald / amber / rose / purple / violet / blue</td><td class="num">8,685</td><td>Six more palettes, none of them in a spec</td></tr>
+      <tr><td>Distinct hand-written z-index values</td><td class="num">31</td><td><code>z-[5]</code> → <code>z-[99999]</code>. Not a stacking order — an arms race</td></tr>
+      <tr><td><code>zIndex</code> entries in tailwind.config.js</td><td class="num">0</td><td>The root cause</td></tr>
+      <tr><td>Distinct corner radii</td><td class="num">~20</td><td>Up to <code>rounded-[3.5rem]</code> — 56px on a financial product</td></tr>
+      <tr><td><code>hover:scale-*</code> usages</td><td class="num">184</td><td>Including 7× <code>scale-150</code>. The clipping bug, 184 times</td></tr>
+      <tr><td>Typefaces in play</td><td class="num">2</td><td>Figtree in the app, Inter on the site</td></tr>
+      <tr><td>Chart libraries installed</td><td class="num">3</td><td>recharts + 11× <code>@visx/*</code> + d3</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="laws">
+  <span class="eyebrow">02 · Principles</span>
+  <h2>The five laws</h2>
+  <div class="grid2">
+    <div class="card"><h4>1 · No raw values in components</h4><p>No hex, no px radius, no
+    <code>z-[…]</code>. If the value you want isn't a token, the system is missing a token —
+    add it to <code>tokens.css</code> first.</p></div>
+    <div class="card"><h4>2 · Teal is the brand, not a highlight</h4><p>Primary actions, active
+    states and focus are teal. Nothing else is teal.</p></div>
+    <div class="card"><h4>3 · Module colour is wayfinding, semantic colour is data</h4><p>They
+    never swap jobs and never share a surface.</p></div>
+    <div class="card"><h4>4 · Nothing meaningful is colour alone</h4><p>A negative figure gets a
+    minus sign <em>and</em> parentheses. A status chip gets an icon <em>and</em> a word. Roughly
+    1 in 12 men can't reliably separate your red from your green.</p></div>
+    <div class="card" style="grid-column:span 2"><h4>5 · Marketing may be expressive. The product may not.</h4>
+    <p>The fluid canvas, the laser flow, the serif italic — those live on public pages. Inside the
+    app the only motion is state feedback. That restraint <em>is</em> the enterprise feel.</p></div>
+  </div>
+</section>
+
+<section id="colour">
+  <span class="eyebrow">03 · Foundations</span>
+  <h2>Colour</h2>
+  <p>The teal was right in v1 and it is still right. It is a <strong>low-chroma</strong> colour —
+  0.071 in OKLCH, where a saturated brand blue runs 0.15–0.20. Low chroma reads
+  <em class="serif">considered</em> rather than loud, which is exactly the register you want on a
+  product whose argument is <strong>trust my arithmetic</strong>. It is also not the AI colour:
+  every AI product in 2026 is violet-to-indigo.</p>
+  <div class="ramp"><div class="ramp-h"><strong>Teal — brand</strong><span>hue 208° · chroma 0.071</span></div><div class="ramp-b"><div class="rcell" style="background:#ECF9FB"><b style="color:#0A0B0F">50</b><code style="color:#0A0B0F">ECF9FB</code></div><div class="rcell" style="background:#D7F1F5"><b style="color:#0A0B0F">100</b><code style="color:#0A0B0F">D7F1F5</code></div><div class="rcell" style="background:#B4E1E8"><b style="color:#0A0B0F">200</b><code style="color:#0A0B0F">B4E1E8</code></div><div class="rcell" style="background:#8BC8D2"><b style="color:#0A0B0F">300</b><code style="color:#0A0B0F">8BC8D2</code></div><div class="rcell" style="background:#5DA5B0"><b style="color:#0A0B0F">400</b><code style="color:#0A0B0F">5DA5B0</code></div><div class="rcell" style="background:#327882"><b style="color:#FFFFFF">500</b><code style="color:#FFFFFF">327882</code></div><div class="rcell" style="background:#21656F"><b style="color:#FFFFFF">600</b><code style="color:#FFFFFF">21656F</code></div><div class="rcell" style="background:#124E56"><b style="color:#FFFFFF">700</b><code style="color:#FFFFFF">124E56</code></div><div class="rcell" style="background:#0C393F"><b style="color:#FFFFFF">800</b><code style="color:#FFFFFF">0C393F</code></div><div class="rcell" style="background:#08272B"><b style="color:#FFFFFF">900</b><code style="color:#FFFFFF">08272B</code></div><div class="rcell" style="background:#021416"><b style="color:#FFFFFF">950</b><code style="color:#FFFFFF">021416</code></div></div></div>
+  <div class="ramp"><div class="ramp-h"><strong>Ink — cool neutral</strong><span>hue 250° · chroma 0.012</span></div><div class="ramp-b"><div class="rcell" style="background:#F4F6F8"><b style="color:#0A0B0F">50</b><code style="color:#0A0B0F">F4F6F8</code></div><div class="rcell" style="background:#EBEDEF"><b style="color:#0A0B0F">100</b><code style="color:#0A0B0F">EBEDEF</code></div><div class="rcell" style="background:#D9DDE0"><b style="color:#0A0B0F">200</b><code style="color:#0A0B0F">D9DDE0</code></div><div class="rcell" style="background:#BFC3C8"><b style="color:#0A0B0F">300</b><code style="color:#0A0B0F">BFC3C8</code></div><div class="rcell" style="background:#9A9FA5"><b style="color:#0A0B0F">400</b><code style="color:#0A0B0F">9A9FA5</code></div><div class="rcell" style="background:#595E64"><b style="color:#FFFFFF">600</b><code style="color:#FFFFFF">595E64</code></div><div class="rcell" style="background:#3F444A"><b style="color:#FFFFFF">700</b><code style="color:#FFFFFF">3F444A</code></div><div class="rcell" style="background:#282D32"><b style="color:#FFFFFF">800</b><code style="color:#FFFFFF">282D32</code></div><div class="rcell" style="background:#151A1F"><b style="color:#FFFFFF">900</b><code style="color:#FFFFFF">151A1F</code></div><div class="rcell" style="background:#0A0B0F"><b style="color:#FFFFFF">950</b><code style="color:#FFFFFF">0A0B0F</code></div></div></div>
+  <div class="callout"><p><strong>Three tokens, one decision, never think about it again.</strong>
+  <code>teal-500</code> fills. <code>teal-600</code> writes on light. <code>teal-400</code> writes
+  on dark. <code>#327882</code> as text on <code>#0A0B0F</code> is <strong>3.88:1 — it fails AA</strong>,
+  and the landing page does it on every drawer label.</p></div>
+  <h3>Surfaces</h3>
+  <div class="sws">
+    <div class="sw"><div class="sw-c" style="background:#FFFFFF;color:#0A0B0F;height:56px"><span>bg</span></div><code>#FFFFFF</code><em>page</em></div><div class="sw"><div class="sw-c" style="background:#F9FAFC;color:#0A0B0F;height:56px"><span>surface</span></div><code>#F9FAFC</code><em>cards</em></div><div class="sw"><div class="sw-c" style="background:#F4F6F8;color:#0A0B0F;height:56px"><span>sunken</span></div><code>#F4F6F8</code><em>bands, stripes</em></div>
+    <div class="sw"><div class="sw-c" style="background:#0A0B0F;color:#FFFFFF;height:56px"><span>bg dark</span></div><code>#0A0B0F</code><em>not pure black</em></div><div class="sw"><div class="sw-c" style="background:#12141A;color:#FFFFFF;height:56px"><span>surface dark</span></div><code>#12141A</code><em>cards</em></div><div class="sw"><div class="sw-c" style="background:#1A1D25;color:#FFFFFF;height:56px"><span>raised dark</span></div><code>#1A1D25</code><em>menus, modals</em></div>
+  </div>
+  <div class="dd">
+    <div class="do"><h5>Do</h5><ul>
+      <li>Use <code>#0A0B0F</code> for dark backgrounds, never <code>#000000</code></li>
+      <li>Use <code>#F4F6F8</code> for light text on dark, never <code>#FFFFFF</code></li>
+      <li>Put ink text on teal-50 tint backgrounds</li>
+      <li>Let dark mode carry depth with surface lightness</li>
+    </ul></div>
+    <div class="dont"><h5>Don't</h5><ul>
+      <li>Pure black — it makes every shadow invisible and every white text vibrate</li>
+      <li>Pure white body text on dark — 19.7:1 is harsher than print would ever use</li>
+      <li>More than three greys in one view. A fourth means the hierarchy is wrong</li>
+      <li>Teal text on a teal tint</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="modules">
+  <span class="eyebrow">04 · Foundations</span>
+  <h2>Module accents</h2>
+  <p>You asked how to colour-code features without the whole thing turning into a circus. This is
+  the answer: <strong>eleven module hues at chroma 0.095 — below every semantic colour</strong>, so
+  an alert always out-shouts the furniture. Every ramp is generated from the teal ramp's own
+  lightness curve, which is why the contrast figures below land in a band five hundredths wide
+  instead of wherever they happened to fall.</p>
+  <div class="callout"><p><strong>The rule that keeps this honest:</strong> a module accent never
+  appears inside a data region. Not in a table cell, not in a chart, not in a status chip, not on a
+  KPI figure. It lives in chrome — sidebar item, page-header rule, module badge, breadcrumb,
+  empty-state art — and at most <strong>three surfaces per screen</strong>. A page tinted end to end
+  in violet is not wayfinding, it is a theme.</p></div>
+  <table>
+    <thead><tr><th>Module</th><th>Hue</th><th>Light accent</th><th>Dark accent</th>
+    <th class="num">on white</th><th class="num">on #0A0B0F</th><th>Covers</th></tr></thead>
+    <tbody><tr><td><span class="dot" style="background:#327882"></span><strong>Accounting & Finance</strong></td><td class="mono">208° brand</td><td><code class="chip" style="background:#327882;color:#fff">#327882</code></td><td><code class="chip" style="background:#5DA5B0;color:#0A0B0F">#5DA5B0</code></td><td class="num">5.07:1</td><td class="num">7.00:1</td><td class="muted">Ledger, banking, reconciliation, payments, tax</td></tr><tr><td><span class="dot" style="background:#34739C"></span><strong>Reports & Analytics</strong></td><td class="mono">240°</td><td><code class="chip" style="background:#34739C;color:#fff">#34739C</code></td><td><code class="chip" style="background:#5EA0CD;color:#0A0B0F">#5EA0CD</code></td><td class="num">5.15:1</td><td class="num">6.92:1</td><td class="muted">Reports, dashboards, exports, scheduled sends</td></tr><tr><td><span class="dot" style="background:#566AA2"></span><strong>Sales & POS</strong></td><td class="mono">268°</td><td><code class="chip" style="background:#566AA2;color:#fff">#566AA2</code></td><td><code class="chip" style="background:#7F96D3;color:#0A0B0F">#7F96D3</code></td><td class="num">5.28:1</td><td class="num">6.75:1</td><td class="muted">POS, invoices, sales orders, returns, quotes</td></tr><tr><td><span class="dot" style="background:#71619C"></span><strong>Inventory & Stock</strong></td><td class="mono">296°</td><td><code class="chip" style="background:#71619C;color:#fff">#71619C</code></td><td><code class="chip" style="background:#9D8CCC;color:#0A0B0F">#9D8CCC</code></td><td class="num">5.40:1</td><td class="num">6.61:1</td><td class="muted">Products, stock ops, batches, serials, transfers</td></tr><tr><td><span class="dot" style="background:#875A8B"></span><strong>Purchasing & Supply</strong></td><td class="mono">324°</td><td><code class="chip" style="background:#875A8B;color:#fff">#875A8B</code></td><td><code class="chip" style="background:#B584B9;color:#0A0B0F">#B584B9</code></td><td class="num">5.43:1</td><td class="num">6.52:1</td><td class="muted">Purchase orders, suppliers, debit notes, expenses</td></tr><tr><td><span class="dot" style="background:#945674"></span><strong>Parties & CRM</strong></td><td class="mono">350°</td><td><code class="chip" style="background:#945674;color:#fff">#945674</code></td><td><code class="chip" style="background:#C57FA0;color:#0A0B0F">#C57FA0</code></td><td class="num">5.47:1</td><td class="num">6.48:1</td><td class="muted">Customers, contacts, reminders, loyalty</td></tr><tr><td><span class="dot" style="background:#9B5654"></span><strong>Staff & HR</strong></td><td class="mono">22°</td><td><code class="chip" style="background:#9B5654;color:#fff">#9B5654</code></td><td><code class="chip" style="background:#CC807D;color:#0A0B0F">#CC807D</code></td><td class="num">5.45:1</td><td class="num">6.51:1</td><td class="muted">Users, roles, attendance, shifts, payroll</td></tr><tr><td><span class="dot" style="background:#955D35"></span><strong>Manufacturing</strong></td><td class="mono">55°</td><td><code class="chip" style="background:#955D35;color:#fff">#955D35</code></td><td><code class="chip" style="background:#C6885E;color:#0A0B0F">#C6885E</code></td><td class="num">5.39:1</td><td class="num">6.64:1</td><td class="muted">BOM, work orders, assemblies, wastage</td></tr><tr><td><span class="dot" style="background:#836925"></span><strong>Marketing & Growth</strong></td><td class="mono">88°</td><td><code class="chip" style="background:#836925;color:#fff">#836925</code></td><td><code class="chip" style="background:#B0954F;color:#0A0B0F">#B0954F</code></td><td class="num">5.23:1</td><td class="num">6.80:1</td><td class="muted">Campaigns, growth engine, proposals, pre-sales</td></tr><tr><td><span class="dot" style="background:#1E7E6A"></span><strong>VenSynQ & Channels</strong></td><td class="mono">175°</td><td><code class="chip" style="background:#1E7E6A;color:#fff">#1E7E6A</code></td><td><code class="chip" style="background:#4FAB95;color:#0A0B0F">#4FAB95</code></td><td class="num">4.94:1</td><td class="num">7.11:1</td><td class="muted">WooCommerce, Amazon, eBay, TikTok, storefront</td></tr><tr><td><span class="dot" style="background:#6C7278"></span><strong>Platform & Admin</strong></td><td class="mono">neutral</td><td><code class="chip" style="background:#6C7278;color:#fff">#6C7278</code></td><td><code class="chip" style="background:#9A9FA5;color:#0A0B0F">#9A9FA5</code></td><td class="num">4.87:1</td><td class="num">7.38:1</td><td class="muted">Settings, billing, licences, super admin, HQ</td></tr></tbody>
+  </table>
+  <p><strong>Accounting wears the brand colour</strong> because the double-entry engine <em>is</em>
+  the moat — the module that justifies the product should wear the colour that identifies it.
+  <strong>Platform is neutral ink</strong> because admin chrome should be quiet.</p>
+</section>
+
+<section id="semantic">
+  <span class="eyebrow">05 · Foundations</span>
+  <h2>Semantic colour</h2>
+  <p>In a financial product semantic colour is <strong>data</strong>, not decoration. The moment a
+  user learns green means <em>reconciled</em>, a green button becomes a lie.</p>
+  <div class="sws">
+    <div class="sw"><div class="sw-c" style="background:#1A7F51;color:#FFFFFF;height:76px"><span>success</span></div><code>#1A7F51</code><em>posted · reconciled · in stock</em></div>
+    <div class="sw"><div class="sw-c" style="background:#A85B05;color:#FFFFFF;height:76px"><span>warning</span></div><code>#A85B05</code><em>low stock · needs approval</em></div>
+    <div class="sw"><div class="sw-c" style="background:#BD3838;color:#FFFFFF;height:76px"><span>danger</span></div><code>#BD3838</code><em>out of balance · overdue</em></div>
+    <div class="sw"><div class="sw-c" style="background:#595E64;color:#FFFFFF;height:76px"><span>info</span></div><code>#595E64</code><em>neutral notice</em></div>
+  </div>
+  <p><strong>Info is deliberately not blue.</strong> A neutral system notice should look neutral —
+  and removing the blue frees hue 240° for the Reports module. One fewer colour in the system, one
+  more module that can be told apart.</p>
+  <div class="demo">
+    <span class="demo-l">Status chips — icon and word, never colour alone</span>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="pill ok">✓ Reconciled</span>
+      <span class="pill warn">▲ Low stock · 4 left</span>
+      <span class="pill bad">✕ Out of balance</span>
+      <span class="pill neutral">◦ Draft</span>
+    </div>
+  </div>
+</section>
+
+<section id="type">
+  <span class="eyebrow">06 · Foundations</span>
+  <h2>Type</h2>
+  <p><strong>One sans across marketing and product.</strong> The app self-hosts Figtree; the landing
+  page loads Inter. That split is the single reason they read as two companies. Pick Inter — the
+  landing page's scale is already tuned to it — self-host the <code>.woff2</code> in the app, delete
+  the Figtree files.</p>
+  <div class="demo">
+    <span class="demo-l">The scale · ratio 1.25 at the body end, opening to 1.4 at display</span>
+    <div style="font-size:60px;line-height:1.04;letter-spacing:-.033em;font-weight:600;margin-bottom:14px">Built around your business</div>
+    <div style="font-size:40px;line-height:1.1;letter-spacing:-.028em;font-weight:600;margin-bottom:12px">Describe your business</div>
+    <div style="font-size:32px;line-height:1.15;letter-spacing:-.025em;font-weight:600;margin-bottom:12px">The one part AI can't touch</div>
+    <div style="font-size:20px;line-height:1.3;letter-spacing:-.015em;font-weight:600;margin-bottom:12px">One engine, every module</div>
+    <div style="font-size:19px;line-height:1.55;letter-spacing:-.006em;color:var(--vq-text-2);margin-bottom:10px">Tell VenQore how you actually work. It assembles the system that runs it.</div>
+    <div style="font-size:16px;line-height:1.6;color:var(--vq-text-2);margin-bottom:10px">Every module posts through one double-entry accounting engine.</div>
+    <div style="font-size:14px;line-height:1.55;color:var(--vq-text-2);margin-bottom:10px">Nothing goes live until you approve it.</div>
+    <div style="font-size:13px;color:var(--vq-text-3);margin-bottom:12px">Amazon SP-API approved · UK marketplace</div>
+    <div style="font-family:var(--vq-font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--vq-accent-text);font-weight:500;margin-bottom:12px">Core Ledger</div>
+    <div style="font-family:var(--vq-font-mono);font-variant-numeric:tabular-nums;font-size:16px;color:var(--vq-text)">7 / 7 &nbsp;·&nbsp; 73 tests &nbsp;·&nbsp; 240+ features</div>
+  </div>
+  <h3>The detail that matters most for this product</h3>
+  <p>Set <code>font-feature-settings:"tnum"</code> globally. Tabular figures make every digit the
+  same width so columns of money align down the page. In a financial product, proportional figures
+  in a table are a typo you can see from across the room — and almost nobody remembers to switch
+  them on. Add <code>cv11</code> (disambiguates 1 / l / I) and <code>ss01</code>: small refinements,
+  but they are what separates a site that <em>used</em> Inter from a site that
+  <em class="serif">specified</em> it.</p>
+  <div class="dd">
+    <div class="do"><h5>Do</h5><ul>
+      <li>Weights 400 / 500 / 600 only</li>
+      <li>Tracking as a function of size: ≥40px → −3%; 24–40px → −2.5%; 18–24px → −1.5%; body → 0; ≤13px uppercase → +14%</li>
+      <li>Instrument Serif italic, one word per page, marketing only</li>
+      <li>Mono for eyebrows, labels, data, counts — it makes numbers look measured</li>
+      <li>Measure 60–75 characters (<code>max-width: 72ch</code>)</li>
+    </ul></div>
+    <div class="dont"><h5>Don't</h5><ul>
+      <li><code>font-bold</code>. 700 is not in this system</li>
+      <li>Two serif words on one page — one is a signature, two is a style, three is noise</li>
+      <li>More than one weight jump per hierarchy step</li>
+      <li>Let the browser choose where a hero headline breaks</li>
+      <li>Leave a one-word last line</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="shape">
+  <span class="eyebrow">07 · Foundations</span>
+  <h2>Shape &amp; space</h2>
+  <p>10px base, <strong>24px ceiling</strong>. The audit found <code>rounded-[3.5rem]</code> — 56px
+  of curve — in production. That reads friendly-consumer, which fights the financial-precision
+  argument the whole product is making.</p>
+  <div class="demo">
+    <span class="demo-l">Radius scale</span>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end">
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:4px"></div><code class="muted">xs 4</code></div>
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:6px"></div><code class="muted">sm 6</code></div>
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:10px"></div><code class="muted">md 10</code></div>
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:14px"></div><code class="muted">lg 14</code></div>
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:20px"></div><code class="muted">xl 20</code></div>
+      <div style="text-align:center"><div style="width:74px;height:60px;background:var(--vq-accent);border-radius:24px"></div><code class="muted">2xl 24</code></div>
+      <div style="text-align:center"><div style="width:74px;height:44px;background:var(--vq-accent);border-radius:999px"></div><code class="muted">full</code></div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Token</th><th class="num">Value</th><th>Use</th></tr></thead>
+    <tbody>
+    <tr><td class="mono">--vq-r-xs</td><td class="num">4px</td><td>Checkbox, cell-level chip</td></tr>
+    <tr><td class="mono">--vq-r-sm</td><td class="num">6px</td><td>Badge, tag, tooltip</td></tr>
+    <tr><td class="mono">--vq-r-md</td><td class="num">10px</td><td><strong>Base</strong> — button, input, select, menu item</td></tr>
+    <tr><td class="mono">--vq-r-lg</td><td class="num">14px</td><td>Card, panel, dropdown surface</td></tr>
+    <tr><td class="mono">--vq-r-xl</td><td class="num">20px</td><td>Modal, drawer, sheet</td></tr>
+    <tr><td class="mono">--vq-r-2xl</td><td class="num">24px</td><td><strong>Ceiling</strong> — marketing feature block, hero card</td></tr>
+    <tr><td class="mono">--vq-r-full</td><td class="num">999px</td><td>Pill button, avatar, toggle, tab pill</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><p><strong>Nesting rule: inner radius = outer radius − inner padding.</strong>
+  A 14px card with 16px padding takes a 6px inner element, not another 14px one. Concentric corners
+  are the difference between <em>designed</em> and <em>assembled</em>, and they are free.</p></div>
+  <h3>Space</h3>
+  <p>4px base. Scale: 4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 48 · 64 · 80 · 96 · 128. Grid 12 columns,
+  24px gutters, 32px page margin desktop / 20px mobile. Breakpoints 640 · 768 · 1024 · 1280. Design
+  mobile-first at 375px.</p>
+  <p><strong>Density differs by context, deliberately.</strong> Marketing is comfortable — 80px
+  section gaps, generous card padding. The product is compact — 48px table rows, 40px controls,
+  24px card padding. A dashboard that breathes like a landing page wastes the screen the user is
+  paying for.</p>
+</section>
+
+<section id="elevation">
+  <span class="eyebrow">08 · Foundations</span>
+  <h2>Elevation</h2>
+  <p>Four levels, no more. In light mode use shadow. In dark mode use <strong>surface
+  lightness</strong>, not shadow — a black shadow on a near-black background is invisible, and
+  reaching for one anyway is the most common dark-mode mistake there is.</p>
+  <table>
+    <thead><tr><th>Level</th><th>Light</th><th>Dark</th><th>Use</th></tr></thead>
+    <tbody>
+    <tr><td><strong>0 — flat</strong></td><td class="mono">1px border, no shadow</td><td class="mono">1px rgba(255,255,255,.08)</td><td>Table, inline panel</td></tr>
+    <tr><td><strong>1 — card</strong></td><td class="mono">0 1px 2px rgb(10 11 15/.05)</td><td class="mono">background → #12141A</td><td>Card, tile</td></tr>
+    <tr><td><strong>2 — raised</strong></td><td class="mono">0 4px 16px rgb(10 11 15/.07)</td><td class="mono">background → #1A1D25</td><td>Dropdown, popover, hovered card</td></tr>
+    <tr><td><strong>3 — overlay</strong></td><td class="mono">0 16px 48px rgb(10 11 15/.13)</td><td class="mono">#1A1D25 + 1px white @10%</td><td>Modal, drawer, command palette</td></tr>
+    </tbody>
+  </table>
+  <div class="callout bad"><p><strong>1px border <em>or</em> a shadow, never both.</strong> Shadows
+  are always neutral-dark and never coloured — a teal-tinted shadow looks like a mistake at 100%
+  zoom and a bug at 200%. <code>SidebarItem.jsx</code> currently ships
+  <code>shadow-xl shadow-indigo-500/20</code>, which is both mistakes at once.</p></div>
+</section>
+
+<section id="zindex">
+  <span class="eyebrow">09 · Foundations</span>
+  <h2>Z-index</h2>
+  <p>The app carries <strong>31 distinct hand-written z-index values</strong>, from <code>z-[5]</code>
+  to <code>z-[99999]</code>, and <code>tailwind.config.js</code> defines <strong>none</strong>. That
+  is the root cause: there was no list, so every developer who hit a stacking problem picked a
+  bigger number than the last one. These twelve names are the only legal values. Gaps of 100 leave
+  room to slot something in without starting another war.</p>
+  <div class="ladder">
+    <div class="rung"><span class="n">z-command</span><span class="v">1000</span><span class="d">Command palette, global search</span></div>
+    <div class="rung"><span class="n">z-toast</span><span class="v">900</span><span class="d">Notifications — must clear an open modal</span></div>
+    <div class="rung"><span class="n">z-tooltip</span><span class="v">800</span><span class="d">Always above the thing it describes</span></div>
+    <div class="rung"><span class="n">z-popover</span><span class="v">700</span><span class="d">Popover anchored inside a modal</span></div>
+    <div class="rung"><span class="n">z-modal</span><span class="v">600</span><span class="d">Dialog, confirm — scrim at 599</span></div>
+    <div class="rung"><span class="n">z-drawer</span><span class="v">500</span><span class="d">Right panel, filter drawer, cart — scrim at 499</span></div>
+    <div class="rung"><span class="n">z-dropdown</span><span class="v">400</span><span class="d">Select, combobox, autocomplete, context menu</span></div>
+    <div class="rung"><span class="n">z-rail</span><span class="v">300</span><span class="d">Left sidebar</span></div>
+    <div class="rung"><span class="n">z-nav</span><span class="v">200</span><span class="d">App top bar</span></div>
+    <div class="rung"><span class="n">z-sticky</span><span class="v">100</span><span class="d">Sticky table header, sticky section bar</span></div>
+    <div class="rung"><span class="n">z-raised</span><span class="v">10</span><span class="d">Hover-lifted card, sticky first column</span></div>
+    <div class="rung"><span class="n">z-base</span><span class="v">0</span><span class="d">Page content</span></div>
+  </div>
+  <p><strong>Why this order.</strong> Roughly: how much of the screen a thing owns, then what has to
+  be dismissable on top of what. A tooltip outranks a modal because you can have a tooltip
+  <em>on</em> a modal. A toast outranks both, because a "Saved" confirmation that appears behind the
+  dialog that triggered it is worse than useless.</p>
+  <h3>Three rules that prevent the next thirty-one values</h3>
+  <ul>
+    <li>Every scrim is <strong>its owner's level minus one</strong>. Never a separate number.</li>
+    <li>If a thing is invisible, look for an <code>overflow-hidden</code> ancestor <strong>before</strong>
+    touching z-index. Clipping happens during paint, before stacking is considered — <strong>no
+    z-index can escape an <code>overflow-hidden</code> parent.</strong> This is the most
+    misunderstood thing about z-index and it is why half of those 31 values exist.</li>
+    <li>Anything that must escape its container — tooltip, dropdown, popover — is
+    <strong>portalled to <code>&lt;body&gt;</code></strong>. Not raised. Portalled. You already ship
+    <code>@headlessui/react</code>; use its <code>Portal</code>.</li>
+  </ul>
+</section>
+
+<section id="motion">
+  <span class="eyebrow">10 · Foundations</span>
+  <h2>Motion — and the hover rule that fixes 184 files</h2>
+  <p>Motion in this brand should read as <strong>mechanical precision</strong>, not playfulness.
+  Things assemble, settle and lock. Nothing bounces, nothing wobbles, nothing overshoots. An
+  accounting product that springs is telling you something untrue about itself.</p>
+  <table>
+    <thead><tr><th>Token</th><th class="num">Duration</th><th>Easing</th><th>Applied to</th></tr></thead>
+    <tbody>
+    <tr><td class="mono">instant</td><td class="num">100ms</td><td class="mono">ease-out</td><td>Hover colour, focus ring</td></tr>
+    <tr><td class="mono">fast</td><td class="num">180ms</td><td class="mono">cubic-bezier(.16,1,.3,1)</td><td>Buttons, chips, small state changes</td></tr>
+    <tr><td class="mono">base</td><td class="num">280ms</td><td class="mono">cubic-bezier(.16,1,.3,1)</td><td>Dropdowns, tabs, accordions</td></tr>
+    <tr><td class="mono">slow</td><td class="num">480ms</td><td class="mono">cubic-bezier(.16,1,.3,1)</td><td>Scroll reveals, drawers, modals</td></tr>
+    <tr><td class="mono">ambient</td><td class="num">6–10s</td><td class="mono">ease-in-out, infinite</td><td>Gradient drift, fluid field — <strong>marketing only</strong></td></tr>
+    </tbody>
+  </table>
+  <h3>The hover contract</h3>
+  <p>The app has <strong>184</strong> <code>hover:scale-*</code> usages, seven of them
+  <code>scale-150</code>. Replace all of them with this one table.</p>
+  <table>
+    <thead><tr><th>Element</th><th>Hover response</th></tr></thead>
+    <tbody>
+    <tr><td><strong>Button</strong></td><td>Background darkens one ramp step + <code>translateY(-1px)</code></td></tr>
+    <tr><td><strong>Card / tile</strong></td><td><code>translateY(-2px)</code> + elevation 1 → 2</td></tr>
+    <tr><td><strong>Table row</strong></td><td>Background → <code>--vq-sunken</code>. Nothing else</td></tr>
+    <tr><td><strong>Sidebar / nav item</strong></td><td>Background + text colour. <strong>Never a transform</strong></td></tr>
+    <tr><td><strong>Icon (standalone)</strong></td><td>Colour only. <strong>Never scale</strong></td></tr>
+    <tr><td><strong>Icon (inside a button)</strong></td><td>Inherits the button. No independent hover</td></tr>
+    <tr><td><strong>Link</strong></td><td>Colour + underline</td></tr>
+    <tr><td><strong>Avatar / chip</strong></td><td>Ring appears. No scale</td></tr>
+    <tr><td><strong>Media thumbnail</strong></td><td>The <em>image</em> scales inside a fixed-ratio <code>overflow-hidden</code> frame — the only legitimate scale-plus-clip in the system</td></tr>
+    </tbody>
+  </table>
+  <div class="callout bad"><p><strong>Never scale anything whose parent has
+  <code>overflow-hidden</code></strong> unless the clipping <em>is</em> the effect. Everywhere else,
+  <code>overflow-hidden</code> + <code>scale</code> is the sidebar bug. And never scale a button —
+  it makes the layout feel unstable; at <code>scale-150</code> it makes the layout feel broken.</p></div>
+  <h3>Never animate</h3>
+  <ul>
+    <li><strong>A number counting up on a financial figure.</strong> It reads as a slot machine.
+    <code>@number-flow/react</code> is fine for a marketing stat, wrong for a ledger balance.</li>
+    <li>Anything that shifts layout after paint.</li>
+    <li>Ambient loops below the fold.</li>
+  </ul>
+  <p><code>prefers-reduced-motion</code>: reveals become instant opacity fades, the fluid canvas
+  renders one static frame, ambient loops stop. One media query — it's already in
+  <code>tokens.css</code> — and it is an accessibility requirement, not an option.</p>
+</section>
+
+<section id="components">
+  <span class="eyebrow">11 · Applied</span>
+  <h2>Components</h2>
+  <div class="demo">
+    <span class="demo-l">Buttons · height 44 · padding 22px · radius full · one primary per view</span>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary">Start building →</button>
+      <button class="btn btn-secondary">See how it works</button>
+      <button class="btn btn-ghost">Read the docs →</button>
+      <button class="btn btn-danger">Delete invoice INV-2291</button>
+      <button class="btn btn-primary" disabled>Posting…</button>
+    </div>
+  </div>
+  <ul>
+    <li><strong>One primary per view.</strong> Two primaries is no primary. The current hero has
+    "Select your business" and "Book a Call" competing at equal weight — pick one.</li>
+    <li>Height 44px minimum, 48px on mobile. That is the touch-target floor and it is not negotiable.</li>
+    <li>Padding 22px horizontal — buttons that hug their label look cheap.</li>
+    <li>Hover darkens one ramp step and lifts 1px. <strong>Never scale.</strong></li>
+    <li>Focus: 2px offset ring in <code>--vq-focus</code>, always visible. Hiding it is the keyboard
+    equivalent of hiding the cursor.</li>
+    <li>Destructive confirms <strong>name the object</strong> in the button label — "Delete invoice
+    INV-2291", not "Confirm".</li>
+  </ul>
+  <div class="demo">
+    <span class="demo-l">Input · height 48 · radius 10 · 16px font · label above, always</span>
+    <div class="field">
+      <label for="d1">Opening balance</label>
+      <input id="d1" placeholder="0.00" value="184,320.00">
+      <div class="hint">As at 1 April 2026. Locked once the period is closed.</div>
+    </div>
+  </div>
+  <p><strong>Font-size 16px minimum</strong> — anything smaller makes iOS Safari zoom on focus,
+  which feels broken. Label above the field, always; placeholder text is never a substitute for a
+  label. <em>The hero prompt field is the deliberate exception</em>: borderless, transparent, one
+  hairline underneath, 18–20px. It should feel like writing, not like filling in a form. That
+  instinct in the current build is correct — keep it.</p>
+  <div class="demo">
+    <span class="demo-l">Sidebar · 264 / 72 · item 40 · active = tint + 3px rule + weight 600 · hover = background only</span>
+    <div class="railwrap">
+      <div class="rail">
+        <div class="rail-i act"><span class="ic"></span>Accounting</div>
+        <div class="rail-i"><span class="ic"></span>Sales &amp; POS</div>
+        <div class="rail-i"><span class="ic"></span>Inventory</div>
+        <div class="rail-i"><span class="ic"></span>Purchasing</div>
+        <div class="rail-i"><span class="ic"></span>Parties</div>
+        <div class="rail-i"><span class="ic"></span>Reports</div>
+      </div>
+      <div style="flex:1;min-width:280px">
+        <h4 style="margin-top:0">What changed</h4>
+        <p style="font-size:13.5px">No transform on hover. No <code>overflow-hidden</code> on the row.
+        No indigo. No <code>font-bold</code>. No coloured shadow. The active state is a tint, a 3px
+        rule and one weight step — which is legible at a glance and costs nothing to paint.</p>
+        <p style="font-size:13.5px">Collapsed-state tooltips are <strong>portalled to
+        <code>&lt;body&gt;</code></strong> at <code>z-tooltip</code>. In the current build they sit
+        at <code>left-full</code> inside an <code>overflow-hidden</code> parent, which means they
+        have never rendered once, on any hover, in any state.</p>
+      </div>
+    </div>
+  </div>
+  <div class="demo">
+    <span class="demo-l">KPI tiles · label 11 mono uppercase · value 32 mono tnum · delta with a glyph and a sign</span>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Net revenue</div><div class="v">184,320</div><span class="pill ok">▲ +12.4%</span></div>
+      <div class="kpi"><div class="k">Gross margin</div><div class="v">41.2%</div><span class="pill ok">▲ +1.8pt</span></div>
+      <div class="kpi"><div class="k">Stock value</div><div class="v">96,740</div><span class="pill neutral">◦ flat</span></div>
+      <div class="kpi"><div class="k">Overdue</div><div class="v">12,905</div><span class="pill bad">▼ −3 days</span></div>
+    </div>
+  </div>
+  <h3>Login / auth</h3>
+  <p>Single centred card, max-width 400, radius <code>xl</code>, elevation 2, on
+  <code>--vq-sunken</code>. Logo 32px above it. No hero art, no fluid canvas, no gradient. The login
+  page's job is to be fast and boring — it is the page users see most often and least want to look
+  at. Every second spent making it beautiful is a second the user spends not working.</p>
+  <h3>Empty states</h3>
+  <p>Icon in the module accent at 10% alpha, one line of what goes here, one primary action. Never a
+  shrug illustration and never the words "No data" — say "No invoices yet" and offer the button that
+  makes one.</p>
+</section>
+
+<section id="tables">
+  <span class="eyebrow">12 · Applied</span>
+  <h2>Data &amp; tables</h2>
+  <p>You will have more tables than any other component, and they are where a financial product
+  either looks trustworthy or doesn't.</p>
+  <div class="demo">
+    <span class="demo-l">Data table · row 48 · header 40 · horizontal rules only · numbers right, mono, tabular</span>
+    <table class="dt">
+      <thead><tr><th>Account</th><th>Reference</th><th>Status</th><th class="num" style="text-align:right">Debit</th><th class="num" style="text-align:right">Credit</th></tr></thead>
+      <tbody>
+        <tr><td>Trade receivables</td><td class="muted mono">INV-2291</td><td><span class="pill ok">✓ Posted</span></td><td class="n">18,400.00</td><td class="n">—</td></tr>
+        <tr><td>Sales — retail</td><td class="muted mono">INV-2291</td><td><span class="pill ok">✓ Posted</span></td><td class="n">—</td><td class="n">15,593.22</td></tr>
+        <tr><td>Output tax</td><td class="muted mono">INV-2291</td><td><span class="pill ok">✓ Posted</span></td><td class="n">—</td><td class="n">2,806.78</td></tr>
+        <tr><td>Purchase returns</td><td class="muted mono">DN-0114</td><td><span class="pill warn">▲ Needs approval</span></td><td class="n">—</td><td class="n neg">(1,240.00)</td></tr>
+        <tr class="tot"><td>Total</td><td></td><td></td><td class="n">18,400.00</td><td class="n">18,400.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dd">
+    <div class="do"><h5>Do</h5><ul>
+      <li>Numbers right-aligned, mono, tabular figures. Non-negotiable</li>
+      <li>Labels left-aligned, sans</li>
+      <li>Row 48px, header 40px, header 11px mono uppercase in <code>--vq-text-3</code></li>
+      <li>Negative numbers in danger <em>and</em> in parentheses</li>
+      <li>Totals row: 1px rule above, weight 600</li>
+      <li>Sticky header at <code>z-sticky</code>, sticky first column at <code>z-raised</code></li>
+    </ul></div>
+    <div class="dont"><h5>Don't</h5><ul>
+      <li>Vertical rules — they make it look like a spreadsheet, and the whole point is that you
+      replaced the spreadsheet</li>
+      <li>Centre anything except a status chip</li>
+      <li>A filled background on the totals row</li>
+      <li>Zebra striping <em>and</em> row borders — pick one</li>
+      <li>A module accent anywhere inside the table</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="charts">
+  <span class="eyebrow">13 · Applied</span>
+  <h2>Charts</h2>
+  <p>You ship <strong>three</strong> chart libraries: recharts 3.6, eleven <code>@visx/*</code>
+  packages, and <code>d3-array</code> + <code>d3-shape</code>. Three ways to draw a bar means three
+  sets of colour defaults, three tooltip behaviours and three axis styles — which is most of why
+  reports look unrelated to each other. <strong>Keep recharts.</strong> Quarantine visx to the one
+  component that genuinely needs custom scales or zoom, and never import d3 directly.</p>
+  <h3>The palette is computed, not chosen</h3>
+  <p>Eight categorical slots, <strong>assigned in fixed order and never cycled</strong>. A ninth
+  series folds into "Other", becomes small multiples, or the chart is wrong. Slot 1 is the brand
+  hue, so the first series in every chart is VenQore teal.</p>
+  <div class="serieswrap"><div class="series"><div class="series-bar" style="background:#0091A0"></div><b>1</b><span>teal</span><code>#0091A0</code></div><div class="series"><div class="series-bar" style="background:#AE7200"></div><b>2</b><span>bronze</span><code>#AE7200</code></div><div class="series"><div class="series-bar" style="background:#BB5798"></div><b>3</b><span>magenta</span><code>#BB5798</code></div><div class="series"><div class="series-bar" style="background:#798A00"></div><b>4</b><span>olive</span><code>#798A00</code></div><div class="series"><div class="series-bar" style="background:#3382D6"></div><b>5</b><span>blue</span><code>#3382D6</code></div><div class="series"><div class="series-bar" style="background:#CA564B"></div><b>6</b><span>rust</span><code>#CA564B</code></div><div class="series"><div class="series-bar" style="background:#8C69CD"></div><b>7</b><span>violet</span><code>#8C69CD</code></div><div class="series"><div class="series-bar" style="background:#009869"></div><b>8</b><span>jade</span><code>#009869</code></div></div>
+  <div class="callout good"><p><strong>Verified, not eyeballed.</strong> Against the
+  Machado–Oliveira–Fernandes (2009) colour-vision-deficiency model at severity 1.0: worst adjacent
+  pair <strong>ΔE 15.1</strong> light / <strong>15.0</strong> dark against a target of 8; worst
+  normal-vision pair <strong>ΔE 19.7</strong> / <strong>19.2</strong> against a floor of 15. Every
+  slot clears 3:1 on its surface, sits inside the lightness band, and carries chroma ≥ 0.10.</p></div>
+  <h4>Sequential — magnitude (heatmaps, density)</h4>
+  <div class="steps"><div class="step" style="background:var(--vq-seq-1)"></div><div class="step" style="background:var(--vq-seq-2)"></div><div class="step" style="background:var(--vq-seq-3)"></div><div class="step" style="background:var(--vq-seq-4)"></div><div class="step" style="background:var(--vq-seq-5)"></div></div>
+  <h4>Diverging — polarity (budget variance, over/under)</h4>
+  <div class="steps"><div class="step" style="background:var(--vq-div-neg-3)"></div><div class="step" style="background:var(--vq-div-neg-2)"></div><div class="step" style="background:var(--vq-div-neg-1)"></div><div class="step" style="background:var(--vq-div-mid)"></div><div class="step" style="background:var(--vq-div-pos-1)"></div><div class="step" style="background:var(--vq-div-pos-2)"></div><div class="step" style="background:var(--vq-div-pos-3)"></div></div>
+  <p>Two hues with a <strong>neutral grey midpoint</strong>. Never a hue at the middle — the whole
+  job of the midpoint is to read as "neither".</p>
+  <div class="demo">
+    <span class="demo-l">Applied · thin marks · recessive grid · legend present · direct labels</span>
+    <div class="chart">
+      <div class="ttl">Revenue vs cost of goods</div>
+      <div class="sub">Rolling 12 months · PKR millions · tabular figures</div>
+      <svg viewBox="0 0 560 196" width="100%" height="196" role="img" aria-label="Line chart of revenue against cost of goods over twelve months">
+        <line x1="8" x2="552" y1="8.0" y2="8.0" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="46.8" y2="46.8" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="85.5" y2="85.5" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="124.2" y2="124.2" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="163.0" y2="163.0" stroke="var(--vq-chart-grid)" stroke-width="1"/>
+        <path d="M8.0,82.1 L57.5,76.2 L106.9,78.2 L156.4,66.5 L205.8,60.6 L255.3,64.5 L304.7,48.9 L354.2,39.2 L403.6,43.1 L453.1,29.4 L502.5,21.6 L552.0,8.0" fill="none" stroke="var(--vq-series-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8.0,76.8 L57.5,70.3 L106.9,73.5 L156.4,63.7 L205.8,57.1 L255.3,60.4 L304.7,47.3 L354.2,37.5 L403.6,40.8 L453.1,27.7 L502.5,21.1 L552.0,8.0" fill="none" stroke="var(--vq-series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="8.0" y="186" text-anchor="middle" class="ax">Apr</text><text x="57.5" y="186" text-anchor="middle" class="ax">May</text><text x="106.9" y="186" text-anchor="middle" class="ax">Jun</text><text x="156.4" y="186" text-anchor="middle" class="ax">Jul</text><text x="205.8" y="186" text-anchor="middle" class="ax">Aug</text><text x="255.3" y="186" text-anchor="middle" class="ax">Sep</text><text x="304.7" y="186" text-anchor="middle" class="ax">Oct</text><text x="354.2" y="186" text-anchor="middle" class="ax">Nov</text><text x="403.6" y="186" text-anchor="middle" class="ax">Dec</text><text x="453.1" y="186" text-anchor="middle" class="ax">Jan</text><text x="502.5" y="186" text-anchor="middle" class="ax">Feb</text><text x="552.0" y="186" text-anchor="middle" class="ax">Mar</text>
+      </svg>
+      <div class="lg"><span><i style="background:var(--vq-series-1)"></i>Revenue</span>
+      <span><i style="background:var(--vq-series-2)"></i>Cost of goods</span></div>
+    </div>
+  </div>
+  <div class="demo">
+    <span class="demo-l">Single series · no legend — the title names it · 4px rounded data-ends · 2px gap between bars</span>
+    <div class="chart">
+      <div class="ttl">Monthly net revenue</div>
+      <div class="sub">Rolling 12 months · PKR millions</div>
+      <svg viewBox="0 0 560 196" width="100%" height="196" role="img" aria-label="Bar chart of monthly net revenue">
+        <line x1="8" x2="552" y1="8.0" y2="8.0" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="46.8" y2="46.8" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="85.5" y2="85.5" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="124.2" y2="124.2" stroke="var(--vq-chart-grid)" stroke-width="1"/><line x1="8" x2="552" y1="163.0" y2="163.0" stroke="var(--vq-chart-grid)" stroke-width="1"/><rect x="13.0" y="95.6" width="35.3" height="72.4" rx="4" fill="var(--vq-series-1)"/><rect x="58.3" y="90.4" width="35.3" height="77.6" rx="4" fill="var(--vq-series-1)"/><rect x="103.7" y="92.1" width="35.3" height="75.9" rx="4" fill="var(--vq-series-1)"/><rect x="149.0" y="81.5" width="35.3" height="86.5" rx="4" fill="var(--vq-series-1)"/><rect x="194.3" y="76.2" width="35.3" height="91.8" rx="4" fill="var(--vq-series-1)"/><rect x="239.7" y="79.8" width="35.3" height="88.2" rx="4" fill="var(--vq-series-1)"/><rect x="285.0" y="65.6" width="35.3" height="102.4" rx="4" fill="var(--vq-series-1)"/><rect x="330.3" y="56.8" width="35.3" height="111.2" rx="4" fill="var(--vq-series-1)"/><rect x="375.7" y="60.4" width="35.3" height="107.6" rx="4" fill="var(--vq-series-1)"/><rect x="421.0" y="48.0" width="35.3" height="120.0" rx="4" fill="var(--vq-series-1)"/><rect x="466.3" y="40.9" width="35.3" height="127.1" rx="4" fill="var(--vq-series-1)"/><rect x="511.7" y="28.6" width="35.3" height="139.4" rx="4" fill="var(--vq-series-1)"/><text x="8.0" y="186" text-anchor="middle" class="ax">Apr</text><text x="57.5" y="186" text-anchor="middle" class="ax">May</text><text x="106.9" y="186" text-anchor="middle" class="ax">Jun</text><text x="156.4" y="186" text-anchor="middle" class="ax">Jul</text><text x="205.8" y="186" text-anchor="middle" class="ax">Aug</text><text x="255.3" y="186" text-anchor="middle" class="ax">Sep</text><text x="304.7" y="186" text-anchor="middle" class="ax">Oct</text><text x="354.2" y="186" text-anchor="middle" class="ax">Nov</text><text x="403.6" y="186" text-anchor="middle" class="ax">Dec</text><text x="453.1" y="186" text-anchor="middle" class="ax">Jan</text><text x="502.5" y="186" text-anchor="middle" class="ax">Feb</text><text x="552.0" y="186" text-anchor="middle" class="ax">Mar</text>
+      </svg>
+    </div>
+  </div>
+  <div class="dd">
+    <div class="do"><h5>Do</h5><ul>
+      <li>Thin marks — 2px lines, ≥8px markers, 4px rounded data-ends anchored to the baseline</li>
+      <li>Legend for ≥2 series; a single series needs none — the title names it</li>
+      <li>Direct-label ≤4 series so identity is never colour-alone</li>
+      <li>Text in ink tokens; the coloured mark beside it carries identity</li>
+      <li>Ship a table view of every chart</li>
+      <li>Cap scatter, bubble, choropleth and small multiples at <strong>three</strong> series</li>
+    </ul></div>
+    <div class="dont"><h5>Don't</h5><ul>
+      <li><strong>Never a dual-axis chart.</strong> Two measures of different scale → two charts,
+      small multiples, or index both to a common base. This is the single most common charting
+      mistake and it is always wrong</li>
+      <li>Colour by rank — a filter that changes the series count must not repaint the survivors</li>
+      <li>Cycle the palette for a 9th series</li>
+      <li>Animate a number counting up on a financial figure</li>
+      <li>A module accent as a series colour</li>
+      <li>A rainbow sequential ramp, or a hue at a diverging midpoint</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="reactbits">
+  <span class="eyebrow">14 · Applied</span>
+  <h2>ReactBits — where each one goes</h2>
+  <p>The registry is wired in both repos. The governing rule: <strong>ReactBits is a marketing
+  dependency.</strong> Public pages may use it freely. Inside the product, exactly three things are
+  allowed. Every animated component you add to the app is a frame budget you spend on something that
+  is not the user's data.</p>
+  <h3>Already installed</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Where</th><th>Verdict</th></tr></thead>
+    <tbody>
+    <tr><td><strong>AnimatedList</strong></td><td>Landing — business-category picker</td>
+    <td><strong>Right choice, wrong copy.</strong> The modal currently says "Select Business Category"
+    with "Scroll or press Arrow keys to choose your sector." Say what it does — heading
+    <strong>"What kind of business?"</strong>, helper <strong>"Pick the closest — you can change
+    everything later."</strong>, button <strong>"Use this"</strong>. Cap at 8 visible with the rest
+    scrolled; a keyboard-navigable list of 30 is a form, not a delight.</td></tr>
+    <tr><td><strong>ShinyText</strong></td><td>Hero placeholder</td><td>Keep. This is the one place a
+    shimmer earns its keep — it says <em>type here</em>. Nowhere else on the site, ever.</td></tr>
+    <tr><td><strong>FoldText</strong></td><td>Hero headline</td><td>Keep, but once, on first paint
+    only. Never re-animate on scroll-up.</td></tr>
+    <tr><td><strong>LaserFlow</strong></td><td>Footer watermark</td><td>Keep. It is the page's
+    signature. One per site — a second one makes the first one ordinary.</td></tr>
+    <tr><td><strong>OptionWheel</strong></td><td>Business picker, alternate</td><td>Pick one of this
+    and AnimatedList. Shipping both is two answers to one question; AnimatedList is the better fit
+    for 30 categories.</td></tr>
+    <tr><td><strong>SplitText</strong></td><td>App — <code>Components/ReactBits/</code></td>
+    <td><strong>Remove from the app.</strong> Animating headings inside an ERP is motion with no
+    information in it.</td></tr>
+    <tr><td><strong>DecryptedText</strong></td><td>App — <code>Components/ReactBits/</code></td>
+    <td><strong>Remove from the app.</strong> Scrambling characters where a user is reading a figure
+    is actively hostile.</td></tr>
+    </tbody>
+  </table>
+  <h3>Worth adding — public pages only</h3>
+  <table>
+    <thead><tr><th>Where</th><th>What to reach for</th><th>Why</th></tr></thead>
+    <tbody>
+    <tr><td>Pricing tier cards</td><td>A spotlight / glare-on-hover card</td><td>Reinforces which tier
+    is being considered without moving layout</td></tr>
+    <tr><td>Feature grid</td><td>A bento / masonry layout</td><td>240+ features need a grid with
+    rhythm, not a 3×N table</td></tr>
+    <tr><td>Integration strip</td><td>An infinite marquee</td><td>Amazon, WooCommerce, eBay, TikTok —
+    motion implies "always syncing"</td></tr>
+    <tr><td>Section entrances</td><td>A fade / animated-content wrapper</td><td>Replaces the
+    hand-rolled <code>.reveal-item</code>. Keep 20px travel, 480ms, 60ms stagger, once only</td></tr>
+    <tr><td>Nav</td><td><strong>GooeyNav</strong> — already fully styled in <code>style.css</code></td>
+    <td>Wire it up or delete the 200 lines of dead CSS</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Verify exact component names against reactbits.dev before installing — the
+  catalogue moves. Anything you add gets a <code>prefers-reduced-motion</code> branch.</p>
+  <h3>The three allowed inside the product</h3>
+  <ol style="color:var(--vq-text-2);margin-left:20px;max-width:70ch">
+    <li style="margin-bottom:6px"><strong>A count-up on a dashboard KPI</strong> — marketing
+    dashboards only, never a ledger balance. <code>@number-flow/react</code> is already installed and
+    is the better tool.</li>
+    <li style="margin-bottom:6px"><strong>A skeleton / shimmer while data loads.</strong> Not
+    decoration — it is the honest answer to "is this broken or is it slow".</li>
+    <li><strong>A stepper for the setup wizard.</strong> Progress through a multi-step flow is
+    information.</li>
+  </ol>
+  <p>Everything else in the app is <code>--vq-dur-fast</code> on a colour change. Bloomberg, Stripe's
+  dashboard and NetSuite are not quiet because they couldn't afford animation.</p>
+</section>
+
+<section id="line">
+  <span class="eyebrow">15 · Applied</span>
+  <h2>Marketing vs product — the line</h2>
+  <table>
+    <thead><tr><th></th><th>Public pages</th><th>Inside the app</th></tr></thead>
+    <tbody>
+    <tr><td><strong>Background</strong></td><td>WebGL fluid, mesh gradient, laser flow</td><td>Flat <code>--vq-bg</code>. Nothing else</td></tr>
+    <tr><td><strong>Serif italic</strong></td><td>One word per page</td><td>Never</td></tr>
+    <tr><td><strong>Ambient motion</strong></td><td>Above the fold, ≥768px, reduced-motion aware</td><td>Never</td></tr>
+    <tr><td><strong>Hover scale</strong></td><td>Media thumbnails only</td><td>Media thumbnails only</td></tr>
+    <tr><td><strong>Theme</strong></td><td>Dark hero → light body, one direction</td><td>Full light/dark toggle</td></tr>
+    <tr><td><strong>Density</strong></td><td>Comfortable · 80px section gaps</td><td>Compact · 48px rows</td></tr>
+    <tr><td><strong>Type</strong></td><td>Display 60px</td><td>h1 caps at 32px — the data is the headline</td></tr>
+    <tr><td><strong>Colour</strong></td><td>Teal + ink · one gradient</td><td>Teal + ink + module accent in chrome + semantic in data</td></tr>
+    </tbody>
+  </table>
+  <p>The fluid canvas is a real <em class="serif">this was made by someone who cares</em> signal and
+  it costs nothing at the top of a marketing page. Four conditions: it must not cover the gradient;
+  it is disabled below 768px (continuous WebGL is a battery and thermal problem on a phone); it
+  respects <code>prefers-reduced-motion</code>; and it fades out below the fold, so it reads as the
+  top of the page rather than as a background the whole site is sitting on.</p>
+</section>
+
+<section id="bugs">
+  <span class="eyebrow">16 · Ship it</span>
+  <h2>The bugs, by name</h2>
+  <h3>SidebarItem.jsx — the hover clipping you described</h3>
+  <p>Three defects in one component, all on the same root cause.</p>
+  <pre><span class="c">// the row wrapper</span>
+className=<span class="r">"… rounded-2xl transition-all duration-300 group relative overflow-hidden"</span>
+<span class="c">//                                                              ^^^^^^^^^^^^^^^</span>
+
+<span class="c">// the icon, inside that wrapper</span>
+&lt;div className=<span class="r">"relative group-hover:scale-125 transition-transform origin-center"</span>&gt;
+
+<span class="c">// a ring that extends 4px BEYOND the icon, also inside it</span>
+&lt;div className=<span class="r">"absolute -inset-1 rounded-full border-2 …"</span> /&gt;
+
+<span class="c">// a tooltip positioned OUTSIDE the wrapper entirely, also inside it</span>
+&lt;div className=<span class="r">"absolute left-full ml-2 … z-50 …"</span>&gt;</pre>
+  <ul>
+    <li><code>scale-125</code> grows the icon 25%; <code>overflow-hidden</code> crops whatever crosses
+    the row edge. <strong>That is the "it zooms in and cuts off its sides" you described.</strong></li>
+    <li><code>-inset-1</code> pushes the hover ring 4px past the icon on every side, so the ring is
+    clipped before the icon is.</li>
+    <li>The collapsed-state tooltip sits at <code>left-full</code> — fully outside the parent box —
+    so it is clipped to nothing and <strong>has never rendered once</strong>. <code>z-50</code>
+    doesn't save it, because no z-index can escape an <code>overflow-hidden</code> ancestor.</li>
+  </ul>
+  <p>The same file also carries <code>shadow-indigo-500/20</code>, <code>bg-indigo-600/40</code>,
+  <code>bg-purple-600/30</code>, <code>bg-violet-500/20</code>, <code>text-indigo-600</code> and
+  <code>font-bold</code>. The active nav state — the single most-looked-at pixel in the product — is
+  a colour that is not the brand, in a weight that is not in the system, with a coloured shadow.</p>
+  <h3>Landing page</h3>
+  <table>
+    <thead><tr><th>Severity</th><th>Issue</th><th>Fix</th></tr></thead>
+    <tbody>
+    <tr><td><span class="pill bad">Critical</span></td><td>The customiser drawer ships to production —
+    vorticity, splat force, pressure iterations, dye resolution, on a visible button</td>
+    <td>Gate behind <code>?debug=1</code>. Highest risk-to-effort ratio on this list</td></tr>
+    <tr><td><span class="pill bad">Critical</span></td><td>Copy is still template copy —
+    <code>&lt;title&gt;VenQore — Design with AI&lt;/title&gt;</code>, "transform your ideas into
+    stunning designs"</td><td>Replace from the Copy Bible</td></tr>
+    <tr><td><span class="pill bad">Critical</span></td><td>Dark-mode accent text fails contrast —
+    <code>text-[#327882]</code> on <code>zinc-950</code> is 3.88:1 across every drawer label</td>
+    <td>Swap to <code>#5DA5B0</code>. Two minutes, passes at 7.0:1</td></tr>
+    <tr><td><span class="pill warn">High</span></td><td>The fluid canvas covers the gradient it sits
+    on — <code>#fluid-canvas</code> at <code>z-index:2</code>, <code>.hero-gradient-overlay</code>
+    at <code>0</code></td><td>Drop the canvas to 0, make the overlay a scrim at 1</td></tr>
+    <tr><td><span class="pill warn">High</span></td><td>The dual-theme inversion is unmaintainable —
+    <code>text-white dark:text-black</code> on the headline, the reverse on the sub-text</td>
+    <td>Dark hero, light body, one direction. Keep the toggle for inside the product</td></tr>
+    <tr><td><span class="pill warn">High</span></td><td>Tailwind loads from the CDN — a render-blocking
+    script plus a JIT compile before anything paints</td><td>Build a real stylesheet before launch</td></tr>
+    <tr><td><span class="pill neutral">Medium</span></td><td>Nav is 96px tall; every footer link points
+    at <code>#</code></td><td>64px. Wire the links</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="migration">
+  <span class="eyebrow">17 · Ship it</span>
+  <h2>Migration order</h2>
+  <p>Nothing here requires touching 463 files at once. Steps 1–5 are a day and change how the whole
+  product reads.</p>
+  <table>
+    <thead><tr><th style="width:34px"></th><th>Step</th><th>Effect</th></tr></thead>
+    <tbody>
+    <tr><td class="mono">1</td><td><strong>Ship <code>tokens.css</code> and the Tailwind fragment</strong></td>
+    <td>Nothing changes visually. <code>rounded-3xl</code>, <code>z-[9999]</code> and
+    <code>font-bold</code> stop compiling — that is your worklist, generated by the build</td></tr>
+    <tr><td class="mono">2</td><td><strong>Fix <code>SidebarItem.jsx</code></strong></td>
+    <td>One file, highest visible return. It is the component people look at while they decide
+    whether the product is serious</td></tr>
+    <tr><td class="mono">3</td><td><strong>Codemod z-index</strong></td><td>31 values → 12 names.
+    Mechanical, reviewable in one pass</td></tr>
+    <tr><td class="mono">4</td><td><strong>Codemod radius</strong></td><td>Everything above 24px
+    collapses to <code>2xl</code>; card <code>2xl</code> → <code>lg</code></td></tr>
+    <tr><td class="mono">5</td><td><strong>Delete every <code>hover:scale-*</code></strong></td>
+    <td>184 deletions outside media frames. Near-zero risk, fixes the clipping everywhere at once</td></tr>
+    <tr><td class="mono">6</td><td><strong>Colour, module by module</strong></td><td>6,726 indigo
+    instances, but they cluster. Do Sales, then Inventory, then Accounting — the pattern is obvious
+    by the third</td></tr>
+    <tr><td class="mono">7</td><td><strong>Self-host Inter in the app, delete Figtree</strong></td>
+    <td>The site and the product stop being two companies</td></tr>
+    <tr><td class="mono">8</td><td><strong>Quarantine visx, standardise on recharts</strong></td>
+    <td>Apply the series palette. Reports start looking like one product</td></tr>
+    </tbody>
+  </table>
+  <h3>Grep checks for CI</h3>
+  <p>Each of these should return zero. Today the first returns thousands. Wire them in as a
+  non-blocking report first, then make them blocking once the count reaches zero — a check that has
+  always failed is a check nobody reads.</p>
+  <pre><span class="c"># no raw hex in components</span>
+grep -rnE '#[0-9a-fA-F]{3,8}\b' resources/js --include=*.jsx
+
+<span class="c"># no arbitrary z-index</span>
+grep -rnE 'z-\[[0-9]+\]' resources/js --include=*.jsx
+
+<span class="c"># no radius above the ceiling</span>
+grep -rnE 'rounded-(3xl|\[[0-9.]+(rem|px)\])' resources/js --include=*.jsx
+
+<span class="c"># no hover scale</span>
+grep -rnE '(group-)?hover:scale-' resources/js --include=*.jsx
+
+<span class="c"># no weight 700+</span>
+grep -rnE 'font-(bold|extrabold|black)' resources/js --include=*.jsx
+
+<span class="c"># no off-system palettes</span>
+grep -rnE '\b(bg|text|border)-(indigo|violet|purple|slate|zinc|gray|neutral)-[0-9]{2,3}' resources/js --include=*.jsx
+
+<span class="c"># no dual-axis charts</span>
+grep -rn 'yAxisId' resources/js --include=*.jsx</pre>
+  <div class="foot">
+    <span>VenQore Design System v2.0 — August 2026</span>
+    <span>209 tokens · 8 chart slots CVD-verified · WCAG 2.1 AA</span>
+  </div>
+</section>
+
+</main>
+</div>
+<script>
+const t=document.getElementById('tgl'), r=document.documentElement;
+t.addEventListener('click',()=>{
+  const d=r.getAttribute('data-theme')==='dark';
+  r.setAttribute('data-theme', d?'light':'dark');
+  t.textContent = d?'Dark':'Light';
+});
+const links=[...document.querySelectorAll('nav.side a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.remove('on'));
+    const m=links.find(l=>l.getAttribute('href')==='#'+e.target.id);
+    if(m) m.classList.add('on');
+  } });
+},{rootMargin:'-10% 0px -80% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

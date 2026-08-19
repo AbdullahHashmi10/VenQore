@@ -417,6 +417,7 @@ const RegularSettings = ({ data, setData }) => (
         <Section title="Header Content" icon={FileText}>
             <TextInput label="Company Name" value={data.business_name} onChange={v => setData('business_name', v)} />
             <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
+            <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
 
             {data.print_logo && <LogoUploader data={data} setData={setData} />}
 
@@ -537,6 +538,7 @@ const ThermalSettings = ({ data, setData }) => (
 
             <div className="mt-4">
                 <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} color="emerald" />
+                <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} color="emerald" />
                 {data.print_logo && <LogoUploader data={data} setData={setData} />}
             </div>
 

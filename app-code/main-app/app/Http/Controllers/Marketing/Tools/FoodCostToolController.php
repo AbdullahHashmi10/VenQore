@@ -7,7 +7,7 @@ use App\Support\ToolRegistry;
 use Inertia\Inertia;
 
 /**
- * FoodCostToolController — free Recipe Costing Calculator.
+ * FoodCostToolController — free Composition Costing Calculator.
  *
  * Pure client-side interactive recipe costing tool with unit conversions,
  * portion yield math, waste allowance, target food cost % pricing solver,

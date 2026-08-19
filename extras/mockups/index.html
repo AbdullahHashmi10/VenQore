@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenQore Interactive Mockups & Live Customizer</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* CSS Variables Single Source of Truth - modified dynamically by customizer */
+    :root {
+      /* Default Preset: Classic Dark (matching user's dashboard images) */
+      --vq-bg: #0b0e14;
+      --vq-sunken: #06080e;
+      --vq-surface: #121620;
+      --vq-raised: #181d2a;
+      --vq-text: #f3f4f6;
+      --vq-text-2: #9ca3af;
+      --vq-text-3: #4b5563;
+      --vq-text-inverted: #0b0e14;
+      
+      --vq-accent: #327882;
+      --vq-accent-hover: #21656f;
+      --vq-accent-text: #5da5b0;
+      --vq-accent-quiet: rgba(50, 120, 130, 0.15);
+      --vq-on-accent: #ffffff;
+      
+      --vq-line: rgba(255, 255, 255, 0.08);
+      --vq-line-soft: rgba(255, 255, 255, 0.04);
+      --vq-line-strong: rgba(255, 255, 255, 0.15);
+      --vq-focus: #5da5b0;
+      
+      --vq-success: #1A7F51;
+      --vq-success-bg: rgba(26, 127, 81, 0.12);
+      --vq-success-line: rgba(26, 127, 81, 0.3);
+      
+      --vq-warning: #A85B05;
+      --vq-warning-bg: rgba(168, 91, 5, 0.12);
+      --vq-warning-line: rgba(168, 91, 5, 0.3);
+      
+      --vq-danger: #BD3838;
+      --vq-danger-bg: rgba(189, 56, 56, 0.12);
+      --vq-danger-line: rgba(189, 56, 56, 0.3);
+      
+      --vq-info: #595E64;
+      --vq-info-bg: rgba(89, 94, 100, 0.12);
+      --vq-info-line: rgba(89, 94, 100, 0.3);
+
+      /* Typography base values (Design System Locked Ratios) */
+      --vq-fs-display: 60px;  --vq-lh-display: 1.04;  --vq-ls-display: -0.033em;
+      --vq-fs-h1:      40px;  --vq-lh-h1:      1.10;  --vq-ls-h1:      -0.028em;
+      --vq-fs-h2:      32px;  --vq-lh-h2:      1.15;  --vq-ls-h2:      -0.025em;
+      --vq-fs-h3:      20px;  --vq-lh-h3:      1.30;  --vq-ls-h3:      -0.015em;
+      --vq-fs-lede:    19px;  --vq-lh-lede:    1.55;  --vq-ls-lede:    -0.006em;
+      --vq-fs-body:    16px;  --vq-lh-body:    1.60;  --vq-ls-body:     0em;
+      --vq-fs-small:   14px;  --vq-lh-small:   1.55;  --vq-ls-small:    0em;
+      --vq-fs-caption: 13px;  --vq-lh-caption: 1.50;  --vq-ls-caption:  0em;
+      --vq-fs-eyebrow: 11px;  --vq-lh-eyebrow: 1.20;  --vq-ls-eyebrow:  0.14em;
+
+      /* Typography fonts */
+      --vq-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --vq-font-serif: 'Instrument Serif', Georgia, serif;
+      --vq-font-mono: 'JetBrains Mono', monospace;
+      
+      /* Border Radii */
+      --vq-r-xs: 4px;
+      --vq-r-sm: 6px;
+      --vq-r-md: 10px;
+      --vq-r-lg: 14px;
+      --vq-r-xl: 20px;
+      --vq-r-2xl: 24px;
+    }
+
+    body {
+      background-color: var(--vq-bg);
+      color: var(--vq-text);
+      font-family: var(--vq-font-sans);
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    /* Helper styles linking to customizer variables */
+    .font-sans-var { font-family: var(--vq-font-sans); }
+    .font-mono-var { font-family: var(--vq-font-mono); }
+    .font-serif-var { font-family: var(--vq-font-serif); }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--vq-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--vq-line-strong); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--vq-accent); }
+
+    /* Tabular numbers formatting */
+    .tnum {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+    }
+  </style>
+
+  <script>
+    // Tailwind configuration mappings to CSS variables (colors, sizes in locked ratio)
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vq: {
+              bg: 'var(--vq-bg)',
+              sunken: 'var(--vq-sunken)',
+              surface: 'var(--vq-surface)',
+              raised: 'var(--vq-raised)',
+              text: 'var(--vq-text)',
+              'text-2': 'var(--vq-text-2)',
+              'text-3': 'var(--vq-text-3)',
+              accent: 'var(--vq-accent)',
+              'accent-hover': 'var(--vq-accent-hover)',
+              'accent-text': 'var(--vq-accent-text)',
+              'accent-quiet': 'var(--vq-accent-quiet)',
+              line: 'var(--vq-line)',
+              'line-soft': 'var(--vq-line-soft)',
+              'line-strong': 'var(--vq-line-strong)',
+              success: 'var(--vq-success)',
+              'success-bg': 'var(--vq-success-bg)',
+              'success-line': 'var(--vq-success-line)',
+              warning: 'var(--vq-warning)',
+              'warning-bg': 'var(--vq-warning-bg)',
+              'warning-line': 'var(--vq-warning-line)',
+              danger: 'var(--vq-danger)',
+              'danger-bg': 'var(--vq-danger-bg)',
+              'danger-line': 'var(--vq-danger-line)',
+              info: 'var(--vq-info)',
+              'info-bg': 'var(--vq-info-bg)',
+              'info-line': 'var(--vq-info-line)',
+            }
+          },
+          fontFamily: {
+            sans: 'var(--vq-font-sans)',
+            mono: 'var(--vq-font-mono)',
+            serif: 'var(--vq-font-serif)',
+          },
+          fontSize: {
+            'vq-display': ['var(--vq-fs-display)', { lineHeight: 'var(--vq-lh-display)', letterSpacing: 'var(--vq-ls-display)' }],
+            'vq-h1': ['var(--vq-fs-h1)', { lineHeight: 'var(--vq-lh-h1)', letterSpacing: 'var(--vq-ls-h1)' }],
+            'vq-h2': ['var(--vq-fs-h2)', { lineHeight: 'var(--vq-lh-h2)', letterSpacing: 'var(--vq-ls-h2)' }],
+            'vq-h3': ['var(--vq-fs-h3)', { lineHeight: 'var(--vq-lh-h3)', letterSpacing: 'var(--vq-ls-h3)' }],
+            'vq-lede': ['var(--vq-fs-lede)', { lineHeight: 'var(--vq-lh-lede)', letterSpacing: 'var(--vq-ls-lede)' }],
+            'vq-body': ['var(--vq-fs-body)', { lineHeight: 'var(--vq-lh-body)', letterSpacing: 'var(--vq-ls-body)' }],
+            'vq-small': ['var(--vq-fs-small)', { lineHeight: 'var(--vq-lh-small)', letterSpacing: 'var(--vq-ls-small)' }],
+            'vq-caption': ['var(--vq-fs-caption)', { lineHeight: 'var(--vq-lh-caption)', letterSpacing: 'var(--vq-ls-caption)' }],
+            'vq-eyebrow': ['var(--vq-fs-eyebrow)', { lineHeight: 'var(--vq-lh-eyebrow)', letterSpacing: 'var(--vq-ls-eyebrow)' }],
+          },
+          borderRadius: {
+            xs: 'var(--vq-r-xs)',
+            sm: 'var(--vq-r-sm)',
+            md: 'var(--vq-r-md)',
+            lg: 'var(--vq-r-lg)',
+            xl: 'var(--vq-r-xl)',
+            '2xl': 'var(--vq-r-2xl)',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-screen overflow-hidden flex flex-row">
+
+  <!-- Left Sidebar (Narrow icon rail, matching original POS style) -->
+  <aside class="w-16 md:w-20 bg-vq-surface border-r border-vq-line flex flex-col items-center py-6 justify-between flex-shrink-0 z-30">
+    <div class="flex flex-col items-center gap-8 w-full">
+      <!-- Logo Container -->
+      <div class="w-10 h-10 bg-vq-accent/15 rounded-xl flex items-center justify-center border border-vq-accent/30 cursor-pointer hover:scale-105 transition-transform" id="nav-logo">
+        <svg class="w-6 h-6 text-vq-accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+      </div>
+
+      <!-- Main Navigation Rail -->
+      <nav class="flex flex-col gap-3 w-full px-2" id="main-navigation">
+        <!-- Overview -->
+        <button data-page="overview" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Overview (Old Main Dashboard)">
+          <i data-lucide="layout-grid" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">Overview</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+
+        <!-- Executive (Admin Panel) -->
+        <button data-page="executive" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Executive Dashboard (Admin Panel)">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">Admin</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+
+        <!-- Sales History -->
+        <button data-page="sales-history" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Sales History">
+          <i data-lucide="receipt-text" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">Sales</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+
+        <!-- Products List -->
+        <button data-page="products" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Products List">
+          <i data-lucide="package" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">Products</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+
+        <!-- Profit & Loss -->
+        <button data-page="profit-loss" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Profit & Loss Statement">
+          <i data-lucide="calculator" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">P &amp; L</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+
+        <!-- Sales Report -->
+        <button data-page="sales-report" class="nav-btn w-full py-3 rounded-lg flex flex-col items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text transition-all relative" title="Sales Report">
+          <i data-lucide="trending-up" class="w-5 h-5"></i>
+          <span class="text-vq-eyebrow mt-1 font-medium hidden md:block">Report</span>
+          <div class="active-indicator absolute left-0 top-1/4 bottom-1/4 w-1 bg-vq-accent rounded-r hidden"></div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="flex flex-col items-center gap-4 w-full px-2">
+      <!-- Theme Switcher -->
+      <button id="theme-toggle-btn" class="w-10 h-10 rounded-lg flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken hover:text-vq-accent transition-colors" title="Toggle Light/Dark Mode">
+        <i data-lucide="moon" class="w-5 h-5" id="theme-toggle-icon"></i>
+      </button>
+      
+      <!-- Palette Customize Button -->
+      <button id="customizer-toggle-btn" class="w-10 h-10 bg-vq-accent/15 text-vq-accent-text border border-vq-accent/30 rounded-lg flex items-center justify-center hover:bg-vq-accent hover:text-vq-on-accent transition-all" title="Tweak Colors & Fonts">
+        <i data-lucide="palette" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Profile Avatar -->
+      <div class="w-10 h-10 bg-vq-accent text-vq-on-accent font-semibold rounded-full flex items-center justify-center text-vq-small border border-vq-line cursor-pointer" title="User Profile: Ahmad Raza">
+        AR
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+
+    <!-- Header bar -->
+    <header class="h-16 border-b border-vq-line bg-vq-surface/50 backdrop-blur-md px-6 flex items-center justify-between flex-shrink-0 z-20">
+      <div class="flex items-center gap-4">
+        <div>
+          <h1 class="text-vq-body font-semibold tracking-tight text-vq-text" id="header-title">Overview</h1>
+          <p class="text-vq-caption text-vq-text-3 font-medium" id="header-subtitle">Welcome back, Ahmad Raza</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-4">
+        <!-- Search bar -->
+        <div class="relative hidden sm:block w-64">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-vq-text-3">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </span>
+          <input type="text" placeholder="Search anything..." class="w-full h-9 pl-9 pr-16 bg-vq-sunken text-vq-small border border-vq-line rounded-lg text-vq-text focus:outline-none focus:border-vq-accent placeholder-vq-text-3">
+          <span class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <kbd class="text-[10px] font-mono bg-vq-surface border border-vq-line text-vq-text-3 px-1.5 py-0.5 rounded">⌘ / Ctrl F</kbd>
+          </span>
+        </div>
+
+        <!-- Camera/Scan -->
+        <button class="w-9 h-9 border border-vq-line rounded-lg flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken transition-colors">
+          <i data-lucide="camera" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Growth Engine -->
+        <button class="hidden lg:flex items-center gap-2 h-9 px-4 rounded-lg bg-gradient-to-r from-vq-accent/20 to-vq-accent/5 border border-vq-accent/30 text-vq-accent-text text-vq-small font-semibold hover:from-vq-accent/30 hover:to-vq-accent/10 transition-all">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-vq-accent"></i>
+          <span>Growth Engine</span>
+        </button>
+
+        <!-- Admin Panel Switch -->
+        <button id="admin-panel-btn" class="h-9 px-4 rounded-lg bg-vq-raised border border-vq-line hover:border-vq-accent text-vq-text-2 hover:text-vq-text text-vq-small font-semibold transition-all flex items-center gap-2">
+          <i data-lucide="shield" class="w-4 h-4 text-vq-warning"></i>
+          <span id="admin-btn-text">Admin Panel</span>
+        </button>
+
+        <!-- Time -->
+        <div class="text-vq-small text-vq-text-2 bg-vq-sunken px-3 py-1.5 rounded-lg border border-vq-line flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-vq-text-3"></i>
+          <span id="current-time" class="tnum">12:55 PM</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Scrollable Pages View -->
+    <main class="flex-1 overflow-y-auto p-6 bg-vq-bg">
+
+      <!-- ================= PAGE 1: OVERVIEW (OLD MAIN) ================= -->
+      <div id="page-overview" class="page-container hidden space-y-6">
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Card 1: Performance -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-36">
+            <div class="flex justify-between items-center">
+              <span class="text-vq-eyebrow font-semibold tracking-wider text-vq-text-3 uppercase flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-vq-accent"></i> PERFORMANCE
+              </span>
+              <select class="bg-vq-sunken text-vq-caption border border-vq-line rounded px-2 py-0.5 text-vq-text-2">
+                <option>Today</option>
+                <option>Month</option>
+                <option>Year</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <span class="text-vq-caption text-vq-text-3 uppercase block font-mono-var">Total Revenue</span>
+                <span class="text-vq-h3 font-semibold tracking-tight text-vq-text tnum">$342,851.00</span>
+              </div>
+              <div class="border-l border-vq-line pl-4">
+                <span class="text-vq-caption text-vq-text-3 uppercase block font-mono-var">Gross Profit</span>
+                <span class="text-vq-h3 font-semibold tracking-tight text-vq-text tnum">$287,845.55</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Outstanding -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-36">
+            <div class="flex justify-between items-center">
+              <span class="text-vq-eyebrow font-semibold tracking-wider text-vq-text-3 uppercase flex items-center gap-2">
+                <i data-lucide="wallet" class="w-4 h-4 text-vq-warning"></i> OUTSTANDING
+              </span>
+              <select class="bg-vq-sunken text-vq-caption border border-vq-line rounded px-2 py-0.5 text-vq-text-2">
+                <option>Month</option>
+                <option>Today</option>
+                <option>Year</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <span class="text-vq-caption text-vq-text-3 uppercase block font-mono-var">To Receive</span>
+                <span class="text-vq-h3 font-semibold tracking-tight text-vq-accent-text tnum">$2,132,989.00</span>
+              </div>
+              <div class="border-l border-vq-line pl-4">
+                <span class="text-vq-caption text-vq-text-3 uppercase block font-mono-var">To Pay</span>
+                <span class="text-vq-h3 font-semibold tracking-tight text-vq-text tnum">$54,251.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Net Profit -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-36">
+            <div class="flex justify-between items-center">
+              <span class="text-vq-eyebrow font-semibold tracking-wider text-vq-text-3 uppercase flex items-center gap-2">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-vq-success"></i> NET PROFIT
+              </span>
+              <select class="bg-vq-sunken text-vq-caption border border-vq-line rounded px-2 py-0.5 text-vq-text-2">
+                <option>Month</option>
+                <option>Today</option>
+                <option>Year</option>
+              </select>
+            </div>
+            <div class="flex items-end justify-between mt-2">
+              <div>
+                <span class="text-vq-caption text-vq-text-3 uppercase block font-mono-var">Current Status</span>
+                <span class="text-vq-small font-semibold text-vq-success flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-vq-success animate-ping"></span> Good
+                </span>
+              </div>
+              <div class="text-right text-vq-caption text-vq-text-3">
+                <div>Revenue: <span class="text-vq-text font-medium tnum">$1,382,436.55</span></div>
+                <div>Expenses: <span class="text-vq-danger font-medium tnum">$1,094,591.00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts and Side Content -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <!-- Line Chart: Revenue Analytics (3 cols) -->
+          <div class="xl:col-span-3 bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[380px]">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <h3 class="text-vq-small font-semibold text-vq-text uppercase tracking-wider flex items-center gap-2">
+                  <i data-lucide="bar-chart-3" class="w-4.5 h-4.5 text-vq-accent"></i> Revenue Analytics
+                </h3>
+                <p class="text-vq-caption text-vq-text-3 font-medium">Hourly sales distribution</p>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 text-vq-caption text-vq-text-2">
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-vq-accent"></span> Sales</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-vq-success"></span> Gross Profit</span>
+                </div>
+                <div class="flex bg-vq-sunken p-1 rounded-lg border border-vq-line text-vq-caption">
+                  <button class="px-2.5 py-1 font-semibold bg-vq-raised border border-vq-line rounded text-vq-text">Today</button>
+                  <button class="px-2.5 py-1 font-semibold text-vq-text-3">Month</button>
+                  <button class="px-2.5 py-1 font-semibold text-vq-text-3">Year</button>
+                </div>
+              </div>
+            </div>
+            <!-- Canvas Container -->
+            <div class="flex-1 w-full relative">
+              <canvas id="overviewRevenueChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Opportunities & Quick Cards (1 col) -->
+          <div class="flex flex-col gap-6">
+            <!-- AI Opportunities -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex-1 flex flex-col justify-between min-h-[200px]">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="text-vq-small font-semibold text-vq-text">Today's Opportunities</h4>
+                    <p class="text-vq-caption text-vq-text-3">AI Insights &amp; Leads</p>
+                  </div>
+                  <span class="text-vq-body font-bold text-vq-accent-text tnum">$142,500.00</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 mt-3 text-center">
+                  <div class="bg-vq-sunken/40 p-1.5 rounded border border-vq-line">
+                    <span class="text-vq-small font-semibold text-vq-success tnum">8</span>
+                    <span class="text-vq-eyebrow text-vq-text-3 block mt-0.5 uppercase">Due</span>
+                  </div>
+                  <div class="bg-vq-sunken/40 p-1.5 rounded border border-vq-line">
+                    <span class="text-vq-small font-semibold text-vq-warning tnum">3</span>
+                    <span class="text-vq-eyebrow text-vq-text-3 block mt-0.5 uppercase">Risk</span>
+                  </div>
+                  <div class="bg-vq-sunken/40 p-1.5 rounded border border-vq-line">
+                    <span class="text-vq-small font-semibold text-vq-danger tnum">2</span>
+                    <span class="text-vq-eyebrow text-vq-text-3 block mt-0.5 uppercase">At Risk</span>
+                  </div>
+                  <div class="bg-vq-sunken/40 p-1.5 rounded border border-vq-line">
+                    <span class="text-vq-small font-semibold text-vq-text-2 tnum">1</span>
+                    <span class="text-vq-eyebrow text-vq-text-3 block mt-0.5 uppercase">Over</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col items-center justify-center py-3 border-t border-vq-line/50 mt-3">
+                <i data-lucide="sparkles" class="w-6 h-6 text-vq-success animate-pulse mb-1.5"></i>
+                <p class="text-[10px] text-vq-text-2 text-center leading-relaxed">AI analysis detected **3 stock risks** and **8 pending collections** today.</p>
+              </div>
+            </div>
+
+            <!-- Balances -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col gap-3.5">
+              <div>
+                <div class="flex justify-between items-center text-vq-caption text-vq-text-3">
+                  <span>Total Balance</span>
+                  <button class="w-5 h-5 rounded flex items-center justify-center text-vq-text-3 hover:bg-vq-sunken"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+                <div class="text-vq-h3 font-bold tracking-tight text-vq-text mt-0.5 tnum">$6,636,549.20</div>
+                <div class="grid grid-cols-3 gap-1.5 mt-2.5">
+                  <button class="h-8 rounded bg-vq-success-bg border border-vq-success-line text-vq-success text-vq-eyebrow font-semibold hover:brightness-105 transition-all flex items-center justify-center gap-1">
+                    <i data-lucide="arrow-down-left" class="w-3 h-3"></i> Sale
+                  </button>
+                  <button class="h-8 rounded bg-vq-warning-bg border border-vq-warning-line text-vq-warning text-vq-eyebrow font-semibold hover:brightness-105 transition-all flex items-center justify-center gap-1">
+                    <i data-lucide="arrow-up-right" class="w-3 h-3"></i> Purchase
+                  </button>
+                  <button class="h-8 rounded bg-vq-raised border border-vq-line text-vq-text-2 text-vq-eyebrow font-semibold hover:bg-vq-sunken transition-all">
+                    + Actions
+                  </button>
+                </div>
+              </div>
+              
+              <div class="border-t border-vq-line pt-2.5 flex justify-between items-center text-vq-caption">
+                <div>
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block">Cash in Hand</span>
+                  <span class="font-semibold text-vq-text tnum">$6,636,549.20</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-vq-eyebrow font-bold bg-vq-success-bg text-vq-success border border-vq-success-line uppercase">Main</span>
+              </div>
+              
+              <div class="border-t border-vq-line pt-2.5 flex justify-between items-center text-vq-caption">
+                <div>
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block">Stock Value</span>
+                  <span class="font-semibold text-vq-text tnum">$87,299,019.00</span>
+                </div>
+                <span class="text-vq-eyebrow text-vq-text-3 uppercase">Asset Cost</span>
+              </div>
+
+              <div class="border-t border-vq-line pt-2.5 flex items-center justify-center bg-vq-sunken/30 rounded border border-dashed border-vq-line p-2 cursor-pointer hover:bg-vq-sunken/60 transition-all text-vq-caption">
+                <i data-lucide="plus" class="w-3.5 h-3.5 text-vq-accent-text mr-1.5"></i>
+                <span class="text-vq-accent-text font-semibold">Add Bank Account</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom grids -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Top Products -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-vq-eyebrow font-semibold text-vq-text uppercase tracking-wider flex items-center gap-2">
+                <span class="w-1.5 h-3 bg-vq-success rounded-full"></span> Top Products
+              </h4>
+              <button class="text-vq-text-3 hover:text-vq-text"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-2 bg-vq-sunken rounded border border-vq-line">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded bg-vq-raised border border-vq-line flex items-center justify-center">
+                    <i data-lucide="laptop" class="w-4 h-4 text-vq-text-3"></i>
+                  </div>
+                  <div>
+                    <span class="text-vq-small font-medium text-vq-text block truncate w-36">Lenovo ThinkPad X1 Carbon</span>
+                    <span class="text-vq-eyebrow text-vq-text-3">10 units sold</span>
+                  </div>
+                </div>
+                <span class="text-vq-small font-semibold text-vq-success tnum">$16,735.15</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2 bg-vq-sunken rounded border border-vq-line">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded bg-vq-raised border border-vq-line flex items-center justify-center">
+                    <i data-lucide="laptop" class="w-4 h-4 text-vq-text-3"></i>
+                  </div>
+                  <div>
+                    <span class="text-vq-small font-medium text-vq-text block truncate w-36">ASUS ROG Zephyrus G14</span>
+                    <span class="text-vq-eyebrow text-vq-text-3">9 units sold</span>
+                  </div>
+                </div>
+                <span class="text-vq-small font-semibold text-vq-success tnum">$12,171.30</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Stock Alerts -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-vq-eyebrow font-semibold text-vq-text uppercase tracking-wider flex items-center gap-2 font-mono">
+                <span class="w-1.5 h-3 bg-vq-danger rounded-full"></span> Low Stock Alerts
+              </h4>
+              <button class="text-vq-small text-vq-accent-text hover:underline" onclick="switchPage('products')">View All</button>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-2 bg-vq-sunken rounded border border-vq-line">
+                <div>
+                  <span class="text-vq-small font-medium text-vq-text block truncate w-36">Samsung Galaxy S24 Ultra</span>
+                  <span class="text-vq-eyebrow text-vq-danger font-medium">Stock: 0.00 / 0.00</span>
+                </div>
+                <button class="h-7 px-3 bg-vq-danger-bg border border-vq-danger-line text-vq-danger text-vq-eyebrow font-semibold rounded hover:brightness-105 transition-all">
+                  Order
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between p-2 bg-vq-sunken rounded border border-vq-line">
+                <div>
+                  <span class="text-vq-small font-medium text-vq-text block truncate w-36">Apple iPhone 15 Pro Max</span>
+                  <span class="text-vq-eyebrow text-vq-danger font-medium">Stock: 0.00 / 0.00</span>
+                </div>
+                <button class="h-7 px-3 bg-vq-danger-bg border border-vq-danger-line text-vq-danger text-vq-eyebrow font-semibold rounded hover:brightness-105 transition-all">
+                  Order
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Purchases -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-vq-eyebrow font-semibold text-vq-text uppercase tracking-wider flex items-center gap-2 font-mono">
+                <span class="w-1.5 h-3 bg-vq-warning rounded-full"></span> Recent Purchases
+              </h4>
+              <div class="flex items-center gap-2">
+                <select class="bg-vq-sunken text-vq-eyebrow border border-vq-line rounded px-1.5 py-0.5 text-vq-text-2">
+                  <option>Month</option>
+                  <option>Week</option>
+                </select>
+                <button class="text-vq-small text-vq-accent-text hover:underline">View All</button>
+              </div>
+            </div>
+            <!-- Mock recent logs instead of empty state -->
+            <div class="space-y-3">
+              <div class="flex justify-between items-center text-vq-caption border-b border-vq-line-soft pb-2 last:border-0">
+                <div>
+                  <span class="font-medium text-vq-text block">Logitech Wireless Mouse</span>
+                  <span class="text-vq-eyebrow text-vq-text-3 font-mono">1h ago · #PUR-281</span>
+                </div>
+                <strong class="text-vq-text tnum">$99.99</strong>
+              </div>
+              <div class="flex justify-between items-center text-vq-caption border-b border-vq-line-soft pb-2 last:border-0">
+                <div>
+                  <span class="font-medium text-vq-text block">Dell 27" Curved Panel</span>
+                  <span class="text-vq-eyebrow text-vq-text-3 font-mono">4h ago · #PUR-280</span>
+                </div>
+                <strong class="text-vq-text tnum">$449.99</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PAGE 2: EXECUTIVE (ADMIN) ================= -->
+      <div id="page-executive" class="page-container hidden space-y-6">
+        <!-- Top row: metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-vq-warning-bg border border-vq-warning-line text-vq-warning rounded-lg flex items-center justify-center">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <span class="text-vq-small text-vq-text-3 block uppercase font-mono font-medium">Pending Actions</span>
+                <span class="text-vq-eyebrow font-bold text-vq-warning uppercase tracking-wider bg-vq-warning-bg border border-vq-warning-line px-1.5 py-0.5 rounded">Action Needed</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-vq-h3 font-bold text-vq-text tnum">3 ITEMS</span>
+              <span class="text-vq-caption text-vq-text-3 block mt-0.5">Requires your attention</span>
+            </div>
+          </div>
+
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-vq-success-bg border border-vq-success-line text-vq-success rounded-lg flex items-center justify-center">
+                <i data-lucide="percent" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <span class="text-vq-small text-vq-text-3 block uppercase font-mono font-medium">Profit Margin</span>
+                <span class="text-vq-eyebrow font-bold text-vq-success uppercase tracking-wider bg-vq-success-bg border border-vq-success-line px-1.5 py-0.5 rounded">Healthy</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-vq-h3 font-bold text-vq-text tnum">100%</span>
+              <span class="text-vq-caption text-vq-text-3 block mt-0.5">Net profit / Total revenue</span>
+            </div>
+          </div>
+
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-vq-info-bg border border-vq-info-line text-vq-accent-text rounded-lg flex items-center justify-center">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <span class="text-vq-small text-vq-text-3 block uppercase font-mono font-medium">Overdue Payments</span>
+                <span class="text-vq-eyebrow font-bold text-vq-accent-text uppercase tracking-wider bg-vq-info-bg border border-vq-info-line px-1.5 py-0.5 rounded font-mono">On Track</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-vq-h3 font-bold text-vq-text tnum">$2,132,989.00</span>
+              <span class="text-vq-caption text-vq-text-3 block mt-0.5 font-mono font-medium">Outstanding receivables</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle layout -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <!-- Charts Section (3 cols) -->
+          <div class="xl:col-span-3 space-y-6">
+            <!-- Purchases Trend Line Chart -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 h-[300px] flex flex-col justify-between">
+              <div class="flex justify-between items-center mb-2">
+                <div>
+                  <h4 class="text-vq-small font-semibold text-vq-text uppercase tracking-wider font-mono">Purchases Trend</h4>
+                  <p class="text-vq-caption text-vq-text-3 font-medium">Past 6 months spending</p>
+                </div>
+                <i data-lucide="activity" class="w-4 h-4 text-vq-accent"></i>
+              </div>
+              <div class="flex-1 w-full relative">
+                <canvas id="purchasesTrendChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Double Donut row + Expenses -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Inventory Donut -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[260px]">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="text-vq-small font-semibold text-vq-text">Inventory</h4>
+                    <span class="text-vq-eyebrow font-bold text-vq-danger uppercase tracking-wider">Action Needed</span>
+                  </div>
+                  <i data-lucide="package-open" class="w-4 h-4 text-vq-text-3"></i>
+                </div>
+                <div class="flex-1 flex items-center justify-between gap-2 py-2">
+                  <div class="w-28 h-28 relative flex-shrink-0">
+                    <canvas id="inventoryDonutChart"></canvas>
+                  </div>
+                  <div class="text-vq-caption space-y-1.5 flex-1 pl-3 font-mono font-medium">
+                    <div class="flex items-center justify-between"><span>HEALTHY</span> <strong class="text-vq-text tnum">78%</strong></div>
+                    <div class="flex items-center justify-between"><span>LOW</span> <strong class="text-vq-warning tnum">13%</strong></div>
+                    <div class="flex items-center justify-between"><span>OUT</span> <strong class="text-vq-danger tnum">9%</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payments Donut -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[260px]">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="text-vq-small font-semibold text-vq-text">Payments</h4>
+                    <p class="text-vq-caption text-vq-text-3">Transaction types</p>
+                  </div>
+                  <i data-lucide="credit-card" class="w-4 h-4 text-vq-text-3"></i>
+                </div>
+                <div class="flex-1 flex items-center justify-between gap-2 py-2">
+                  <div class="w-28 h-28 relative flex-shrink-0">
+                    <canvas id="paymentsDonutChart"></canvas>
+                  </div>
+                  <div class="text-vq-caption space-y-1 pl-3 flex-1 font-mono font-medium">
+                    <div class="flex items-center justify-between"><span>CASH</span> <strong class="text-vq-text tnum">2511</strong></div>
+                    <div class="flex items-center justify-between"><span>BANK</span> <strong class="text-vq-text tnum">884</strong></div>
+                    <div class="flex items-center justify-between"><span>CREDIT</span> <strong class="text-vq-text tnum">830</strong></div>
+                    <div class="flex items-center justify-between"><span>SPLIT</span> <strong class="text-vq-text tnum">1</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Expenses breakdown -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[260px]">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="text-vq-small font-semibold text-vq-text">Expenses</h4>
+                    <p class="text-vq-caption text-vq-text-3">Monthly breakdown</p>
+                  </div>
+                  <span class="text-vq-small font-bold text-vq-success font-mono tnum">TOTAL $12,480.00</span>
+                </div>
+                <div class="flex-1 flex items-center justify-between gap-2 py-2">
+                  <div class="w-28 h-28 relative flex-shrink-0">
+                    <canvas id="expensesDonutChart"></canvas>
+                  </div>
+                  <div class="text-vq-caption space-y-1 pl-3 flex-1 font-mono font-medium">
+                    <div class="flex items-center justify-between"><span>RENT</span> <strong class="text-vq-text tnum">35%</strong></div>
+                    <div class="flex items-center justify-between"><span>PAYROLL</span> <strong class="text-vq-text tnum">45%</strong></div>
+                    <div class="flex items-center justify-between"><span>UTILITIES</span> <strong class="text-vq-text tnum">12%</strong></div>
+                    <div class="flex items-center justify-between"><span>SOFT</span> <strong class="text-vq-text tnum">8%</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column sidebar (1 col) -->
+          <div class="space-y-6">
+            <!-- Balance card -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col gap-4">
+              <div>
+                <div class="flex justify-between items-center text-vq-caption text-vq-text-3">
+                  <span>Net Balance</span>
+                  <button class="w-6 h-6 rounded flex items-center justify-center text-vq-text-3 hover:bg-vq-sunken"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+                <div class="text-vq-h3 font-bold tracking-tight text-vq-text mt-0.5 tnum">$8,969,631.30</div>
+                
+                <div class="grid grid-cols-3 gap-1.5 mt-3">
+                  <button class="h-9 bg-vq-raised border border-vq-line hover:border-vq-accent text-vq-text hover:text-vq-accent-text rounded flex flex-col items-center justify-center text-vq-eyebrow font-semibold transition-all">
+                    <i data-lucide="users" class="w-3.5 h-3.5 mb-0.5 text-vq-text-3"></i> USERS
+                  </button>
+                  <button class="h-9 bg-vq-raised border border-vq-line hover:border-vq-accent text-vq-text hover:text-vq-accent-text rounded flex flex-col items-center justify-center text-vq-eyebrow font-semibold transition-all">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 mb-0.5 text-vq-text-3"></i> REPORTS
+                  </button>
+                  <button class="h-9 bg-vq-raised border border-vq-line hover:border-vq-accent text-vq-text hover:text-vq-accent-text rounded flex flex-col items-center justify-center text-vq-eyebrow font-semibold transition-all">
+                    <i data-lucide="terminal" class="w-3.5 h-3.5 mb-0.5 text-vq-text-3"></i> LOGS
+                  </button>
+                </div>
+              </div>
+
+              <!-- Today's In/Out -->
+              <div class="grid grid-cols-2 gap-3 pt-1 border-t border-vq-line">
+                <div>
+                  <div class="flex items-center gap-1 text-vq-eyebrow font-bold text-vq-success tracking-wider uppercase font-mono">
+                    <span class="w-1.5 h-1.5 rounded-full bg-vq-success"></span> In
+                  </div>
+                  <span class="text-vq-small font-semibold text-vq-text tnum">$14,561.15</span>
+                  <span class="text-vq-eyebrow text-vq-text-3 block">Today's In</span>
+                </div>
+                <div class="border-l border-vq-line pl-3">
+                  <div class="flex items-center gap-1 text-vq-eyebrow font-bold text-vq-danger tracking-wider uppercase font-mono">
+                    <span class="w-1.5 h-1.5 rounded-full bg-vq-danger"></span> Out
+                  </div>
+                  <span class="text-vq-small font-semibold text-vq-text tnum">$54,251.00</span>
+                  <span class="text-vq-eyebrow text-vq-text-3 block">Today's Out</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alerts List -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 space-y-3">
+              <span class="text-vq-eyebrow font-mono font-semibold text-vq-text-3 tracking-wider uppercase flex items-center gap-1.5">
+                <i data-lucide="bell" class="w-4 h-4 text-vq-warning"></i> ALERTS
+              </span>
+              <div class="space-y-2">
+                <div class="p-2.5 bg-vq-warning-bg border border-vq-warning-line text-vq-warning rounded text-vq-caption flex items-center gap-2 font-medium">
+                  <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+                  <span>13% inventory running low</span>
+                </div>
+                <div class="p-2.5 bg-vq-danger-bg border border-vq-danger-line text-vq-danger rounded text-vq-caption flex items-center gap-2 font-medium">
+                  <i data-lucide="package" class="w-4 h-4 flex-shrink-0"></i>
+                  <span>9% products out of stock</span>
+                </div>
+                <div class="p-2.5 bg-vq-success-bg border border-vq-success-line text-vq-success rounded text-vq-caption flex items-center gap-2 font-medium">
+                  <i data-lucide="dollar-sign" class="w-4 h-4 flex-shrink-0"></i>
+                  <span>Profit: $53,544.70 today</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Business Activity Feed -->
+            <div class="bg-vq-surface border border-vq-line rounded-lg p-5 space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-vq-eyebrow font-semibold text-vq-text-3 tracking-wider uppercase font-mono">BUSINESS ACTIVITY</span>
+                <button class="text-vq-caption text-vq-accent-text hover:underline">View All</button>
+              </div>
+              <div class="space-y-2.5 max-h-40 overflow-y-auto pr-1">
+                <div class="flex items-center justify-between text-vq-caption py-1.5 border-b border-vq-line-soft last:border-0">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-vq-success-bg border border-vq-success-line rounded-full flex items-center justify-center text-vq-success font-semibold">
+                      +
+                    </div>
+                    <div>
+                      <span class="font-medium text-vq-text block">Sale #SAL-R1-160826-0001</span>
+                      <span class="text-vq-eyebrow text-vq-text-3">1 day ago</span>
+                    </div>
+                  </div>
+                  <strong class="text-vq-success tnum">+$1,244.00</strong>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-vq-line">
+                <button class="h-8 border border-vq-line rounded text-vq-eyebrow font-mono font-semibold text-vq-text-2 hover:bg-vq-sunken flex items-center justify-center gap-1.5">
+                  <i data-lucide="settings" class="w-3.5 h-3.5"></i> SETTINGS
+                </button>
+                <button class="h-8 border border-vq-line rounded text-vq-eyebrow font-mono font-semibold text-vq-text-2 hover:bg-vq-sunken flex items-center justify-center gap-1.5">
+                  <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> SECURITY
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center justify-between text-vq-caption">
+            <div class="flex items-center gap-2">
+              <i data-lucide="users" class="w-4 h-4 text-vq-accent-text"></i>
+              <span class="text-vq-text-2">Active Staff</span>
+            </div>
+            <strong class="text-vq-text font-mono tnum">1 / 6</strong>
+          </div>
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center justify-between text-vq-caption">
+            <div class="flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-vq-success animate-pulse"></i>
+              <span class="text-vq-text-2">System Status</span>
+            </div>
+            <strong class="text-vq-success flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-vq-success"></span> Operational</strong>
+          </div>
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center justify-between text-vq-caption">
+            <div class="flex items-center gap-2">
+              <i data-lucide="hard-drive-download" class="w-4 h-4 text-vq-text-3"></i>
+              <span class="text-vq-text-2">Last Backup</span>
+            </div>
+            <strong class="text-vq-text-3 font-mono">Never</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PAGE 3: SALES HISTORY ================= -->
+      <div id="page-sales-history" class="page-container hidden space-y-6">
+        <!-- Sales Stats row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-vq-surface border border-vq-line rounded-lg p-4">
+          <div class="px-2">
+            <span class="text-vq-eyebrow uppercase tracking-wider text-vq-text-3 font-mono font-semibold flex items-center gap-1.5"><i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-vq-accent-text"></i> TOTAL SALE</span>
+            <div class="text-vq-h3 font-bold text-vq-text mt-1 tnum">$11,102,620.30</div>
+          </div>
+          <div class="px-2 border-l border-vq-line">
+            <span class="text-vq-eyebrow uppercase tracking-wider text-vq-text-3 font-mono font-semibold flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-vq-success"></i> PAID AMOUNT</span>
+            <div class="text-vq-h3 font-bold text-vq-success mt-1 tnum">$1,244.00</div>
+          </div>
+          <div class="px-2 border-l border-vq-line">
+            <span class="text-vq-eyebrow uppercase tracking-wider text-vq-text-3 font-mono font-semibold flex items-center gap-1.5"><i data-lucide="help-circle" class="w-3.5 h-3.5 text-vq-danger"></i> UNPAID (DUE)</span>
+            <div class="text-vq-h3 font-bold text-vq-danger mt-1 tnum">$11,101,376.30</div>
+          </div>
+          <div class="px-2 border-l border-vq-line">
+            <span class="text-vq-eyebrow uppercase tracking-wider text-vq-text-3 font-mono font-semibold flex items-center gap-1.5"><i data-lucide="history" class="w-3.5 h-3.5 text-vq-info"></i> TRANSACTIONS</span>
+            <div class="text-vq-h3 font-bold text-vq-text mt-1 tnum">4226</div>
+          </div>
+        </div>
+
+        <!-- Filter Sub-Header -->
+        <div class="flex flex-col md:flex-row gap-3 justify-between items-center bg-vq-surface p-3 rounded-lg border border-vq-line">
+          <div class="flex gap-2">
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded bg-vq-accent-quiet text-vq-accent-text font-semibold">Transactions</button>
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded border border-vq-line text-vq-text-2 hover:bg-vq-sunken transition-colors">Post-Sale</button>
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded border border-vq-line text-vq-text-2 hover:bg-vq-sunken transition-colors">Config</button>
+          </div>
+          
+          <div class="flex gap-1.5">
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded bg-vq-raised border border-vq-line text-vq-text">All Sales Orders</button>
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded text-vq-text-3 hover:text-vq-text-2 transition-colors">Quotations / Pre-Sales</button>
+            <button class="px-3.5 h-8 text-vq-caption font-semibold rounded text-vq-text-3 hover:text-vq-text-2 transition-colors">Proposals</button>
+          </div>
+
+          <button class="h-8 px-4 rounded bg-vq-accent text-vq-on-accent text-vq-caption font-bold hover:bg-vq-accent-hover transition-all flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> NEW INVOICE
+          </button>
+        </div>
+
+        <!-- Sales table -->
+        <div class="bg-vq-surface border border-vq-line rounded-lg overflow-hidden flex flex-col justify-between min-h-[500px]">
+          <!-- Table Toolbar -->
+          <div class="p-4 border-b border-vq-line flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div class="flex items-center gap-3">
+              <h3 class="text-vq-eyebrow font-bold uppercase tracking-wider text-vq-text-3 font-mono">SALES TRANSACTIONS</h3>
+              <div class="flex bg-vq-sunken p-1 rounded-lg border border-vq-line text-vq-eyebrow">
+                <button class="px-2.5 py-1 font-semibold bg-vq-raised border border-vq-line rounded text-vq-text font-semibold">ALL</button>
+                <button class="px-2.5 py-1 font-semibold text-vq-text-3 hover:text-vq-text-2">TODAY</button>
+                <button class="px-2.5 py-1 font-semibold text-vq-text-3 hover:text-vq-text-2">THIS MONTH</button>
+                <button class="px-2.5 py-1 font-semibold text-vq-text-3 hover:text-vq-text-2">THIS YEAR</button>
+                <button class="px-2.5 py-1 font-semibold text-vq-text-3 hover:text-vq-text-2">CUSTOM</button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <!-- Search inside table -->
+              <div class="relative flex-1 sm:w-56">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-vq-text-3">
+                  <i data-lucide="search" class="w-4 h-4"></i>
+                </span>
+                <input type="text" id="sales-search-input" placeholder="Search invoice, customer..." class="w-full h-8 pl-9 bg-vq-sunken text-vq-caption border border-vq-line rounded-md text-vq-text focus:outline-none focus:border-vq-accent placeholder-vq-text-3">
+              </div>
+              <button class="w-8 h-8 rounded border border-vq-line flex items-center justify-center text-vq-text-3 hover:text-vq-text hover:bg-vq-sunken" title="Print List">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+              </button>
+              <button class="w-8 h-8 rounded border border-vq-line flex items-center justify-center text-vq-text-3 hover:text-vq-text hover:bg-vq-sunken" title="Download CSV">
+                <i data-lucide="download" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Data table -->
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full text-left border-collapse text-vq-caption">
+              <thead>
+                <tr class="bg-vq-sunken/50 border-b border-vq-line font-mono text-vq-eyebrow text-vq-text-3 uppercase tracking-wider">
+                  <th class="p-3 pl-4 w-10"><input type="checkbox" class="rounded border-vq-line"></th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Invoice No</th>
+                  <th class="p-3">Party Name</th>
+                  <th class="p-3">Transaction</th>
+                  <th class="p-3">Payment Type</th>
+                  <th class="p-3 text-right">Amount</th>
+                  <th class="p-3">Balance</th>
+                  <th class="p-3">Due Date</th>
+                  <th class="p-3 text-center">Status</th>
+                  <th class="p-3 text-center w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sales-table-body" class="divide-y divide-vq-line-soft">
+                <!-- Javascript will load records here -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table footer -->
+          <div class="p-4 border-t border-vq-line flex items-center justify-between text-vq-caption text-vq-text-3 bg-vq-sunken/20">
+            <span>Showing <strong class="text-vq-text font-medium" id="sales-showing-range">1-10</strong> of <strong class="text-vq-text font-medium" id="sales-total-count">4226</strong> entries</span>
+            <div class="flex items-center gap-1.5">
+              <button class="h-7 w-7 rounded border border-vq-line flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken" disabled id="sales-prev-page">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </button>
+              <button class="h-7 px-3 rounded bg-vq-accent text-vq-on-accent text-vq-caption font-semibold">1</button>
+              <button class="h-7 px-3 rounded hover:bg-vq-sunken text-vq-text-2">2</button>
+              <button class="h-7 px-3 rounded hover:bg-vq-sunken text-vq-text-2">3</button>
+              <button class="h-7 w-7 rounded border border-vq-line flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken" id="sales-next-page">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PAGE 4: PRODUCTS LIST ================= -->
+      <div id="page-products" class="page-container hidden space-y-6">
+        <!-- Products Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-vq-accent-quiet text-vq-accent-text flex items-center justify-center border border-vq-accent/20">
+              <i data-lucide="boxes" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Total Products</span>
+              <strong class="text-vq-h3 font-bold text-vq-text tnum">245</strong>
+            </div>
+          </div>
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-vq-success-bg text-vq-success flex items-center justify-center border border-vq-success-line">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">In Stock</span>
+              <strong class="text-vq-h3 font-bold text-vq-success tnum">222</strong>
+            </div>
+          </div>
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-vq-warning-bg text-vq-warning flex items-center justify-center border border-vq-warning-line">
+              <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Low Stock</span>
+              <strong class="text-vq-h3 font-bold text-vq-warning tnum">18</strong>
+            </div>
+          </div>
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-vq-danger-bg text-vq-danger flex items-center justify-center border border-vq-danger-line">
+              <i data-lucide="x-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Out of Stock</span>
+              <strong class="text-vq-h3 font-bold text-vq-danger tnum">5</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="flex flex-col sm:flex-row justify-between items-center bg-vq-surface p-4 rounded-lg border border-vq-line gap-4">
+          <div class="flex bg-vq-sunken p-1 rounded-lg border border-vq-line text-vq-caption">
+            <button class="px-4 py-1.5 font-semibold bg-vq-raised border border-vq-line rounded text-vq-text font-semibold">All Products</button>
+            <button class="px-4 py-1.5 font-semibold text-vq-text-3 hover:text-vq-text-2">In Stock</button>
+            <button class="px-4 py-1.5 font-semibold text-vq-text-3 hover:text-vq-text-2">Low Stock</button>
+            <button class="px-4 py-1.5 font-semibold text-vq-text-3 hover:text-vq-text-2">Out of Stock</button>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-56">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-vq-text-3">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </span>
+              <input type="text" id="product-search-input" placeholder="Search product name, SKU..." class="w-full h-8 pl-9 bg-vq-sunken text-vq-caption border border-vq-line rounded-md text-vq-text focus:outline-none focus:border-vq-accent placeholder-vq-text-3">
+            </div>
+            <button class="h-8 px-4 rounded bg-vq-accent text-vq-on-accent text-vq-caption font-bold hover:bg-vq-accent-hover transition-all flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i> Add Product
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Table -->
+        <div class="bg-vq-surface border border-vq-line rounded-lg overflow-hidden min-h-[450px] flex flex-col justify-between">
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full text-left border-collapse text-vq-caption">
+              <thead>
+                <tr class="bg-vq-sunken/50 border-b border-vq-line font-mono text-vq-eyebrow text-vq-text-3 uppercase tracking-wider">
+                  <th class="p-3 pl-4 w-10"><input type="checkbox" class="rounded border-vq-line"></th>
+                  <th class="p-3">Product Name</th>
+                  <th class="p-3 font-mono">SKU</th>
+                  <th class="p-3">Category</th>
+                  <th class="p-3 text-right">Stock Level</th>
+                  <th class="p-3 text-right">Buying Price</th>
+                  <th class="p-3 text-right">Selling Price</th>
+                  <th class="p-3 text-center">Status</th>
+                  <th class="p-3 text-center w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body" class="divide-y divide-vq-line-soft">
+                <!-- Javascript will load records here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-4 border-t border-vq-line flex items-center justify-between text-vq-caption text-vq-text-3 bg-vq-sunken/20">
+            <span>Showing <strong class="text-vq-text font-medium">1-8</strong> of <strong class="text-vq-text font-medium">245</strong> products</span>
+            <div class="flex items-center gap-1.5">
+              <button class="h-7 w-7 rounded border border-vq-line flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+              <button class="h-7 px-3 rounded bg-vq-accent text-vq-on-accent text-vq-caption font-semibold">1</button>
+              <button class="h-7 px-3 rounded hover:bg-vq-sunken text-vq-text-2">2</button>
+              <button class="h-7 w-7 rounded border border-vq-line flex items-center justify-center text-vq-text-2 hover:bg-vq-sunken"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PAGE 5: PROFIT & LOSS ================= -->
+      <div id="page-profit-loss" class="page-container hidden space-y-6">
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <!-- Reports Hub (1 col) -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-4 flex flex-col gap-4">
+            <div class="flex justify-between items-center pb-2 border-b border-vq-line">
+              <div>
+                <h4 class="text-vq-caption font-bold text-vq-text tracking-wider uppercase font-mono">Reports</h4>
+                <p class="text-vq-eyebrow text-vq-text-3 font-semibold">HUB ACCESS</p>
+              </div>
+              <button class="w-7 h-7 rounded bg-vq-sunken text-vq-text-3 hover:text-vq-text flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            </div>
+            
+            <nav class="flex flex-col gap-1.5 text-vq-caption">
+              <span class="text-vq-eyebrow text-vq-text-3 font-mono font-semibold tracking-widest uppercase mt-2 mb-1 px-2.5">SALES &amp; INCOME</span>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors" onclick="switchPage('sales-report')">
+                <i data-lucide="file-text" class="w-4 h-4 text-vq-text-3"></i> Sales Report
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="line-chart" class="w-4 h-4 text-vq-text-3"></i> Sales Analytics
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded bg-vq-accent-quiet text-vq-accent-text font-semibold flex items-center gap-2">
+                <i data-lucide="calculator" class="w-4 h-4"></i> Profit &amp; Loss
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="bar-chart-3" class="w-4 h-4 text-vq-text-3"></i> Item-wise Profit
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-vq-text-3"></i> Category Profitability
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="receipt" class="w-4 h-4 text-vq-text-3"></i> Bill-wise Profit
+              </button>
+              
+              <span class="text-vq-eyebrow text-vq-text-3 font-mono font-semibold tracking-widest uppercase mt-4 mb-1 px-2.5">INVENTORY</span>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-vq-text-3"></i> Purchase Report
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="boxes" class="w-4 h-4 text-vq-text-3"></i> Stock Valuation
+              </button>
+              <button class="w-full px-3 py-2 text-left rounded text-vq-text-2 hover:bg-vq-sunken hover:text-vq-text flex items-center gap-2 transition-colors">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-vq-text-3"></i> Low Stock
+              </button>
+            </nav>
+          </div>
+
+          <!-- Main area (3 cols) -->
+          <div class="xl:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left content (2 cols) -->
+            <div class="lg:col-span-2 space-y-6">
+              <!-- Statement header -->
+              <div class="flex justify-between items-center bg-vq-surface p-4 rounded-lg border border-vq-line">
+                <div>
+                  <h3 class="text-vq-caption font-bold uppercase tracking-wider text-vq-text-3 font-mono">Profit &amp; Loss Statement</h3>
+                  <p class="text-vq-caption text-vq-text-3 font-medium">Financial performance for the selected period</p>
+                </div>
+                <div class="flex bg-vq-sunken p-1 rounded-lg border border-vq-line text-vq-eyebrow font-semibold">
+                  <button class="px-2.5 py-1 font-semibold text-vq-text-3">This Month</button>
+                  <button class="px-2.5 py-1 font-semibold text-vq-text-3">Last Month</button>
+                  <button class="px-2.5 py-1 font-semibold bg-vq-raised border border-vq-line rounded text-vq-text">This Year</button>
+                  <button class="px-2.5 py-1 font-semibold text-vq-text-3">Custom</button>
+                </div>
+              </div>
+
+              <!-- P&L stats row -->
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-vq-surface border border-vq-line rounded-lg p-3">
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block font-mono">Net Profit</span>
+                  <span class="text-vq-body font-bold text-vq-text block mt-1 tnum">$287,845.55</span>
+                  <span class="text-vq-eyebrow text-vq-success font-medium">20.8% of Revenue</span>
+                </div>
+                <div class="bg-vq-surface border border-vq-line rounded-lg p-3">
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block font-mono">Gross Profit</span>
+                  <span class="text-vq-body font-bold text-vq-text block mt-1 tnum">$287,845.55</span>
+                  <span class="text-vq-eyebrow text-vq-success font-medium">20.8% Margin</span>
+                </div>
+                <div class="bg-vq-surface border border-vq-line rounded-lg p-3">
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block font-mono">Total Expenses</span>
+                  <span class="text-vq-body font-bold text-vq-text block mt-1 tnum">$0.00</span>
+                  <span class="text-vq-eyebrow text-vq-text-3 font-semibold">0.0% of Revenue</span>
+                </div>
+                <div class="bg-vq-surface border border-vq-line rounded-lg p-3">
+                  <span class="text-vq-eyebrow text-vq-text-3 uppercase block font-mono">Rev Efficiency</span>
+                  <span class="text-vq-body font-bold text-vq-text block mt-1 tnum">20.8%</span>
+                  <span class="text-vq-eyebrow text-vq-accent-text font-semibold">Retained from Sales</span>
+                </div>
+              </div>
+
+              <!-- Statement details table -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+                <div class="flex justify-between items-center pb-3 border-b border-vq-line mb-4">
+                  <h4 class="text-vq-caption font-bold text-vq-text uppercase tracking-wider font-mono">Income Statement</h4>
+                  <button class="h-8 px-3 border border-vq-line text-vq-text-2 hover:text-vq-text hover:bg-vq-sunken text-vq-eyebrow font-semibold rounded-md flex items-center gap-1">
+                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Download PDF
+                  </button>
+                </div>
+                
+                <div class="space-y-4">
+                  <!-- Sales Revenue -->
+                  <div>
+                    <div class="flex justify-between items-center text-vq-caption mb-1.5">
+                      <span class="font-medium text-vq-text flex items-center gap-1">Sales Revenue <i data-lucide="info" class="w-3.5 h-3.5 text-vq-text-3 cursor-pointer"></i></span>
+                      <div class="space-x-3">
+                        <strong class="text-vq-text tnum">$1,382,436.55</strong>
+                        <span class="text-vq-caption text-vq-text-3 font-mono">100.0%</span>
+                      </div>
+                    </div>
+                    <div class="w-full h-1.5 bg-vq-sunken rounded-full overflow-hidden">
+                      <div class="h-full bg-vq-accent rounded-full" style="width: 100%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- COGS -->
+                  <div>
+                    <div class="flex justify-between items-center text-vq-caption mb-1.5">
+                      <span class="font-medium text-vq-text flex items-center gap-1">Cost of Goods Sold (COGS) <i data-lucide="info" class="w-3.5 h-3.5 text-vq-text-3 cursor-pointer"></i></span>
+                      <div class="space-x-3">
+                        <strong class="text-vq-danger tnum">$-1,094,591.00</strong>
+                        <span class="text-vq-caption text-vq-text-3 font-mono">79.2%</span>
+                      </div>
+                    </div>
+                    <div class="w-full h-1.5 bg-vq-sunken rounded-full overflow-hidden">
+                      <div class="h-full bg-vq-danger rounded-full" style="width: 79.2%;"></div>
+                    </div>
+                    <a href="#" class="text-[9px] text-vq-accent-text hover:underline mt-1 block">View Ledger →</a>
+                  </div>
+
+                  <!-- Gross Profit Row -->
+                  <div class="p-3 bg-vq-success-bg/40 border border-vq-success-line/35 rounded-lg flex justify-between items-center text-vq-caption font-bold">
+                    <span class="text-vq-success flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> GROSS PROFIT</span>
+                    <strong class="text-vq-success tnum">$287,845.55</strong>
+                  </div>
+
+                  <!-- Operating Expenses -->
+                  <div>
+                    <div class="flex justify-between items-center text-vq-caption mb-1.5">
+                      <span class="font-medium text-vq-text flex items-center gap-1">Operating Expenses <i data-lucide="info" class="w-3.5 h-3.5 text-vq-text-3 cursor-pointer"></i></span>
+                      <div class="space-x-3">
+                        <strong class="text-vq-text tnum">$0.00</strong>
+                        <span class="text-vq-caption text-vq-text-3 font-mono">0.0%</span>
+                      </div>
+                    </div>
+                    <div class="w-full h-1.5 bg-vq-sunken rounded-full overflow-hidden">
+                      <div class="h-full bg-vq-text-3 rounded-full" style="width: 0%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Net Profit Row -->
+                  <div class="p-3 bg-vq-accent-quiet border border-vq-accent/30 rounded-lg flex justify-between items-center text-vq-small font-bold">
+                    <span class="text-vq-accent-text flex items-center gap-1.5"><i data-lucide="sparkles" class="w-4 h-4 animate-pulse"></i> NET PROFIT / (LOSS)</span>
+                    <strong class="text-vq-accent-text tnum">$287,845.55</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right side details (1 col) -->
+            <div class="space-y-6">
+              <!-- Revenue Distribution -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[280px]">
+                <div class="flex justify-between items-center mb-2">
+                  <h4 class="text-vq-caption font-semibold text-vq-text uppercase tracking-wider font-mono">Revenue Distribution</h4>
+                  <i data-lucide="pie-chart" class="w-4 h-4 text-vq-text-3"></i>
+                </div>
+                <div class="flex-1 flex items-center justify-center gap-2 py-2">
+                  <div class="w-28 h-28 relative flex-shrink-0">
+                    <canvas id="revenueDistributionChart"></canvas>
+                  </div>
+                  <div class="text-vq-caption space-y-1.5 pl-3 flex-1 font-mono font-medium">
+                    <div>COGS: <strong class="text-vq-danger tnum">79.2%</strong></div>
+                    <div>NET PROFIT: <strong class="text-vq-success tnum">20.8%</strong></div>
+                  </div>
+                </div>
+                <div class="pt-2.5 border-t border-vq-line">
+                  <div class="p-2 bg-vq-sunken border border-vq-line rounded text-center text-vq-caption font-semibold">
+                    <span class="text-vq-text-3 block uppercase text-vq-eyebrow font-mono">OpEx Ratio</span>
+                    <strong class="text-vq-success">0.0% (Excellent Health)</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Growth Engine widget -->
+              <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col gap-4">
+                <span class="text-vq-eyebrow font-bold text-vq-success tracking-wider uppercase flex items-center gap-1.5 font-mono">
+                  <i data-lucide="zap" class="w-4 h-4"></i> GROWTH ENGINE
+                </span>
+                
+                <div class="space-y-2.5">
+                  <div class="p-3 bg-vq-sunken rounded border border-vq-line text-vq-caption">
+                    <span class="font-bold text-vq-success block flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Profit Optimization</span>
+                    <p class="text-vq-caption text-vq-text-3 mt-1 leading-relaxed">Strong marginal reinvestment surplus into marketing best-sellers to scale volume.</p>
+                  </div>
+                  
+                  <div class="p-3 bg-vq-sunken rounded border border-vq-line text-vq-caption">
+                    <span class="font-bold text-vq-warning block flex items-center gap-1"><i data-lucide="lightbulb" class="w-3.5 h-3.5"></i> Smart Insight</span>
+                    <p class="text-vq-caption text-vq-text-3 mt-1 leading-relaxed">Increasing your average ticket size by just 10% would add <strong class="text-vq-text font-semibold tnum">$138,243.66</strong> to your revenue.</p>
+                  </div>
+                  
+                  <div class="p-3 bg-vq-sunken rounded border border-vq-line text-vq-caption space-y-1.5">
+                    <span class="font-bold text-vq-accent-text block font-mono text-[9px] uppercase tracking-wider">Action Plan</span>
+                    <label class="flex items-center gap-2 text-vq-caption text-vq-text-2 cursor-pointer font-medium">
+                      <input type="checkbox" checked class="rounded border-vq-line text-vq-accent focus:ring-0"> <span>Review Supplier Costs</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-vq-caption text-vq-text-2 cursor-pointer font-medium">
+                      <input type="checkbox" checked class="rounded border-vq-line text-vq-accent focus:ring-0"> <span>Audit Utility Expenses</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-vq-caption text-vq-text-2 cursor-pointer font-medium">
+                      <input type="checkbox" class="rounded border-vq-line text-vq-accent focus:ring-0"> <span>Push Upsells at Checkout</span>
+                    </label>
+                  </div>
+                </div>
+
+                <button class="w-full h-10 bg-vq-success text-vq-on-accent text-vq-caption font-bold rounded-lg hover:brightness-105 transition-all flex items-center justify-center gap-1.5">
+                  <i data-lucide="play" class="w-4 h-4"></i> RUN FULL ANALYSIS
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PAGE 6: SALES REPORT ================= -->
+      <div id="page-sales-report" class="page-container hidden space-y-6">
+        <!-- Toolbar header -->
+        <div class="flex justify-between items-center bg-vq-surface p-4 rounded-lg border border-vq-line">
+          <div>
+            <h3 class="text-vq-caption font-bold uppercase tracking-wider text-vq-text-3 font-mono">Sales Performance Report</h3>
+            <p class="text-vq-caption text-vq-text-3">Monthly channel sales, growth rates and customer cohorts</p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button class="h-8 px-4 rounded border border-vq-line text-vq-text-2 hover:bg-vq-sunken text-vq-caption font-semibold flex items-center gap-1.5 transition-colors">
+              <i data-lucide="calendar" class="w-4 h-4 text-vq-text-3"></i> Custom Date Range
+            </button>
+            <button class="h-8 px-4 rounded bg-vq-raised border border-vq-line text-vq-text hover:border-vq-accent text-vq-caption font-semibold flex items-center gap-1.5 transition-all">
+              <i data-lucide="download" class="w-4 h-4 text-vq-text-3"></i> Export Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Metrics cards row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Sales Revenue</span>
+            <strong class="text-vq-body font-bold text-vq-text mt-1 block tnum">$1,382,436.55</strong>
+            <span class="text-vq-eyebrow text-vq-success font-medium flex items-center mt-1"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +12.4% MoM</span>
+          </div>
+
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Avg. Ticket Size</span>
+            <strong class="text-vq-body font-bold text-vq-text mt-1 block tnum">$327.12</strong>
+            <span class="text-vq-eyebrow text-vq-success font-medium flex items-center mt-1"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +4.1% MoM</span>
+          </div>
+
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">New Customer Cohort</span>
+            <strong class="text-vq-body font-bold text-vq-text mt-1 block tnum">42 Customers</strong>
+            <span class="text-vq-eyebrow text-vq-warning font-medium flex items-center mt-1"><i data-lucide="minus" class="w-3 h-3 mr-1"></i> Flat MoM</span>
+          </div>
+
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5">
+            <span class="text-vq-eyebrow text-vq-text-3 block uppercase font-mono font-semibold">Target Attainment</span>
+            <strong class="text-vq-body font-bold text-vq-text mt-1 block tnum">85.0%</strong>
+            <div class="w-full h-1 bg-vq-sunken rounded-full mt-2 overflow-hidden">
+              <div class="h-full bg-vq-accent" style="width: 85%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <!-- Line Chart (2 cols) -->
+          <div class="xl:col-span-2 bg-vq-surface border border-vq-line rounded-lg p-5 h-[340px] flex flex-col justify-between">
+            <h4 class="text-vq-caption font-semibold text-vq-text uppercase tracking-wider font-mono font-semibold">Daily Sales Trend</h4>
+            <div class="flex-1 w-full relative">
+              <canvas id="salesTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Pie/Donut (1 col) -->
+          <div class="bg-vq-surface border border-vq-line rounded-lg p-5 flex flex-col justify-between h-[340px]">
+            <h4 class="text-vq-caption font-semibold text-vq-text uppercase tracking-wider font-mono font-semibold">Top Sales Channels</h4>
+            <div class="flex-1 flex items-center justify-center gap-2 py-2">
+              <div class="w-28 h-28 relative flex-shrink-0">
+                <canvas id="channelDistributionChart"></canvas>
+              </div>
+              <div class="text-vq-caption space-y-1.5 pl-3 flex-1 font-mono font-medium">
+                <div><span class="w-2 h-2 rounded bg-vq-accent inline-block mr-1"></span> POS: <strong class="text-vq-text tnum">70%</strong></div>
+                <div><span class="w-2 h-2 rounded bg-vq-success inline-block mr-1"></span> WOO: <strong class="text-vq-text tnum">18%</strong></div>
+                <div><span class="w-2 h-2 rounded bg-vq-warning inline-block mr-1"></span> AMAZON: <strong class="text-vq-text tnum">8%</strong></div>
+                <div><span class="w-2 h-2 rounded bg-vq-danger inline-block mr-1"></span> EBAY: <strong class="text-vq-text tnum">4%</strong></div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-vq-line text-center text-vq-eyebrow text-vq-text-3 font-mono">
+              POS SYSTEM REMAINS DOMINANT CHROME
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Side Control Panel (Live customizer drawer) -->
+    <div id="customizer-sidebar" class="fixed right-0 top-0 bottom-0 w-80 bg-vq-surface border-l border-vq-line flex flex-col justify-between shadow-2xl z-40 transform translate-x-full transition-transform duration-300 ease-in-out">
+      
+      <!-- Customizer Header -->
+      <div class="p-5 border-b border-vq-line flex items-center justify-between bg-vq-sunken/40">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-vq-text font-mono flex items-center gap-2">
+            <i data-lucide="palette" class="w-4 h-4 text-vq-accent-text"></i> Live Customizer
+          </h2>
+          <p class="text-[9px] text-vq-text-3 font-medium">Modify colors, fonts &amp; sizes</p>
+        </div>
+        <button id="customizer-close-btn" class="w-7 h-7 rounded flex items-center justify-center text-vq-text-3 hover:text-vq-text hover:bg-vq-sunken transition-colors">
+          <i data-lucide="x" class="w-4.5 h-4.5"></i>
+        </button>
+      </div>
+
+      <!-- Controls Form -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        <!-- Typography Selection -->
+        <div class="space-y-2">
+          <label class="text-[9px] font-bold text-vq-text-3 block uppercase tracking-wider font-mono">1. Typography Selection</label>
+          <select id="customizer-font-select" class="w-full h-8 bg-vq-sunken border border-vq-line rounded text-xs text-vq-text px-2.5 focus:outline-none focus:border-vq-accent">
+            <option value="Inter">Inter (Default Sans)</option>
+            <option value="Poppins">Poppins (Rounded Geometric)</option>
+            <option value="Roboto">Roboto (Neo Clean)</option>
+            <option value="Instrument Serif">Instrument Serif (Serif Classic)</option>
+            <option value="JetBrains Mono">JetBrains Mono (Console)</option>
+            <option value="system-ui">System UI (Segoe/Apple)</option>
+          </select>
+        </div>
+
+        <!-- Typography Locked Ratio Size Scale Slider -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-[9px] font-bold text-vq-text-3 block uppercase tracking-wider font-mono">1.5 Typography Scaling</label>
+            <span id="font-scale-value" class="text-[10px] font-mono text-vq-accent-text font-semibold">1.00x</span>
+          </div>
+          <input type="range" id="customizer-font-scale" min="0.80" max="1.60" step="0.05" value="1.00" class="w-full cursor-pointer accent-vq-accent bg-vq-sunken rounded h-1.5">
+          <p class="text-[8px] text-vq-text-3 leading-relaxed">Scales text sizes proportionally while preserving the ratios defined in the design system guidelines.</p>
+        </div>
+
+        <!-- Theme Presets -->
+        <div class="space-y-2">
+          <label class="text-[9px] font-bold text-vq-text-3 block uppercase tracking-wider font-mono">2. Theme Presets</label>
+          <div class="grid grid-cols-2 gap-2 text-[10px] font-semibold font-sans">
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left" data-preset="classic-dark">Classic Dark (v1)</button>
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left" data-preset="vq2-dark">VenQore v2 Dark</button>
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left" data-preset="vq2-light">VenQore v2 Light</button>
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left" data-preset="emerald">Emerald POS</button>
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left" data-preset="amber-retro">Amber Retro</button>
+            <button class="preset-btn px-2 py-1.5 bg-vq-raised border border-vq-line rounded text-vq-text hover:bg-vq-sunken hover:border-vq-accent transition-all text-left col-span-2" data-preset="donezo-light">Donezo Clean Light</button>
+          </div>
+        </div>
+
+        <!-- Color pickers with hex text inputs -->
+        <div class="space-y-3">
+          <label class="text-[9px] font-bold text-vq-text-3 block uppercase tracking-wider font-mono">3. Surface &amp; Text Colors</label>
+          
+          <!-- Background -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Main Background</span>
+            <input type="text" id="hex-bg" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#0b0e14">
+            <input type="color" id="picker-bg" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Surface -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Card Surface</span>
+            <input type="text" id="hex-surface" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#121620">
+            <input type="color" id="picker-surface" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Sunken -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Sunken Surface</span>
+            <input type="text" id="hex-sunken" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#06080e">
+            <input type="color" id="picker-sunken" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Primary Accent -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Brand Accent</span>
+            <input type="text" id="hex-accent" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#327882">
+            <input type="color" id="picker-accent" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Text Primary -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Primary Text</span>
+            <input type="text" id="hex-text" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#f3f4f6">
+            <input type="color" id="picker-text" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Text Muted -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Secondary Text</span>
+            <input type="text" id="hex-text-2" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#9ca3af">
+            <input type="color" id="picker-text-2" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Borders -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1">Borders &amp; Lines</span>
+            <input type="text" id="hex-line" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#ffffff">
+            <input type="color" id="picker-line" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+        </div>
+
+        <!-- Semantic States -->
+        <div class="space-y-3">
+          <label class="text-[9px] font-bold text-vq-text-3 block uppercase tracking-wider font-mono">4. Semantic States</label>
+          <!-- Success -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-vq-success"></span> Success</span>
+            <input type="text" id="hex-success" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#1A7F51">
+            <input type="color" id="picker-success" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Warning -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-vq-warning"></span> Warning</span>
+            <input type="text" id="hex-warning" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#A85B05">
+            <input type="color" id="picker-warning" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+          <!-- Danger -->
+          <div class="flex items-center justify-between text-xs gap-2">
+            <span class="text-vq-text-2 font-medium flex-1 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-vq-danger"></span> Danger</span>
+            <input type="text" id="hex-danger" class="w-18 h-7 bg-vq-sunken text-vq-text border border-vq-line rounded text-[10px] px-1.5 font-mono w-20 text-center" placeholder="#BD3838">
+            <input type="color" id="picker-danger" class="w-8 h-7 rounded cursor-pointer border border-vq-line bg-transparent flex-shrink-0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Customizer Footer -->
+      <div class="p-5 border-t border-vq-line space-y-3 bg-vq-sunken/40">
+        <button id="export-css-btn" class="w-full h-9 bg-vq-accent text-vq-on-accent text-xs font-bold rounded hover:bg-vq-accent-hover transition-colors flex items-center justify-center gap-1.5">
+          <i data-lucide="code" class="w-4 h-4"></i> Copy theme variables CSS
+        </button>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button id="reset-theme-btn" class="h-8 border border-vq-line text-vq-text-2 hover:bg-vq-sunken rounded font-semibold transition-colors">
+            Reset Default
+          </button>
+          <button id="close-theme-btn" class="h-8 bg-vq-raised border border-vq-line text-vq-text hover:border-vq-accent rounded font-semibold transition-colors">
+            Close Panel
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating Chat Assistant Bubble Icon (Speech bubble icon at bottom-right matching images) -->
+  <button id="floating-chat-bubble-btn" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-vq-accent text-vq-on-accent hover:bg-vq-accent-hover shadow-xl flex items-center justify-center z-40 transition-all hover:scale-105 active:scale-95" title="Ask VenQore AI Assistant">
+    <i data-lucide="message-square" class="w-5.5 h-5.5" id="chat-bubble-icon"></i>
+  </button>
+
+  <!-- Floating Chat Window Overlay Container -->
+  <div id="ai-chat-window" class="fixed bottom-20 right-6 w-80 md:w-96 h-[450px] bg-vq-surface border border-vq-line rounded-xl shadow-2xl flex flex-col justify-between z-50 hidden transition-all">
+    <!-- Chat Header -->
+    <div class="p-4 border-b border-vq-line bg-vq-sunken/40 rounded-t-xl flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-vq-success animate-pulse"></div>
+        <div>
+          <h4 class="text-xs font-bold text-vq-text font-mono uppercase tracking-wider">VenQore AI Assistant</h4>
+          <span class="text-[9px] text-vq-text-3 font-semibold uppercase tracking-widest">Always Active</span>
+        </div>
+      </div>
+      <button id="ai-chat-close-btn" class="w-6 h-6 rounded flex items-center justify-center text-vq-text-3 hover:text-vq-text hover:bg-vq-sunken transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Chat Messages Box -->
+    <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3.5 text-vq-caption">
+      <!-- Welcome message -->
+      <div class="chat-msg ai-msg flex gap-2">
+        <div class="w-7 h-7 rounded-full bg-vq-accent/20 border border-vq-accent/30 text-vq-accent-text flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+          AI
+        </div>
+        <div class="bg-vq-sunken border border-vq-line rounded-lg p-2.5 max-w-[80%] leading-relaxed text-vq-text-2">
+          Welcome back, Ahmad Raza! I am your VenQore AI Copilot. I can query ledger statistics, check inventory levels, analyze profit margins, or guide you through exporting your custom color theme CSS variables.
+        </div>
+      </div>
+      
+      <div class="chat-msg ai-msg flex gap-2">
+        <div class="w-7 h-7 rounded-full bg-vq-accent/20 border border-vq-accent/30 text-vq-accent-text flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+          AI
+        </div>
+        <div class="bg-vq-sunken border border-vq-line rounded-lg p-2.5 max-w-[80%] leading-relaxed text-vq-text-2">
+          How can I help you adjust your POS system today?
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Text Input Box -->
+    <form id="chat-input-form" class="p-3 border-t border-vq-line bg-vq-sunken/20 flex gap-2 items-center">
+      <input type="text" id="chat-text-input" placeholder="Ask AI: 'stock', 'profit', 'theme'..." class="flex-1 h-9 px-3 bg-vq-sunken text-vq-caption border border-vq-line rounded-lg text-vq-text focus:outline-none focus:border-vq-accent placeholder-vq-text-3">
+      <button type="submit" class="w-9 h-9 bg-vq-accent text-vq-on-accent hover:bg-vq-accent-hover rounded-lg flex items-center justify-center transition-colors">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- JavaScript file -->
+  <script src="app.js"></script>
+</body>
+</html>

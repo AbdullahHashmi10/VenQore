@@ -295,7 +295,7 @@ class MigrateLegacyPurchasesCommand extends Command
     }
 
     /**
-     * V3 aged payables and supplier statements read `payment_allocations`.
+     * V3 aged payables and supplier statements read `allocations`.
      * Legacy purchases never wrote it, which is precisely why migrated purchases
      * were invisible in Aged Payables. Rebuild one active allocation row per
      * live purchase_payment journal entry.
@@ -315,7 +315,7 @@ class MigrateLegacyPurchasesCommand extends Command
             ->get();
 
         foreach ($payments as $pay) {
-            $already = DB::table('payment_allocations')
+            $already = DB::table('allocations')
                 ->where('tenant_id', $tenantId)
                 ->where('purchase_id', $pay->purchase_id)
                 ->where('payment_journal_entry_id', $pay->journal_entry_id)
@@ -325,7 +325,7 @@ class MigrateLegacyPurchasesCommand extends Command
                 continue;
             }
 
-            DB::table('payment_allocations')->insertOrIgnore([
+            DB::table('allocations')->insertOrIgnore([
                 'id'        => Str::uuid()->toString(),
                 'tenant_id' => $tenantId,
                 'purchase_id' => $pay->purchase_id,

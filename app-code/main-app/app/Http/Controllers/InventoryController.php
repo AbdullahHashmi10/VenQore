@@ -16,14 +16,18 @@ use App\Services\StorageService;
 use App\Models\ActivityLog;
 use App\Models\Activity;
 use App\Services\FinancialReportingService;
-use App\Services\V3\InventoryService as V3InventoryService;
+use App\Engines\InventoryService as V3InventoryService;
 
 
 class InventoryController extends Controller
 {
     public function dashboard()
     {
-        $tenantId = app('current.tenant')->id;
+        $tenant = app('current.tenant');
+        $tenantId = $tenant?->id;
+        if (!$tenantId) {
+            abort(404, 'Tenant not found');
+        }
         
         // V3 Logic: Use FinancialReportingService for valuation
         $inventoryValue = app(FinancialReportingService::class)->getInventoryValue();
@@ -56,6 +60,20 @@ class InventoryController extends Controller
             ->limit(5)
             ->get();
 
+        // Expiring Batches in the next 30 days
+        $expiringBatches = DB::table('inventory_batches as ib')
+            ->join('products as p', 'ib.product_id', '=', 'p.id')
+            ->select('ib.id', 'ib.purchase_invoice_id as batch_number', 'ib.expiry_date', 'ib.remaining_qty', 'p.name as product_name')
+            ->where('p.tenant_id', $tenantId)
+            ->where('ib.remaining_qty', '>', 0)
+            ->whereNotNull('ib.expiry_date')
+            ->whereBetween('ib.expiry_date', [
+                now()->toDateString(),
+                now()->addDays(30)->toDateString()
+            ])
+            ->orderBy('ib.expiry_date', 'asc')
+            ->get();
+
         return Inertia::render('Inventory/Dashboard', [
             'stats' => [
                 'total_products' => $totalProducts,
@@ -64,7 +82,8 @@ class InventoryController extends Controller
                 'total_categories' => $totalCategories,
                 'total_warehouses' => $totalWarehouses,
             ],
-            'topMoving' => $topMoving
+            'topMoving' => $topMoving,
+            'expiringBatches' => $expiringBatches,
         ]);
     }
 
@@ -385,7 +404,7 @@ class InventoryController extends Controller
             ]);
 
             // V3 Logic: Every product with stock MUST have a batch for valuation
-            $fifo = resolve(\App\Services\V3\FifoService::class);
+            $fifo = resolve(\App\Engines\FifoService::class);
             $fifo->receiveBatch(
                 productId: $product->id,
                 warehouseId: $warehouseId,
@@ -584,11 +603,11 @@ class InventoryController extends Controller
         }
 
         // Update Stock (Only if explicitly provided as a number)
-        if ($request->has('stock') && $request->get('stock') !== null && $request->get('stock') !== '') {
+        if ($request->has('stock') && $request->get('stock') !== null && $request->get('stock') !== '' && $product->type !== 'service') {
             $warehouseId = $request->warehouse_id ?? (Warehouse::first()?->id ?? 1);
             $newQuantity = (float)$request->get('stock');
             
-            $fifo = resolve(\App\Services\V3\FifoService::class);
+            $fifo = resolve(\App\Engines\FifoService::class);
 
             // Get current stock from V3 batches
             $currentStock = DB::table('inventory_batches')
@@ -1047,7 +1066,7 @@ class InventoryController extends Controller
         // Calculate stats
         $stats = [
             'total_products' => $products->count(),
-            'total_value' => $products->sum(fn($p) => $p['total_stock'] * $p['cost_price']),
+            'total_value' => app(\App\Reckoner\Reckoner::class)->read(new \App\Reckoner\ReckonerRequest('inventory.stock_value'), request()->user(), app('current.tenant'))->data['value'] ?? 0,
             'low_stock_count' => $products->filter(fn($p) => $p['total_stock'] <= $p['min_stock_alert'] && $p['total_stock'] > 0)->count(),
             'out_of_stock_count' => $products->filter(fn($p) => $p['total_stock'] <= 0)->count()
         ];

@@ -212,7 +212,7 @@ final class ReckonerPeriod
             throw new InvalidArgumentException('Custom period "to" must not be before "from".');
         }
 
-        $spanDays = $start->diffInDays($end) + 1;
+        $spanDays = (int) $start->diffInDays($end) + 1;
         $compareEnd = $start->subDay()->endOfDay();
         $compareStart = $compareEnd->subDays($spanDays - 1)->startOfDay();
 

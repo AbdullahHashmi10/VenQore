@@ -12,7 +12,7 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $tenantId = app('current.tenant')->id;
-        $query = Customer::query()->where('tenant_id', $tenantId);
+        $query = Customer::with('addresses')->where('tenant_id', $tenantId);
 
         if ($request->search) {
             $search = $request->search;
@@ -45,7 +45,7 @@ class CustomerController extends Controller
     public function search(Request $request)
     {
         $tenantId = app('current.tenant')->id;
-        $query = Customer::query()->where('tenant_id', $tenantId);
+        $query = Customer::with('addresses')->where('tenant_id', $tenantId);
 
         if ($request->search) {
             $search = $request->search;
@@ -70,6 +70,19 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'pricing_tier' => 'nullable|string|in:standard,gold,silver,bronze',
+            'currency_code' => 'nullable|string|size:3',
+            'is_tax_exempt' => 'boolean',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'date_of_birth' => 'nullable|date',
+            'anniversary_date' => 'nullable|date',
+            'addresses' => 'nullable|array',
+            'addresses.*.label' => 'required|string|max:50',
+            'addresses.*.address' => 'required|string',
+            'addresses.*.city' => 'nullable|string',
+            'addresses.*.state' => 'nullable|string',
+            'addresses.*.postal_code' => 'nullable|string',
+            'addresses.*.country' => 'nullable|string',
         ]);
 
         $data = $request->all();
@@ -89,6 +102,15 @@ class CustomerController extends Controller
 
         $customer = Customer::create($data);
 
+        if (!empty($data['addresses'])) {
+            foreach ($data['addresses'] as $idx => $addr) {
+                $customer->addresses()->create(array_merge($addr, [
+                    'tenant_id' => $tenantId,
+                    'is_default' => $idx === 0
+                ]));
+            }
+        }
+
         return redirect()->back()->with('success', 'Customer created successfully.');
     }
 
@@ -106,9 +128,39 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'pricing_tier' => 'nullable|string|in:standard,gold,silver,bronze',
+            'currency_code' => 'nullable|string|size:3',
+            'is_tax_exempt' => 'boolean',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'date_of_birth' => 'nullable|date',
+            'anniversary_date' => 'nullable|date',
+            'addresses' => 'nullable|array',
+            'addresses.*.id' => 'nullable',
+            'addresses.*.label' => 'required|string|max:50',
+            'addresses.*.address' => 'required|string',
+            'addresses.*.city' => 'nullable|string',
+            'addresses.*.state' => 'nullable|string',
+            'addresses.*.postal_code' => 'nullable|string',
+            'addresses.*.country' => 'nullable|string',
         ]);
 
         $customer->update($validated);
+
+        if (isset($validated['addresses'])) {
+            $customer->addresses()->delete();
+            foreach ($validated['addresses'] as $idx => $addr) {
+                $customer->addresses()->create([
+                    'tenant_id' => $tenantId,
+                    'label' => $addr['label'],
+                    'address' => $addr['address'],
+                    'city' => $addr['city'] ?? null,
+                    'state' => $addr['state'] ?? null,
+                    'postal_code' => $addr['postal_code'] ?? null,
+                    'country' => $addr['country'] ?? null,
+                    'is_default' => $idx === 0
+                ]);
+            }
+        }
 
         if ($customer->party_id) {
             $party = Party::where('tenant_id', $tenantId)

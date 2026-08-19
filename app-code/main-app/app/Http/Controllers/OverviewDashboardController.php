@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DashboardLayout;
-use App\Services\Dashboard\WidgetDataService;
-use App\Services\Dashboard\WidgetRegistry;
+use App\Models\LayoutPreference;
+use App\Services\Dashboard\DashboardRegistry;
+use App\Traits\ResolvesDashboardWidgets;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -35,6 +35,8 @@ use Inertia\Inertia;
  */
 class OverviewDashboardController extends Controller
 {
+    use ResolvesDashboardWidgets;
+
     /**
      * The cards that make up the fixed composed section of 1a.
      *
@@ -52,7 +54,7 @@ class OverviewDashboardController extends Controller
         'top_products',
     ];
 
-    public function index(Request $request, WidgetDataService $widgets)
+    public function index(Request $request)
     {
         abort_unless(\App\Support\Appearance::NEW_EXPERIENCE_ENABLED, 404);
 
@@ -61,7 +63,7 @@ class OverviewDashboardController extends Controller
 
         abort_unless($tenant, 403, 'Tenant context not resolved.');
 
-        $available = WidgetRegistry::availableFor($user, $tenant);
+        $available = DashboardRegistry::availableFor($user, $tenant);
 
         // The same permission gate the lazy endpoint uses. A cashier opening this
         // screen gets the shell and the cards they are entitled to, and the
@@ -73,7 +75,7 @@ class OverviewDashboardController extends Controller
         ));
 
         return Inertia::render('Workspace/Overview', [
-            'hero' => $widgets->resolve($permitted),
+            'hero' => $this->resolveWidgets($permitted, $user, $tenant),
 
             'extras' => $this->resolveExtras($user, $tenant, $available),
 
@@ -103,16 +105,38 @@ class OverviewDashboardController extends Controller
      */
     protected function resolveExtras($user, $tenant, array $available): array
     {
-        $saved = DashboardLayout::where('tenant_id', $tenant->id)
+        $membership = app()->bound('current.membership') ? app('current.membership') : null;
+        $storeRole = $membership?->role;
+
+        // 1. User-specific layout preference
+        $saved = LayoutPreference::where('tenant_id', $tenant->id)
             ->where('user_id', $user->id)
-            ->where('dashboard_key', DashboardLayout::DEFAULT_KEY)
+            ->where('surface', LayoutPreference::DEFAULT_KEY)
             ->first();
+
+        // 2. Role-specific layout preference
+        if (! $saved && $storeRole) {
+            $saved = LayoutPreference::where('tenant_id', $tenant->id)
+                ->whereNull('user_id')
+                ->where('role', $storeRole)
+                ->where('surface', LayoutPreference::DEFAULT_KEY)
+                ->first();
+        }
+
+        // 3. Store-wide layout preference
+        if (! $saved) {
+            $saved = LayoutPreference::where('tenant_id', $tenant->id)
+                ->whereNull('user_id')
+                ->whereNull('role')
+                ->where('surface', LayoutPreference::DEFAULT_KEY)
+                ->first();
+        }
 
         if (! $saved || ! is_array($saved->layout)) {
             return [];
         }
 
-        return collect(WidgetRegistry::sanitizeLayout($saved->layout, $available))
+        return collect(DashboardRegistry::sanitizeLayout($saved->layout, $available))
             ->pluck('widget')
             // The composed section already shows these; repeating one below it
             // would read as a bug rather than a choice.

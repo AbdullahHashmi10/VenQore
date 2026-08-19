@@ -20,6 +20,7 @@ class UpdateProductRequest extends FormRequest
             'price_includes_tax' => ['boolean'],
             'reorder_level'      => ['nullable', 'numeric', 'min:0'],
             'is_manufactured'    => ['boolean'],
+            'supplier_sku'       => ['nullable', 'string', 'max:100'],
         ];
     }
 }

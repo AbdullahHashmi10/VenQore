@@ -24,7 +24,7 @@ class Product extends Model
         'base_unit', 'secondary_unit', 'conversion_rate', 'min_stock_alert',
         'alert_quantity', 'stock_quantity', 'quantity', 'is_weighted',
         'is_manufactured', 'is_expiry_tracked', 'has_variants', 'track_serial',
-        'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via',
+        'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via', 'supplier_sku',
     ];
 
     protected static function booted(): void
@@ -68,7 +68,7 @@ class Product extends Model
 
     public function recipes()
     {
-        return $this->hasMany(Recipe::class, 'product_id');
+        return $this->hasMany(Composition::class, 'product_id');
     }
 
     public function category()

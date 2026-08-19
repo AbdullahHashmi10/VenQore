@@ -68,6 +68,17 @@
             color: #555;
             margin-top: 2px;
         }
+
+        .qrcode-container {
+            margin-top: 4px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .qrcode-img {
+            width: 40px;
+            height: 40px;
+        }
     </style>
 </head>
 
@@ -89,6 +100,13 @@
                             <img class="barcode-img"
                                 src="data:image/png;base64,{{ base64_encode($generator->getBarcode($item['barcode'], $generator::TYPE_CODE_128)) }}">
                             <div class="sku">{{ $item['barcode'] }}</div>
+                        </div>
+                    @endif
+
+                    @if(isset($settings['show_qrcode']) && $settings['show_qrcode'])
+                        <div class="qrcode-container">
+                            <img class="qrcode-img"
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ urlencode($item['qrcode_url']) }}">
                         </div>
                     @endif
 

@@ -16,6 +16,7 @@ export default function LabelsIndex({ products }) {
         show_price: true,
         show_name: true,
         show_barcode: true,
+        show_qrcode: false,
     });
 
     const filteredProducts = products.filter(p =>
@@ -254,6 +255,15 @@ export default function LabelsIndex({ products }) {
                                             />
                                             <span className="text-sm text-slate-700 dark:text-slate-300">Show Barcode</span>
                                         </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.show_qrcode}
+                                                onChange={(e) => setSettings({ ...settings, show_qrcode: e.target.checked })}
+                                                className="rounded text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-slate-700 dark:text-slate-300">Show QR Code (Store Link)</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -274,6 +284,11 @@ export default function LabelsIndex({ products }) {
                                             <div className="w-full flex flex-col items-center">
                                                 <div className="h-4 w-3/4 bg-slate-800 mb-0.5"></div>
                                                 <div className="text-4xs text-slate-500">12345678</div>
+                                            </div>
+                                        )}
+                                        {settings.show_qrcode && (
+                                            <div className="w-8 h-8 border border-slate-400 bg-slate-100 flex items-center justify-center text-4xs font-bold my-1 p-0.5">
+                                                QR
                                             </div>
                                         )}
                                         {settings.show_price && <div className="font-bold text-xs mt-1">$19.99</div>}

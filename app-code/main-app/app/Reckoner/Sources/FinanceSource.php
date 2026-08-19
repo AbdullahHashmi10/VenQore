@@ -34,6 +34,7 @@ final class FinanceSource implements ReckonerSource
             'finance.cogs',
             'finance.receivables',
             'finance.payables',
+            'finance.total_liquidity',
             'inventory.stock_value',
             'finance.balance_sheet_ok',
             'finance.profit_trend',
@@ -78,6 +79,35 @@ final class FinanceSource implements ReckonerSource
                 continue;
             }
 
+            if ($key === 'finance.total_liquidity') {
+                $cashAccounts = \Illuminate\Support\Facades\DB::table('accounts')
+                    ->where('tenant_id', $ctx->tenant->id)
+                    ->where('type', 'asset')
+                    ->whereBetween('code', ['1000', '1099'])
+                    ->pluck('id')
+                    ->toArray();
+
+                if (empty($cashAccounts)) {
+                    $out[$id] = 0.0;
+                } else {
+                    $totals = \Illuminate\Support\Facades\DB::table('journal_items as ji')
+                        ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                        ->where('ji.tenant_id', $ctx->tenant->id)
+                        ->whereIn('ji.account_id', $cashAccounts)
+                        ->where('je.tenant_id', $ctx->tenant->id)
+                        ->where('je.date', '<=', $period->end->toDateString())
+                        ->where('je.is_reversed', 0)
+                        ->selectRaw('SUM(ji.debit) as total_debit, SUM(ji.credit) as total_credit')
+                        ->first();
+
+                    $debit  = (float) ($totals->total_debit  ?? 0.0);
+                    $credit = (float) ($totals->total_credit ?? 0.0);
+                    $out[$id] = $debit - $credit;
+                }
+
+                continue;
+            }
+
             if ($key === 'finance.balance_sheet_ok') {
                 $out[$id] = $this->balanceSheetStatus($ctx);
 
@@ -85,60 +115,153 @@ final class FinanceSource implements ReckonerSource
             }
 
             if ($key === 'finance.profit_trend') {
+                $granularity = match($period->key) {
+                    'this_year', 'last_year', 'last_12_months' => 'monthly',
+                    default => 'daily',
+                };
+                $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity);
+                $series = [];
+                foreach ($profitByPeriod as $date => $metrics) {
+                    $series[] = [
+                        'x' => $date,
+                        'y' => (float) $metrics['profit']
+                    ];
+                }
+                usort($series, fn($a, $b) => strcmp($a['x'], $b['x']));
                 $out[$id] = [
-                    'series' => [
-                        ['x' => $period->start->toDateString(), 'y' => -1500.0],
-                        ['x' => $period->start->addDays(1)->toDateString(), 'y' => 800.0],
-                        ['x' => $period->end->toDateString(), 'y' => 3200.0],
-                    ],
-                    'granularity' => 'daily'
+                    'series' => $series,
+                    'granularity' => $granularity
                 ];
 
                 continue;
             }
 
             if ($key === 'finance.expenses_by_category') {
+                $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
+
+                $expenseRows = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                    ->where('ji.tenant_id', $ctx->tenant->id)
+                    ->where('je.tenant_id', $ctx->tenant->id)
+                    ->where('je.is_reversed', 0)
+                    ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
+                    ->where('a.type', 'expense')
+                    ->when($cogsId, fn($q) => $q->where('a.id', '!=', $cogsId))
+                    ->select('a.id', 'a.name', DB::raw('SUM(ji.debit) - SUM(ji.credit) as val'))
+                    ->groupBy('a.id', 'a.name')
+                    ->get();
+
+                $total = 0.0;
+                $slices = [];
+                foreach ($expenseRows as $row) {
+                    $val = (float) $row->val;
+                    if ($val <= 0) continue;
+                    $total += $val;
+                    $slices[] = [
+                        'name' => $row->name,
+                        'value' => $val,
+                    ];
+                }
+
+                foreach ($slices as &$slice) {
+                    $slice['pct'] = $total > 0 ? round(($slice['value'] / $total) * 100, 1) : 0.0;
+                }
+                unset($slice);
+
                 $out[$id] = [
-                    'slices' => [
-                        ['name' => 'Rent', 'value' => 1200.0, 'pct' => 40.0],
-                        ['name' => 'Utilities', 'value' => 800.0, 'pct' => 26.7],
-                        ['name' => 'Salaries', 'value' => 1000.0, 'pct' => 33.3],
-                    ],
-                    'total' => 3000.0
+                    'slices' => $slices,
+                    'total' => $total
                 ];
 
                 continue;
             }
 
             if ($key === 'finance.receivables_aging') {
+                $reportResult = $this->reporting->getAgedReceivables();
+                $summary = $reportResult['summary'] ?? [];
+                $total = (float) array_sum($summary);
+                if ($total <= 0) {
+                    $out[$id] = null;
+                    continue;
+                }
+
+                $slices = [];
+                foreach ($summary as $name => $value) {
+                    $slices[] = [
+                        'name' => $name === '90+' ? "Over 90 days" : ($name === '0-30' ? "0-30 Days" : ($name === '31-60' ? "31-60 Days" : "61-90 Days")),
+                        'value' => (float) $value,
+                        'pct' => $total > 0 ? round(($value / $total) * 100, 1) : 0.0,
+                    ];
+                }
                 $out[$id] = [
-                    'slices' => [
-                        ['name' => '0-30 Days', 'value' => 45000.0, 'pct' => 50.0],
-                        ['name' => '31-60 Days', 'value' => 27000.0, 'pct' => 30.0],
-                        ['name' => '61-90 Days', 'value' => 18000.0, 'pct' => 20.0],
-                    ],
-                    'total' => 90000.0
+                    'slices' => $slices,
+                    'total' => $total,
                 ];
 
                 continue;
             }
 
             if ($key === 'finance.cash_flow_trend') {
+                $cashAccounts = DB::table('accounts')
+                    ->where('tenant_id', $ctx->tenant->id)
+                    ->where('type', 'asset')
+                    ->whereBetween('code', ['1000', '1099'])
+                    ->pluck('id')
+                    ->toArray();
+
+                if (empty($cashAccounts)) {
+                    $out[$id] = [
+                        'series' => [
+                            ['name' => "Money In", 'points' => []],
+                            ['name' => "Money Out", 'points' => []],
+                        ]
+                    ];
+                    continue;
+                }
+
+                $granularity = match($period->key) {
+                    'this_year', 'last_year', 'last_12_months' => 'monthly',
+                    default => 'daily',
+                };
+
+                $periodExpr = match ($granularity) {
+                    'monthly' => "DATE_FORMAT(je.date, '%Y-%m')",
+                    default   => "DATE_FORMAT(je.date, '%Y-%m-%d')",
+                };
+
+                $cashFlowRows = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->where('ji.tenant_id', $ctx->tenant->id)
+                    ->where('je.tenant_id', $ctx->tenant->id)
+                    ->where('je.is_reversed', 0)
+                    ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
+                    ->whereIn('ji.account_id', $cashAccounts)
+                    ->selectRaw(
+                        "{$periodExpr} as period, "
+                        . "SUM(CASE WHEN ji.debit > 0 THEN ji.debit ELSE 0 END) as money_in, "
+                        . "SUM(CASE WHEN ji.credit > 0 THEN ji.credit ELSE 0 END) as money_out"
+                    )
+                    ->groupBy('period')
+                    ->orderBy('period')
+                    ->get();
+
+                $pointsIn = [];
+                $pointsOut = [];
+                foreach ($cashFlowRows as $row) {
+                    $pointsIn[] = ['x' => $row->period, 'y' => round((float)$row->money_in, 2)];
+                    $pointsOut[] = ['x' => $row->period, 'y' => round((float)$row->money_out, 2)];
+                }
+
                 $out[$id] = [
                     'series' => [
                         [
-                            'name' => 'Money In',
-                            'points' => [
-                                ['x' => $period->start->toDateString(), 'y' => 5000.0],
-                                ['x' => $period->end->toDateString(), 'y' => 7000.0],
-                            ]
+                            'name' => "Money In",
+                            'points' => $pointsIn
                         ],
                         [
-                            'name' => 'Money Out',
-                            'points' => [
-                                ['x' => $period->start->toDateString(), 'y' => 3000.0],
-                                ['x' => $period->end->toDateString(), 'y' => 4500.0],
-                            ]
+                            'name' => "Money Out",
+                            'points' => $pointsOut
                         ]
                     ]
                 ];

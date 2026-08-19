@@ -15,7 +15,30 @@ export default function CustomersIndex({ customers, filters }) {
         email: '',
         phone: '',
         address: '',
+        pricing_tier: 'standard',
+        currency_code: 'USD',
+        is_tax_exempt: false,
+        credit_limit: 0,
+        date_of_birth: '',
+        anniversary_date: '',
+        addresses: [],
     });
+
+    const addAddress = () => {
+        setData('addresses', [...data.addresses, { label: 'Shipping', address: '', city: '', state: '', postal_code: '', country: '' }]);
+    };
+
+    const removeAddress = (index) => {
+        const newAddresses = [...data.addresses];
+        newAddresses.splice(index, 1);
+        setData('addresses', newAddresses);
+    };
+
+    const updateAddress = (index, field, value) => {
+        const newAddresses = [...data.addresses];
+        newAddresses[index][field] = value;
+        setData('addresses', newAddresses);
+    };
 
     const openModal = (customer = null) => {
         if (customer) {
@@ -25,6 +48,13 @@ export default function CustomersIndex({ customers, filters }) {
                 email: customer.email || '',
                 phone: customer.phone || '',
                 address: customer.address || '',
+                pricing_tier: customer.pricing_tier || 'standard',
+                currency_code: customer.currency_code || 'USD',
+                is_tax_exempt: customer.is_tax_exempt || false,
+                credit_limit: customer.credit_limit || 0,
+                date_of_birth: customer.date_of_birth || '',
+                anniversary_date: customer.anniversary_date || '',
+                addresses: customer.addresses || [],
             });
         } else {
             setEditingCustomer(null);
@@ -214,13 +244,145 @@ export default function CustomersIndex({ customers, filters }) {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Address</label>
-                                <textarea
-                                    value={data.address}
-                                    onChange={(e) => setData('address', e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none h-24 resize-none"
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pricing Tier</label>
+                                    <select
+                                        value={data.pricing_tier}
+                                        onChange={(e) => setData('pricing_tier', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    >
+                                        <option value="standard">Standard</option>
+                                        <option value="gold">Gold (Level 2)</option>
+                                        <option value="silver">Silver (Level 3)</option>
+                                        <option value="bronze">Bronze (Level 4)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Billing Currency</label>
+                                    <select
+                                        value={data.currency_code}
+                                        onChange={(e) => setData('currency_code', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    >
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="PKR">PKR (Rs)</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="AED">AED (د.إ)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Main Address</label>
+                                    <textarea
+                                        value={data.address}
+                                        onChange={(e) => setData('address', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none h-10 resize-none"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 mt-2">
+                                <input
+                                    type="checkbox"
+                                    id="is_tax_exempt"
+                                    checked={data.is_tax_exempt}
+                                    onChange={(e) => setData('is_tax_exempt', e.target.checked)}
+                                    className="rounded border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                 />
+                                <label htmlFor="is_tax_exempt" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    Tax Exempt (Do not charge tax)
+                                </label>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4 pt-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Credit Limit</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={data.credit_limit}
+                                        onChange={(e) => setData('credit_limit', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Birth</label>
+                                    <input
+                                        type="date"
+                                        value={data.date_of_birth}
+                                        onChange={(e) => setData('date_of_birth', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Anniversary</label>
+                                    <input
+                                        type="date"
+                                        value={data.anniversary_date}
+                                        onChange={(e) => setData('anniversary_date', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-2 ring-indigo-500/20 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Additional Addresses</label>
+                                    <button
+                                        type="button"
+                                        onClick={addAddress}
+                                        className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-700"
+                                    >
+                                        <Plus size={14} /> Add Address
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                                    {data.addresses.map((addr, idx) => (
+                                        <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeAddress(idx)}
+                                                className="absolute top-2 right-2 text-slate-400 hover:text-red-500"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                            <div className="grid grid-cols-3 gap-2 mb-2">
+                                                <div className="col-span-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Label (e.g. Shipping)"
+                                                        value={addr.label}
+                                                        onChange={(e) => updateAddress(idx, 'label', e.target.value)}
+                                                        className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                    />
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="City"
+                                                        value={addr.city || ''}
+                                                        onChange={(e) => updateAddress(idx, 'city', e.target.value)}
+                                                        className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <textarea
+                                                placeholder="Full Address"
+                                                value={addr.address}
+                                                onChange={(e) => updateAddress(idx, 'address', e.target.value)}
+                                                className="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none h-16"
+                                            />
+                                        </div>
+                                    ))}
+                                    {data.addresses.length === 0 && (
+                                        <div className="text-center text-xs text-slate-400 py-2 italic">
+                                            No additional addresses.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="pt-4 flex justify-end gap-3">

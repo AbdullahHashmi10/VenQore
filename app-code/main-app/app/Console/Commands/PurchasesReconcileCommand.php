@@ -101,7 +101,7 @@ class PurchasesReconcileCommand extends Command
 
         $agedPayables = DB::table('purchases as p')
             ->when($tenantFilter, fn ($q) => $q->where('p.tenant_id', $tenantFilter))
-            ->leftJoin('payment_allocations as pa', function ($j) {
+            ->leftJoin('allocations as pa', function ($j) {
                 $j->on('pa.purchase_id', '=', 'p.id')->where('pa.status', '=', 'active');
             })
             ->where('p.workflow_status', '!=', 'cancelled')

@@ -15,7 +15,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Warehouse;
-use App\Services\LedgerService;
+use App\Queries\PartyBalanceQuery;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesOrderController extends Controller
@@ -179,7 +179,7 @@ class SalesOrderController extends Controller
         $order->load(['customer', 'items.product']);
         
         if ($order->customer) {
-            $order->customer->current_balance = LedgerService::partyNetBalance(
+            $order->customer->current_balance = PartyBalanceQuery::partyNetBalance(
                 $order->customer->id,
                 $order->tenant_id ?? app('current.tenant')->id
             );
@@ -188,7 +188,7 @@ class SalesOrderController extends Controller
         if ($order->party_id ?? ($order->customer_id ?? null)) {
             $partyId    = $order->party_id ?? $order->customer_id;
             $tenantId   = $order->tenant_id ?? app('current.tenant')->id;
-            $net        = LedgerService::partyNetBalance($partyId, $tenantId);
+            $net        = PartyBalanceQuery::partyNetBalance($partyId, $tenantId);
             $balanceDue = max(0, (float) ($order->total ?? 0) - (float) ($order->amount_paid ?? 0));
             $order->customer_net_balance  = $net;
             $order->customer_prev_balance = $net - $balanceDue;
@@ -353,7 +353,7 @@ class SalesOrderController extends Controller
                     'tenant_id' => $tenantId
                 ]);
 
-                $fifo = app(\App\Services\V3\FifoService::class);
+                $fifo = app(\App\Engines\FifoService::class);
                 $totalCogs = 0.0;
 
                 foreach ($items as $item) {
@@ -363,41 +363,46 @@ class SalesOrderController extends Controller
                     // A. Deduct stock using FIFO (Batches)
                     $lineCogs = 0;
                     $deductions = null;
-                    try {
-                        $deductions = $fifo->deductStock($item->product_id, $warehouseId, $totalQty);
-                        $lineCogs = collect($deductions)->sum('total_cost');
-                    } catch (\App\Exceptions\InsufficientStockException $e) {
-                        // Fallback: use static cost for backorders
+                    
+                    if ($product->type === 'service') {
                         $lineCogs = ($product->cost_price ?? 0) * $totalQty;
-                        Log::warning("Backorder in conversion for product {$item->product_id}: using static cost.");
-                    }
-
-                    $totalCogs += $lineCogs;
-
-                    // B. Deduct Physical Stock from 'stocks' table (handles negatives)
-                    $stock = Stock::where('product_id', $item->product_id)->where('warehouse_id', $warehouseId)->first();
-                    if ($stock) {
-                        $stock->decrement('quantity', $totalQty);
                     } else {
-                        Stock::create([
+                        try {
+                            $deductions = $fifo->deductStock($item->product_id, $warehouseId, $totalQty);
+                            $lineCogs = collect($deductions)->sum('total_cost');
+                        } catch (\App\Exceptions\InsufficientStockException $e) {
+                            // Fallback: use static cost for backorders
+                            $lineCogs = ($product->cost_price ?? 0) * $totalQty;
+                            Log::warning("Backorder in conversion for product {$item->product_id}: using static cost.");
+                        }
+
+                        // B. Deduct Physical Stock from 'stocks' table (handles negatives)
+                        $stock = Stock::where('product_id', $item->product_id)->where('warehouse_id', $warehouseId)->first();
+                        if ($stock) {
+                            $stock->decrement('quantity', $totalQty);
+                        } else {
+                            Stock::create([
+                                'product_id' => $item->product_id,
+                                'warehouse_id' => $warehouseId,
+                                'quantity' => -$totalQty,
+                                'tenant_id' => $tenantId
+                            ]);
+                        }
+
+                        // C. Also handle StockMovement for history
+                        \App\Models\StockMovement::create([
                             'product_id' => $item->product_id,
                             'warehouse_id' => $warehouseId,
+                            'type' => 'sale',
                             'quantity' => -$totalQty,
+                            'reference_id' => $sale->id,
+                            'description' => "Pre-Sale Conversion: {$order->order_number}",
+                            'user_id' => auth()->id(),
                             'tenant_id' => $tenantId
                         ]);
                     }
 
-                    // C. Also handle StockMovement for history
-                    \App\Models\StockMovement::create([
-                        'product_id' => $item->product_id,
-                        'warehouse_id' => $warehouseId,
-                        'type' => 'sale',
-                        'quantity' => -$totalQty,
-                        'reference_id' => $sale->id,
-                        'description' => "Pre-Sale Conversion: {$order->order_number}",
-                        'user_id' => auth()->id(),
-                        'tenant_id' => $tenantId
-                    ]);
+                    $totalCogs += $lineCogs;
 
                     $qty = (float)$item->quantity_requested;
                     $unitPrice = (float)$item->unit_price;
@@ -444,7 +449,7 @@ class SalesOrderController extends Controller
                 }
 
                 // 2. Post Journal Entries
-                $accounting = resolve(\App\Services\V3\AccountingService::class);
+                $accounting = resolve(\App\Engines\AccountingService::class);
                 $journalItems = [];
                 
                 // DR: AR (1200)

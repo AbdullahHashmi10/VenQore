@@ -14,7 +14,7 @@ const SETTINGS_CATEGORIES = [
         id: 'org',
         name: 'Organization',
         icon: Building2,
-        sections: ['general']
+        sections: ['general', 'taxes']
     },
     {
         id: 'ops',
@@ -34,6 +34,7 @@ const SETTINGS_SECTIONS = [
     { id: 'general', name: 'Store Info', icon: Building2, description: 'Store details and address' },
     { id: 'pos', name: 'POS & Sales', icon: ShoppingCart, description: 'Sales and interface configuration' },
     { id: 'security', name: 'Security', icon: Shield, description: 'Access control & passcodes' },
+    { id: 'taxes', name: 'Tax Rates', icon: Percent, description: 'Configure custom tax brackets' },
 ];
 
 export default function SettingsPanel({ settings }) {
@@ -82,6 +83,17 @@ export default function SettingsPanel({ settings }) {
         // Security
         enable_passcode: settings.enable_passcode === '1',
         admin_passcode: settings.admin_passcode || '',
+
+        // Invoice styling & Custom domain
+        invoice_theme: settings.invoice_theme || 'classic',
+        invoice_primary_color: settings.invoice_primary_color || '#4f46e5',
+        show_margin_on_invoice: settings.show_margin_on_invoice === '1',
+        custom_domain: store.custom_domain || '',
+        tax_rates: typeof settings.tax_rates === 'string' ? settings.tax_rates : JSON.stringify(settings.tax_rates || [{ id: 1, name: 'GST 18%', rate: 18, type: 'percentage' }, { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }], null, 2),
+        sso_enabled: settings.sso_enabled === '1',
+        sso_idp_entity_id: settings.sso_idp_entity_id || '',
+        sso_url: settings.sso_url || '',
+        sso_certificate: settings.sso_certificate || '',
     });
 
     const handleSubmit = (e) => {
@@ -109,6 +121,15 @@ export default function SettingsPanel({ settings }) {
             pos_return_window: data.pos_return_window,
             pos_return_window_behavior: data.pos_return_window_behavior,
             charity_enabled: data.charity_enabled ? '1' : '0',
+            invoice_theme: data.invoice_theme,
+            invoice_primary_color: data.invoice_primary_color,
+            show_margin_on_invoice: data.show_margin_on_invoice ? '1' : '0',
+            custom_domain: data.custom_domain,
+            tax_rates: data.tax_rates,
+            sso_enabled: data.sso_enabled ? '1' : '0',
+            sso_idp_entity_id: data.sso_idp_entity_id,
+            sso_url: data.sso_url,
+            sso_certificate: data.sso_certificate,
         };
 
         router.post(route("store.settings.update", {
@@ -200,6 +221,68 @@ export default function SettingsPanel({ settings }) {
                                 </div>
                             </div>
                             <div className="space-y-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Custom Domain Mapping</label>
+                                <input
+                                    type="text"
+                                    value={data.custom_domain}
+                                    onChange={(e) => setData('custom_domain', e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    placeholder="e.g. store.mydomain.com"
+                                />
+                            </div>
+
+                            <div className="h-px bg-slate-200 dark:bg-white/10 md:col-span-2 my-4"></div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <h3 className="text-md font-bold text-slate-900 dark:text-white">Invoice & PDF Customization</h3>
+                                <p className="text-xs text-slate-400">Manage the design and interactive elements of generated B2B invoices.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Invoice Template Theme</label>
+                                <select
+                                    value={data.invoice_theme}
+                                    onChange={(e) => setData('invoice_theme', e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+                                >
+                                    <option value="classic">Classic Minimalist</option>
+                                    <option value="modern">Modern Professional</option>
+                                    <option value="elegant">Elegant Serif</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Primary Brand Color</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="color"
+                                        value={data.invoice_primary_color}
+                                        onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                                        className="h-11 w-14 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={data.invoice_primary_color}
+                                        onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                                        className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">B2B Margin Display</h4>
+                                        <p className="text-xs text-slate-400">Display item-level profit margin column directly on B2B invoices.</p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={data.show_margin_on_invoice}
+                                        onChange={(e) => setData('show_margin_on_invoice', e.target.checked)}
+                                        className="w-5 h-5 accent-indigo-500 rounded border-slate-300 focus:ring-indigo-500"
+                                    />
+                            </div>
+                            <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Auto-Update Product Cost</label>
                                 <select
                                     value={data.product_cost_update_policy}
@@ -214,7 +297,8 @@ export default function SettingsPanel({ settings }) {
                             </div>
                         </div>
                     </div>
-                );
+                </div>
+            );
 
             case 'pos':
                 return (
@@ -434,6 +518,79 @@ export default function SettingsPanel({ settings }) {
                                     </p>
                                 </div>
                             )}
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                            <SectionHeader title="SSO / SAML Authentication" description="Configure Single Sign-On for your organization" />
+
+                            <div className="mb-6">
+                                <Toggle
+                                    enabled={data.sso_enabled}
+                                    onChange={v => setData('sso_enabled', v)}
+                                    label="Enable SSO"
+                                    description="Allow members to sign in securely using SAML Identity Provider"
+                                />
+                            </div>
+
+                            {data.sso_enabled && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">IdP Entity ID</label>
+                                        <input
+                                            type="text"
+                                            value={data.sso_idp_entity_id}
+                                            onChange={(e) => setData('sso_idp_entity_id', e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            placeholder="https://identity-provider.com/metadata"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Single Sign-On Service URL</label>
+                                        <input
+                                            type="text"
+                                            value={data.sso_url}
+                                            onChange={(e) => setData('sso_url', e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            placeholder="https://identity-provider.com/sso"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">X.509 Public Certificate</label>
+                                        <textarea
+                                            value={data.sso_certificate}
+                                            onChange={(e) => setData('sso_certificate', e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                                            rows={5}
+                                            placeholder="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+
+            case 'taxes':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                            <SectionHeader title="Custom Tax Configurator" description="Define custom tax rates and brackets for B2B invoice billing" />
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Tax Rates JSON Configuration</label>
+                                    <textarea
+                                        value={data.tax_rates}
+                                        onChange={(e) => setData('tax_rates', e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        rows={10}
+                                        placeholder='[{"id": 1, "name": "GST 18%", "rate": 18, "type": "percentage"}]'
+                                    />
+                                    <p className="mt-2 text-xs text-slate-500">
+                                        Enter valid JSON configuration matching the structure: <code>[{"{"}"id": unique_id, "name": "Label", "rate": percentage_number, "type": "percentage"{"}"}]</code>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );

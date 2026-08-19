@@ -139,7 +139,7 @@ class SalesOrderController extends Controller
             ])->toArray(),
         ];
 
-        $sale = app(\App\Services\V3\SaleService::class)->post($saleData);
+        $sale = app(\App\Engines\SaleService::class)->post($saleData);
 
         // Mark order as converted — cannot be converted again
         $order->update([

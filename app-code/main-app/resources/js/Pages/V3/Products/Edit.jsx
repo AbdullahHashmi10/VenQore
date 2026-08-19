@@ -12,6 +12,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
         price_includes_tax: Boolean(product.price_includes_tax),
         reorder_level: product.reorder_level ?? 0,
         is_manufactured: Boolean(product.is_manufactured),
+        supplier_sku: product.supplier_sku || '',
     })
 
     const submit = (e) => {
@@ -83,6 +84,16 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                             value={data.tax_rate}
                             onChange={e => setData('tax_rate', e.target.value)}
                             className="w-full border rounded px-3 py-2"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Supplier SKU Mapping</label>
+                        <input
+                            type="text"
+                            value={data.supplier_sku}
+                            onChange={e => setData('supplier_sku', e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Supplier SKU"
                         />
                     </div>
                 </div>

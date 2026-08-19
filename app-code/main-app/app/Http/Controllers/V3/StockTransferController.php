@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class StockTransferController extends Controller
 {
     public function __construct(
-        private \App\Services\V3\InventoryService $inventory
+        private \App\Engines\InventoryService $inventory
     ) {}
 
     public function store(Request $request)
