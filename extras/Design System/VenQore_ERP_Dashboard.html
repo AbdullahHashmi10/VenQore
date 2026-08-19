@@ -6,7 +6,7 @@
 <title>VenQore · Production ERP Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
 
 // Pure Multiples 64px Corner Resizing Engine with Snapping
@@ -125,84 +125,124 @@ function toggleErpSidebar() {
 
 <style>
 /* ==========================================================================
-   Design Tokens & Living Neutral Theme Variables
+   VenQore Design System v5 "Qore" — Core Tokens & Semantic Layer
    ========================================================================== */
 :root {
-  --canvas: #0A0D10;
-  --surface: #11151A;
-  --surface-lift: #171C22;
-  --sunken: #07090C;
-  --line: #222B35;
-  --line-soft: #1B222A;
-  --line-strong: #323F4E;
-  
-  --text: #F2F5F8;
-  --text2: #9BA8B6;
-  --text3: #627181;
-  --text-inverse: #0A0D10;
-  
-  --accent: #0BAA8F;
-  --accent-text: #23C4A6;
-  --accent-soft: rgba(11, 170, 143, 0.14);
-  --accent-strong: #08816D;
-  
-  --success: #32A87D;
-  --success-d: #46C495;
-  --warning: #D9822B;
-  --warning-d: #F39C38;
-  --danger: #D84A43;
-  --danger-d: #EE6A63;
-  --info: #1B7096;
-  --info-d: #2E8CB8;
-  --ai: #E0533C;
-  
-  --teal-300: #5DA5B0;
-  --teal-400: #3D8B96;
-  --teal-500: #0BAA8F;
-  
+  /* Ink neutral palette with subtle green cast */
+  --vq-ink-0: #FFFFFF;
+  --vq-ink-25: #F7FAF8;
+  --vq-ink-50: #EDF2EF;
+  --vq-ink-100: #D3DCD7;
+  --vq-ink-200: #BAC7C0;
+  --vq-ink-300: #A0B2AA;
+  --vq-ink-400: #879D93;
+  --vq-ink-500: #6D877D;
+  --vq-ink-600: #576D64;
+  --vq-ink-700: #42524C;
+  --vq-ink-800: #2C3733;
+  --vq-ink-900: #17201B;
+  --vq-ink-950: #0C1211;
+  --vq-ink-1000: #050807;
+
+  /* Teal identity ramp */
+  --vq-teal-50: #E6FBF5;
+  --vq-teal-100: #C0F6E6;
+  --vq-teal-200: #8CEECD;
+  --vq-teal-300: #4BD99B;
+  --vq-teal-400: #23C4A6;
+  --vq-teal-500: #0BAA8F;
+  --vq-teal-600: #078C76;
+  --vq-teal-700: #076B5E;
+  --vq-teal-800: #075249;
+  --vq-teal-900: #063C36;
+  --vq-teal-950: #03221F;
+
+  /* Fonts */
+  --vq-font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif;
+  --vq-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --vq-font-numeric: 'Space Grotesk', monospace;
+  --vq-font-mono: 'Space Grotesk', 'JetBrains Mono', monospace;
+
+  /* Gradients */
+  --vq-grad-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%);
+  --vq-grad-mint: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%);
+  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%), radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%), radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%), #0A0B0F;
+  --vq-glow-accent: 0 10px 30px -10px rgba(35, 196, 166, 0.35);
+  --vq-glow-accent-strong: 0 14px 40px -10px rgba(35, 196, 166, 0.55);
+
+  /* Radii & Motion */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
-  --radius-full: 9999px;
-  
-  --dur-fast: 160ms;
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  
+  --radius-xl: 24px;
+  --radius-full: 999px;
+  --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --dur-fast: 180ms;
+  --ease: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* Grid Settings */
   --grid-cols: 12;
   --col-gutter: 24px;
   --row-gutter: 24px;
+
+  /* Dark theme surfaces (Selected charcoal, not inverted) */
+  --canvas: #0C1211;
+  --surface: #141B19;
+  --surface-lift: #1A2220;
+  --sunken: #080D0C;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-soft: rgba(255, 255, 255, 0.04);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #EDF2EF;
+  --text2: #A8B4AE;
+  --text3: #6F7E77;
+  --text-inverse: #17201B;
+
+  --accent: #0BAA8F;
+  --accent-text: #23C4A6;
+  --accent-soft: rgba(35, 196, 166, 0.14);
+  --accent-strong: #078C76;
+
+  --success: #12855C;
+  --success-d: #4BD99B;
+  --warning: #A6690A;
+  --warning-d: #F7C05A;
+  --danger: #C4443A;
+  --danger-d: #FF8A7E;
+  --info: #1B7096;
+  --info-d: #7BD4E6;
+  --ai: #23C4A6;
 }
 
 html[data-theme="light"], body.vq-light {
-  --canvas: #F5F7FA;
+  --canvas: #F1F5F2;
   --surface: #FFFFFF;
-  --surface-lift: #FFFFFF;
-  --sunken: #EBEFF4;
-  --line: #DCE2E9;
-  --line-soft: #E5EAF0;
-  --line-strong: #C3CCD6;
-  
-  --text: #11171D;
-  --text2: #52606D;
-  --text3: #7C8B9B;
-  --text-inverse: #FFFFFF;
-  
+  --surface-lift: #F7FAF8;
+  --sunken: #E6ECE8;
+  --line: #D3DCD7;
+  --line-soft: #E2E9E5;
+  --line-strong: #BAC7C0;
+
+  --text: #17201B;
+  --text2: #536159;
+  --text3: #829088;
+  --text-inverse: #EDF2EF;
+
   --accent: #0BAA8F;
-  --accent-text: #08816D;
+  --accent-text: #076B5E;
   --accent-soft: rgba(11, 170, 143, 0.12);
-  --accent-strong: #065F50;
-  
-  --success: #23855E;
-  --success-d: #186345;
-  --warning: #BF6A1E;
-  --warning-d: #964F11;
-  --danger: #C23028;
-  --danger-d: #961F19;
-  --info: #135878;
-  --info-d: #0E425C;
-  --ai: #C73E28;
-  
-  --teal-300: #08816D;
+  --accent-strong: #055047;
+
+  --success: #12855C;
+  --success-d: #12855C;
+  --warning: #A6690A;
+  --warning-d: #A6690A;
+  --danger: #C4443A;
+  --danger-d: #C4443A;
+  --info: #1B7096;
+  --info-d: #1B7096;
+  --ai: #0BAA8F;
 }
 
 /* Senior Mode Scaling (+30%) */
@@ -230,7 +270,7 @@ html.senior-mode .erp-nav-link {
   padding: 0;
 }
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--vq-font-sans);
   background: var(--canvas);
   color: var(--text);
   line-height: 1.5;
@@ -238,6 +278,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+h1, h2, h3, h4, .brand, .screen-title {
+  font-family: var(--vq-font-display);
+  letter-spacing: -0.025em;
 }
 
 /* Top App Bar */
@@ -251,6 +296,7 @@ header.app-top {
   position: sticky;
   top: 0;
   z-index: 50;
+  box-shadow: 0 4px 18px -6px rgba(0,0,0,0.15);
 }
 .brand {
   display: flex;
@@ -264,12 +310,8 @@ header.app-top {
 .brandmark {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #0BAA8F, #065446);
-  border-radius: 8px;
   display: grid;
   place-items: center;
-  color: #FFF;
-  font: 700 13px 'Space Grotesk', sans-serif;
 }
 .header-actions {
   display: flex;
@@ -280,9 +322,9 @@ header.app-top {
   background: var(--sunken);
   border: 1px solid var(--line);
   color: var(--text);
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: var(--radius-full);
-  font: 500 12px 'Inter', sans-serif;
+  font: 600 12.5px var(--vq-font-sans);
   cursor: pointer;
   transition: all var(--dur-fast) ease;
 }
@@ -674,21 +716,23 @@ body.vq-light .frame-bar {
   border-radius: var(--radius-full);
   padding: 3px;
   gap: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .segment button {
   background: transparent;
   border: 0;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: var(--radius-full);
-  font: 500 12px 'Inter', sans-serif;
+  font: 600 12.5px var(--vq-font-sans);
   color: var(--text2);
   cursor: pointer;
-  transition: all var(--dur-fast) ease;
+  transition: all var(--dur-fast) var(--vq-ease-spring);
 }
 .segment button.active {
-  background: var(--accent);
+  background: var(--vq-teal-500);
   color: #FFFFFF;
   font-weight: 600;
+  box-shadow: var(--vq-glow-accent);
 }
 
 /* Buttons */
@@ -696,35 +740,67 @@ body.vq-light .frame-bar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 8px;
+  padding: 8px 18px;
   border-radius: var(--radius-full);
-  font: 500 12.5px 'Inter', sans-serif;
+  font: 600 13px/1 var(--vq-font-sans);
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all var(--dur-fast) ease;
+  transition: transform 180ms var(--vq-ease-spring), background 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.btn:hover {
+  transform: translateY(-1.5px);
+}
+.btn:active {
+  transform: scale(0.97);
 }
 .btn.primary {
-  background: var(--surface);
-  border-color: var(--line);
-  color: var(--text);
+  background: var(--vq-grad-mint);
+  border: none;
+  color: #FFFFFF;
+  box-shadow: var(--vq-glow-accent);
 }
 .btn.primary:hover {
+  box-shadow: var(--vq-glow-accent-strong);
+}
+.btn.secondary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn.secondary:hover {
   background: var(--surface-lift);
   border-color: var(--accent);
 }
 .btn.ghost {
   background: transparent;
   color: var(--text2);
+  border: 1px solid transparent;
 }
 .btn.ghost:hover {
   color: var(--text);
+  background: var(--sunken);
+}
+.btn.mesh {
+  background: var(--vq-grad-mesh);
+  border: 1px solid rgba(89, 219, 192, 0.4);
+  color: #C6F5E9;
+  box-shadow: var(--vq-glow-accent);
+}
+.btn.grad {
+  background: var(--vq-grad-hero);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  box-shadow: var(--vq-glow-accent-strong);
 }
 .btn.ai {
-  background: rgba(224, 83, 60, 0.12);
-  border-color: rgba(224, 83, 60, 0.3);
-  color: #FF9B82;
+  background: var(--vq-grad-mesh);
+  border: 1px solid rgba(35, 196, 166, 0.4);
+  color: #23C4A6;
+  font-weight: 600;
 }
 
 /* 12-Column Subgrids with 24px Gutters */
@@ -740,7 +816,7 @@ body.vq-light .frame-bar {
 .erp-kpi-subgrid,
 .erp-charts-subgrid,
 .erp-table-subgrid {
-  align-items: start !important; /* Independent card heights without adjacent shrinking */
+  align-items: start !important;
 }
 
 /* Column Spans */
@@ -762,10 +838,15 @@ body.vq-light .frame-bar {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 20px;
   position: relative;
   box-sizing: border-box;
   overflow: hidden;
+  box-shadow: 0 10px 24px -10px rgba(13,20,18,0.12);
+  transition: transform 220ms var(--vq-ease-spring), box-shadow 220ms ease, border-color 220ms ease;
+}
+.card:hover, .kpi:hover {
+  border-color: rgba(35, 196, 166, 0.3);
 }
 
 /* KPI Card */
@@ -773,25 +854,27 @@ body.vq-light .frame-bar {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 110px;
+  min-height: 114px;
 }
 .kpi .k {
-  font: 600 11.5px 'JetBrains Mono', monospace;
+  font: 600 11px/1 var(--vq-font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text2);
+  letter-spacing: 0.1em;
+  color: var(--text3);
 }
 .kpi .v {
-  font: 700 26px 'Space Grotesk', sans-serif;
+  font: 600 28px/1.1 var(--vq-font-numeric);
+  font-feature-settings: "tnum" 1;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
   color: var(--text);
-  margin: 6px 0;
+  margin: 8px 0 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .delta {
-  font: 500 11.5px 'Inter', sans-serif;
+  font: 600 12px/1 var(--vq-font-sans);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -800,7 +883,7 @@ body.vq-light .frame-bar {
 .delta.down { color: var(--danger-d); }
 .status.warning {
   color: var(--warning-d);
-  font: 600 10.5px 'JetBrains Mono', monospace;
+  font: 600 11px var(--vq-font-mono);
 }
 
 /* Charts */
@@ -809,23 +892,24 @@ body.vq-light .frame-bar {
   width: 100%;
 }
 .chip {
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
-  font: 500 11.5px 'Inter', sans-serif;
+  font: 600 12px/1 var(--vq-font-sans);
   background: var(--sunken);
   border: 1px solid var(--line);
   color: var(--text2);
   cursor: pointer;
-  transition: all var(--dur-fast) ease;
+  transition: all var(--dur-fast) var(--vq-ease-spring);
 }
 .chip.active {
   background: var(--accent);
   color: #FFF;
   border-color: var(--accent);
+  box-shadow: var(--vq-glow-accent);
 }
 .btnrow {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -837,16 +921,29 @@ body.vq-light .frame-bar {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 13px;
+  font-family: var(--vq-font-sans);
 }
 th {
-  padding: 10px 14px;
+  padding: 12px 16px;
   text-align: left;
   color: var(--text3);
-  font: 600 10px 'JetBrains Mono', monospace;
+  font: 600 10.5px var(--vq-font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   border-bottom: 1px solid var(--line);
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text);
+  font-family: var(--vq-font-sans);
+}
+td.num, .td-num {
+  font-family: var(--vq-font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 500;
 }
 td {
   padding: 10px 14px;
@@ -1156,8 +1253,22 @@ td code {
 <!-- Main Topbar Navigation -->
 <header class="app-top">
   <a href="#" class="brand">
-    <div class="brandmark">VQ</div>
-    <span>VenQore · Production ERP Dashboard</span>
+    <div class="brandmark">
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+        <path d="M50 8 L88 28 L88 72 L50 92 L12 72 L12 28 Z" fill="url(#brandGrad1)"/>
+        <path d="M50 8 L88 28 L50 48 L12 28 Z" fill="#23C4A6"/>
+        <path d="M12 28 L50 48 L50 92 L12 72 Z" fill="#0BAA8F"/>
+        <path d="M88 28 L50 48 L50 92 L88 72 Z" fill="#063C36"/>
+        <circle cx="50" cy="50" r="14" fill="#0C1211" stroke="#23C4A6" stroke-width="4"/>
+        <defs>
+          <linearGradient id="brandGrad1" x1="12" y1="8" x2="88" y2="92">
+            <stop offset="0%" stop-color="#23C4A6"/>
+            <stop offset="100%" stop-color="#063C36"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span style="font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.03em;">VenQore <span style="font-weight:400;color:var(--text2);font-size:13.5px;font-family:'Plus Jakarta Sans',sans-serif;">· Production ERP</span></span>
   </a>
   <div class="header-actions">
     <button class="theme-toggle-btn" id="theme">☾ Dark</button>
@@ -1251,9 +1362,23 @@ td code {
           <div>
             <div class="erp-brand-box">
               <div style="display:flex;align-items:center;gap:10px">
-                <div class="erp-logo-icon">VQ</div>
+                <div class="erp-logo-icon" style="background:transparent;display:grid;place-items:center;">
+                  <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+                    <path d="M50 8 L88 28 L88 72 L50 92 L12 72 L12 28 Z" fill="url(#brandGrad2)"/>
+                    <path d="M50 8 L88 28 L50 48 L12 28 Z" fill="#23C4A6"/>
+                    <path d="M12 28 L50 48 L50 92 L12 72 Z" fill="#0BAA8F"/>
+                    <path d="M88 28 L50 48 L50 92 L88 72 Z" fill="#063C36"/>
+                    <circle cx="50" cy="50" r="14" fill="#0C1211" stroke="#23C4A6" stroke-width="4"/>
+                    <defs>
+                      <linearGradient id="brandGrad2" x1="12" y1="8" x2="88" y2="92">
+                        <stop offset="0%" stop-color="#23C4A6"/>
+                        <stop offset="100%" stop-color="#063C36"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
                 <div class="erp-branch-info">
-                  <strong class="erp-branch-name">AMD Outlets</strong>
+                  <strong class="erp-branch-name" style="font-family:'Bricolage Grotesque',sans-serif;font-size:14px;letter-spacing:-0.02em;">AMD Outlets</strong>
                   <span class="erp-branch-badge">Main Branch</span>
                 </div>
               </div>
@@ -1717,8 +1842,8 @@ if (themeBtn) {
 // Initialize Charts
 function initDashboardCharts() {
   const isDark = root.dataset.theme !== 'light';
-  const textColor = isDark ? '#BFC3C8' : '#595E64';
-  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const textColor = isDark ? '#A8B4AE' : '#536159';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
   const cashEl = document.getElementById('cashflowChart');
   if (cashEl) {
@@ -1732,7 +1857,7 @@ function initDashboardCharts() {
             label: 'Credits (Revenue)',
             data: periodData.day.credits,
             borderColor: '#0BAA8F',
-            backgroundColor: 'rgba(11, 170, 143, 0.12)',
+            backgroundColor: 'rgba(11, 170, 143, 0.14)',
             fill: true,
             tension: 0.35,
             borderWidth: 2.5,
@@ -1741,8 +1866,8 @@ function initDashboardCharts() {
           {
             label: 'Debits (Expenses)',
             data: periodData.day.debits,
-            borderColor: '#F26A47',
-            backgroundColor: 'rgba(242, 106, 71, 0.08)',
+            borderColor: '#FF8A7E',
+            backgroundColor: 'rgba(255, 138, 126, 0.08)',
             fill: true,
             tension: 0.35,
             borderWidth: 2,
@@ -1758,11 +1883,13 @@ function initDashboardCharts() {
           legend: {
             display: true,
             position: 'top',
-            labels: { color: textColor, font: { family: 'Inter', size: 12 } }
+            labels: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 12, weight: '500' } }
           },
           tooltip: {
             mode: 'index',
             intersect: false,
+            titleFont: { family: 'Plus Jakarta Sans' },
+            bodyFont: { family: 'Space Grotesk' },
             callbacks: {
               label: function(ctx) {
                 const val = ctx.parsed.y;
@@ -1796,7 +1923,7 @@ function initDashboardCharts() {
         labels: ['Accounting & POS', 'Wholesale Sales', 'Channels & Sync', 'Services & Misc'],
         datasets: [{
           data: [45, 30, 15, 10],
-          backgroundColor: ['#0BAA8F', '#F26A47', '#2BA5D1', '#F5B32E'],
+          backgroundColor: ['#0BAA8F', '#23C4A6', '#4BD99B', '#8CEECD'],
           borderWidth: 0
         }]
       },
@@ -1815,8 +1942,8 @@ function initDashboardCharts() {
 function updateChartThemes(theme) {
   if (!cashflowChartInstance) return;
   const isDark = theme !== 'light';
-  const textColor = isDark ? '#BFC3C8' : '#595E64';
-  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const textColor = isDark ? '#A8B4AE' : '#536159';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
   if (cashflowChartInstance.options && cashflowChartInstance.options.scales) {
     cashflowChartInstance.options.scales.x.ticks.color = textColor;
