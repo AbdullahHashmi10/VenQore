@@ -4490,23 +4490,95 @@ function AppShell({ screen, onNavigate, children, title, subtitle, actions }) {
 
 function DashboardScreen() {
   const [period, setPeriod] = React.useState("Month");
+  const [search, setSearch] = React.useState("");
+  const [metricFilter, setMetricFilter] = React.useState("All");
+
+  const PERIOD_DATA = {
+    Today: {
+      net: "4,820,150",
+      margin: "24.8",
+      overdue: "840,200",
+      inventory: "3,410",
+      chart: [420, 680, 890, 1100, 1450, 1800, 2200],
+      labels: ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"],
+      inVal: "14,561.15",
+      outVal: "54,251.00",
+    },
+    Week: {
+      net: "28,450,900",
+      margin: "31.2",
+      overdue: "2,150,000",
+      inventory: "3,390",
+      chart: [1200, 2100, 3400, 4800, 5600, 6200, 7800],
+      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      inVal: "112,400.00",
+      outVal: "389,150.00",
+    },
+    Month: {
+      net: "118,650,200",
+      margin: "54.0",
+      overdue: "6,636,549",
+      inventory: "3,280",
+      chart: [700, 1400, 2100, 2400, 2600, 5200],
+      labels: ["Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+      inVal: "6,636,549.20",
+      outVal: "1,240,800.00",
+    },
+    Year: {
+      net: "1,420,800,000",
+      margin: "48.5",
+      overdue: "14,200,000",
+      inventory: "3,120",
+      chart: [4200, 7800, 11200, 16500, 22400, 29800, 36200],
+      labels: ["Q1 '25", "Q2 '25", "Q3 '25", "Q4 '25", "Q1 '26", "Q2 '26", "Q3 '26"],
+      inVal: "24,800,000.00",
+      outVal: "18,400,000.00",
+    },
+  };
+
+  const current = PERIOD_DATA[period] || PERIOD_DATA.Month;
+
+  const activities = [
+    { id: 1, tone: "in", title: "Sale #SAL-R1-160826 (Sony WH-1000XM5)", meta: "1 day ago · POS Terminal 01", amount: "+Rs 1,244.00" },
+    { id: 2, tone: "out", title: "Purchase #PUR-R1-2210 (Logitech MX Master)", meta: "1 week ago · Rana Suppliers", amount: "−Rs 1,700.00" },
+    { id: 3, tone: "out", title: "Purchase #PUR-R1-2209 (Dell UltraSharp 27)", meta: "1 week ago · TechDistro", amount: "−Rs 1,000.00" },
+    { id: 4, tone: "in", title: "Sale #SAL-R1-070826 (Apple iPad Air M2)", meta: "1 week ago · Walk-in counter", amount: "+Rs 5,922.00" },
+  ].filter(a => search === "" || a.title.toLowerCase().includes(search.toLowerCase()) || a.amount.includes(search));
+
   return (
     <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="vq-eyebrow">Active Period:</span>
+          <Tabs size="sm" tabs={["Today", "Week", "Month", "Year"]} value={period} onChange={setPeriod} />
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ font: "500 12.5px/1 var(--vq-font-sans)", color: "var(--vq-text-3)" }}>Simulating Live POS Ledger</span>
+          <Badge tone="success" dot>Connected</Badge>
+        </div>
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--vq-gutter)" }}>
-        <StatCard tone="accent" label="Net balance" value="6,636,549" unit="Rs" delta="8.2%" caption="vs last month" />
-        <StatCard label="Profit margin" value="54" unit="%" delta="2.1%" caption="net / revenue" />
-        <StatCard label="Overdue" value="10,260" unit="Rs" delta="3.1%" deltaTone="down" caption="receivables" />
-        <StatCard label="Pending actions" value="3" unit="items" caption="needs approval" />
+        <StatCard tone="accent" label="Net balance" value={current.net} unit="Rs" delta="8.2%" caption={`vs previous ${period.toLowerCase()}`} />
+        <StatCard label="Profit margin" value={current.margin} unit="%" delta="2.1%" caption="net / revenue" />
+        <StatCard label="Overdue" value={current.overdue} unit="Rs" delta="3.1%" deltaTone="down" caption="receivables" />
+        <StatCard label="Active inventory" value={current.inventory} unit="SKUs" caption="3 low stock" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.55fr) minmax(0,1fr)", gap: "var(--vq-gutter)", alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--vq-gutter)", minWidth: 0 }}>
-          <Card eyebrow="Past 6 months spending" title="Purchases trend" action={<Tabs size="sm" tabs={["Month", "Quarter", "Year"]} value={period} onChange={setPeriod} />}>
-            <AreaChart data={[700, 1400, 2100, 2400, 2600, 5200]} labels={["Mar", "Apr", "May", "Jun", "Jul", "Aug"]} height={210} />
+          <Card eyebrow={`Cashflow stream · ${period}`} title="Purchases & revenue trend" action={
+            <div style={{ display: "flex", gap: 6 }}>
+              {["All", "Revenue", "Expenses"].map(m => (
+                <Chip key={m} selected={metricFilter === m} onClick={() => setMetricFilter(m)}>{m}</Chip>
+              ))}
+            </div>
+          }>
+            <AreaChart data={current.chart} labels={current.labels} height={210} />
           </Card>
 
           <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: "var(--vq-gutter)" }}>
-            <Card title="Inventory" action={<Badge tone="warning">Action needed</Badge>}>
+            <Card title="Inventory telemetry" action={<Badge tone="warning">Action needed</Badge>}>
               <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
                 <ProgressRing value={33} size={116} sublabel="Inventory" />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
@@ -4521,7 +4593,7 @@ function DashboardScreen() {
             </Card>
           </div>
 
-          <Card title="Payments" eyebrow="Transaction types">
+          <Card title="Payments distribution" eyebrow="Transaction types">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 28px" }}>
               <BarMeter label="Cash" value={2511} max={2511} display="2,511" color="var(--vq-series-1)" />
               <BarMeter label="Credit" value={830} max={2511} display="830" color="var(--vq-series-3)" />
@@ -4532,34 +4604,46 @@ function DashboardScreen() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--vq-gutter)", minWidth: 0 }}>
-          <Card eyebrow="Today" title="Cash position" action={<IconButton label="More" variant="ghost">···</IconButton>}>
-            <div className="vq-num" style={{ font: "600 30px/1 var(--vq-font-numeric)", letterSpacing: "-0.03em" }}>Rs 6,636,549.20</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Card eyebrow={period} title="Cash position" action={<IconButton label="More" variant="ghost">···</IconButton>}>
+            <div className="vq-num" style={{ font: "600 30px/1 var(--vq-font-numeric)", letterSpacing: "-0.03em" }}>Rs {current.inVal}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
               <div style={{ padding: 14, borderRadius: "var(--vq-r-md)", background: "var(--vq-success-bg)", border: "1px solid var(--vq-success-line)" }}>
-                <div className="vq-eyebrow" style={{ color: "var(--vq-success)" }}>In</div>
-                <div className="vq-num" style={{ font: "600 17px/1.2 var(--vq-font-numeric)", marginTop: 6 }}>Rs 14,561.15</div>
+                <div className="vq-eyebrow" style={{ color: "var(--vq-success)" }}>Inflows</div>
+                <div className="vq-num" style={{ font: "600 17px/1.2 var(--vq-font-numeric)", marginTop: 6 }}>Rs {current.inVal}</div>
               </div>
               <div style={{ padding: 14, borderRadius: "var(--vq-r-md)", background: "var(--vq-danger-bg)", border: "1px solid var(--vq-danger-line)" }}>
-                <div className="vq-eyebrow" style={{ color: "var(--vq-danger)" }}>Out</div>
-                <div className="vq-num" style={{ font: "600 17px/1.2 var(--vq-font-numeric)", marginTop: 6 }}>Rs 54,251.00</div>
+                <div className="vq-eyebrow" style={{ color: "var(--vq-danger)" }}>Outflows</div>
+                <div className="vq-num" style={{ font: "600 17px/1.2 var(--vq-font-numeric)", marginTop: 6 }}>Rs {current.outVal}</div>
               </div>
             </div>
           </Card>
 
-          <Card title="Alerts" action={<Button variant="ghost" size="sm">View all</Button>}>
+          <Card title="AI Audit & Recommendations" eyebrow="Automated Diagnostics" pad={16}>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <Alert tone="warning">13% inventory running low</Alert>
-              <Alert tone="danger">9% products out of stock</Alert>
-              <Alert tone="success">Profit: Rs 53,544.70 today</Alert>
+              <Alert tone="info"><b>Cashflow Projections:</b> 1.2M PKR inflow expected Monday based on invoice cycles.</Alert>
+              <Alert tone="warning"><b>Low Stock:</b> 13% of high-velocity pharmacy stock needs PO generation.</Alert>
+              <Alert tone="success"><b>Reconciliation:</b> Zero discrepancy detected across 4 POS registers.</Alert>
+            </div>
+            <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+              <Button size="sm" icon={<span style={{ fontSize: 13 }}>✦</span>}>Run Audit Check</Button>
             </div>
           </Card>
 
-          <Card title="Business activity" action={<Button variant="ghost" size="sm">View all</Button>} pad={14}>
+          <Card title="Live transactions" action={
+            <input
+              type="text"
+              placeholder="Search ledger..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ height: 28, padding: "0 10px", borderRadius: "var(--vq-r-sm)", background: "var(--vq-sunken)", border: "1px solid var(--vq-line)", font: "500 12px/1 var(--vq-font-sans)", color: "var(--vq-text)", outline: "none" }}
+            />
+          } pad={14}>
             <div>
-              <ActivityRow tone="in" title="Sale #SAL-R1-160826" meta="1 day ago" amount="+Rs 1,244.00" />
-              <ActivityRow tone="out" title="Purchase #PUR-R1-2210" meta="1 week ago" amount="−Rs 1,700.00" />
-              <ActivityRow tone="out" title="Purchase #PUR-R1-2209" meta="1 week ago" amount="−Rs 1,000.00" />
-              <ActivityRow tone="in" title="Sale #SAL-R1-070826" meta="1 week ago" amount="+Rs 5,922.00" />
+              {activities.length > 0 ? (
+                activities.map(a => <ActivityRow key={a.id} tone={a.tone} title={a.title} meta={a.meta} amount={a.amount} />)
+              ) : (
+                <div style={{ padding: "16px 0", textAlign: "center", font: "500 13px/1.4 var(--vq-font-sans)", color: "var(--vq-text-3)" }}>No matching transactions</div>
+              )}
             </div>
           </Card>
 
