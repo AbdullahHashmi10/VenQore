@@ -1,0 +1,1663 @@
+/* ─── Pro showcase (on-domain) ─────────────────────────────────────────────── */
+
+.pro-page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding-bottom: 4em;
+}
+
+/* ─── Section header ───────────────────────────────────────────────────────── */
+.pro-section-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2.5em;
+}
+
+.pro-section-desc {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.pro-section-total {
+  margin-top: 12px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.pro-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1.5em;
+}
+
+/* ─── Buttons ──────────────────────────────────────────────────────────────── */
+/* Geometry copied from PILL_BTN_STYLE in ComponentList.jsx. */
+.pro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.pro-btn:active {
+  transform: scale(0.97);
+}
+
+.pro-btn-primary {
+  color: #fff;
+  font-weight: 600;
+  background: var(--color-primary);
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.3);
+}
+
+.pro-btn-primary:hover {
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+}
+
+.pro-btn-ghost {
+  color: #fff;
+  background: var(--surface-ghost-track);
+  backdrop-filter: var(--surface-ghost-blur);
+  box-shadow: var(--surface-ghost-highlight);
+}
+
+.pro-btn-ghost:hover {
+  background: var(--surface-ghost-hover);
+}
+
+/* ─── Item grid ────────────────────────────────────────────────────────────── */
+/* Mirrors the `browse-card` chassis on the component index (ComponentList.jsx)
+   so Pro pages feel like the same product. Keep these values in sync. */
+.pro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+a.pro-item,
+.pro-item {
+  display: block;
+  position: relative;
+  /* Card 16 - padding 4 = media 12 - inset 4 = pill 8. Every nested corner
+     shares a centre with the one outside it. */
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background-color: var(--surface-ghost-track);
+  box-shadow: var(--surface-ghost-highlight);
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.pro-item-media {
+  position: relative;
+  display: block;
+  /* Every preview asset is generated at 16:9, so the well matches it exactly
+     and nothing gets cropped. */
+  aspect-ratio: 16 / 9;
+  /* Concentric with the card: 16px outer radius minus the card's 4px padding. */
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pro-item-img,
+.pro-item-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Some block and app UI captures carry a flat grey gutter down each side.
+   Scaling past the frame crops it out. */
+.pro-item-zoom .pro-item-img {
+  transform: scale(1.14);
+}
+
+/* Animated component clip, layered over its poster and faded in once decoded
+   so a slow frame never flashes an empty well. */
+.pro-item-clip {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.pro-item-clip.is-ready {
+  opacity: 1;
+}
+
+.pro-item-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 16px;
+}
+
+.pro-item-empty-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+}
+
+.pro-item-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e2c9ff;
+  background: rgba(168, 85, 247, 0.32);
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  pointer-events: none;
+}
+
+/* ─── Hover "view live" overlay ────────────────────────────────────────────── */
+.pro-item-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* backdrop-filter escapes the parent's rounded overflow clip, so the overlay
+     has to carry the media well's radius itself. */
+  border-radius: inherit;
+  background: rgba(8, 6, 12, 0.55);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.pro-item:hover .pro-item-overlay,
+.pro-item:focus-within .pro-item-overlay,
+.pro-item:focus-visible .pro-item-overlay {
+  opacity: 1;
+}
+
+/* Component cards animate on hover, so a full-well scrim would hide the very
+   thing the hover reveals. The affordance shrinks to a corner pill instead. */
+.pro-item-overlay-corner {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px;
+  background: none;
+  backdrop-filter: none;
+}
+
+.pro-item-overlay-corner .pro-item-overlay-pill {
+  padding: 6px 11px;
+  font-size: 11.5px;
+  /* Continues the chain: the 12px well minus the 4px inset above. */
+  border-radius: 8px;
+  background: rgba(14, 11, 19, 0.82);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* The overlay is decorative on single-link cards, but template cards put real
+   anchors inside it, so it only accepts clicks once it is actually visible. */
+.pro-item-overlay-actions {
+  gap: 8px;
+}
+
+.pro-item:hover .pro-item-overlay-actions,
+.pro-item:focus-within .pro-item-overlay-actions {
+  pointer-events: auto;
+}
+
+.pro-item-overlay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  color: #120f17;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  transform: translateY(4px);
+  transition:
+    transform var(--transition-base),
+    background-color var(--transition-base),
+    border-color var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pro-item:hover .pro-item-overlay-pill {
+  transform: translateY(0);
+}
+
+a.pro-item-overlay-pill:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.pro-item-overlay-pill-ghost {
+  background: rgba(14, 11, 19, 0.72);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+a.pro-item-overlay-pill-ghost:hover {
+  background: rgba(14, 11, 19, 0.92);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.pro-item-name-link {
+  text-decoration: none;
+}
+
+/* ─── Card body ────────────────────────────────────────────────────────────── */
+.pro-item-body {
+  display: block;
+  padding: 12px 10px 8px;
+}
+
+.pro-item-name {
+  display: block;
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.25px;
+}
+
+.pro-item-meta {
+  display: block;
+  margin-top: 5px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e2c9ff;
+  background: rgba(168, 85, 247, 0.32);
+}
+
+.pro-badge-free {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.18);
+}
+
+/* ─── Empty state ──────────────────────────────────────────────────────────── */
+.pro-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 4em 2em;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-primary);
+  background: rgba(255, 255, 255, 0.015);
+  text-align: center;
+}
+
+.pro-empty-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pro-empty-desc {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ─── Bottom CTA ───────────────────────────────────────────────────────────── */
+/* Mirrors the landing page's final CTA (.ln-cta-*) so the Pro pages close on
+   the same note as the rest of the site. */
+
+@property --pro-cta-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.pro-cta {
+  position: relative;
+  margin-top: 3.5em;
+}
+
+.pro-cta-border {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  border-radius: 30px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--pro-cta-angle),
+    transparent 0%,
+    #a955f751 10%,
+    transparent 20%,
+    transparent 50%,
+    #a955f794 60%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: pro-cta-border-spin 8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes pro-cta-border-spin {
+  to {
+    --pro-cta-angle: 360deg;
+  }
+}
+
+.pro-cta-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 72px 32px;
+  border-radius: 30px;
+  background: #0e0b13;
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.1),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.pro-cta-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  mix-blend-mode: luminosity;
+  pointer-events: none;
+  -webkit-mask: radial-gradient(120% 130% at 50% 50%, #000 55%, transparent 100%);
+  mask: radial-gradient(120% 130% at 50% 50%, #000 55%, transparent 100%);
+}
+
+.pro-cta-title {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 12px;
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.pro-cta-desc {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 32px;
+  max-width: 52ch;
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  text-wrap: balance;
+}
+
+.pro-cta-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pro-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    filter 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform var(--dur-press) var(--ease-out);
+}
+
+.pro-cta-btn-primary {
+  padding-right: 19px;
+  border: 1px solid #fff;
+  background: #fff;
+  color: #120f17;
+}
+
+.pro-cta-btn-secondary {
+  border: 1px solid transparent;
+  background: var(--surface-ghost);
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+  color: #fff;
+}
+
+.pro-cta-btn:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pro-cta-btn-primary:hover {
+    filter: brightness(0.88);
+    transform: translateY(-1px);
+  }
+
+  .pro-cta-btn-secondary:hover {
+    background: var(--surface-ghost-hover);
+    transform: translateY(-1px);
+  }
+}
+
+.pro-cta-promo {
+  position: relative;
+  z-index: 1;
+  margin: 1.25em 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+@media (max-width: 600px) {
+  .pro-cta-card {
+    padding: 40px 22px;
+  }
+
+  .pro-cta-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .pro-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-cta-border {
+    animation: none;
+  }
+
+  .pro-cta-btn:active,
+  .pro-cta-btn-primary:hover,
+  .pro-cta-btn-secondary:hover {
+    transform: none;
+  }
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pro-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+  }
+
+  .pro-cta {
+    padding: 1.75em 1.25em;
+  }
+}
+
+/* ─── Filters ──────────────────────────────────────────────────────────────── */
+.pro-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5em;
+}
+
+.pro-filter {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: var(--surface-ghost-track);
+  box-shadow: var(--surface-ghost-highlight);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color var(--dur-menu) var(--ease-out),
+    border-color var(--dur-menu) var(--ease-out),
+    background var(--dur-menu) var(--ease-out);
+}
+
+.pro-filter:hover {
+  color: #fff;
+  background: var(--surface-ghost-hover);
+}
+
+.pro-filter.active {
+  color: #fff;
+  background: rgba(168, 85, 247, 0.28);
+}
+
+.pro-filter-count {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color var(--dur-menu) var(--ease-out);
+}
+
+.pro-filter:hover .pro-filter-count {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pro-filter.active .pro-filter-count {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ─── Card extras (hub free-item cards) ───────────────────────────────────── */
+.pro-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Small buttons */
+.pro-btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+/* Skeletons */
+.pro-item-skeleton {
+  min-height: 230px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.015);
+  animation: pro-pulse 1.6s var(--ease-out) infinite;
+}
+
+@keyframes pro-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-item-skeleton {
+    animation: none;
+  }
+}
+
+/* ─── Sidebar Pro heading ──────────────────────────────────────────────────── */
+.sidebar-pro-name {
+  display: block;
+  width: fit-content;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.5px;
+  user-select: none;
+  color: #d8b4fe;
+  background: linear-gradient(100deg, #d8b4fe 0%, #d8b4fe 40%, #ffffff 50%, #d8b4fe 60%, #d8b4fe 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sidebar-pro-shimmer 4s linear infinite;
+}
+
+@keyframes sidebar-pro-shimmer {
+  from {
+    background-position: 250% 0;
+  }
+  to {
+    background-position: -250% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-pro-name {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: #d8b4fe;
+  }
+}
+
+/* ─── Pro hub (/pro) ───────────────────────────────────────────────────────── */
+/* Built on the landing page's tokens (.ln-*) so the hub reads as the same site:
+   #120f17 / #0e0b13 alternating bands, Geist Pixel Line headings, mono buttons. */
+.prox {
+  position: relative;
+  background: #120f17;
+}
+
+.prox-inner {
+  max-width: 1324px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ─── Hero ─────────────────────────────────────────────────────────────────── */
+.prox-hero {
+  position: relative;
+  padding: 190px 0 0;
+  overflow: hidden;
+}
+
+/* Bands sit behind the hero and are masked at both ends: they start below the
+   navbar so they never wash out the nav, and fade out through the headline so
+   the colour reads as light bleeding into the type rather than a panel.
+   Full viewport height keeps the shader's aspect ratio natural; squeezing it
+   into a short band stretches the pattern. The mask does the hiding. */
+.prox-hero-bg {
+  --prox-band-fade: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.28) 62px,
+    #000 170px,
+    rgba(0, 0, 0, 0.7) 26%,
+    rgba(0, 0, 0, 0.25) 44%,
+    transparent 62%
+  );
+
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100vh;
+  opacity: 0.55;
+  /* Desaturated so the hero stays monochrome and the colour in the reel below
+     is the only thing competing for attention. */
+  filter: grayscale(1);
+  pointer-events: none;
+  -webkit-mask-image: var(--prox-band-fade);
+  mask-image: var(--prox-band-fade);
+}
+
+.prox-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.prox-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 14px 5px 5px;
+  border-radius: 10px;
+  background: var(--surface-ghost);
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.prox-tag:hover {
+  background: var(--surface-ghost-hover);
+}
+
+.prox-tag-badge {
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--color-primary, #b19eef);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* The slot animates to each label's measured width so the pill stays snug. */
+.prox-tag-slot {
+  position: relative;
+  display: inline-block;
+  width: 124px;
+  height: 16px;
+  overflow: hidden;
+  transition: width 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.prox-tag-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: prox-tag-in 0.42s ease both;
+}
+
+@keyframes prox-tag-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prox-hero-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(34px, 5.4vw, 68px);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  color: #fff;
+  margin: 24px 0 0;
+}
+
+.prox-hero-desc {
+  font-family: 'Geist', sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 58ch;
+  margin: 22px 0 0;
+  text-wrap: pretty;
+}
+
+/* ─── Hero actions + proof ─────────────────────────────────────────────────── */
+.prox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.prox-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    filter var(--transition-fast),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.prox-btn:active {
+  transform: scale(0.97);
+}
+
+.prox-btn-primary {
+  background: #fff;
+  color: #120f17;
+}
+
+.prox-btn-primary:hover {
+  filter: brightness(0.92);
+}
+
+.prox-btn-ghost {
+  background: var(--surface-ghost);
+  color: #fff;
+  box-shadow: var(--surface-ghost-highlight);
+  backdrop-filter: var(--surface-ghost-blur);
+  -webkit-backdrop-filter: var(--surface-ghost-blur);
+}
+
+.prox-btn-ghost:hover {
+  background: var(--surface-ghost-hover);
+}
+
+.prox-btn-sm {
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 10px;
+}
+
+.prox-proof {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.prox-proof-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Template reel ────────────────────────────────────────────────────────── */
+/* Templates are the only entries with motion, so they carry the hero visual. */
+.prox-reel {
+  --prox-reel-gap: 14px;
+  position: relative;
+  margin-top: 64px;
+  padding-bottom: 68px;
+}
+
+.prox-reel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--prox-reel-gap);
+  /* Applied to the rows rather than the whole reel so the tabs below stay
+     fully opaque. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.prox-reel-row {
+  overflow: hidden;
+}
+
+.prox-reel-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+/* Each set carries its own trailing gap, so one set width is exactly the
+   distance to the next identical tile and the wrap is invisible. */
+.prox-reel-set {
+  display: flex;
+  gap: var(--prox-reel-gap);
+  padding-right: var(--prox-reel-gap);
+}
+
+.prox-reel-tile {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 300px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-secondary, rgba(255, 255, 255, 0.08));
+  background: #0e0b13;
+  animation: prox-reel-tile-in 520ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.prox-reel-tile img,
+.prox-reel-tile video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  /* Desaturated at rest so wildly different screenshots read as one surface,
+     and so hovering a tile is what brings it to life. */
+  filter: grayscale(1);
+  transition: filter var(--transition-base);
+}
+
+.prox-reel-tile:hover img,
+.prox-reel-tile:hover video,
+.prox-reel-tile:focus-visible img,
+.prox-reel-tile:focus-visible video {
+  filter: grayscale(0);
+}
+
+.prox-reel-tile.is-zoomed img {
+  transform: scale(1.14);
+}
+
+.prox-reel-tile:hover,
+.prox-reel-tile:focus-visible {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.prox-reel-pill {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  /* Concentric with the tile: 12px tile radius minus the 4px inset above. */
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(14, 11, 19, 0.82);
+  color: #fff;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: -0.2px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base);
+  pointer-events: none;
+}
+
+.prox-reel-tile:hover .prox-reel-pill,
+.prox-reel-tile:focus-visible .prox-reel-pill {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Scoped to `.prox-reel-tile` so it outranks the shared `img` transition above,
+   which would otherwise drop the opacity transition and snap the clip in. */
+.prox-reel-tile img.prox-reel-clip {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* Duration is mirrored by CLIP_FADE in ProReel.jsx. */
+  transition:
+    opacity 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter var(--transition-base);
+  will-change: opacity;
+}
+
+.prox-reel-tile img.prox-reel-clip.is-ready {
+  opacity: 1;
+}
+
+@keyframes prox-reel-tile-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ─── Reel tabs ────────────────────────────────────────────────────────────── */
+.prox-reel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.prox-reel-tab {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 15px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Geist Mono', monospace;
+  font-size: 12.5px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.prox-reel-tab:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.prox-reel-tab.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-secondary, rgba(255, 255, 255, 0.1));
+}
+
+/* Progress line, so the auto-advance reads as intentional. */
+.prox-reel-tab-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.prox-reel-tab-bar.is-running {
+  animation-name: prox-reel-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes prox-reel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ─── Section shell ────────────────────────────────────────────────────────── */
+.prox-section {
+  position: relative;
+  padding: 88px 0 96px;
+  background: #120f17;
+}
+
+.prox-section-alt {
+  background: #0e0b13;
+}
+
+.prox-head {
+  margin-bottom: 44px;
+}
+
+.prox-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: clamp(28px, 3.6vw, 40px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0;
+}
+
+.prox-sub {
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.45);
+  max-width: 56ch;
+  margin: 14px 0 0;
+  text-wrap: pretty;
+}
+
+/* ─── Pillars ──────────────────────────────────────────────────────────────── */
+/* Bento rather than five equal boxes: the two biggest sections get the wide
+   tiles on top, so the section has a hierarchy instead of reading as a row of
+   empty cards. */
+.prox-pillars {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.prox-pillar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  min-height: 190px;
+  padding: 24px;
+  grid-column: span 2;
+  border-radius: 16px;
+  border: 1px solid var(--border-secondary, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.prox-pillar:nth-child(1),
+.prox-pillar:nth-child(2) {
+  grid-column: span 3;
+  min-height: 230px;
+}
+
+.prox-pillar:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
+
+.prox-pillar-arrow {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: rgba(255, 255, 255, 0.3);
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.prox-pillar:hover .prox-pillar-arrow {
+  color: #fff;
+  transform: translate(2px, -2px);
+}
+
+.prox-pillar-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.prox-pillar-count {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: 46px;
+  line-height: 0.9;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.prox-pillar:nth-child(1) .prox-pillar-count,
+.prox-pillar:nth-child(2) .prox-pillar-count {
+  font-size: 60px;
+}
+
+.prox-pillar-name {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 14px;
+}
+
+.prox-pillar-desc {
+  font-family: 'Geist', sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.42);
+  margin-top: 7px;
+  max-width: 30ch;
+}
+
+/* ─── Free strip ───────────────────────────────────────────────────────────── */
+.prox-free {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.prox-free-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-secondary, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prox-free-media {
+  display: block;
+  position: relative;
+  margin-bottom: 18px;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.prox-free-media img,
+.prox-free-media video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.prox-free-tag {
+  align-self: flex-start;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.prox-free-title {
+  font-family: 'Geist Pixel Line', sans-serif;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 14px 0 0;
+}
+
+.prox-free-desc {
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 8px 0 0;
+  max-width: 46ch;
+  flex: 1;
+  text-wrap: pretty;
+}
+
+.prox-free-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ─── FAQ ──────────────────────────────────────────────────────────────────── */
+.prox-faq-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: 72px;
+  align-items: start;
+}
+
+/* Sticky so the heading stays with the questions on a long accordion. */
+.prox-faq-aside {
+  position: sticky;
+  top: 120px;
+}
+
+.prox-faq-aside .prox-sub {
+  max-width: 34ch;
+}
+
+.prox-faq-aside a {
+  color: var(--color-primary, #b19eef);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(177, 158, 239, 0.3);
+  transition: border-color var(--transition-fast);
+}
+
+.prox-faq-aside a:hover {
+  border-bottom-color: var(--color-primary, #b19eef);
+}
+
+.prox-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prox-faq-item {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.026);
+  transition: background var(--transition-fast);
+}
+
+.prox-faq-item:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.prox-faq-item.open {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.prox-faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 18px 20px;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 14px;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+  transition: color var(--transition-fast);
+}
+
+.prox-faq-q:hover,
+.prox-faq-item.open .prox-faq-q {
+  color: #fff;
+}
+
+.prox-faq-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.35);
+  transition:
+    transform 0.35s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    color var(--transition-fast);
+}
+
+.prox-faq-item.open .prox-faq-icon {
+  transform: rotate(135deg);
+  color: #fff;
+}
+
+/* 0fr -> 1fr animates to the content's natural height, which a plain
+   height transition cannot do without hardcoding a max-height. */
+.prox-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.prox-faq-item.open .prox-faq-panel {
+  grid-template-rows: 1fr;
+}
+
+.prox-faq-panel-inner {
+  overflow: hidden;
+}
+
+.prox-faq-a {
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 20px 20px;
+  max-width: 62ch;
+  text-wrap: pretty;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+.prox-faq-item.open .prox-faq-a {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+/* ─── Closing CTA ──────────────────────────────────────────────────────────── */
+.prox-cta-wrap {
+  /* The card is #0e0b13, so the band behind it must be the lighter #120f17 or
+     the card edge disappears (same pairing as the landing page's final CTA). */
+  padding: 100px 24px 140px;
+  background: #120f17;
+}
+
+.prox-cta-wrap .pro-cta {
+  padding: 0;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .prox-hero {
+    padding-top: 150px;
+  }
+
+  .prox-reel-tile {
+    width: 260px;
+  }
+
+  .prox-faq-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .prox-faq-aside {
+    position: static;
+  }
+
+  .prox-faq-aside .prox-sub {
+    max-width: 56ch;
+  }
+
+  .prox-pillars {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .prox-pillar:nth-child(1),
+  .prox-pillar:nth-child(2) {
+    grid-column: span 2;
+    min-height: 200px;
+  }
+
+  .prox-pillar:nth-child(1) .prox-pillar-count,
+  .prox-pillar:nth-child(2) .prox-pillar-count {
+    font-size: 50px;
+  }
+}
+
+@media (max-width: 640px) {
+  .prox-hero {
+    padding-top: 130px;
+  }
+
+  /* Centred text needs generous line lengths to read well; at phone widths the
+     ragged edges on both sides fight the layout, so the hero flushes left. */
+  .prox-hero-inner {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .prox-hero-title br {
+    display: none;
+  }
+
+  .prox-actions,
+  .prox-proof {
+    justify-content: flex-start;
+  }
+
+  .prox-actions {
+    width: 100%;
+  }
+
+  .prox-actions .prox-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .prox-reel {
+    margin-top: 44px;
+    padding-bottom: 56px;
+  }
+
+  .prox-reel-tile {
+    width: 208px;
+  }
+
+  .prox-pillars {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prox-pillar,
+  .prox-pillar:nth-child(1),
+  .prox-pillar:nth-child(2) {
+    grid-column: span 1;
+    min-height: 0;
+  }
+
+  .prox-section {
+    padding: 64px 0 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The bands are a continuous shader loop with no static equivalent. */
+  .prox-hero-bg {
+    display: none;
+  }
+
+  .prox-reel-track,
+  .prox-reel-tile,
+  .prox-reel-tab-bar {
+    animation: none;
+  }
+
+  .prox-reel-tile {
+    opacity: 1;
+    transform: none;
+  }
+
+  .prox-faq-panel,
+  .prox-faq-a,
+  .prox-faq-icon {
+    transition: none;
+  }
+}
+
+/* ─── Category footer ──────────────────────────────────────────────────────────
+   Closes every component page with the "next step" row docs readers already
+   know from paginated documentation. A full-width anchored surface, rather than
+   a floating line, so it belongs to the page instead of hovering in dead space
+   above the site footer. */
+.cat-pro {
+  min-height: 20px;
+  margin: 56px 0 72px;
+}
+
+.cat-pro-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border-secondary, rgba(255, 255, 255, 0.07));
+  background: rgba(255, 255, 255, 0.015);
+  text-decoration: none;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.cat-pro-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cat-pro-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cat-pro-eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.cat-pro-title {
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+  transition: color var(--transition-fast);
+}
+
+.cat-pro-card:hover .cat-pro-title {
+  color: #fff;
+}
+
+.cat-pro-arrow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.cat-pro-card:hover .cat-pro-arrow {
+  transform: translateX(3px);
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VenQore Layout Law v2 — the shell, the grid, edit mode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>/*__TOKENS__*/</style>
+<style>/*__LAYOUT__*/</style>
+<style>/*__SHELLCSS__*/</style>
+</head><body>
+<div class="wrap">
+
+  <h1>The sidebar question has an arithmetic answer</h1>
+  <p class="lede">You asked: when someone opens the sidebar on a 1280 screen, do the cards
+  rearrange, or do we overlay it with a higher z-index — and where is the sweet spot? It is not a
+  taste question. Pushing is always nicer: the page stays fully usable, nothing hides behind a
+  scrim, there is no modal trap. So the rule is <b>push whenever pushing does not damage the
+  grid</b> — and pushing damages the grid the moment the content can no longer sustain the
+  narrowest desktop the law already ships.</p>
+
+  <div class="panel">
+    <div class="row" style="align-items:baseline;gap:14px">
+      <span class="big">1216px</span>
+      <div style="flex:1;min-width:240px">
+        <p style="margin:0;max-width:62ch">
+        <b>The push threshold.</b> Below it the nav overlays; at or above it, it pushes.
+        <code>1216 = 264 + 48 + 904</code> — the sidebar, the two page margins, and 904px, which is
+        the content width at the 1024 rail. That is the narrowest desktop grid in production today:
+        8 columns at exactly 92px. Expanding the nav may cost you cards per row. It may never cost
+        you the grid.</p>
+      </div>
+    </div>
+    <div class="axis" id="axis"></div>
+    <p class="hint" style="margin-top:26px">Drag the width slider below and watch the pill in the
+    header flip. Then press the hamburger on either side of 1216.</p>
+  </div>
+
+  <h2>Four things you asked for, and where they went</h2>
+  <div class="scrollx"><table class="data">
+    <thead><tr><th>What you said</th><th>What it does now</th></tr></thead>
+    <tbody>
+      <tr><td><b>“the resizeable option is not working.”</b></td>
+        <td>It was a click that cycled readings — not a resize. It is now a real pointer drag on the
+        south-east corner, 20×20px hit area, snapping to whole columns and rows and <b>stopping</b>
+        at the category's travel. It cannot be dragged to a box that holds no fit.</td></tr>
+      <tr><td><b>“it's just letting know after or before what card it is going. Rather I wanted a
+        dotted outline where it is going to stay.”</b></td>
+        <td>A dotted outline plus a translucent fill, painted at the <b>snapped destination</b> —
+        and in Flow it is a real participant in the pack, so the outline shows the slot including
+        the reflow that landing there causes.</td></tr>
+      <tr><td><b>“it should not always be moving towards the left side if I want to have all the
+        right side free.”</b></td>
+        <td>A <b>Flow / Free</b> switch. Free stores a box, preserves gaps, and resolves collisions
+        by pushing <b>down only</b> — never left, never up.</td></tr>
+      <tr><td><b>“like in Windows, make the sidebar bigger and smaller — everywhere we give
+        expand.”</b></td>
+        <td>A splitter, on the nav and on every other expanding region. It stops where the
+        No-Regression Rule says the content beside it would lose a fit, and it is magnetic at the
+        widths that mean something.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="simbar" style="margin-top:18px">
+    <div class="row" style="margin-bottom:9px">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Device</span>
+      <span id="dbtns" class="row"></span>
+    </div>
+    <div class="row" style="margin-bottom:9px">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Archetype</span>
+      <span id="abtns" class="row"></span>
+    </div>
+    <div class="row" style="gap:18px">
+      <label class="hint" style="display:flex;align-items:center;gap:8px">Width
+        <input id="w" type="range" min="320" max="3440" step="1" value="1905" style="width:min(300px,50vw)">
+        <span class="mono-sm" id="wv" style="min-width:38px">1905</span></label>
+      <button class="chip" id="editbtn" aria-pressed="false">Edit mode</button>
+      <button class="chip" id="resetbtn">Reset layout</button>
+    </div>
+  </div>
+
+  <div class="stage"><div class="device" id="device"><div class="screen" id="screen"></div></div></div>
+  <p class="hint" style="margin:9px 2px 0">Turn on <b>Edit mode</b>, then drag a card, drag its
+  bottom-right corner, or drag the thin divider on the nav's right edge. <kbd>Esc</kbd> cancels a
+  drag, <kbd>⌘Z</kbd> undoes, and the divider takes arrow keys, <kbd>Home</kbd>, <kbd>End</kbd> and
+  <kbd>Enter</kbd>.</p>
+  <div class="panel" style="margin-top:14px"><div id="readout" class="readout"></div></div>
+
+  <h2>Where the divider is allowed to stop</h2>
+  <p>The splitter is not a free-for-all with a guard rail bolted on. Its travel <em>is</em> the
+  No-Regression Rule: <code>max = vw − 2·margin − contentFloor</code>. On a dashboard the content
+  floor is the same 904px that gives us 1216, so the handle physically cannot be dragged into
+  breaking the grid. Below the push threshold the nav overlays and costs the content nothing, so
+  there the stop is instead the widest sidebar the narrowest <em>pushing</em> screen can carry —
+  which is 264px, the default, arrived at from the other direction.</p>
+  <div class="travel" id="travel"></div>
+  <div class="note" style="margin-top:6px"><b>264 was never a taste call.</b> At a 1920 viewport,
+  <code>1920 − 48 − 264 = 1608 = 12×112 + 11×24</code>. The default sidebar is exactly the width
+  that yields twelve columns at exactly the 112px target. The splitter is magnetic at every width
+  with that property, for every legal column count — so as you drag, the grid snaps through 12, 10
+  and 8 columns at their most regular, and the readout tells you which one you are on.</p>
+  <div class="scrollx"><table class="data" id="splittable"></table></div>
+  <h3>Keyboard — the WAI-ARIA window splitter pattern, verbatim</h3>
+  <div class="scrollx"><table class="data" id="keytable"></table></div>
+
+  <h2>Flow and Free</h2>
+  <p>Packing left is not a bug, it is one of two legitimate answers — and every mature editor ships
+  both under some name. Gridstack calls it <code>float</code> versus gravity; react-grid-layout v2
+  made compaction pluggable and named the other one <code>noCompactor</code>, “free positioning”;
+  Grafana ships it to end users as <b>Auto grid</b> versus <b>Custom layout</b>. So it is a user
+  setting here too, not an implementation detail.</p>
+  <div class="scrollx"><table class="data" id="modetable"></table></div>
+
+  <h3>The hard part: a layout authored at 24 columns has to be legal at 4</h3>
+  <p>Flow dodged this by never storing a position — nothing stored, nothing to be wrong. Free has to
+  store one, so Free needs a projection, and the law takes the same one Gridstack ships as
+  <code>moveScale</code>: <em>“scale and move items by the ratio of newColumnCount /
+  oldColumnCount.”</em> Width and column scale by <code>N′/N</code>, the row is absolute, and
+  collisions settle downward only. Then two rules that are ours:</p>
+  <ul style="max-width:74ch;color:var(--vq-ink-700)">
+    <li><b>Always project from an authored class, never from a projection.</b>
+    <code>round()</code> is lossy, so chaining 24→20→16→12 drifts — which is exactly the complaint
+    in react-grid-layout issue #1663, that a layout does not pop back when the window grows again.
+    One hop, ever. Returning to the class you authored in restores it exactly.</li>
+    <li><b>The ratio does not know what is in the box.</b> A metric card scaled 24→8 lands one
+    column wide, and one column holds no fit at all. So every projected box is clamped back into
+    its category's own travel — the same travel the resize handle uses — before it settles.</li>
+  </ul>
+  <div class="scrollx"><table class="data" id="projtable"></table></div>
+  <div class="note">At four columns Free is not offered at all: the leanest card the law can make is
+  two columns, half the grid, so a “gap” there is one card's worth of damage rather than
+  composition. Dynamics 365 Commerce draws the same line, dropping drag-and-drop entirely below
+  1024×768. Your boxes are kept, sorted row-major into reading order, and restored the moment the
+  grid can carry them again.</div>
+
+  <h2>Where the resize handle stops</h2>
+  <p>The handle's travel is the category's fit list read backwards. <code>resolveCard</code> asks
+  “how wide must the box be for this fit”; a resize handle asks “what is the best thing I can put in
+  this box”. Same ordered fits, same measured floors, so the two readings can never disagree — and
+  the solver asserts it at every breakpoint.</p>
+  <div class="scrollx"><table class="data" id="boxtable"></table></div>
+
+  <div class="note"><b>Sticky intent.</b> On a push-capable screen the hamburger sets a
+  <em>preference</em>, not a temporary state. Expand it at 1920, shrink the window past 1216 and the
+  nav demotes to a rail on its own; grow it back and your choice returns. The nav is never
+  forgotten, and it is never forced.</div>
+
+  <h2>Every width, both directions</h2>
+  <p>The one column that matters is the last one. An <b>automatic</b> reflow — one the user did not
+  ask for — is a jolt. A reflow that happens <em>because</em> they pressed the hamburger is
+  feedback. So the only rows where the grid reflows are the ones where the user asked.</p>
+  <div class="scrollx"><table class="data" id="navtable"></table></div>
+
+  <h2>The nav is not the same on every screen</h2>
+  <p>Solving the invoice editor turned up a cliff at the most common laptop transition: at 1265 the
+  nav is a rail and the line table gets 807px — seven columns. At 1280 the nav becomes the 264px
+  sidebar, the table drops to 680px, and <b>the same invoice loses a column on a bigger screen</b>.
+  You navigate <em>from</em> a dashboard or a list, so the nav is part of the task there. You do not
+  navigate from an invoice or a register: there it is parked chrome, and 192px of parked chrome is a
+  whole table column.</p>
+  <div class="scrollx"><table class="data" id="archtable"></table></div>
+
+  <h2>Six card categories</h2>
+  <p>A category is not a size. It is an ordered list of <b>fits</b>, each with a pixel floor
+  measured from real advance widths — Space Grotesk 600 tabular digit = 0.620em, read out of the
+  font binary. A card starts at the fit its author designed. If the column is narrow it gets
+  <b>wider</b>; only when widening is exhausted does it <b>degrade</b> to a leaner fit, which trades
+  a column for a row and re-lays its inside.</p>
+  <div class="scrollx"><table class="data" id="cattable"></table></div>
+
+  <h2>Edit mode</h2>
+  <p>Edit mode changes what the <b>user</b> may change, never what the <b>law</b> allows: every
+  gesture is snapped before it commits, so a user cannot save a layout the law would reject. This is
+  also the contract Reckoner will drive — it emits card <em>descriptors</em>, never a layout, and
+  the engine turns descriptors into geometry.</p>
+  <div class="scrollx"><table class="data" id="edittable"></table></div>
+  <h3>Invariants</h3>
+  <ul id="invariants" style="max-width:74ch;color:var(--vq-ink-700)"></ul>
+
+  <p style="margin-top:40px;color:var(--vq-ink-500);font-size:13px">
+  Every layout on this page is computed by <code>venqore-layout-engine.js</code> from
+  <code>layout-law.json</code>. Nothing here picks a breakpoint.</p>
+</div>
+
+<script>const DATA = /*__DATA__*/null;</script>
+<script>/*__ENGINE__*/</script>
+<script>/*__APP__*/</script>
+</body></html>

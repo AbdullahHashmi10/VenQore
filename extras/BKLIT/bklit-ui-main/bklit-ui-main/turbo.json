@@ -1,0 +1,31 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalEnv": [
+    "CENTRAL_LICENSE_KEY",
+    "OPENPANEL_CLIENT_ID",
+    "OPENPANEL_CLIENT_SECRET",
+    "CLIENT_ID",
+    "CLIENT_SECRET"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", ".source/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

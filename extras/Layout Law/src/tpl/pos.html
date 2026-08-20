@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VenQore — Compose your register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>/*__TOKENS__*/</style>
+<style>/*__LAYOUT__*/</style>
+<style>/*__POSCSS__*/</style>
+</head><body>
+<div class="wrap">
+
+  <h1>Compose your register</h1>
+  <p class="lede">The last version shipped six fixed layouts. That was the wrong shape, and you
+  were right about why — a register is composed by the person standing at it, not chosen from a
+  menu of six. So the six survive as <b>starting points</b>, and every knob behind them is
+  yours: where the catalog goes and how much room it gets, how the cart and the tender split,
+  whether the tender is a column, a bar or a button. <b>Drag the dividers in the screen itself.</b>
+  The law's job is no longer to pick a layout — it is to stop yours from breaking.</p>
+
+  <div class="simbar">
+    <div class="row" style="margin-bottom:9px">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Start from</span>
+      <span id="pbtns" class="row"></span>
+    </div>
+    <div class="row">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Device</span>
+      <span id="dbtns" class="row"></span>
+      <button class="chip" id="rankbtn" aria-pressed="false">Show ranks</button>
+      <button class="chip" id="railbtn" aria-pressed="true">Icon rail</button>
+    </div>
+    <div class="row" style="margin-top:9px;gap:18px">
+      <label class="hint" style="display:flex;align-items:center;gap:8px">Width
+        <input id="w" type="range" min="320" max="3440" step="1" value="1905" style="width:min(230px,36vw)">
+        <span class="mono-sm" id="wv" style="min-width:38px">1905</span></label>
+      <label class="hint" style="display:flex;align-items:center;gap:8px">Height
+        <input id="h" type="range" min="480" max="1440" step="1" value="940" style="width:min(160px,26vw)">
+        <span class="mono-sm" id="hv" style="min-width:34px">940</span></label>
+    </div>
+    <div class="ctlgrid" id="ctls"></div>
+  </div>
+
+  <div class="stage"><div class="device" id="device"><div class="screen" id="screen"></div></div></div>
+
+  <div class="panel" style="margin-top:14px">
+    <div id="readout" class="readout"></div>
+    <div id="why" class="why"></div>
+  </div>
+  <div id="pdesc" class="note"></div>
+
+  <h2>What changed, and why</h2>
+  <p>Every one of these came out of your review of the last build.</p>
+  <div class="scrollx"><table class="data">
+    <thead><tr><th>What was wrong</th><th>What it does now</th></tr></thead>
+    <tbody>
+      <tr><td><b>Scan:</b> below a certain height the money detail sat too far down — you could
+        not hold the sale, open the drawer or change the method.</td>
+        <td>A pane now <b>pins its actions</b> and scrolls only its body, so Complete, Hold and
+        Drawer can never be pushed below the fold. When the tender has no column it becomes a
+        dock button that opens the <b>same</b> panel full screen — same controls, every time.</td></tr>
+      <tr><td><b>Column on a phone and a tablet:</b> the catalog ate the screen and you could not
+        see what was being added.</td>
+        <td>A catalog is only ever a <b>resident column above 1182px</b> of viewport — derived, not
+        chosen: it needs 1062px of content to sit beside a full cart and a tender. Below that it is
+        one button, full screen, with a live in-cart count on every tile.</td></tr>
+      <tr><td><b>Counter:</b> the Browse-catalog button covered the payment panel.</td>
+        <td>Triggers are no longer floated over the panes. The <b>dock is a real layout row</b>
+        and its height is subtracted before anything else is measured, so it cannot overlap
+        anything by construction.</td></tr>
+      <tr><td><b>1280 was a 33/33/33 split.</b></td>
+        <td>Presets now carry your proportions — <b>catalog 20 · cart 50 · tender 30</b> — and the
+        fractions are normalised so sliders can never sum past 100%.</td></tr>
+      <tr><td><b>Grid was 50/50.</b></td>
+        <td><b>40 catalog / 60 cart</b>, with the tender as a full-screen sheet behind Take payment.</td></tr>
+      <tr><td>You liked the idea of catalog above, cart below, pay on a button.</td>
+        <td>That is now its own preset — <b>Stack</b>. The band snaps to whole tile rows so a 40%
+        share that only buys one row gives the rest back to the cart.</td></tr>
+      <tr><td><b>Table</b> put too much above the order.</td>
+        <td>The floor is a <b>step</b>, not a fourth column competing for width. Switch it to a
+        column in the composer if the screen can carry one for free.</td></tr>
+      <tr><td>Heights felt over-managed.</td>
+        <td>Nothing is removed to save height any more. Panes scroll; the only vertical rule left
+        is that the cart keeps first claim, measured against the height that survives the dock.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>The presets</h2>
+  <p>Starting points. Change anything and you are still inside the law.</p>
+  <div class="scrollx"><table class="data" id="ptable"></table></div>
+
+  <h2>What the composer exposes</h2>
+  <p>Worth knowing what the category actually offers here: Toast lets you set the menu grid's
+  rows × columns per device, Lightspeed lets a tile span 1 to 30 spaces, Loyverse has a grid/list
+  toggle, and Shopify and Square let you edit tile <em>contents</em> only. <b>Nobody ships
+  resizable panes.</b> The one product with free pane geometry is Dynamics 365 Commerce, where
+  layouts are authored per-resolution in an admin tool and exported as XML — not dragged at the
+  register.</p>
+  <div class="scrollx"><table class="data" id="cotable"></table></div>
+
+  <h2>Every capability, and where it lives</h2>
+  <p>The no-loss proof, unchanged: everything read out of <code>Pos.jsx</code> and its children.
+  <b>Rank 1</b> is capped at seven on the working surface; <b>rank 3</b> at zero.</p>
+  <div class="scrollx"><table class="data" id="captable"></table></div>
+
+  <h2>Fourteen live defects the inventory found</h2>
+  <div class="scrollx"><table class="data" id="fixtable"></table></div>
+
+  <h2>One keymap for the whole product</h2>
+  <div class="scrollx"><table class="data" id="keytable"></table></div>
+
+  <p style="margin-top:40px;color:var(--vq-ink-500);font-size:13px">
+  Every layout on this page is computed by <code>venqore-layout-engine.js</code> from
+  <code>layout-law.json</code>. Nothing here picks a breakpoint.</p>
+</div>
+
+<script>const DATA = /*__DATA__*/null;</script>
+<script>/*__ENGINE__*/</script>
+<script>const LAW_POS = LAW.pos;</script>
+<script>/*__APP__*/</script>
+</body></html>

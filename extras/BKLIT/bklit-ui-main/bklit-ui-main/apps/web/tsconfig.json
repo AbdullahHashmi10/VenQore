@@ -1,0 +1,22 @@
+{
+  "extends": "@bklitui/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*", "../../packages/studio/src/*"],
+      "@/lib/utils": ["./lib/utils.ts", "../ui/src/lib/utils.ts"]
+    },
+    "plugins": [{ "name": "next" }],
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".source/**/*.ts",
+    "content/docs/components/line-chart.mdx"
+  ],
+  "exclude": ["node_modules"]
+}

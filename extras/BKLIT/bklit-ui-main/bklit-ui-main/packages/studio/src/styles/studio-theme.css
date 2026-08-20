@@ -1,0 +1,28 @@
+@import "./bklit-tokens.css";
+
+/*
+ * Studio-only tokens scoped to `.studio-shell`.
+ * Shared palette lives in bklit-tokens.css.
+ */
+.studio-shell {
+  color-scheme: light;
+
+  --studio-input-background: var(--background);
+  --studio-label: var(--muted-foreground);
+  --studio-section-label: var(--muted-foreground);
+  --studio-scrollbar-width: 8px;
+  --studio-scrollbar-thumb: color-mix(
+    in oklch,
+    var(--foreground) 24%,
+    transparent
+  );
+  --studio-scrollbar-thumb-hover: color-mix(
+    in oklch,
+    var(--foreground) 38%,
+    transparent
+  );
+}
+
+.studio-shell.dark {
+  color-scheme: dark;
+}

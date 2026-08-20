@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VenQore Layout Law v1.0 — live proof</title>
+<style>
+:root{
+  --bg:#0A0B0F; --surface:#12141A; --raised:#1A1D25; --line:#252932; --line-soft:#1C2028;
+  --text:#EDEFF2; --text-2:#A8AEB8; --text-3:#6B7280;
+  --accent:#327882; --accent-400:#5DA5B0; --accent-quiet:rgba(50,120,130,.14);
+  --ok:#54CC8E; --warn:#EFB146; --bad:#F17070;
+  --mod-sales:#8C69CD; --mod-inv:#BB5798; --mod-acct:#5DA5B0; --mod-pur:#CA564B; --mod-rep:#3382D6;
+  --sans:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --num:"Space Grotesk",ui-monospace,"SF Mono",monospace;
+
+  /* ===== LAYOUT LAW TOKENS ===== */
+  --vq-sidebar:264px; --vq-sidebar-rail:72px; --vq-subnav:224px; --vq-header-h:64px;
+  --vq-gutter:24px; --vq-row:64px; --vq-margin:24px; --vq-margin-mobile:16px;
+  --vq-card-pad:20px; --vq-card-pad-sm:16px; --vq-card-radius:14px;
+  --vq-cols:12;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;
+     -webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--num);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+         color:var(--text-3);font-weight:500}
+
+/* ---------- control bar ---------- */
+.bar{position:sticky;top:0;z-index:900;background:rgba(10,11,15,.92);backdrop-filter:blur(14px);
+     border-bottom:1px solid var(--line);padding:14px 20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:600;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent-400)}
+.seg{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{background:none;border:0;color:var(--text-3);font:500 11px/1 var(--num);letter-spacing:.02em;
+     padding:7px 11px;border-radius:999px;cursor:pointer;transition:color .1s,background .1s}
+.seg button:hover{color:var(--text-2)}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.readout{display:flex;gap:16px;margin-left:auto;flex-wrap:wrap}
+.ro{display:flex;flex-direction:column;gap:2px;min-width:52px}
+.ro b{font:600 15px/1 var(--num);color:var(--accent-400)}
+input[type=range]{width:230px;accent-color:var(--accent)}
+.tabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--bg);
+      position:sticky;top:61px;z-index:880}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--text-3);
+  font:500 13px/1 var(--sans);padding:13px 14px;cursor:pointer}
+.tabs button[aria-pressed=true]{color:var(--text);border-bottom-color:var(--accent-400)}
+
+/* ---------- stage ---------- */
+.stage{padding:26px 20px 80px}
+.frame{margin:0 auto;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+       background:var(--surface);transition:width .28s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.framebar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);
+          background:var(--raised)}
+.framebar i{width:9px;height:9px;border-radius:50%;background:#33373f;display:block}
+.framebar span{margin-left:8px;font:500 11px/1 var(--num);color:var(--text-3)}
+
+/* ===== THE SHELL ===== */
+.vq-shell{display:grid;grid-template-columns:var(--nav-w) 1fr;grid-template-rows:var(--vq-header-h) 1fr;
+  grid-template-areas:"nav header" "nav main";min-height:620px;--nav-w:var(--vq-sidebar)}
+.vq-shell[data-nav=rail]{--nav-w:var(--vq-sidebar-rail)}
+.vq-shell[data-nav=drawer]{--nav-w:0px;grid-template-columns:1fr;grid-template-areas:"header" "main"}
+.vq-shell[data-subnav=true]{grid-template-columns:var(--nav-w) var(--vq-subnav) 1fr;
+  grid-template-areas:"nav header header" "nav subnav main"}
+.vq-nav{grid-area:nav;background:var(--surface);border-right:1px solid var(--line);
+  padding:14px 12px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.vq-shell[data-nav=drawer] .vq-nav{display:none}
+.vq-header{grid-area:header;height:var(--vq-header-h);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 var(--vq-margin);background:var(--surface)}
+.vq-subnav{grid-area:subnav;background:var(--surface);border-right:1px solid var(--line);padding:14px 12px;
+  display:flex;flex-direction:column;gap:3px}
+.vq-shell[data-subnav=false] .vq-subnav{display:none}
+.vq-main{grid-area:main;min-width:0;padding:var(--vq-margin);background:var(--bg)}
+
+.navitem{display:flex;align-items:center;gap:11px;height:40px;padding:0 11px;border-radius:10px;
+  color:var(--text-2);font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden}
+.navitem .g{width:20px;height:20px;flex:none;border-radius:6px;background:var(--line);display:block}
+.navitem.on{background:var(--accent-quiet);color:var(--accent-400);font-weight:600;
+  box-shadow:inset 3px 0 0 var(--accent)}
+[data-nav=rail] .navitem span{display:none}
+[data-nav=rail] .navitem{justify-content:center;padding:0}
+.pill{height:34px;border-radius:999px;background:var(--raised);border:1px solid var(--line);
+  display:flex;align-items:center;padding:0 14px;color:var(--text-3);font-size:12px}
+
+/* ===== THE GRID ===== */
+.vq-grid{display:grid;grid-template-columns:repeat(var(--vq-cols),minmax(0,1fr));
+  grid-auto-rows:var(--vq-row);gap:var(--vq-gutter);align-content:start}
+.vq-card{grid-column:span var(--c,3);grid-row:span var(--r,2);min-width:0;min-height:0;overflow:hidden;
+  padding:var(--vq-card-pad);border-radius:var(--vq-card-radius);background:var(--surface);
+  border:1px solid var(--line-soft);display:flex;flex-direction:column;position:relative;
+  container-type:inline-size}
+.vq-card[data-c="1"],.vq-card[data-c="2"]{padding:var(--vq-card-pad-sm)}
+.vq-card .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vq-card .val{font-family:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-weight:600;letter-spacing:-.02em}
+.badge{position:absolute;top:7px;right:9px;font:500 9px/1 var(--num);letter-spacing:.06em;
+  color:var(--text-3);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:3px 5px}
+.vq-card.warn{border-color:var(--warn)}
+.mod{width:22px;height:3px;border-radius:2px;margin-bottom:9px;flex:none}
+
+/* grid overlay */
+.ghost{position:absolute;inset:0;pointer-events:none;display:grid;
+  grid-template-columns:repeat(var(--vq-cols),minmax(0,1fr));gap:var(--vq-gutter);opacity:0}
+.ghost.on{opacity:1}
+.ghost i{background:rgba(93,165,176,.10);border-left:1px solid rgba(93,165,176,.25);
+         border-right:1px solid rgba(93,165,176,.25)}
+.gridwrap{position:relative}
+
+/* ---------- alignment proof ---------- */
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:26px;max-width:900px;margin:0 auto}
+.pcol h4{font-size:13px;font-weight:600;margin-bottom:4px}
+.pcol p{font-size:12px;color:var(--text-3);margin-bottom:14px;min-height:32px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:64px;gap:24px;background:var(--surface);
+  padding:20px;border-radius:14px;border:1px solid var(--line)}
+.pgrid.broken{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;grid-auto-rows:auto}
+.pgrid.broken .bcol{display:flex;flex-direction:column;gap:24px}
+.pc{background:var(--accent-quiet);border:1px solid var(--accent);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font:600 11px/1 var(--num);color:var(--accent-400)}
+.pgrid.broken .h64{height:64px}.pgrid.broken .h128{height:128px}
+.rule{position:absolute;left:0;right:0;border-top:1px dashed var(--bad);pointer-events:none}
+.verdict{margin-top:12px;font:500 12px/1.5 var(--sans);display:flex;gap:7px;align-items:flex-start}
+.verdict.good{color:var(--ok)}.verdict.bad{color:var(--bad)}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{text-align:left;font:500 10px/1 var(--num);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);padding:0 12px 9px;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid var(--line-soft);color:var(--text-2)}
+td.n{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;color:var(--text)}
+tr.ref td{background:var(--accent-quiet);color:var(--text)}
+.panel{max-width:1180px;margin:0 auto;background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;padding:24px;margin-bottom:22px}
+.panel h3{font-size:15px;font-weight:600;margin-bottom:5px;letter-spacing:-.01em}
+.panel .sub{font-size:12.5px;color:var(--text-3);margin-bottom:18px;line-height:1.6}
+code{font-family:var(--num);background:var(--raised);padding:2px 6px;border-radius:5px;font-size:11.5px;
+     color:var(--accent-400)}
+.hide{display:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font:500 10px/1 var(--num);letter-spacing:.05em;padding:6px 9px;border-radius:6px;
+  background:var(--raised);color:var(--text-3);border:1px solid var(--line)}
+.chip.ok{color:var(--ok);border-color:rgba(84,204,142,.3)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand"><span class="dot"></span>VenQore Layout Law <span style="color:var(--text-3);font-weight:500">v1.0</span></div>
+  <div class="seg" id="presets"></div>
+  <input type="range" id="vw" min="320" max="3440" value="1905" step="1">
+  <div class="readout">
+    <div class="ro"><span class="eyebrow">viewport</span><b id="r-vw">1905</b></div>
+    <div class="ro"><span class="eyebrow">columns</span><b id="r-n">12</b></div>
+    <div class="ro"><span class="eyebrow">column</span><b id="r-col">110.75</b></div>
+    <div class="ro"><span class="eyebrow">nav</span><b id="r-nav" style="font-size:12px">expanded</b></div>
+    <div class="ro"><span class="eyebrow">avail</span><b id="r-avail">1593</b></div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button aria-pressed="true" data-v="live">Live dashboard</button>
+  <button data-v="proof">The row-alignment fix</button>
+  <button data-v="cats">Categories</button>
+  <button data-v="matrix">Resolution matrix</button>
+  <button data-v="numbers">Format-to-fit</button>
+</div>
+
+<div class="stage">
+
+  <!-- ============ LIVE ============ -->
+  <div id="v-live">
+    <div class="chips" style="max-width:1180px;margin:0 auto 16px">
+      <span class="chip" id="c-grid" style="cursor:pointer">grid overlay: off</span>
+      <span class="chip" id="c-sub"  style="cursor:pointer">subnav: off</span>
+      <span class="chip ok" id="c-valid">validator: —</span>
+    </div>
+    <div class="frame" id="frame">
+      <div class="framebar"><i></i><i></i><i></i><span id="fb">1905 × — · 12 columns</span></div>
+      <div class="vq-shell" id="shell" data-nav="expanded" data-subnav="false">
+        <aside class="vq-nav" id="nav"></aside>
+        <header class="vq-header">
+          <div class="pill">Search…</div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <div class="pill" style="color:var(--accent-400)">Ask Vena</div>
+            <div class="pill" style="width:34px;padding:0"></div>
+          </div>
+        </header>
+        <aside class="vq-subnav" id="subnav"></aside>
+        <main class="vq-main">
+          <div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:22px">
+            <div><div class="eyebrow">Rana Traders</div>
+              <div style="font:600 26px/1.1 var(--sans);letter-spacing:-.025em;margin-top:5px">Dashboard</div></div>
+            <div class="pill" style="margin-left:auto">Last 30 days</div>
+          </div>
+          <div class="gridwrap">
+            <div class="ghost" id="ghost"></div>
+            <div class="vq-grid" id="grid"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PROOF ============ -->
+  <div id="v-proof" class="hide">
+    <div class="panel">
+      <h3>Two stacked 1-row cards must line up with one 2-row card</h3>
+      <p class="sub">The bug Gemini flagged. Left: the gutter is <em>added between</em> cards, so a 2-row card is
+        64+64=128 while two stacked 1-row cards are 64+24+64=152 — a 24px misalignment that cascades down the page.
+        Right: the gutter is part of the <em>pitch</em>, so a 2-row card spans across it and absorbs it: 2×64 + 1×24 = 152.
+        The red line marks where the two columns should agree.</p>
+      <div class="proof">
+        <div class="pcol">
+          <h4 style="color:var(--bad)">✗ Old rule — gutter added between</h4>
+          <p><code>height(2) = 64 + 64 = 128px</code></p>
+          <div class="pgrid broken" style="position:relative">
+            <div class="bcol"><div class="pc h64">1 row · 64</div><div class="pc h64">1 row · 64</div></div>
+            <div class="bcol"><div class="pc h128">2 rows · 128</div></div>
+            <div class="rule" style="top:172px"></div>
+          </div>
+          <div class="verdict bad"><span>✗</span><span>Bottom edges 24px apart. Every card below inherits the offset.</span></div>
+        </div>
+        <div class="pcol">
+          <h4 style="color:var(--ok)">✓ Layout Law — gutter is the pitch</h4>
+          <p><code>height(2) = 2×64 + 1×24 = 152px</code></p>
+          <div class="pgrid" style="position:relative">
+            <div class="pc" style="grid-row:span 1">1 row · 64</div>
+            <div class="pc" style="grid-row:span 2">2 rows · 152</div>
+            <div class="pc" style="grid-row:span 1;grid-column:1">1 row · 64</div>
+            <div class="rule" style="top:172px"></div>
+          </div>
+          <div class="verdict good"><span>✓</span><span>Flush. CSS Grid computes this natively from <code>gap</code> — you write no arithmetic.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>The generalisation</h3>
+      <p class="sub">The same formula governs both axes, which is what makes the system checkable.</p>
+      <table><thead><tr><th>Rows</th><th>Formula</th><th class="n">Height</th><th>Cols @ 1920</th><th>Formula</th><th class="n">Width</th></tr></thead>
+      <tbody id="symtab"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ============ CATEGORIES ============ -->
+  <div id="v-cats" class="hide"></div>
+  <!-- ============ MATRIX ============ -->
+  <div id="v-matrix" class="hide"><div class="panel"><h3>Resolution matrix</h3>
+    <p class="sub">What every category becomes at every real screen.
+      <b>^</b> span widened to clear its floor · <b>ᵥ</b> degraded to a leaner fit · <b>!</b> spans the full grid.
+      Computed live by the engine on this page — not a static table.</p>
+    <div style="overflow-x:auto"><table id="mtab"></table></div></div></div>
+  <!-- ============ NUMBERS ============ -->
+  <div id="v-numbers" class="hide"></div>
+</div>
+
+<script type="module">
+/* ================= ENGINE (inlined) ================= */
+const LAW = {
+  constants:{sidebar_expanded:264,sidebar_rail:72,header_h:64,subnav_w:224,margin_desktop:24,
+    margin_tablet:24,margin_mobile:16,gutter:24,row:64,col_target:112,card_pad:20,card_pad_sm:16,pitch_row:88},
+  nav:{expanded_min:1280,rail_min:1024,mobile_max:599},
+  legalColumnCounts:{desktop:[8,10,12,14,16,18,20,24],tablet:[6,8,10,12],mobile:[4]},
+  fontMetrics:{digit_em:0.62,comma_em:0.284,period_em:0.287},
+  categories:[
+   {id:"C1",name:"Tile",default:0,max:[3,2],role:"Shortcut, quick action, custom button, single glyph stat",
+    example:"New sale · Open till · Scan barcode",fits:[
+     {cols:2,rows:1,variant:"icon+label",floor:124,desc:"icon left, label right"},
+     {cols:1,rows:1,variant:"icon",floor:52,desc:"icon only, label in tooltip"}]},
+   {id:"C2",name:"Strip",default:0,max:[6,2],role:"One KPI on one line — label left, value right",
+    example:"Today's sales",fits:[
+     {cols:4,rows:1,variant:"inline",floor:356,desc:"label and value share one line"},
+     {cols:3,rows:2,variant:"stacked",floor:200,desc:"label above value — gains a row"}]},
+   {id:"C3",name:"Metric",default:1,max:[6,4],role:"KPI with delta, sparkline or period comparison",
+    example:"Gross revenue",fits:[
+     {cols:4,rows:3,variant:"full",floor:386,desc:"value + sparkline side by side"},
+     {cols:3,rows:2,variant:"standard",floor:274,desc:"value, delta chip below"},
+     {cols:2,rows:2,variant:"compact",floor:200,desc:"abbreviated value, no sparkline"},
+     {cols:2,rows:3,variant:"stacked",floor:163,desc:"label / value / delta on three lines"}]},
+   {id:"C4",name:"Panel",default:1,max:[6,6],role:"Ranked list, breakdown, small chart, table excerpt",
+    example:"Sales by module",fits:[
+     {cols:4,rows:4,variant:"full",floor:492,desc:"label + bar + value"},
+     {cols:3,rows:4,variant:"standard",floor:356,desc:"label + value, no bar"},
+     {cols:3,rows:5,variant:"compact",floor:200,desc:"label over value — gains a row"},
+     {cols:2,rows:6,variant:"list",floor:200,desc:"narrow list, one item per row"}]},
+   {id:"C5",name:"Board",default:0,max:[12,9],role:"Full chart, multi-series, wide table",
+    example:"Cash flow & revenue",fits:[
+     {cols:6,rows:6,variant:"full",floor:593,desc:"chart + right-hand legend"},
+     {cols:5,rows:7,variant:"narrow",floor:415,desc:"legend moves below chart — gains a row"},
+     {cols:4,rows:8,variant:"min",floor:295,desc:"chart only, table view behind a toggle"}]},
+   {id:"C6",name:"Canvas",default:0,max:[12,16],role:"Hero chart, P&L statement, cohort grid, map",
+    example:"Profit & loss statement",fits:[
+     {cols:8,rows:8,variant:"full",floor:733,desc:"full canvas with controls rail"},
+     {cols:6,rows:10,variant:"narrow",floor:533,desc:"controls move above — gains 2 rows"},
+     {cols:4,rows:12,variant:"min",floor:295,desc:"vertical scroll inside the card"}]}]
+};
+const K=LAW.constants, G=K.gutter;
+const size=(n,u)=>n*u+(n-1)*G, height=r=>size(r,K.row), width=(c,col)=>size(c,col);
+const navState=v=>v>=LAW.nav.expanded_min?"expanded":v>=LAW.nav.rail_min?"rail":"drawer";
+function geometry(vw,{nav,subnav=false}={}){
+  const st=nav||navState(vw), mob=vw<=LAW.nav.mobile_max;
+  let navW={expanded:K.sidebar_expanded,rail:K.sidebar_rail,drawer:0}[st];
+  if(subnav&&vw>=LAW.nav.rail_min) navW+=K.subnav_w;
+  const margin=mob?K.margin_mobile:K.margin_desktop, avail=vw-navW-2*margin;
+  const legal=mob?LAW.legalColumnCounts.mobile:vw<LAW.nav.rail_min?LAW.legalColumnCounts.tablet:LAW.legalColumnCounts.desktop;
+  let best=null;
+  for(const n of legal){const col=(avail-(n-1)*G)/n; if(col<=0)continue;
+    const d=Math.abs(col-K.col_target); if(!best||d<best.d)best={n,col,d};}
+  return {vw,nav:st,navW,margin,avail,cols:best.n,col:best.col};
+}
+function resolve(catId,g,authored){
+  const cat=LAW.categories.find(c=>c.id===catId);
+  let start=cat.default;
+  if(authored){const i=cat.fits.findIndex(f=>f.variant===authored); if(i>=0)start=i;}
+  const cap=Math.min(g.cols,cat.max[0]), mob=g.cols<=4;
+  for(let i=start;i<cat.fits.length;i++){
+    const f=cat.fits[i]; if(f.cols>cap)continue;
+    let c=(mob&&cat.id!=="C1")?g.cols:f.cols;
+    while(c<cap&&width(c,g.col)<f.floor)c++;
+    if(width(c,g.col)>=f.floor)
+      return{catId,cols:c,rows:f.rows,variant:f.variant,floor:f.floor,px:width(c,g.col),h:height(f.rows),
+             promoted:c>f.cols,degraded:i>start,fullWidth:c>=g.cols,ok:true};
+  }
+  const l=cat.fits[cat.fits.length-1];
+  return{catId,cols:g.cols,rows:l.rows,variant:l.variant,floor:l.floor,px:width(g.cols,g.col),h:height(l.rows),
+         promoted:true,degraded:true,fullWidth:true,ok:width(g.cols,g.col)>=l.floor};
+}
+function pack(res,N){
+  const bands=[];let cur=null;
+  for(const c of res){const card={...c};
+    if(!cur||cur.rows!==card.rows||cur.used+card.cols>N){cur={rows:card.rows,cards:[],used:0};bands.push(cur);}
+    cur.cards.push(card);cur.used+=card.cols;}
+  for(const bd of bands){let s2=N-bd.used;
+    while(s2>0){let grew=false;
+      for(const c of bd.cards){if(s2<=0)break;
+        const mx=LAW.categories.find(x=>x.id===c.catId).max[0];
+        if(c.cols<mx){c.cols++;s2--;grew=true;}}
+      if(!grew)break;}
+    bd.used=N-s2;bd.slack=s2;}
+  return bands;}
+const D=LAW.fontMetrics.digit_em,C2=LAW.fontMetrics.comma_em,P=LAW.fontMetrics.period_em;
+const measureNumber=(s,px)=>{let e=0;for(const ch of s)e+=/\d/.test(ch)?D:ch===","?C2:ch==="."?P:ch===" "?.255:.63;return e*px;};
+const UNITS=[[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];
+function formatToFit(v,avail,fpx,cur=""){
+  const pre=cur?cur+" ":"", grp=(x,d)=>x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+  const full=d=>pre+grp(v,d);
+  const comp=d=>{for(const[m,s]of UNITS){const q=v/m;if(Math.abs(v)>=m&&Math.abs(q)<1000)return pre+grp(q,d)+s;}
+    return Math.abs(v)<1000?pre+grp(v,d):null;};
+  const sci=d=>pre+v.toExponential(d).replace("e+","E");
+  const dp4=((String(v).split(".")[1])||"").length>2, small=Math.abs(v)<1000, bare=t=>t?t.replace(pre,""):null;
+  const rungs=[dp4?full(4):null,full(2),bare(full(2)),small?null:comp(2),small?null:bare(comp(2)),
+    small?null:comp(1),small?null:comp(0),small?null:bare(comp(0)),sci(2),sci(1)].filter(Boolean);
+  const exact=full(2);
+  for(const r of rungs) if(measureNumber(r,fpx)<=avail) return{text:r,exact,truncated:r!==exact};
+  const l=rungs[rungs.length-1];return{text:l,exact,truncated:true};
+}
+
+/* ================= DEMO DECK ================= */
+const MODC={sales:"var(--mod-sales)",inventory:"var(--mod-inv)",accounting:"var(--mod-acct)",
+            purchasing:"var(--mod-pur)",reports:"var(--mod-rep)"};
+const DECK=[
+ {catId:"C1",title:"New sale",icon:"＋",mod:"sales"},
+ {catId:"C1",title:"Scan",icon:"▤",mod:"inventory"},
+ {catId:"C2",title:"Today's sales",value:1284670.5,mod:"sales"},
+ {catId:"C3",title:"Gross revenue",value:48293015.75,delta:"+12.4%",mod:"accounting"},
+ {catId:"C3",title:"Net profit",value:9128440.2,delta:"+3.1%",mod:"accounting"},
+ {catId:"C3",title:"Outstanding receivables",value:2049887.35,delta:"−1.8%",mod:"parties"},
+ {catId:"C4",title:"Sales by module",mod:"sales",
+  list:[["POS",8420115],["Invoices",5210880],["Sales orders",3115400],["Quotes",1880220],
+        ["Delivery notes",942300],["Credit notes",610450],["Returns",-402150],["Scrap",-88700]]},
+ {catId:"C4",title:"Low stock",mod:"inventory",
+  list:[["Cement 50kg",12],["Steel rod 12mm",8],["Paint 4L",5],["Tiles 2x2",3],
+        ["Sand (cu ft)",3],["Bricks (1000)",2],["Nails 3in",2],["Wire 2.5mm",1]]},
+ {catId:"C5",title:"Cash flow & revenue",mod:"reports"},
+ {catId:"C6",title:"Profit & loss statement",mod:"accounting"},
+];
+const NAVITEMS=["Dashboard","Blueprint","Sales & POS","Inventory","Core Ledger","Customers","Reports","Settings"];
+const SUBITEMS=["General","Business profile","Tax & currency","Numbering","Users & roles","Integrations","Billing"];
+
+/* ================= RENDER ================= */
+const $=s=>document.querySelector(s);
+const PRESETS=[["360","phone"],["414","phone L"],["768","tablet"],["1024","iPad L"],["1265","1280"],
+               ["1351","1366"],["1521","1536"],["1905","1920"],["2545","2560"],["3425","3440"]];
+$("#presets").innerHTML=PRESETS.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join("");
+$("#nav").innerHTML=NAVITEMS.map((n,i)=>`<div class="navitem${i===0?' on':''}"><i class="g"></i><span>${n}</span></div>`).join("");
+$("#subnav").innerHTML=`<div class="eyebrow" style="padding:4px 10px 8px">Settings</div>`+
+  SUBITEMS.map((n,i)=>`<div class="navitem${i===0?' on':''}"><span>${n}</span></div>`).join("");
+
+let showGhost=false, showSub=false;
+
+function cardHTML(c,r,g){
+  const mc=MODC[c.mod]||"var(--text-3)";
+  const inner=width(r.cols,g.col)-2*(r.cols<3?K.card_pad_sm:K.card_pad);
+  const badge=`<span class="badge">${r.cols}×${r.rows} ${r.variant}${r.promoted?' ^':''}${r.degraded?' ᵥ':''}</span>`;
+  let body="";
+  if(c.catId==="C1"){
+    body=`<div style="display:flex;align-items:center;gap:9px;height:100%">
+      <span style="width:26px;height:26px;border-radius:8px;background:${mc};opacity:.22;display:grid;
+        place-items:center;color:${mc};font:600 13px/1 var(--num);flex:none">${c.icon}</span>
+      ${r.cols>1?`<span class="lbl" style="font-weight:600;font-size:12.5px">${c.title}</span>`:""}</div>`;
+  } else if(c.catId==="C2"){
+    const f=formatToFit(c.value,inner-156,20,"PKR");
+    body=r.variant==="inline"
+      ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:100%">
+          <span class="eyebrow lbl">${c.title}</span>
+          <span class="val" style="font-size:20px" title="${f.exact}">${f.text}</span></div>`
+      : `<div style="display:flex;flex-direction:column;justify-content:center;gap:6px;height:100%">
+          <span class="eyebrow lbl">${c.title}</span>
+          <span class="val" style="font-size:22px" title="${f.exact}">${formatToFit(c.value,inner,22,"PKR").text}</span></div>`;
+  } else if(c.catId==="C3"){
+    const fs=r.variant==="compact"||r.variant==="stacked"?24:30;
+    const f=formatToFit(c.value,inner,fs,"PKR");
+    body=`<div class="mod" style="background:${mc}"></div>
+      <span class="eyebrow lbl">${c.title}</span>
+      <span class="val" style="font-size:${fs}px;margin-top:8px" title="${f.exact}">${f.text}</span>
+      <span style="font-size:12px;color:${c.delta&&c.delta[0]==="+"?"var(--ok)":"var(--bad)"};margin-top:7px">${c.delta||""} vs prev</span>
+      ${r.variant==="full"?'<div style="margin-top:auto;height:34px;background:linear-gradient(90deg,transparent,'+mc+'33);border-radius:6px"></div>':""}`;
+  } else if(c.catId==="C4"){
+    const interior=r.rows*64+(r.rows-1)*24-2*20-30;
+    const shown=Math.max(2,Math.min(c.list.length,Math.floor(interior/34)));
+    const rows=c.list.slice(0,shown).map(([k,v])=>{
+      const isMoney=Math.abs(v)>1000;
+      const t=isMoney?formatToFit(v,90,13,"").text:String(v);
+      return `<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;
+        border-bottom:1px solid var(--line-soft);font-size:12.5px">
+        <span class="lbl" style="color:var(--text-2)">${k}</span>
+        <span class="val" style="font-size:12.5px;color:${v<0?'var(--bad)':'var(--text)'}">${v<0?'('+t.replace('-','')+')':t}</span></div>`;}).join("");
+    body=`<div class="mod" style="background:${mc}"></div>
+      <span class="eyebrow lbl">${c.title}</span>
+      <div style="margin-top:10px;flex:1;display:flex;flex-direction:column;justify-content:flex-start">${rows}</div>
+      ${c.list.length>shown?`<div style="font-size:11px;color:var(--text-3);padding-top:8px">+${c.list.length-shown} more</div>`:""}`;
+  } else {
+    const bars=Array.from({length:12},(_,i)=>{
+      const h=28+((i*37)%62);
+      return `<div style="flex:1;height:${h}%;background:${mc};opacity:${.35+(i%3)*.2};border-radius:3px 3px 0 0"></div>`;}).join("");
+    body=`<div class="mod" style="background:${mc}"></div>
+      <span class="eyebrow lbl">${c.title}</span>
+      <div style="flex:1;display:flex;align-items:flex-end;gap:5px;margin-top:14px;min-height:0">${bars}</div>`;
+  }
+  return `<div class="vq-card" data-c="${r.cols}" style="--c:${r.cols};--r:${r.rows}">${badge}${body}</div>`;
+}
+
+function render(){
+  const vw=+$("#vw").value;
+  const g=geometry(vw,{subnav:showSub});
+  const res=DECK.map(c=>resolve(c.catId,g,c.variant));
+  const bands=pack(res,g.cols);
+  const flat=bands.flatMap(b=>b.cards);
+
+  $("#r-vw").textContent=vw; $("#r-n").textContent=g.cols;
+  $("#r-col").textContent=g.col.toFixed(2); $("#r-nav").textContent=g.nav;
+  $("#r-avail").textContent=g.avail;
+  $("#fb").textContent=`${vw} × auto · ${g.cols} columns · ${g.col.toFixed(1)}px each · nav ${g.nav}`;
+  $("#frame").style.width=Math.min(vw,window.innerWidth-40)+"px";
+  const sh=$("#shell"); sh.dataset.nav=g.nav; sh.dataset.subnav=showSub&&vw>=LAW.nav.rail_min?"true":"false";
+  sh.style.setProperty("--vq-cols",g.cols);
+  $("#grid").style.setProperty("--vq-cols",g.cols);
+  $("#ghost").style.setProperty("--vq-cols",g.cols);
+  $("#ghost").className="ghost"+(showGhost?" on":"");
+  $("#ghost").innerHTML=Array.from({length:g.cols},()=>"<i></i>").join("");
+  $("#grid").innerHTML=DECK.map((c,i)=>cardHTML(c,flat[i],g)).join("");
+
+  const bad=flat.filter(r=>!r.ok||r.cols>g.cols);
+  const cv=$("#c-valid");
+  cv.textContent=bad.length?`validator: ${bad.length} violation(s)`:"validator: 0 violations";
+  cv.className="chip "+(bad.length?"":"ok");
+  document.querySelectorAll("#presets button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===vw));
+  renderMatrix();
+}
+
+/* ---- symmetry table ---- */
+$("#symtab").innerHTML=[1,2,3,4,6,8,9,12].map(r=>{
+  const gg=geometry(1905);
+  return `<tr><td class="n">${r}</td><td><code>${r}×64 + ${r-1}×24</code></td><td class="n">${height(r)}px</td>
+    <td class="n">${r}</td><td><code>${r}×110.75 + ${r-1}×24</code></td><td class="n">${width(r,gg.col).toFixed(0)}px</td></tr>`;
+}).join("");
+
+/* ---- categories ---- */
+$("#v-cats").innerHTML=LAW.categories.map(c=>{
+  const g=geometry(1905);
+  return `<div class="panel"><h3>${c.id} · ${c.name}</h3>
+  <p class="sub">${c.role}<br><span style="color:var(--text-2)">e.g. ${c.example}</span> ·
+  max <code>${c.max[0]}×${c.max[1]}</code> · canonical <code>${c.fits[c.default].variant}</code></p>
+  <table><thead><tr><th>Fit</th><th>Span</th><th class="n">Size @1920</th><th class="n">Floor</th><th>Holds</th></tr></thead><tbody>
+  ${c.fits.map((f,i)=>`<tr${i===c.default?' class="ref"':''}><td><code>${f.variant}</code></td>
+    <td class="n">${f.cols}c × ${f.rows}r</td><td class="n">${width(f.cols,g.col).toFixed(0)} × ${height(f.rows)}px</td>
+    <td class="n">${f.floor}px</td><td>${f.desc}</td></tr>`).join("")}
+  </tbody></table></div>`;}).join("");
+
+/* ---- matrix ---- */
+const MBPS=[[360,"Android"],[390,"iPhone"],[414,"iPhone L"],[768,"iPad P"],[820,"iPad Air P"],
+  [1024,"iPad L"],[1180,"iPad Air L"],[1265,"1280"],[1351,"1366"],[1425,"1440"],[1521,"1536"],
+  [1585,"1600"],[1905,"1920 ★"],[2545,"2560"],[3425,"3440"]];
+function renderMatrix(){
+  const cur=+$("#vw").value;
+  $("#mtab").innerHTML=`<thead><tr><th>Screen</th><th class="n">N</th><th class="n">col</th>
+    ${LAW.categories.map(c=>`<th>${c.id} ${c.name}</th>`).join("")}</tr></thead><tbody>`+
+  MBPS.map(([v,l])=>{const g=geometry(v);
+    return `<tr${v===cur?' class="ref"':''}><td>${l} <span style="color:var(--text-3)">${v}</span></td>
+     <td class="n">${g.cols}</td><td class="n">${g.col.toFixed(1)}</td>`+
+     LAW.categories.map(c=>{const r=resolve(c.id,g);
+       return `<td class="n">${r.cols}×${r.rows} <span style="color:var(--text-3)">${r.variant}</span>
+         ${r.promoted?'<b style="color:var(--warn)">^</b>':''}${r.degraded?'<b style="color:var(--accent-400)">ᵥ</b>':''}
+         ${r.fullWidth?'<b style="color:var(--text-3)">!</b>':''}</td>`;}).join("")+"</tr>";}).join("")+"</tbody>";
+}
+
+/* ---- numbers ---- */
+const NVALS=[[99999999999999999999.9999,"20 digits + 4 decimals"],[48293015.75,"48.3M"],
+             [1284670.5,"1.28M"],[45678.9,"45.7K"],[99.5,"under 1000"]];
+$("#v-numbers").innerHTML=`<div class="panel"><h3>A card is never sized to its number</h3>
+<p class="sub">Measured in the shipping font (Space Grotesk 600, tabular, digit advance <code>0.62em</code>),
+the worst-case value is <b>723px</b> at metric size. The widest card this law produces at 1920 is 1593px and a
+C3 Metric is 380px. So the number formats down to the card, and the exact value stays one hover away.
+Currency drops first, then decimals, then magnitude — digits survive longest because digits are the information.</p>
+<table><thead><tr><th>Value</th>${[500,380,274,200,140,110].map(p=>`<th class="n">${p}px</th>`).join("")}</tr></thead><tbody>
+${NVALS.map(([v,l])=>`<tr><td>${l}</td>${[500,380,274,200,140,110].map(p=>{
+  const f=formatToFit(v,p,26,"PKR");
+  return `<td class="n" title="${f.exact}" style="color:${f.truncated?'var(--text-2)':'var(--text)'}">${f.text}</td>`;}).join("")}</tr>`).join("")}
+</tbody></table></div>`;
+
+/* ---- wiring ---- */
+$("#vw").addEventListener("input",render);
+$("#presets").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  $("#vw").value=b.dataset.v;render();});
+$("#c-grid").addEventListener("click",e=>{showGhost=!showGhost;
+  e.target.textContent="grid overlay: "+(showGhost?"on":"off");
+  e.target.className="chip"+(showGhost?" ok":"");render();});
+$("#c-sub").addEventListener("click",e=>{showSub=!showSub;
+  e.target.textContent="subnav: "+(showSub?"on":"off");
+  e.target.className="chip"+(showSub?" ok":"");render();});
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  ["live","proof","cats","matrix","numbers"].forEach(v=>
+    document.getElementById("v-"+v).classList.toggle("hide",v!==b.dataset.v));});
+window.addEventListener("resize",render);
+render();
+</script>
+</body>
+</html>

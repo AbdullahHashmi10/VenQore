@@ -1,0 +1,204 @@
+.simbar{position:sticky;top:0;z-index:60;background:var(--vq-ink-50);
+ padding:10px 0 12px;border-bottom:1px solid var(--vq-ink-200);margin-bottom:14px}
+.stage{background:var(--vq-ink-200);border-radius:18px;padding:14px;overflow:hidden;
+ display:flex;justify-content:center;align-items:flex-start}
+.device{background:var(--vq-ink-950);border-radius:16px;padding:9px;flex:0 0 auto;
+ box-shadow:0 18px 50px -18px rgba(6,10,9,.55);transform-origin:top center}
+.screen{background:var(--vq-ink-50);border-radius:9px;overflow:hidden;position:relative;
+ display:flex;touch-action:none}
+
+/* ── nav ──────────────────────────────────────────────────────────────── */
+.nav{background:var(--vq-teal-950);color:var(--vq-teal-100);flex:0 0 auto;overflow:hidden;
+ display:flex;flex-direction:column}
+.nav:not(.dragging){transition:width .26s cubic-bezier(.16,1,.3,1)}
+.nav.overlay{position:absolute;inset:0 auto 0 0;z-index:45;transform:translateX(-101%);
+ transition:transform .26s cubic-bezier(.16,1,.3,1);
+ box-shadow:16px 0 52px -22px rgba(0,0,0,.7)}
+.nav.overlay[data-open="true"]{transform:none}
+.navhead{height:64px;flex:0 0 64px;display:flex;align-items:center;gap:10px;padding:0 14px}
+.navlogo{width:34px;height:34px;border-radius:10px;background:var(--vq-teal-500);color:#fff;
+ display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto;
+ font-family:var(--vq-font-display);font-size:17px}
+.navbrand{font-family:var(--vq-font-display);font-weight:700;color:#fff;font-size:17px;
+ white-space:nowrap;overflow:hidden}
+.navlist{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px 0}
+.ni{display:flex;align-items:center;gap:12px;padding:0 14px;height:44px;width:100%;
+ color:var(--vq-teal-100);font-size:14px;font-weight:600;white-space:nowrap;text-align:left}
+.ni:hover{background:rgba(255,255,255,.1)}
+.ni.on{background:var(--vq-teal-500);color:#fff}
+.ni .ic{width:22px;text-align:center;flex:0 0 auto;font-size:15px}
+.ni .lbl{overflow:hidden;text-overflow:ellipsis}
+.nav[data-state="rail"] .ni{justify-content:center;padding:0}
+.scrim3{position:absolute;inset:0;background:rgba(9,11,20,.5);opacity:0;pointer-events:none;
+ transition:opacity .26s;z-index:40}
+.scrim3[data-open="true"]{opacity:1;pointer-events:auto}
+
+/* ── the splitter: role=separator, focusable, magnetic ─────────────────── */
+.split{flex:0 0 6px;margin:0 -3px;z-index:46;position:relative;cursor:col-resize;
+ background:transparent;align-self:stretch;touch-action:none}
+.split::before{content:"";position:absolute;inset:0 2px;border-radius:2px;background:transparent;
+ transition:background .12s}
+.split:hover::before,.split.dragging::before{background:var(--vq-teal-400)}
+.split:focus-visible{outline:none}
+.split:focus-visible::before{background:var(--vq-teal-500);inset:0 1px}
+/* a permanent grip, so the divider is discoverable without hunting for it */
+.split::after{content:"";position:absolute;left:1px;top:50%;width:4px;height:34px;
+ margin-top:-17px;border-radius:3px;background:rgba(255,255,255,.28);
+ box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.split:hover::after,.split.dragging::after{background:#fff}
+.szchip{position:absolute;right:8px;bottom:8px;z-index:16;pointer-events:none;
+ background:var(--vq-ink-950);color:#fff;border-radius:8px;padding:5px 9px;
+ font-family:var(--vq-font-numeric);font-size:11px;font-weight:700;white-space:nowrap;
+ display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px -6px rgba(0,0,0,.5)}
+.szchip b{color:var(--vq-teal-300)}
+.szchip span{color:var(--vq-ink-300);font-weight:500}
+.szchip .stop{font-style:normal;background:var(--vq-butter-400);color:var(--vq-ink-950);
+ border-radius:5px;padding:2px 6px;font-size:10px}
+.splitread{position:absolute;top:50%;left:10px;transform:translateY(-50%);z-index:70;
+ background:var(--vq-ink-950);color:#fff;border-radius:8px;padding:7px 11px;white-space:nowrap;
+ font-family:var(--vq-font-numeric);font-size:11.5px;font-weight:700;line-height:1.45;
+ pointer-events:none;box-shadow:0 8px 24px -8px rgba(0,0,0,.6)}
+.splitread b{color:var(--vq-teal-300)}
+.splitread .sn{color:var(--vq-butter-300)}
+.navguide{position:absolute;top:0;bottom:0;width:1px;background:var(--vq-teal-500);opacity:.5;
+ z-index:44;pointer-events:none}
+.navguide.snap{opacity:1;width:2px;background:var(--vq-butter-400)}
+
+/* ── main ─────────────────────────────────────────────────────────────── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.hdr{height:64px;flex:0 0 64px;display:flex;align-items:center;gap:8px;padding:0 12px;
+ background:var(--vq-ink-0);border-bottom:1px solid var(--vq-ink-200)}
+.iconbtn{width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;
+ justify-content:center;color:var(--vq-ink-600);flex:0 0 auto;font-size:16px}
+.iconbtn:hover{background:var(--vq-ink-100)}
+.iconbtn[aria-pressed="true"]{background:var(--vq-teal-600);color:#fff}
+.hdr .t{font-family:var(--vq-font-display);font-weight:700;font-size:17px;letter-spacing:-.01em;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.canvas{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:var(--vq-margin);
+ position:relative}
+
+/* the edit toolbar is a REAL ROW, never floated over the cards */
+/* one row, always — a wrapping toolbar eats a phone's canvas three lines at a
+   time, so it scrolls sideways instead */
+.etoolbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;
+ overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
+ padding:8px 12px;background:var(--vq-teal-950);border-bottom:1px solid var(--vq-teal-800)}
+.etoolbar>*{flex:0 0 auto}
+.etoolbar .eb{border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;
+ color:var(--vq-teal-100);background:rgba(255,255,255,.09);white-space:nowrap;
+ font-family:var(--vq-font-numeric);letter-spacing:.02em}
+.etoolbar .eb:hover{background:rgba(255,255,255,.18)}
+.etoolbar .eb[aria-pressed="true"]{background:var(--vq-teal-400);color:var(--vq-ink-950)}
+.etoolbar .eb[disabled]{opacity:.35}
+.etoolbar .sep{width:1px;align-self:stretch;background:rgba(255,255,255,.18);margin:0 2px}
+.etoolbar .lab{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+ color:var(--vq-teal-300)}
+
+/* ── the grid ─────────────────────────────────────────────────────────── */
+.gridwrap{position:relative;min-height:100%}
+.gridlines{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .18s;
+ display:grid;gap:var(--vq-gutter)}
+.gridwrap[data-edit="true"] .gridlines{opacity:1}
+.gridlines i{background:var(--vq-teal-100);border-radius:6px;opacity:.34}
+.grid{display:grid;gap:var(--vq-gutter);align-content:start;grid-auto-rows:var(--vq-row);
+ position:relative}
+.grid[data-mode="free"]{grid-auto-flow:row dense}
+.card{background:var(--vq-ink-0);border:1px solid var(--vq-ink-200);border-radius:14px;
+ padding:var(--vq-card-pad);min-width:0;min-height:0;overflow:hidden;
+ display:flex;flex-direction:column;position:relative;container-type:inline-size}
+.card[data-c="1"],.card[data-c="2"]{padding:var(--vq-card-pad-sm)}
+.card>.cbody{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto;
+ scrollbar-width:thin}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+ color:var(--vq-ink-500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
+.metric{font-family:var(--vq-font-numeric);font-weight:700;line-height:1.05;
+ color:var(--vq-ink-900);white-space:nowrap;font-variant-numeric:tabular-nums}
+.delta{font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px;
+ padding:3px 7px;border-radius:6px;width:fit-content;flex:0 0 auto}
+.delta.up{background:var(--vq-lime-100);color:var(--vq-lime-700)}
+.delta.dn{background:var(--vq-coral-100);color:var(--vq-coral-700)}
+.spark{flex:1;min-height:14px;display:flex;align-items:flex-end;gap:3px;margin-top:8px}
+.spark i{flex:1;background:var(--vq-teal-300);border-radius:2px 2px 0 0;min-width:2px}
+.tile{display:flex;align-items:center;gap:10px;min-width:0}
+.tileic{width:34px;height:34px;border-radius:10px;background:var(--vq-teal-100);
+ color:var(--vq-teal-800);display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+ font-size:16px}
+.tilelab{font-size:13px;font-weight:700;color:var(--vq-ink-800);min-width:0;overflow:hidden;
+ text-overflow:ellipsis;white-space:nowrap}
+.blist{flex:1;min-height:0;display:flex;flex-direction:column;gap:7px;margin-top:10px;
+ overflow:hidden;justify-content:space-evenly}
+.brow{display:flex;align-items:center;gap:9px;font-size:12px}
+.brow .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .bb{height:6px;border-radius:3px;background:var(--vq-teal-400);flex:0 0 auto}
+.brow .bv{font-family:var(--vq-font-numeric);font-weight:700;flex:0 0 auto}
+.chart{flex:1;min-height:20px;display:flex;align-items:flex-end;gap:5px;margin-top:10px}
+.chart i{flex:1;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--vq-teal-400),var(--vq-teal-600))}
+
+/* ── edit affordances ─────────────────────────────────────────────────── */
+.badge{position:absolute;top:5px;right:7px;font-family:var(--vq-font-numeric);font-size:9px;
+ font-weight:700;color:var(--vq-ink-400);opacity:0;transition:opacity .15s;pointer-events:none}
+.grid[data-edit="true"] .badge{opacity:1}
+.grid[data-edit="true"] .card{border-style:dashed;border-color:var(--vq-teal-300);
+ cursor:grab;user-select:none;touch-action:none}
+.grid[data-edit="true"] .card:hover{border-color:var(--vq-teal-500)}
+.card.dragging{opacity:.9;cursor:grabbing;z-index:20;border-style:solid !important;
+ border-color:var(--vq-teal-600) !important;pointer-events:none;
+ box-shadow:0 22px 46px -14px rgba(6,10,9,.45)}
+.card.resizing{z-index:12;border-color:var(--vq-butter-500) !important}
+/* SE-only handle, 20x20 hit area -- the react-grid-layout default */
+.rz{position:absolute;right:0;bottom:0;width:20px;height:20px;cursor:nwse-resize;z-index:14;
+ display:none;touch-action:none}
+.grid[data-edit="true"] .rz{display:block}
+.rz::after{content:"";position:absolute;right:4px;bottom:4px;width:11px;height:11px;
+ border-right:2px solid var(--vq-teal-600);border-bottom:2px solid var(--vq-teal-600);
+ border-radius:0 0 4px 0}
+.rz:hover::after{border-color:var(--vq-butter-600);right:3px;bottom:3px;width:13px;height:13px}
+.xbtn{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:6px;z-index:14;
+ display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+ background:var(--vq-ink-100);color:var(--vq-ink-600)}
+.grid[data-edit="true"] .xbtn{display:flex}
+.xbtn:hover{background:var(--vq-coral-500);color:#fff}
+
+/* THE DROP TARGET. A dotted outline plus a translucent fill, painted at the
+   SNAPPED DESTINATION -- not a line beside the card it will land after. */
+.ghost{border:2px dashed var(--vq-teal-600);border-radius:14px;
+ background:rgba(20,148,132,.14);pointer-events:none;z-index:8;position:relative;
+ display:flex;align-items:flex-start;justify-content:flex-start;padding:7px}
+.ghost.blocked{border-color:var(--vq-coral-500);background:rgba(233,86,66,.14)}
+.ghost .gl{font-family:var(--vq-font-numeric);font-size:11px;font-weight:800;
+ color:var(--vq-teal-800);background:var(--vq-ink-0);border-radius:6px;padding:3px 7px;
+ white-space:nowrap;box-shadow:0 2px 8px -2px rgba(0,0,0,.25)}
+.ghost.blocked .gl{color:var(--vq-coral-700)}
+
+/* ── page furniture ───────────────────────────────────────────────────── */
+.readout{font-family:var(--vq-font-numeric);font-size:12.5px;line-height:1.75;color:var(--vq-ink-700)}
+.readout b{color:var(--vq-ink-900)}
+.hint{font-size:12px;color:var(--vq-ink-500)}
+.big{font-family:var(--vq-font-display);font-size:clamp(28px,5vw,52px);font-weight:700;
+ letter-spacing:-.03em;line-height:1;color:var(--vq-teal-700)}
+.pushpill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 12px;
+ font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.pushpill.push{background:var(--vq-teal-100);color:var(--vq-teal-800)}
+.pushpill.overlay{background:var(--vq-butter-100);color:var(--vq-butter-700)}
+input[type=range]{accent-color:var(--vq-teal-600)}
+.axis{position:relative;height:64px;margin:18px 0 6px;border-radius:10px;
+ background:linear-gradient(90deg,var(--vq-butter-100) 0%,var(--vq-butter-100) 27.5%,
+ var(--vq-teal-100) 27.5%,var(--vq-teal-100) 100%);border:1px solid var(--vq-ink-200)}
+.axis .mark{position:absolute;top:0;bottom:0;width:2px;background:var(--vq-ink-900);opacity:.75}
+.axis .lbl{position:absolute;top:100%;transform:translateX(-50%);font-family:var(--vq-font-numeric);
+ font-size:11px;font-weight:700;white-space:nowrap;padding-top:5px;color:var(--vq-ink-700)}
+.axis .zone{position:absolute;top:9px;font-size:11px;font-weight:800;letter-spacing:.07em;
+ text-transform:uppercase}
+.axis .cursor{position:absolute;top:-7px;bottom:-7px;width:3px;background:var(--vq-coral-500);
+ border-radius:2px;transition:left .05s linear}
+.travel{position:relative;height:34px;border-radius:9px;background:var(--vq-ink-200);
+ margin:10px 0 22px;overflow:visible}
+.travel .band{position:absolute;top:0;bottom:0;background:var(--vq-teal-200);border-radius:9px}
+.travel .snap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--vq-teal-700)}
+.travel .snap b{position:absolute;top:100%;left:0;transform:translateX(-50%);padding-top:4px;
+ font-family:var(--vq-font-numeric);font-size:10px;font-weight:700;white-space:nowrap;
+ color:var(--vq-ink-600)}
+.travel .now{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--vq-coral-500);
+ border-radius:2px}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;
+ margin-right:5px}

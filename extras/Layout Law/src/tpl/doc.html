@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VenQore — compose the document editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>/*__TOKENS__*/</style>
+<style>/*__LAYOUT__*/</style>
+<style>/*__DOCCSS__*/</style>
+</head><body>
+<div class="wrap">
+
+  <h1>One editor, thirteen documents — composed by the person using it</h1>
+  <p class="lede">Eight of the thirteen document screens in the codebase are the same file
+  copy-pasted, with the labels swapped and a handful of fields silently dropped from the payload.
+  That part was already solved: a type is a <b>configuration</b>, never a screen. What is new is
+  the other half of your note — <b>the arrangement is yours too</b>. Collapse the customer block
+  and hand the height to the items. Put the summary on the right, under the lines, or nowhere.
+  Decide what happens to it when you scroll. Drag the divider. The law's job is not to choose;
+  it is to stop your choice breaking.</p>
+
+  <div class="simbar">
+    <div class="row" style="margin-bottom:9px">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Start from</span>
+      <span id="pbtns" class="row presetrow"></span>
+    </div>
+    <div class="row" style="margin-bottom:9px">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Document</span>
+      <span id="tbtns" class="row"></span>
+    </div>
+    <div class="row">
+      <span class="mono-sm" style="font-weight:800;letter-spacing:.09em;text-transform:uppercase">Device</span>
+      <span id="dbtns" class="row"></span>
+    </div>
+    <div class="row" style="margin-top:9px;gap:18px">
+      <label class="hint" style="display:flex;align-items:center;gap:8px">Width
+        <input id="w" type="range" min="320" max="3440" step="1" value="1905" style="width:min(240px,38vw)">
+        <span class="mono-sm" id="wv" style="min-width:38px">1905</span></label>
+      <label class="hint" style="display:flex;align-items:center;gap:8px">Height
+        <input id="h" type="range" min="480" max="1440" step="1" value="940" style="width:min(160px,26vw)">
+        <span class="mono-sm" id="hv" style="min-width:34px">940</span></label>
+    </div>
+    <div class="ctlgrid" id="ctls"></div>
+  </div>
+
+  <div class="stage"><div class="device" id="device"><div class="screen" id="screen"></div></div></div>
+  <p class="hint" style="margin:9px 2px 0">Scroll inside the screen to see the docked summary
+  arrive. Drag the divider between the items and the summary. Tap a line on a narrow screen to
+  open its controls in place — the pattern you liked in the register.</p>
+
+  <div class="panel" style="margin-top:14px">
+    <div id="readout" class="readout"></div>
+    <div id="why"></div>
+  </div>
+  <div class="note" id="caps"></div>
+
+  <h2>What changed, and why</h2>
+  <div class="scrollx"><table class="data">
+    <thead><tr><th>What you said</th><th>What it does now</th></tr></thead>
+    <tbody>
+      <tr><td><b>“Keep the summary on the right side, or make the customer and details section
+        collapsible at the top so the items get the middle and left space.”</b></td>
+        <td>Both, as a switch. <b>Collapsed</b> is one line — party, number, date, running total —
+        and it is worth 5 to 10 more visible item rows on a laptop. The readout prints the number
+        so the trade is not a matter of opinion.</td></tr>
+      <tr><td><b>“When the user scrolls, show the summary in the bottom right corner with Complete
+        sale — specially for the Pro density.”</b></td>
+        <td>There, and <em>Pro</em> turns out to be a consequence rather than a preference: see
+        below.</td></tr>
+      <tr><td><b>“Work on the tablet and phone screens, those are not good.”</b></td>
+        <td>A summary column only survives while the line table beside it is still a table. Below
+        that it moves under the lines, and on a phone it becomes the dock. The line table becomes
+        cards, and a card opens its own controls in place when you tap it.</td></tr>
+      <tr><td><b>“Let the user decide how they want to have it.”</b></td>
+        <td>Five knobs, six starting points, and a draggable divider. Every one of them is clamped
+        by a measured floor rather than by a breakpoint.</td></tr>
+      <tr><td>Heights felt over-managed.</td>
+        <td>Nothing is deleted to save height. When the height runs out the details
+        <b>collapse</b> — one gesture from being back — and everything else scrolls.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Why the docked summary lands on Pro</h2>
+  <p>You noticed it on the Pro density, and that is not a coincidence — it is arithmetic. Holding
+  a panel still while the page scrolls past only works if the whole panel fits on screen; a sticky
+  thing taller than its viewport still scrolls, it just scrolls late, which is the worst of both.
+  And the summary's height <em>is</em> its density: the density list is literally the list of
+  summary rows. Three for Simple, seven for Standard, ten for Pro plus the tax breakdown. So Pro
+  is the first density that stops fitting, and the law names it without being told to.</p>
+  <div class="scrollx"><table class="data" id="stick"></table></div>
+  <div class="note"><b>And the dock is a row, not a float.</b> The Counter register had a browse
+  button floating over the payment panel, which is the same defect this could have: a summary card
+  in the corner covering the last line of the table forever. So the dock's height is
+  <b>reserved</b> at the bottom of the scroller before anything is measured. It is anchored to the
+  right so the left of the last row stays visible, and the space it sits in belongs to it.</div>
+
+  <h2>Six starting points</h2>
+  <div class="scrollx"><table class="data" id="ptable"></table></div>
+
+  <h2>Three densities, and why the law can veto one</h2>
+  <p>Density is a preference — an accountant wants ten line columns, a cashier wants five — but it
+  is a preference the width has to be able to honour. The ten-column table needs <b>933px</b>,
+  measured from real advance widths. Below that the law caps the density and says so. A density is
+  the only thing the width may veto; it may never veto a <em>capability</em>.</p>
+  <div class="scrollx"><table class="data" id="dentable"></table></div>
+
+  <h2>The nav now knows what you composed</h2>
+  <p>Solving this the first time produced a rule that documents hold the rail until <b>1708px</b>,
+  because 192px of parked chrome is a whole table column and you do not navigate from an invoice.
+  That number was derived from the <em>default</em> zone weights — and the sweep caught what
+  happens when you change them: at 1708 a Pro ledger with a 32% summary lost its tenth line column
+  the moment the nav expanded. Buying a bigger screen made the invoice worse again, one composition
+  further along.</p>
+  <p>So the No-Regression Rule moved from derivation time to run time. The nav <b>holds the
+  rail</b> wherever expanding it would cost <em>this</em> composition a fit — watch the pill in the
+  header at 1708 with the Pro ledger preset.</p>
+  <div class="scrollx"><table class="data" id="solved"></table></div>
+
+  <h2>Every capability, and where it lives</h2>
+  <div class="scrollx" style="max-height:520px"><table class="data" id="matrix"></table></div>
+
+  <h2>What the thirteen screens do today</h2>
+  <div class="scrollx"><table class="data" id="fixtable"></table></div>
+
+  <h2>One keymap for the whole product</h2>
+  <div class="scrollx"><table class="data" id="keytable"></table></div>
+
+  <p style="margin-top:40px;color:var(--vq-ink-500);font-size:13px">
+  Every layout on this page is computed by <code>venqore-layout-engine.js</code> from
+  <code>layout-law.json</code>. Nothing here picks a breakpoint.</p>
+</div>
+
+<script>const DATA = /*__DATA__*/null;</script>
+<script>/*__ENGINE__*/</script>
+<script>/*__APP__*/</script>
+</body></html>

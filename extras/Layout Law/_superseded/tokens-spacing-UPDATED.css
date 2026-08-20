@@ -1,0 +1,43 @@
+/* VenQore spacing tokens — updated by Layout Law v1.0 */
+:root {
+  --vq-space-0: 0px;   --vq-space-1: 4px;   --vq-space-2: 8px;
+  --vq-space-3: 12px;  --vq-space-4: 16px;  --vq-space-5: 20px;
+  --vq-space-6: 24px;  --vq-space-7: 28px;  --vq-space-8: 32px;
+  --vq-space-10: 40px; --vq-space-12: 48px; --vq-space-14: 56px;
+  --vq-space-16: 64px; --vq-space-20: 80px; --vq-space-24: 96px;
+  --vq-space-32: 128px;
+
+  /* Density — control heights unchanged from v5. */
+  --vq-control-sm: 34px;
+  --vq-control-md: 42px;
+  --vq-control-lg: 48px;
+  --vq-control-xl: 56px;
+
+  /* ===== LAYOUT LAW v1.0 — these replace the old shell tokens ===== */
+  --vq-sidebar:        264px;   /* was --vq-rail-w: 248px      */
+  --vq-sidebar-rail:    72px;   /* was --vq-rail-w-min: 76px  */
+  --vq-header-h:        64px;   /* was --vq-topbar-h: 68px    */
+  --vq-subnav:         224px;   /* new — settings/reports nav */
+  --vq-gutter:          24px;   /* was 20px. both axes.       */
+  --vq-row:             64px;   /* new — dashboard grid row   */
+  --vq-row-pitch:       88px;   /* row + gutter. reference.   */
+  --vq-margin:          24px;
+  --vq-margin-mobile:   16px;
+  --vq-col-target:     112px;
+  --vq-cols:            12;    /* set per-viewport by the layout engine */
+
+  --vq-card-pad:        20px;
+  --vq-card-pad-sm:     16px;
+
+  /* A TABLE row is not a GRID row. Different thing, different token. */
+  --vq-table-row-h:     48px;  /* was --vq-row-h: 52px  (DESIGN-RULES.md §10) */
+  --vq-table-head-h:    40px;
+
+  /* --vq-page-max DELETED — width is handled by column count, not a cap. */
+  --vq-section-y: 112px;  /* marketing section rhythm — unchanged */
+
+  /* Stacking ladder — unchanged from v5. */
+  --vq-z-base: 0; --vq-z-raised: 10; --vq-z-sticky: 100; --vq-z-nav: 200;
+  --vq-z-rail: 300; --vq-z-dropdown: 400; --vq-z-drawer: 500; --vq-z-modal: 600;
+  --vq-z-popover: 700; --vq-z-tooltip: 800; --vq-z-toast: 900; --vq-z-command: 1000;
+}

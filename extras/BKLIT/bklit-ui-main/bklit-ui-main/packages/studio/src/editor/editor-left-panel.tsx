@@ -1,0 +1,104 @@
+"use client";
+
+import { memo } from "react";
+import { StudioComponentsPanel } from "@/components/studio-components-panel";
+import { StudioScrollArea } from "@/components/studio-scroll-area";
+import { EditorAnimationSection } from "@/editor/editor-animation-section";
+import { EditorCollapsiblePane } from "@/editor/editor-collapsible-pane";
+import { EditorDataSection } from "@/editor/editor-data-section";
+import { useStudioComponentSelection } from "@/editor/studio-component-selection";
+import { isCartesianLoadingMode } from "@/lib/line-chart-mode";
+import type { StudioUrlState } from "@/lib/studio-parsers";
+import type { StudioChartConfig } from "@/lib/types";
+
+export const EditorLeftPanel = memo(function EditorLeftPanel({
+  config,
+  state,
+  onChange,
+  onPreview,
+  onCommit,
+  onBatchChange,
+  onMotionCurveDragActiveChange,
+  showMotionControls = false,
+  chartSelector,
+  controlsDisabled = false,
+  onScramble,
+}: {
+  config: StudioChartConfig;
+  state: StudioUrlState;
+  onChange: <K extends keyof StudioUrlState>(
+    key: K,
+    value: StudioUrlState[K]
+  ) => void;
+  onBatchChange: (updates: Partial<StudioUrlState>) => void;
+  onPreview: <K extends keyof StudioUrlState>(
+    key: K,
+    value: StudioUrlState[K]
+  ) => void;
+  onCommit: <K extends keyof StudioUrlState>(
+    key: K,
+    value: StudioUrlState[K]
+  ) => void;
+  onMotionCurveDragActiveChange?: (dragging: boolean) => void;
+  showMotionControls?: boolean;
+  chartSelector?: React.ReactNode;
+  controlsDisabled?: boolean;
+  onScramble: () => void;
+}) {
+  const {
+    components,
+    dataControlGroups,
+    selectedComponentId,
+    setSelectedComponentId,
+  } = useStudioComponentSelection();
+  const showScramble = config.scrambleData !== false;
+  const isCartesianLoading = isCartesianLoadingMode(state);
+  const dataSectionDefaultOpen = !isCartesianLoading;
+  const animationSectionDefaultOpen = showMotionControls || !isCartesianLoading;
+
+  return (
+    <EditorCollapsiblePane label="Controls" side="left">
+      <StudioScrollArea className="min-h-0 min-w-0 flex-1">
+        <div className="flex flex-col gap-0 p-3 pb-4">
+          {chartSelector ? (
+            <section className="border-border/60 border-b pb-4">
+              {chartSelector}
+            </section>
+          ) : null}
+
+          <StudioComponentsPanel
+            components={components}
+            key={state.chart}
+            onBatchChange={onBatchChange}
+            onChange={onChange}
+            onSelect={setSelectedComponentId}
+            selectedId={selectedComponentId}
+            state={state}
+          />
+
+          <EditorDataSection
+            controlsDisabled={controlsDisabled}
+            defaultOpen={dataSectionDefaultOpen}
+            groups={dataControlGroups}
+            onChange={onChange}
+            onCommit={onCommit}
+            onPreview={onPreview}
+            onScramble={showScramble ? onScramble : undefined}
+            scrambleDisabled={isCartesianLoading}
+            state={state}
+          />
+
+          <EditorAnimationSection
+            defaultOpen={animationSectionDefaultOpen}
+            onChange={onChange}
+            onCommit={onCommit}
+            onMotionCurveDragActiveChange={onMotionCurveDragActiveChange}
+            onPreview={onPreview}
+            showMotionControls={showMotionControls}
+            state={state}
+          />
+        </div>
+      </StudioScrollArea>
+    </EditorCollapsiblePane>
+  );
+});

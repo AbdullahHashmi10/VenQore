@@ -1,0 +1,99 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   bklit → VenQore v6 token bridge
+   ──────────────────────────────────────────────────────────────────────────
+   bklit resolves every colour, font and surface through CSS custom properties.
+   That means we do NOT fork or restyle its components — we redefine the
+   variables it reads, and it renders in VenQore clothing automatically.
+
+   This file is the whole translation layer. Load it AFTER v6 tokens and
+   anywhere a bklit chart mounts. Both themes are covered because every value
+   on the right-hand side is itself theme-aware.
+
+   Motion is the one thing a variable cannot fix — see §MOTION at the bottom.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="dark"],
+.vq-chart {
+
+  /* ── Categorical series — fixed slots, never cycled. Slot 1 is the brand. ── */
+  --chart-1: var(--vq-series-1);
+  --chart-2: var(--vq-series-2);
+  --chart-3: var(--vq-series-3);
+  --chart-4: var(--vq-series-4);
+  --chart-5: var(--vq-series-5);
+
+  /* ── Line / area ink ─────────────────────────────────────────────────── */
+  --chart-line-primary:   var(--vq-series-1);
+  --chart-line-secondary: var(--vq-series-2);
+
+  /* ── Plot furniture ──────────────────────────────────────────────────── */
+  --chart-grid:              var(--vq-chart-grid);
+  --chart-label:             var(--vq-chart-label);
+  --chart-background:        var(--vq-chart-surface);
+  --chart-foreground:        var(--vq-text);
+  --chart-foreground-muted:  var(--vq-text-3);
+  --chart-tooltip-background:var(--vq-surface);
+  --chart-segment-line:      var(--vq-line);
+  --chart-segment-background:var(--vq-sunken);
+  --chart-scale-pattern-color: var(--vq-chart-track);
+
+  /* ── Sequential ramp — magnitude, never categorical ──────────────────── */
+  --chart-scale-01: var(--vq-seq-1);
+  --chart-scale-02: var(--vq-seq-2);
+  --chart-scale-03: var(--vq-seq-3);
+  --chart-scale-04: var(--vq-seq-4);
+  --chart-scale-05: var(--vq-seq-5);
+
+  /* ── shadcn base tokens bklit inherits ───────────────────────────────── */
+  --background:        var(--vq-bg);
+  --foreground:        var(--vq-text);
+  --border:            var(--vq-line);
+  --muted-foreground:  var(--vq-text-3);
+  --color-muted:       var(--vq-text-3);
+  --popover:           var(--vq-surface);
+  --popover-foreground:var(--vq-text);
+  --accent:            var(--vq-accent);
+  --shadow:            var(--vq-elev-2);
+  --text:              var(--vq-text);
+  --text-h:            var(--vq-text);
+  --code-bg:           var(--vq-sunken);
+  --social-bg:         var(--vq-sunken);
+
+  /* ── Type ────────────────────────────────────────────────────────────── */
+  --sans:    var(--vq-font-sans);
+  --mono:    var(--vq-font-numeric);
+  --heading: var(--vq-font-display);
+
+  /* ── Shimmer (loading) ───────────────────────────────────────────────── */
+  --shimmering-color: var(--vq-accent);
+
+  /* ── Tailwind literals bklit hard-codes. Remap to semantic tokens so a
+        chart never introduces a palette the product does not own. ──────── */
+  --color-zinc-500:    var(--vq-text-3);
+  --color-emerald-500: var(--vq-success);
+  --color-red-500:     var(--vq-danger);
+}
+
+/* ══ MOTION ═══════════════════════════════════════════════════════════════
+   bklit's defaults break the VenQore motion law and must be passed as PROPS —
+   a CSS variable cannot reach them. Every chart mount must set:
+
+     animationDuration = 520          // bklit default is 1100 — illegal
+     animationEasing   = "cubic-bezier(.22, 1, .36, 1)"   // --vq-ease-out
+
+   And every <Grid> must keep bklit's own default orientation, which already
+   agrees with us:
+     horizontal = true, vertical = false      // M5: no vertical gridlines
+     strokeDasharray = "3 5"                  // bklit default is "4,4"
+
+   Under prefers-reduced-motion, pass animate={false} instead of shortening.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce){
+  .vq-chart *{ animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+/* Charts never draw their own axis spines — M5. bklit does not render them by
+   default; this is belt and braces against a future prop being flipped. */
+.vq-chart .visx-axis-line{ display: none; }

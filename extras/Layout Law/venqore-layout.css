@@ -1,0 +1,317 @@
+/* ==========================================================================
+   VenQore Layout Law v2.0 — layout layer
+   Generated from layout-law.json. Do not hand-edit the numbers.
+
+   ONE LAW, BOTH AXES:   size(n) = n·UNIT + (n−1)·GUTTER
+
+   CSS Grid computes that natively from `gap`, which is why a 2-row card is
+   64+24+64 = 152px and lines up exactly with two stacked 1-row cards. Never
+   fake the gap with margins — that single mistake is what made a 2-row card
+   128px while two stacked 1-row cards were 152px, and it is the bug this
+   file exists to make impossible.
+   ========================================================================== */
+
+:root {
+  /* --- shell ------------------------------------------------------------ */
+  --vq-sidebar:        264px;  /* expanded, labels visible          */
+  --vq-sidebar-rail:    72px;  /* collapsed, icons only             */
+  --vq-subnav:         224px;  /* settings / reports secondary nav   */
+  --vq-header-h:        64px;  /* == --vq-row. one number, two jobs  */
+  --vq-terminal-bar:    56px;  /* a register's own slim bar         */
+  --vq-drawer-peek:     56px;  /* page left tappable beside a drawer */
+
+  /* --- grid ------------------------------------------------------------- */
+  --vq-gutter:          24px;  /* BOTH axes. the only gap value.    */
+  --vq-row:             64px;  /* row TRACK height, not pitch       */
+  --vq-row-pitch:       88px;  /* row + gutter. informational.      */
+  --vq-col-target:     112px;  /* the width the ladder aims at      */
+  --vq-col-floor:       92px;  /* desktop column floor              */
+
+  /* --- THE RAMPS -------------------------------------------------------- */
+  /* A step of PUSHING chrome can never be free: by the time the viewport has
+     grown by the chrome's width, the no-chrome baseline has grown by the same
+     amount, so the deficit is permanent. Chrome that must not cost content
+     therefore ramps — its width is a clamp over a band at least as long as
+     itself, which keeps d(chrome)/d(vw) ≤ 1 and stops the content ever
+     stepping down. Two clamps, no media queries, no jolt. */
+  --vq-margin: var(--vq-margin-now, clamp(16px, calc(16px + (100vw - 600px) / 6), 24px));
+  --vq-rail-w: var(--vq-rail-now, clamp(0px, calc((100vw - 1024px) * 1), 72px));
+  /* The clamps are the no-JS fallback. When the engine is running it writes
+     --vq-margin-now / --vq-rail-now, which is also what makes a simulated
+     viewport faithful: inside a device frame, 100vw is the real window, not
+     the size being simulated. */
+
+  /* --- card ------------------------------------------------------------- */
+  --vq-card-pad:        20px;  /* cards ≥ 3 columns                 */
+  --vq-card-pad-sm:     16px;  /* cards < 3 columns                 */
+  --vq-card-radius:     14px;  /* DESIGN-RULES.md §7 `lg`           */
+
+  /* --- resolved at runtime by the engine -------------------------------- */
+  --vq-cols:            12;
+  --vq-nav-w:  var(--vq-sidebar);
+}
+
+/* ==========================================================================
+   1. THE SHELL — three regions, and only three
+   Every screen in the product is one of six compositions of these. Nothing
+   else in the product may position itself against the viewport.
+   ========================================================================== */
+
+.vq-shell {
+  display: grid;
+  grid-template-columns: var(--vq-nav-w) 1fr;
+  grid-template-rows: var(--vq-header-h) 1fr;
+  grid-template-areas: "nav header" "nav main";
+  min-height: 100dvh;
+}
+.vq-shell[data-subnav="column"] {
+  grid-template-columns: var(--vq-nav-w) var(--vq-subnav) 1fr;
+  grid-template-areas: "nav header header" "nav subnav main";
+}
+.vq-nav    { grid-area: nav;    position: sticky; top: 0; height: 100dvh; z-index: 300;
+             width: var(--vq-nav-w); overflow: hidden;
+             transition: width 260ms cubic-bezier(.16,1,.3,1); }
+.vq-header { grid-area: header; position: sticky; top: 0; height: var(--vq-header-h); z-index: 200; }
+.vq-subnav { grid-area: subnav; position: sticky; top: var(--vq-header-h);
+             height: calc(100dvh - var(--vq-header-h)); overflow-y: auto; z-index: 250; }
+.vq-main   { grid-area: main;   min-width: 0; padding: var(--vq-margin); }
+
+/* --- nav states ---------------------------------------------------------
+   The engine writes data-nav. These are the fallbacks so the shell is still
+   correct with JS disabled. */
+.vq-shell[data-nav="expanded"] { --vq-nav-w: var(--vq-sidebar); }
+.vq-shell[data-nav="rail"]     { --vq-nav-w: var(--vq-rail-w); }
+.vq-shell[data-nav="hidden"]   { --vq-nav-w: 0px;
+  grid-template-columns: 1fr; grid-template-areas: "header" "main"; }
+
+/* --- THE HAMBURGER IS ALWAYS PRESENT ------------------------------------
+   Not `lg:hidden`. Not "only when the sidebar is gone". At every width the
+   user can open and close the nav, because the one thing worse than a nav
+   that takes space is a nav you cannot get back. */
+.vq-hamburger { display: inline-flex; }
+
+/* --- PUSH vs OVERLAY ----------------------------------------------------
+   ≥ 1216px  the nav PUSHES. The grid recomputes, nothing is hidden, no
+             scrim, no modal trap. 1216 = 264 + 48 + 904, where 904 is the
+             content width at the 1024 rail — the narrowest desktop the law
+             already ships. Expanding may cost you cards per row; it may
+             never cost you the grid.
+   < 1216px  the nav OVERLAYS. Zero width taken, the content behind is
+             untouched, a scrim and Esc close it. */
+.vq-shell[data-behaviour="overlay"] .vq-nav {
+  position: fixed; inset: 0 auto 0 0;
+  width: min(var(--vq-sidebar), calc(100vw - var(--vq-drawer-peek)));
+  transform: translateX(-100%);
+  transition: transform 260ms cubic-bezier(.16,1,.3,1);
+}
+.vq-shell[data-behaviour="overlay"][data-open="true"] .vq-nav { transform: none; }
+.vq-shell[data-behaviour="overlay"] { grid-template-columns: 1fr;
+                                      grid-template-areas: "header" "main"; }
+.vq-scrim { position: fixed; inset: 0; z-index: 290; background: rgba(9,11,20,.56);
+            opacity: 0; pointer-events: none;
+            transition: opacity 260ms ease; }
+[data-open="true"] > .vq-scrim { opacity: 1; pointer-events: auto; }
+
+/* Below the subnav column threshold, a subnav is a TAB STRIP, not a column.
+   Two nav columns cost 488px; the console canvas still has to clear 904. */
+.vq-shell[data-subnav="tabstrip"] .vq-subnav {
+  position: sticky; top: var(--vq-header-h); height: auto; grid-area: main;
+  display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+}
+.vq-shell[data-subnav="tabstrip"] .vq-subnav::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vq-nav, .vq-scrim { transition: none; }
+}
+
+/* ==========================================================================
+   2. THE GRID
+   Column COUNT floats with the viewport; column WIDTH stays in a tight band,
+   so a card is the same physical size on every machine and a wider screen
+   simply fits more of them. A 3-column metric is ~380px on a laptop and
+   ~380px on a 4K.
+   ========================================================================== */
+
+.vq-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--vq-cols), minmax(0, 1fr));
+  grid-auto-rows: var(--vq-row);
+  gap: var(--vq-gutter);          /* ← the whole row-alignment fix          */
+  align-content: start;
+}
+
+/* Fallback column ladder for when JS has not run yet. */
+@media (max-width:  599px) { .vq-grid { --vq-cols:  4; } }
+@media (min-width:  600px) { .vq-grid { --vq-cols:  6; } }
+@media (min-width: 1024px) { .vq-grid { --vq-cols:  8; } }
+@media (min-width: 1500px) { .vq-grid { --vq-cols: 10; } }
+@media (min-width: 1800px) { .vq-grid { --vq-cols: 12; } }
+@media (min-width: 2300px) { .vq-grid { --vq-cols: 16; } }
+@media (min-width: 3100px) { .vq-grid { --vq-cols: 24; } }
+
+/* ==========================================================================
+   3. CARDS — a card declares a SPAN. It never declares a width or a height.
+   ========================================================================== */
+
+.vq-card {
+  grid-column: span var(--c, 3);
+  grid-row:    span var(--r, 2);
+  min-width: 0; min-height: 0;
+  overflow: hidden;                /* content clips at the edge, never bleeds */
+  padding: var(--vq-card-pad);
+  border-radius: var(--vq-card-radius);
+  display: flex; flex-direction: column;
+  container-type: inline-size;     /* variants key off the CARD, not the page */
+}
+.vq-card[data-span-c="1"], .vq-card[data-span-c="2"] { padding: var(--vq-card-pad-sm); }
+.vq-card[data-full="true"] { grid-column: 1 / -1; }
+
+/* UNDERFLOW — below the designed 360px minimum a card SCROLLS rather than
+   breaks. Affects only C5/C6 between a 320 and 327px viewport, where the
+   content region is 288px and their leanest fit needs 295. The page still
+   never scrolls sideways; only the one card that could not fit does. */
+.vq-card[data-underflow="true"] { overflow-x: auto; }
+.vq-card[data-underflow="true"] > * { min-width: var(--vq-card-min, 254px); }
+
+/* ==========================================================================
+   4. CARD-LEVEL RESPONSIVENESS — container queries, not media queries.
+   A card 380px wide behaves the same whether the viewport is 1280 or 3440.
+   That is what makes the system composable, and what lets an AI builder
+   place a card anywhere without knowing what is around it.
+   ========================================================================== */
+
+.vq-card .vq-inline  { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.vq-card .vq-stacked { display: flex; flex-direction: column; gap: 8px; }
+
+@container (max-width: 356px) {
+  .vq-card .vq-inline { flex-direction: column; align-items: flex-start; gap: 4px; }
+}
+@container (max-width: 274px) { .vq-card .vq-metric { font-size: var(--vq-fs-metric-sm, 26px); } }
+@container (max-width: 200px) { .vq-card .vq-spark, .vq-card .vq-bar { display: none; } }
+
+/* ==========================================================================
+   5. THE LABEL RULE
+   Every dashboard label is user- or AI-authored, so its length is unknown.
+   One line, ellipsis, full text in the title attribute. No exceptions — this
+   is what stops a long label reflowing a card.
+   ========================================================================== */
+.vq-card .vq-eyebrow, .vq-card .vq-label, .vq-line-name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Numbers never wrap and never shrink below their tabular advance. */
+.vq-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ==========================================================================
+   6. THE TERMINAL — exactly one viewport tall, the page never scrolls
+   A dashboard has unlimited height. A register does not, and its worst case
+   is not a phone — it is a 1280×720 laptop, where a maximised browser leaves
+   about 570 usable pixels. Columns-vs-bands is therefore an ASPECT question.
+   ========================================================================== */
+
+.vq-terminal {
+  height: calc(100dvh - var(--vq-terminal-bar));
+  display: grid; gap: var(--vq-gutter);
+  padding: var(--vq-margin); min-height: 0;
+  grid-template-rows: auto 1fr;
+}
+.vq-terminal[data-mode="columns"] .vq-panes {
+  display: grid; gap: var(--vq-gutter); min-height: 0;
+  grid-template-columns: var(--vq-pane-cols, 1fr);
+}
+.vq-terminal[data-mode="bands"] .vq-panes {
+  display: grid; gap: var(--vq-gutter); min-height: 0;
+  grid-auto-flow: row;
+}
+.vq-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column;
+           border-radius: var(--vq-card-radius); overflow: hidden; }
+.vq-pane-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.vq-pane[data-residency="sheet"], .vq-pane[data-residency="route"],
+.vq-pane[data-residency="tab"] { display: none; }
+
+/* A sheet is a slide-over that keeps its state. It is not a modal: the
+   surface behind stays live, and Esc or a tap outside returns you. */
+.vq-sheet {
+  position: fixed; inset: 0 0 0 auto; z-index: 400;
+  width: min(var(--vq-sheet-w, 480px), calc(100vw - var(--vq-drawer-peek)));
+  transform: translateX(100%);
+  transition: transform 260ms cubic-bezier(.16,1,.3,1);
+  display: flex; flex-direction: column;
+}
+.vq-sheet[data-open="true"] { transform: none; }
+@media (max-width: 599px) {
+  /* On a phone a sheet comes from the bottom — the thumb is at the bottom. */
+  .vq-sheet { inset: auto 0 0 0; width: 100%; max-height: 88dvh;
+              transform: translateY(100%);
+              border-radius: var(--vq-card-radius) var(--vq-card-radius) 0 0; }
+  .vq-sheet[data-open="true"] { transform: none; }
+}
+
+/* The tender bar: what a Tender pane becomes when it is stacked. */
+.vq-tender-bar { height: 88px; display: flex; align-items: center;
+                 gap: var(--vq-gutter); padding: 0 var(--vq-card-pad); }
+
+/* ==========================================================================
+   7. THE DOCUMENT — three zones
+   The summary is resident beside the lines while it clears its floor; below
+   that it becomes a sticky action bar with an expandable breakdown, which is
+   better on a narrow screen than a squeezed column anyway.
+   ========================================================================== */
+
+.vq-doc { display: grid; gap: var(--vq-gutter); }
+.vq-doc-body { display: grid; gap: var(--vq-gutter); align-items: start;
+               grid-template-columns: var(--vq-doc-cols, 1fr); }
+.vq-doc[data-summary="stacked"] .vq-doc-body { grid-template-columns: 1fr; }
+.vq-doc[data-summary="stacked"] .vq-summary {
+  position: sticky; bottom: 0; z-index: 60;
+}
+.vq-doc-header { display: grid; gap: var(--vq-gutter) var(--vq-gutter);
+                 grid-template-columns: repeat(var(--vq-hdr-cols, 2), minmax(0,1fr)); }
+.vq-doc[data-header="1col"] .vq-doc-header { --vq-hdr-cols: 1; }
+
+/* Line table → line cards. The same rule as a card getting taller: when a
+   zone cannot get wider it re-lays its inside. */
+.vq-lines[data-variant="cards"] table,
+.vq-lines[data-variant="cards"] thead { display: none; }
+.vq-lines[data-variant="cards"] .vq-line-card { display: block; }
+.vq-lines:not([data-variant="cards"]) .vq-line-card { display: none; }
+
+/* ==========================================================================
+   8. EDIT MODE
+   Edit mode changes what the USER may change, never what the LAW allows.
+   Every gesture snaps to the law before it commits, so a user cannot save a
+   layout the law would reject — the resize handle simply stops at the
+   category floor and at the category maximum.
+   ========================================================================== */
+
+.vq-grid[data-edit="true"] .vq-card { cursor: grab; position: relative; }
+.vq-grid[data-edit="true"] .vq-card:active { cursor: grabbing; }
+.vq-grid[data-edit="true"] .vq-card::after {
+  content: ""; position: absolute; right: 4px; bottom: 4px; width: 14px; height: 14px;
+  cursor: nwse-resize; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  opacity: .35; border-radius: 0 0 4px 0;
+}
+.vq-grid[data-edit="true"] .vq-card[data-at-max]::after { opacity: .12; cursor: not-allowed; }
+.vq-card[data-dragging="true"] { opacity: .5; }
+.vq-drop { outline: 2px dashed currentColor; outline-offset: -2px; opacity: .5;
+           border-radius: var(--vq-card-radius); }
+
+/* A band's insertion point. Bands are why a move can never leave a hole. */
+.vq-band-add { grid-column: 1 / -1; height: 0; position: relative; }
+.vq-grid[data-edit="true"] .vq-band-add { height: var(--vq-gutter); }
+
+/* ==========================================================================
+   9. FOCUS — the only archetype allowed to cap its own width
+   ========================================================================== */
+.vq-focus { max-width: calc(6 * var(--vq-col-target) + 5 * var(--vq-gutter));
+            margin-inline: auto; padding: var(--vq-margin); }
+
+/* ==========================================================================
+   10. TOUCH TARGETS
+   A register is used with a finger, at speed, sometimes in gloves. Nothing
+   on a terminal surface is smaller than 44px in its short dimension.
+   ========================================================================== */
+.vq-terminal button, .vq-terminal [role="button"],
+.vq-terminal input, .vq-terminal select { min-height: 44px; }
+@media (pointer: coarse) {
+  .vq-doc button, .vq-doc [role="button"] { min-height: 44px; }
+}

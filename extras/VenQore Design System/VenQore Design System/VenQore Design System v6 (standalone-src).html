@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore Design System v5 — Qore</title>
+<link rel="stylesheet" href="styles.css">
+<template id="__bundler_thumbnail" data-bg-color="#088975">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#088975"/>
+    <rect x="960" y="0" width="240" height="200" fill="#A9E34B"/>
+    <rect x="960" y="200" width="240" height="200" fill="#FFCD5B"/>
+    <rect x="960" y="400" width="240" height="200" fill="#FF8A6B"/>
+    <rect x="960" y="600" width="240" height="200" fill="#0B3A35"/>
+    <text x="480" y="430" text-anchor="middle" fill="#EAFBF5" font-family="Verdana, DejaVu Sans, sans-serif" font-size="150" font-weight="600" letter-spacing="-6">VenQore</text>
+  </svg>
+</template>
+<style>
+body{font-family:var(--vq-font-sans)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.top{position:sticky;top:0;z-index:200;display:flex;align-items:center;gap:16px;padding:16px 28px;background:var(--vq-glass);backdrop-filter:blur(var(--vq-glass-blur));border-bottom:1px solid var(--vq-line)}
+.top img{width:28px;height:28px}
+.brandname{font:600 20px/1 var(--vq-font-display);letter-spacing:-.03em}
+.top nav{display:flex;gap:18px;margin-left:18px}
+.top nav a{font:500 13.5px/1 var(--vq-font-sans);color:var(--vq-text-2);text-decoration:none}
+.top nav a:hover{color:var(--vq-accent-text)}
+.tgl{margin-left:auto;display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 16px;border-radius:var(--vq-r-full);background:var(--vq-surface);border:1px solid var(--vq-line);box-shadow:var(--vq-elev-1);font:600 13px/1 var(--vq-font-sans);color:var(--vq-text-2);cursor:pointer}
+.tgl b{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--vq-accent-quiet);color:var(--vq-accent-text)}
+.hero{position:relative;overflow:hidden;background:var(--vq-grad-hero);color:#F4FFFB;padding:96px 28px 108px;text-align:center}
+.hero .spot{position:absolute;inset:0;background:var(--vq-grad-spot);animation:drift var(--vq-dur-amb) ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1.05)}to{transform:translate3d(3%,2%,0) scale(1.13)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero>div{position:relative;max-width:900px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:22px}
+.hero h1{font:600 var(--vq-fs-hero)/var(--vq-lh-hero) var(--vq-font-display);letter-spacing:var(--vq-ls-hero);animation:rise 700ms var(--vq-ease-out) both}
+.hero h1 em{font-style:normal;color:#93EBD6}
+.hero p{font:400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans);color:rgb(234 251 245/.8);max-width:620px;animation:rise 760ms var(--vq-ease-out) 120ms both}
+.pill{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:999px;background:rgb(255 255 255/.14);border:1px solid rgb(255 255 255/.24);font:600 12px/1 var(--vq-font-sans);color:#C6F5E9;animation:rise 640ms var(--vq-ease-out) both}
+.promptbar{width:min(660px,100%);display:flex;align-items:center;gap:10px;padding:8px 8px 8px 22px;border-radius:999px;background:rgb(255 255 255/.1);border:1px solid rgb(255 255 255/.26);backdrop-filter:blur(10px);animation:rise 820ms var(--vq-ease-out) 200ms both}
+.promptbar input{flex:1;min-width:0;background:none;border:0;outline:0;color:#F4FFFB;font:500 17px/1 var(--vq-font-sans)}
+section.band{padding:84px 0}
+section.band.alt{background:var(--vq-bg-alt)}
+h2.sec{font:600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display);letter-spacing:var(--vq-ls-h2)}
+.lead{font:400 16.5px/1.6 var(--vq-font-sans);color:var(--vq-text-2);max-width:680px;margin:10px 0 0}
+.grid{display:grid;gap:var(--vq-gutter)}
+.c2{grid-template-columns:repeat(2,1fr)}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:var(--vq-r-lg);box-shadow:var(--vq-elev-1);padding:20px;display:flex;flex-direction:column;gap:14px;transition:transform var(--vq-dur-3) var(--vq-ease-spring),box-shadow var(--vq-dur-3) var(--vq-ease-out)}
+.card.lift:hover{transform:translateY(-2px);box-shadow:var(--vq-elev-2)}
+.card h3{font:600 17px/1.25 var(--vq-font-display);letter-spacing:-.02em}
+.card p{font:500 13.5px/1.6 var(--vq-font-sans);color:var(--vq-text-2);margin:0}
+.card.mint{background:var(--vq-grad-mint);border-color:transparent;color:#fff;box-shadow:var(--vq-glow-accent)}
+.card.mint p{color:rgb(255 255 255/.84)}
+.card.ink{background:var(--vq-ink-950);border-color:transparent;color:#EDF2EF}
+.card.ink p{color:rgb(237 242 239/.72)}
+.kpi{border-radius:var(--vq-r-xl)}
+.metric{font:600 var(--vq-fs-metric)/1 var(--vq-font-numeric);letter-spacing:var(--vq-ls-metric);font-variant-numeric:tabular-nums}
+.delta{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font:600 12px/1 var(--vq-font-numeric);background:var(--vq-success-bg);color:var(--vq-success)}
+.delta.dn{background:var(--vq-danger-bg);color:var(--vq-danger)}
+.card.mint .delta{background:rgb(255 255 255/.2);color:#fff}
+.swrow{display:flex;gap:10px}
+.sw{flex:1;min-height:88px;border-radius:var(--vq-r-md);border:1px solid var(--vq-line-soft);display:flex;flex-direction:column;justify-content:flex-end;padding:9px}
+.sw .n{font:600 11.5px/1.3 var(--vq-font-sans)}
+.sw .h{font:500 10px/1.3 var(--vq-font-numeric)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 22px;border-radius:999px;border:1px solid transparent;font:600 14px/1 var(--vq-font-sans);cursor:pointer;transition:transform var(--vq-dur-2) var(--vq-ease-spring),background-color var(--vq-dur-1) var(--vq-ease-out),box-shadow var(--vq-dur-2) var(--vq-ease-out)}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.97)}
+.btn.p{background:var(--vq-accent-fill);color:var(--vq-on-accent);box-shadow:var(--vq-glow-accent)}
+.btn.p:hover{background:var(--vq-accent-fill-hover);box-shadow:var(--vq-glow-accent-strong)}
+.btn.s{background:var(--vq-surface);color:var(--vq-text);border-color:var(--vq-line);box-shadow:var(--vq-elev-1)}
+.btn.soft{background:var(--vq-accent-quiet);color:var(--vq-accent-text);border-color:var(--vq-accent-quiet-line)}
+.btn.g{background:transparent;color:var(--vq-text-2)}
+.btn.d{background:var(--vq-danger);color:var(--vq-on-danger)}
+.btn.sm{height:34px;padding:0 16px;font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:600 12px/1 var(--vq-font-sans);border:1px solid}
+.badge i{width:6px;height:6px;border-radius:999px;background:currentColor}
+.b-suc{background:var(--vq-success-bg);color:var(--vq-success);border-color:var(--vq-success-line)}
+.b-warn{background:var(--vq-warning-bg);color:var(--vq-warning);border-color:var(--vq-warning-line)}
+.b-dan{background:var(--vq-danger-bg);color:var(--vq-danger);border-color:var(--vq-danger-line)}
+.b-acc{background:var(--vq-accent-quiet);color:var(--vq-accent-text);border-color:var(--vq-accent-quiet-line)}
+.b-neu{background:var(--vq-sunken);color:var(--vq-text-2);border-color:var(--vq-line)}
+.chip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:999px;background:var(--vq-surface);border:1px solid var(--vq-line);font:600 13px/1 var(--vq-font-sans);color:var(--vq-text-2);cursor:pointer;transition:background-color var(--vq-dur-2) var(--vq-ease-out), color var(--vq-dur-2) var(--vq-ease-out), border-color var(--vq-dur-2) var(--vq-ease-out), box-shadow var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-2) var(--vq-ease-spring)}
+.chip:hover{transform:translateY(-1px)}
+.chip.on{background:var(--vq-accent-fill);color:var(--vq-on-accent);border-color:transparent;box-shadow:var(--vq-glow-accent)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:600 13px/1.3 var(--vq-font-sans);color:var(--vq-text-2)}
+.field .box{display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:var(--vq-r-md);box-shadow:var(--vq-elev-1)}
+.field .box:focus-within{border-color:var(--vq-focus);box-shadow:var(--vq-ring-focus)}
+.field input{flex:1;min-width:0;border:0;outline:0;background:none;font:500 16px/1 var(--vq-font-sans);color:var(--vq-text)}
+.seg{display:inline-flex;padding:4px;gap:2px;background:var(--vq-sunken);border-radius:999px}
+.seg button{height:34px;padding:0 18px;border:0;border-radius:999px;background:none;font:500 13px/1 var(--vq-font-sans);color:var(--vq-text-3);cursor:pointer;transition:background-color var(--vq-dur-2) var(--vq-ease-out), color var(--vq-dur-2) var(--vq-ease-out), border-color var(--vq-dur-2) var(--vq-ease-out), box-shadow var(--vq-dur-2) var(--vq-ease-out), transform var(--vq-dur-2) var(--vq-ease-spring)}
+.seg button.on{background:var(--vq-surface);color:var(--vq-text);font-weight:600;box-shadow:var(--vq-elev-1)}
+.sw-t{width:46px;height:26px;border-radius:999px;padding:3px;background:var(--vq-accent-fill);display:flex;align-items:center;box-shadow:var(--vq-glow-accent)}
+.sw-t span{width:20px;height:20px;border-radius:999px;background:#fff;transform:translateX(20px);box-shadow:0 1px 3px rgb(13 20 18/.3)}
+.alert{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--vq-r-md);font:600 13px/1.4 var(--vq-font-sans);border:1px solid}
+.meter{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;font:500 13px/1 var(--vq-font-sans);color:var(--vq-text-2)}
+.meter .track{height:8px;border-radius:999px;background:var(--vq-chart-track);overflow:hidden}
+.meter .fill{display:block;height:100%;border-radius:999px}
+.meter .val{font:600 13px/1 var(--vq-font-numeric);color:var(--vq-text);min-width:44px;text-align:right}
+table{width:100%;border-collapse:collapse}
+th{height:40px;padding:0 14px;text-align:left;font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3);border-bottom:1px solid var(--vq-line)}
+td{height:52px;padding:0 14px;font:500 14px/1.4 var(--vq-font-sans);border-bottom:1px solid var(--vq-line-soft)}
+td.n,th.n{text-align:right;font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--vq-sunken)}
+tr.tot td{border-top:1px solid var(--vq-line-strong);border-bottom:0;font-weight:600}
+.rule{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--vq-line-soft);font:500 14px/1.55 var(--vq-font-sans);color:var(--vq-text-2)}
+.rule b{color:var(--vq-text);font-weight:600;min-width:210px;display:block}
+.k{font-family:var(--vq-font-numeric);font-size:12.5px;background:var(--vq-sunken);border:1px solid var(--vq-line-soft);border-radius:6px;padding:2px 6px;color:var(--vq-text-2)}
+.no{color:var(--vq-danger)}
+.yes{color:var(--vq-success)}
+footer{background:var(--vq-ink-950);color:rgb(237 242 239/.66);padding:44px 28px;font:500 13.5px/1.6 var(--vq-font-sans)}
+@media(max-width:960px){.c3,.c4{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:44px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <img src="assets/logo-mark.png" alt="VenQore">
+  <span class="brandname">VenQore</span>
+  <nav>
+    <a href="#color">Colour</a><a href="#type">Type</a><a href="#shape">Shape &amp; motion</a><a href="#layout">Layout</a><a href="#cards">Cards</a><a href="#comp">Components</a><a href="#screen">In use</a><a href="#rules">Rules</a>
+  </nav>
+  <button class="tgl" id="tgl"><b id="tglIcon">☾</b><span id="tglLabel">Dark</span></button>
+</header>
+
+<div class="hero">
+  <div class="spot"></div>
+  <div>
+    <span class="pill">Design system v5 · codename Qore</span>
+    <h1>Tell us your business.<br>We&rsquo;ll build the <em>system</em>.</h1>
+    <p>The look v2 was missing: one hot mint brand hue, soft page, cards that float, springs on everything you touch — and every accounting rule from the old system still intact.</p>
+    <div class="promptbar"><input placeholder="Describe your business…" aria-label="Describe your business"><button class="btn p">Build it →</button></div>
+  </div>
+</div>
+
+<section class="band" id="color">
+  <div class="wrap">
+    <h2 class="sec">Colour</h2>
+    <p class="lead">One brand hue, run hot. Neutrals carry a green cast so mint never looks pasted on. Five playmates for delight and categorical data. Semantic colour is data and never doubles as brand.</p>
+    <div style="height:28px"></div>
+    <div class="grid c2">
+      <div class="card">
+        <h3>Qore Teal — the brand</h3>
+        <div class="swrow">
+          <div class="sw" style="background:#C6F5E9;color:#0D1412"><span class="n">100</span><span class="h">#C6F5E9</span></div>
+          <div class="sw" style="background:#59DBC0;color:#0D1412"><span class="n">300</span><span class="h">#59DBC0</span></div>
+          <div class="sw" style="background:#23C4A6;color:#0D1412"><span class="n">400</span><span class="h">#23C4A6</span></div>
+          <div class="sw" style="background:#0BAA8F;color:#fff"><span class="n">500</span><span class="h">#0BAA8F</span></div>
+          <div class="sw" style="background:#088975;color:#fff"><span class="n">600</span><span class="h">#088975</span></div>
+          <div class="sw" style="background:#0B3A35;color:#fff"><span class="n">900</span><span class="h">#0B3A35</span></div>
+        </div>
+        <p><b>400</b> is identity, <b>500</b> is the accent, <b>600</b> fills buttons, <b>700</b> writes on light, <b>300</b> writes on dark.</p>
+      </div>
+      <div class="card">
+        <h3>Playmates</h3>
+        <div class="swrow">
+          <div class="sw" style="background:#A9E34B;color:#0D1412"><span class="n">Lime</span><span class="h">#A9E34B</span></div>
+          <div class="sw" style="background:#FFCD5B;color:#0D1412"><span class="n">Butter</span><span class="h">#FFCD5B</span></div>
+          <div class="sw" style="background:#FF8A6B;color:#0D1412"><span class="n">Coral</span><span class="h">#FF8A6B</span></div>
+          <div class="sw" style="background:#55C4EC;color:#0D1412"><span class="n">Sky</span><span class="h">#55C4EC</span></div>
+          <div class="sw" style="background:#C98BC9;color:#0D1412"><span class="n">Plum</span><span class="h">#C98BC9</span></div>
+        </div>
+        <p>Delight and chart slots only — an avatar fallback, a browser dot, a series line. Never a status, never a meaning.</p>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <div class="grid c2">
+      <div class="card">
+        <h3>Ink — neutrals with a green cast</h3>
+        <div class="swrow">
+          <div class="sw" style="background:#F8FAF8;color:#0D1412"><span class="n">25</span><span class="h">#F8FAF8</span></div>
+          <div class="sw" style="background:#F1F5F2;color:#0D1412"><span class="n">50</span><span class="h">#F1F5F2</span></div>
+          <div class="sw" style="background:#D3DCD7;color:#0D1412"><span class="n">200</span><span class="h">#D3DCD7</span></div>
+          <div class="sw" style="background:#8B9A93;color:#fff"><span class="n">400</span><span class="h">#8B9A93</span></div>
+          <div class="sw" style="background:#536159;color:#fff"><span class="n">600</span><span class="h">#536159</span></div>
+          <div class="sw" style="background:#17201B;color:#fff"><span class="n">900</span><span class="h">#17201B</span></div>
+          <div class="sw" style="background:#0D1412;color:#fff"><span class="n">950</span><span class="h">#0D1412</span></div>
+        </div>
+        <p>Pure grey (#808080) is banned — it goes dirty against this ramp.</p>
+      </div>
+      <div class="card">
+        <h3>Semantic — state, not decoration</h3>
+        <div class="swrow">
+          <div class="sw" style="background:#12855C;color:#fff"><span class="n">Success</span><span class="h">#12855C</span></div>
+          <div class="sw" style="background:#A6690A;color:#fff"><span class="n">Warning</span><span class="h">#A6690A</span></div>
+          <div class="sw" style="background:#C4443A;color:#fff"><span class="n">Danger</span><span class="h">#C4443A</span></div>
+          <div class="sw" style="background:#1B7096;color:#fff"><span class="n">Info</span><span class="h">#1B7096</span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge b-suc"><i></i>Reconciled</span><span class="badge b-warn"><i></i>Low stock</span><span class="badge b-dan"><i></i>Overdue</span><span class="badge b-acc"><i></i>Blueprint</span><span class="badge b-neu">Draft</span>
+        </div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <div class="card">
+      <h3>Chart series — eight slots, fixed order, never cycled</h3>
+      <div class="swrow">
+        <div class="sw" style="background:#0BAA8F;color:#fff"><span class="n">1</span><span class="h">#0BAA8F</span></div>
+        <div class="sw" style="background:#F26A47;color:#fff"><span class="n">2</span><span class="h">#F26A47</span></div>
+        <div class="sw" style="background:#2BA5D1;color:#fff"><span class="n">3</span><span class="h">#2BA5D1</span></div>
+        <div class="sw" style="background:#F5B32E;color:#0D1412"><span class="n">4</span><span class="h">#F5B32E</span></div>
+        <div class="sw" style="background:#8CCB2E;color:#0D1412"><span class="n">5</span><span class="h">#8CCB2E</span></div>
+        <div class="sw" style="background:#B266A8;color:#fff"><span class="n">6</span><span class="h">#B266A8</span></div>
+        <div class="sw" style="background:#0B3A35;color:#fff"><span class="n">7</span><span class="h">#0B3A35</span></div>
+        <div class="sw" style="background:#8B9A93;color:#fff"><span class="n">8</span><span class="h">#8B9A93</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="type">
+  <div class="wrap">
+    <h2 class="sec">Type — three families, one job each</h2>
+    <p class="lead">Bricolage Grotesque carries the personality, Plus Jakarta Sans does the reading, Space Grotesk does the counting. The old Inter / JetBrains / Instrument Serif stack is retired.</p>
+    <div style="height:28px"></div>
+    <div class="grid c3">
+      <div class="card">
+        <span class="vq-eyebrow">Display · Bricolage Grotesque 600</span>
+        <div style="font-family:var(--vq-font-display);font-weight:600">
+          <div style="font-size:44px;line-height:1;letter-spacing:-.038em">Aa 76 / 56</div>
+          <div style="font-size:26px;line-height:1.1;letter-spacing:-.028em">Headings &amp; card titles</div>
+        </div>
+        <p>Tracking −2.4% to −3.8%. 700 exists for the hero only.</p>
+      </div>
+      <div class="card">
+        <span class="vq-eyebrow">Text · Plus Jakarta Sans</span>
+        <div style="font:400 19px/1.5 var(--vq-font-sans);letter-spacing:-.008em">Lede 19 — describe how you work.</div>
+        <div style="font:400 16px/1.6 var(--vq-font-sans)">Body 16 — every module posts through one double-entry engine.</div>
+        <div style="font:500 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Small 14 — labels, cells, helper text.</div>
+        <p>Weights 400 / 500 / 600 only.</p>
+      </div>
+      <div class="card">
+        <span class="vq-eyebrow">Numeric · Space Grotesk · tnum</span>
+        <div class="metric">Rs 6,636,549.20</div>
+        <div style="font:600 22px/1 var(--vq-font-numeric);color:var(--vq-danger)">−(3,900.00)</div>
+        <p>Every figure that means money, stock or a count. Negatives get a sign&nbsp;<i>and</i>&nbsp;parentheses.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="shape">
+  <div class="wrap">
+    <h2 class="sec">Shape, elevation &amp; motion</h2>
+    <p class="lead">Chunkier than v2 — 14px base, 36px ceiling. Shadows are two-part and neutral; exactly one coloured glow exists, and it only sits under a primary action.</p>
+    <div style="height:28px"></div>
+    <div class="grid c3">
+      <div class="card">
+        <h3>Radius</h3>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1"><div style="height:56px;background:var(--vq-sunken);border-radius:8px"></div><div class="vq-eyebrow" style="margin-top:6px">xs 8</div></div>
+          <div style="flex:1"><div style="height:56px;background:var(--vq-sunken);border-radius:14px"></div><div class="vq-eyebrow" style="margin-top:6px">md 14</div></div>
+          <div style="flex:1"><div style="height:56px;background:var(--vq-sunken);border-radius:20px"></div><div class="vq-eyebrow" style="margin-top:6px">lg 20</div></div>
+          <div style="flex:1"><div style="height:56px;background:var(--vq-sunken);border-radius:28px"></div><div class="vq-eyebrow" style="margin-top:6px">xl 28</div></div>
+          <div style="flex:1"><div style="height:56px;background:var(--vq-sunken);border-radius:36px"></div><div class="vq-eyebrow" style="margin-top:6px">2xl 36</div></div>
+        </div>
+        <p>Inner radius = outer radius − inner padding. Nothing above 36 except <span class="k">full</span>.</p>
+      </div>
+      <div class="card">
+        <h3>Elevation</h3>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1;height:56px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:16px;box-shadow:var(--vq-elev-1)"></div>
+          <div style="flex:1;height:56px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:16px;box-shadow:var(--vq-elev-2)"></div>
+          <div style="flex:1;height:56px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:16px;box-shadow:var(--vq-elev-3)"></div>
+          <div style="flex:1;height:56px;background:var(--vq-grad-mint);border-radius:16px;box-shadow:var(--vq-glow-accent)"></div>
+        </div>
+        <p>1 card · 2 raised · 3 overlay · glow-accent. Dark mode swaps shadow for surface lightness.</p>
+      </div>
+      <div class="card">
+        <h3>Motion</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="meter"><span>120ms</span><span class="track"><span class="fill" style="width:22%;background:var(--vq-accent);animation:slide 1.1s var(--vq-ease-spring) infinite alternate"></span></span><span class="val">out</span></div>
+          <div class="meter"><span>320ms</span><span class="track"><span class="fill" style="width:22%;background:var(--vq-accent);animation:slide 1.7s var(--vq-ease-spring) infinite alternate"></span></span><span class="val">spring</span></div>
+          <div class="meter"><span>520ms</span><span class="track"><span class="fill" style="width:22%;background:var(--vq-accent);animation:slide 2.3s var(--vq-ease-spring) infinite alternate"></span></span><span class="val">spring</span></div>
+        </div>
+        <p>Colour changes are instant and flat. Entrances, toggles, chips, gauges overshoot ~6% once — never twice.</p>
+      </div>
+    </div>
+    <style>@keyframes slide{from{transform:translateX(0)}to{transform:translateX(355%)}}</style>
+  </div>
+</section>
+
+<section class="band alt" id="comp">
+  <div class="wrap">
+    <h2 class="sec">Components</h2>
+    <p class="lead">Everything is a pill or a soft rectangle. One primary per view; the mint glow is what marks it.</p>
+    <div style="height:28px"></div>
+    <div class="grid c2">
+      <div class="card">
+        <h3>Actions</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn p">Approve blueprint</button>
+          <button class="btn s">Import data</button>
+          <button class="btn soft">Month</button>
+          <button class="btn g">Cancel</button>
+          <button class="btn d sm">Delete INV-2291</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <span class="chip on">All <span style="font-family:var(--vq-font-numeric);font-size:11px;background:rgb(255 255 255/.22);border-radius:999px;padding:2px 6px">128</span></span>
+          <span class="chip">Overdue <span style="font-family:var(--vq-font-numeric);font-size:11px;background:var(--vq-sunken);border-radius:999px;padding:2px 6px">12</span></span>
+          <span class="chip">Paid</span><span class="chip">Draft</span>
+        </div>
+        <div class="seg"><button class="on">Today</button><button>Month</button><button>Year</button></div>
+      </div>
+      <div class="card">
+        <h3>Fields</h3>
+        <div class="field"><label>Business name</label><div class="box"><input value="Rana Traders"></div></div>
+        <div class="field"><label>Opening balance</label><div class="box"><span style="color:var(--vq-text-3);font-weight:600">Rs</span><input value="3,222.00"></div></div>
+        <div style="display:flex;align-items:center;gap:12px;font:500 14px/1 var(--vq-font-sans)"><span class="sw-t"><span></span></span>Email me the month-end summary</div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <div class="grid c4">
+      <div class="card kpi mint">
+        <span class="vq-eyebrow" style="color:rgb(255 255 255/.78)">Net balance</span>
+        <span class="metric">6,636,549</span>
+        <span><span class="delta">▴ 8.2%</span></span>
+      </div>
+      <div class="card kpi">
+        <span class="vq-eyebrow">Profit margin</span><span class="metric">54%</span><span><span class="delta">▴ 2.1%</span></span>
+      </div>
+      <div class="card kpi">
+        <span class="vq-eyebrow">Overdue</span><span class="metric">10,260</span><span><span class="delta dn">▾ 3.1%</span></span>
+      </div>
+      <div class="card kpi ink">
+        <span class="vq-eyebrow" style="color:rgb(237 242 239/.6)">Signals</span><span class="metric">2</span><p>customers slipping</p>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+    <div class="grid c2">
+      <div class="card">
+        <h3>Feedback</h3>
+        <div class="alert" style="background:var(--vq-warning-bg);border-color:var(--vq-warning-line);color:var(--vq-warning)">13% inventory running low</div>
+        <div class="alert" style="background:var(--vq-danger-bg);border-color:var(--vq-danger-line);color:var(--vq-danger)">9% products out of stock</div>
+        <div class="alert" style="background:var(--vq-success-bg);border-color:var(--vq-success-line);color:var(--vq-success)">Profit: Rs 53,544.70 today</div>
+      </div>
+      <div class="card">
+        <h3>Meters</h3>
+        <div class="meter"><span>● Healthy</span><span class="track"><span class="fill" style="width:75%;background:var(--vq-success)"></span></span><span class="val">75%</span></div>
+        <div class="meter"><span>● Low</span><span class="track"><span class="fill" style="width:12%;background:var(--vq-warning)"></span></span><span class="val">12%</span></div>
+        <div class="meter"><span>● Out</span><span class="track"><span class="fill" style="width:13%;background:var(--vq-danger)"></span></span><span class="val">13%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="screen">
+  <div class="wrap">
+    <h2 class="sec">In use — a ledger table</h2>
+    <p class="lead">Horizontal rules only. Figures right-aligned in Space Grotesk with tabular figures. Totals get a rule, never a filled band.</p>
+    <div style="height:28px"></div>
+    <div class="card" style="padding:12px">
+      <table>
+        <thead><tr><th>Reference</th><th>Customer</th><th>Date</th><th>Status</th><th class="n">Amount (Rs)</th></tr></thead>
+        <tbody>
+          <tr><td>INV-2291</td><td>Rana Traders</td><td>16 Aug 2026</td><td><span class="badge b-suc"><i></i>Paid</span></td><td class="n">128,400.00</td></tr>
+          <tr><td>INV-2290</td><td>Bilal Pharmacy</td><td>15 Aug 2026</td><td><span class="badge b-dan"><i></i>Overdue</span></td><td class="n">10,260.00</td></tr>
+          <tr><td>INV-2289</td><td>Zoya Retail</td><td>14 Aug 2026</td><td><span class="badge b-neu">Draft</span></td><td class="n">274,240.00</td></tr>
+          <tr><td>CRN-0112</td><td>Bilal Pharmacy</td><td>11 Aug 2026</td><td><span class="badge b-acc"><i></i>Posted</span></td><td class="n" style="color:var(--vq-danger)">−(3,900.00)</td></tr>
+          <tr class="tot"><td>Total</td><td></td><td></td><td></td><td class="n">409,000.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="height:20px"></div>
+    <div class="grid c3">
+      <div class="card lift"><span class="vq-num" style="font:600 26px/1 var(--vq-font-numeric);color:var(--vq-accent-text)">01</span><h3>Describe it</h3><p>Plain sentences about how your business runs. Not a 40-field wizard.</p></div>
+      <div class="card lift"><span class="vq-num" style="font:600 26px/1 var(--vq-font-numeric);color:var(--vq-accent-text)">02</span><h3>Review the blueprint</h3><p>Modules, your field names, tax rules, roles. Every line editable.</p></div>
+      <div class="card lift"><span class="vq-num" style="font:600 26px/1 var(--vq-font-numeric);color:var(--vq-accent-text)">03</span><h3>Approve, and it exists</h3><p>Your live system, your data model, ready for the first transaction.</p></div>
+    </div>
+  </div>
+</section>
+
+
+<style>
+  .lawtable td.n,.lawtable th.n{text-align:right;font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums}
+  .lawtable td{height:auto;padding:9px 14px;font-size:13px}
+  .lawtable code{font-family:var(--vq-font-numeric);font-size:11.5px;background:var(--vq-sunken);
+                 padding:2px 6px;border-radius:6px;color:var(--vq-accent-text)}
+  .lawdemo{background:var(--vq-accent-quiet);border:1px solid var(--vq-accent);border-radius:10px;
+      display:grid;place-items:center;font:600 12px/1 var(--vq-font-numeric);color:var(--vq-accent-text);
+      height:calc(var(--r) * 64px + (var(--r) - 1) * 24px);max-height:200px}
+  .lawgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:64px;
+      gap:24px;background:var(--vq-sunken);padding:24px;border-radius:var(--vq-r-lg)}
+  .lawcell{box-sizing:border-box;background:var(--vq-accent-quiet);border:1px solid var(--vq-accent);border-radius:8px;
+      display:grid;place-items:center;font:600 11px/1 var(--vq-font-numeric);color:var(--vq-accent-text)}
+  .badcell{box-sizing:border-box;background:rgba(241,112,112,.12);border:1px solid var(--vq-danger);border-radius:8px;
+      display:grid;place-items:center;font:600 11px/1 var(--vq-font-numeric);color:var(--vq-danger)}
+  .lawnote{font-size:12.5px;color:var(--vq-text-3);line-height:1.6;margin-top:10px}
+  .lawkv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--vq-line-soft);font-size:13px}
+  .lawkv b{font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums}
+  .c3law{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.c3law{grid-template-columns:1fr}}
+</style>
+
+<section class="band" id="layout">
+  <div class="wrap">
+    <h2 class="sec">Layout Law</h2>
+    <p class="lead">One formula governs both axes, so a card's height is computed exactly the way its width is.
+      This is what makes generated dashboards safe: the AI picks a category, and the geometry is not
+      its decision to get wrong.</p>
+    <div style="height:28px"></div>
+
+    <div class="grid c2">
+      <div class="card">
+        <h3>The one law</h3>
+        <div style="font:600 20px/1.5 var(--vq-font-numeric);color:var(--vq-accent-text);margin:12px 0 4px">
+          size(n) = n &times; UNIT + (n&minus;1) &times; GUTTER</div>
+        <p class="lawnote">Columns use <code>UNIT = column width</code>. Rows use <code>UNIT = 64px</code>.
+          <code>GUTTER = 24px</code> on both axes. CSS Grid computes this natively from
+          <code>gap</code> — which is why spacing must never come from a margin.</p>
+        <table class="lawtable" style="margin-top:14px"><thead><tr><th class="n">Rows</th><th class="n">Height</th><th>Formula</th></tr></thead>
+          <tbody><tr><td class="n">1</td><td class="n">64px</td><td style="color:var(--vq-text-3);font-size:12px"><code>1&times;64 + 0&times;24</code></td></tr><tr><td class="n">2</td><td class="n">152px</td><td style="color:var(--vq-text-3);font-size:12px"><code>2&times;64 + 1&times;24</code></td></tr><tr><td class="n">3</td><td class="n">240px</td><td style="color:var(--vq-text-3);font-size:12px"><code>3&times;64 + 2&times;24</code></td></tr><tr><td class="n">4</td><td class="n">328px</td><td style="color:var(--vq-text-3);font-size:12px"><code>4&times;64 + 3&times;24</code></td></tr><tr><td class="n">6</td><td class="n">504px</td><td style="color:var(--vq-text-3);font-size:12px"><code>6&times;64 + 5&times;24</code></td></tr><tr><td class="n">8</td><td class="n">680px</td><td style="color:var(--vq-text-3);font-size:12px"><code>8&times;64 + 7&times;24</code></td></tr><tr><td class="n">9</td><td class="n">768px</td><td style="color:var(--vq-text-3);font-size:12px"><code>9&times;64 + 8&times;24</code></td></tr><tr><td class="n">12</td><td class="n">1032px</td><td style="color:var(--vq-text-3);font-size:12px"><code>12&times;64 + 11&times;24</code></td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <h3>Why the gutter belongs to the pitch</h3>
+        <p class="lawnote" style="margin-bottom:14px">Two stacked 1-row cards must line up with one 2-row card.
+          If the gutter is <em>added between</em> cards, they do not: 64+24+64 = 152 against 128.
+          A card that spans 2 rows spans <em>across</em> the gutter and absorbs it.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+          <div>
+            <div class="vq-eyebrow" style="color:var(--vq-danger);margin-bottom:8px">Wrong &mdash; 128px</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
+              <div style="display:flex;flex-direction:column;gap:24px">
+                <div class="badcell" style="height:64px">64</div>
+                <div class="badcell" style="height:64px">64</div></div>
+              <div><div class="badcell" style="height:128px">128</div></div>
+            </div></div>
+          <div>
+            <div class="vq-eyebrow" style="color:var(--vq-success);margin-bottom:8px">Right &mdash; 152px</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:64px;gap:24px">
+              <div class="lawcell">64</div>
+              <div class="lawcell" style="grid-row:span 2">152</div>
+              <div class="lawcell" style="grid-column:1">64</div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <div class="grid c3law">
+      <div class="card"><h3>Shell</h3>
+        <div class="lawkv"><span>Sidebar expanded</span><b>264px</b></div>
+        <div class="lawkv"><span>Sidebar rail</span><b>72px</b></div>
+        <div class="lawkv"><span>Header</span><b>64px</b></div>
+        <div class="lawkv"><span>Subnav</span><b>224px</b></div>
+        <div class="lawkv" style="border:0"><span>Page margin</span><b>24px</b></div>
+        <p class="lawnote">Header equals the row unit deliberately &mdash; one number doing two jobs cannot drift
+          out of sync with itself.</p></div>
+      <div class="card"><h3>Grid</h3>
+        <div class="lawkv"><span>Gutter (both axes)</span><b>24px</b></div>
+        <div class="lawkv"><span>Row track</span><b>64px</b></div>
+        <div class="lawkv"><span>Row pitch</span><b>88px</b></div>
+        <div class="lawkv"><span>Column target</span><b>112px</b></div>
+        <div class="lawkv" style="border:0"><span>Column @1920</span><b>110.75px</b></div>
+        <p class="lawnote">Column <em>count</em> floats with the viewport; column <em>width</em> holds near
+          112px. A wider screen shows more cards, not fatter ones.</p></div>
+      <div class="card"><h3>Nav ladder</h3>
+        <div class="lawkv"><span>Expanded</span><b>&ge; 1280px</b></div>
+        <div class="lawkv"><span>Rail</span><b>1024&ndash;1279</b></div>
+        <div class="lawkv"><span>Drawer</span><b>&lt; 1024px</b></div>
+        <div class="lawkv" style="border:0"><span>Mobile regime</span><b>&le; 599px</b></div>
+        <p class="lawnote">One expanded width, never a range. The rail is the answer to a narrow screen;
+          a narrow sidebar is not.</p></div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <div class="card">
+      <h3>The solved breakpoint table</h3>
+      <p class="lawnote" style="margin-bottom:14px">Viewports are CSS pixels after a 15px scrollbar, so 1920 appears
+        as 1905. Windows DPI scaling is already baked into the source data &mdash; 1536 <em>is</em> a 1920 screen at 125%.</p>
+      <table class="lawtable"><thead><tr><th>Screen</th><th class="n">Viewport</th><th>Nav</th>
+        <th class="n">Available</th><th class="n">Columns</th><th class="n">Column px</th></tr></thead>
+        <tbody><tr><td>Android baseline</td><td class="n">360</td><td>drawer</td><td class="n">328</td><td class="n"><b>4</b></td><td class="n">64.00</td></tr>
+<tr><td>iPhone 12-15</td><td class="n">390</td><td>drawer</td><td class="n">358</td><td class="n"><b>4</b></td><td class="n">71.50</td></tr>
+<tr><td>iPhone Plus / Max</td><td class="n">414</td><td>drawer</td><td class="n">382</td><td class="n"><b>4</b></td><td class="n">77.50</td></tr>
+<tr><td>iPad 9.7 portrait</td><td class="n">768</td><td>drawer</td><td class="n">720</td><td class="n"><b>6</b></td><td class="n">100.00</td></tr>
+<tr><td>iPad Air portrait</td><td class="n">820</td><td>drawer</td><td class="n">772</td><td class="n"><b>6</b></td><td class="n">108.67</td></tr>
+<tr><td>iPad 9.7 landscape</td><td class="n">1024</td><td>rail</td><td class="n">904</td><td class="n"><b>8</b></td><td class="n">92.00</td></tr>
+<tr><td>iPad Air landscape</td><td class="n">1180</td><td>rail</td><td class="n">1060</td><td class="n"><b>8</b></td><td class="n">111.50</td></tr>
+<tr><td>1280 screen (FHD @150%)</td><td class="n">1265</td><td>rail</td><td class="n">1145</td><td class="n"><b>8</b></td><td class="n">122.12</td></tr>
+<tr><td>1366 screen (HD laptop)</td><td class="n">1351</td><td>expanded</td><td class="n">1039</td><td class="n"><b>8</b></td><td class="n">108.88</td></tr>
+<tr><td>1440 screen (MBP13)</td><td class="n">1425</td><td>expanded</td><td class="n">1113</td><td class="n"><b>8</b></td><td class="n">118.12</td></tr>
+<tr><td>1536 screen (FHD @125%)</td><td class="n">1521</td><td>expanded</td><td class="n">1209</td><td class="n"><b>10</b></td><td class="n">99.30</td></tr>
+<tr><td>1600 screen</td><td class="n">1585</td><td>expanded</td><td class="n">1273</td><td class="n"><b>10</b></td><td class="n">105.70</td></tr>
+<tr style="background:var(--vq-accent-quiet)"><td>1920 screen (FHD)  *REF*</td><td class="n">1905</td><td>expanded</td><td class="n">1593</td><td class="n"><b>12</b></td><td class="n">110.75</td></tr>
+<tr><td>2560 screen (QHD)</td><td class="n">2545</td><td>expanded</td><td class="n">2233</td><td class="n"><b>16</b></td><td class="n">117.06</td></tr>
+<tr><td>3440 ultrawide</td><td class="n">3425</td><td>expanded</td><td class="n">3113</td><td class="n"><b>24</b></td><td class="n">106.71</td></tr></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="cards">
+  <div class="wrap">
+    <h2 class="sec">Card categories</h2>
+    <p class="lead">A category is not a size &mdash; it is an ordered list of <em>fits</em>. Each fit declares a span,
+      a row count and the pixel floor its content genuinely needs. When a card cannot get wider it gets taller and
+      relays its inside, so no user loses data because of their screen.</p>
+    <div style="height:28px"></div>
+    <div class="grid c3law"><div class="card">
+        <div class="vq-eyebrow">C1 &middot; canonical icon+label</div>
+        <h3 style="margin-top:6px">Tile</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">Shortcut, quick action, custom button, single glyph stat</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. New sale - Open till - Scan barcode &middot; max <code>3&times;2</code></p>
+        <div class="lawdemo" style="--c:2;--r:1"><span>2c &times; 1r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>icon+label</code></td><td class="n">2&times;1</td><td class="n">246&times;64</td><td class="n">124</td></tr>
+<tr><td><code>icon</code></td><td class="n">1&times;1</td><td class="n">111&times;64</td><td class="n">52</td></tr></tbody></table></div>
+<div class="card">
+        <div class="vq-eyebrow">C2 &middot; canonical inline</div>
+        <h3 style="margin-top:6px">Strip</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">One KPI on one line - label left, value right</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. Today's sales &middot; max <code>6&times;2</code></p>
+        <div class="lawdemo" style="--c:4;--r:1"><span>4c &times; 1r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>inline</code></td><td class="n">4&times;1</td><td class="n">515&times;64</td><td class="n">356</td></tr>
+<tr><td><code>stacked</code></td><td class="n">3&times;2</td><td class="n">380&times;152</td><td class="n">200</td></tr></tbody></table></div>
+<div class="card">
+        <div class="vq-eyebrow">C3 &middot; canonical standard</div>
+        <h3 style="margin-top:6px">Metric</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">KPI with delta, sparkline or period comparison</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. Gross revenue &middot; max <code>6&times;4</code></p>
+        <div class="lawdemo" style="--c:3;--r:2"><span>3c &times; 2r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr><td><code>full</code></td><td class="n">4&times;3</td><td class="n">515&times;240</td><td class="n">386</td></tr>
+<tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>standard</code></td><td class="n">3&times;2</td><td class="n">380&times;152</td><td class="n">274</td></tr>
+<tr><td><code>compact</code></td><td class="n">2&times;2</td><td class="n">246&times;152</td><td class="n">200</td></tr>
+<tr><td><code>stacked</code></td><td class="n">2&times;3</td><td class="n">246&times;240</td><td class="n">163</td></tr></tbody></table></div>
+<div class="card">
+        <div class="vq-eyebrow">C4 &middot; canonical standard</div>
+        <h3 style="margin-top:6px">Panel</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">Ranked list, breakdown, small chart, table excerpt</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. Sales by module &middot; max <code>6&times;6</code></p>
+        <div class="lawdemo" style="--c:3;--r:4"><span>3c &times; 4r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr><td><code>full</code></td><td class="n">4&times;4</td><td class="n">515&times;328</td><td class="n">492</td></tr>
+<tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>standard</code></td><td class="n">3&times;4</td><td class="n">380&times;328</td><td class="n">356</td></tr>
+<tr><td><code>compact</code></td><td class="n">3&times;5</td><td class="n">380&times;416</td><td class="n">200</td></tr>
+<tr><td><code>list</code></td><td class="n">2&times;6</td><td class="n">246&times;504</td><td class="n">200</td></tr></tbody></table></div>
+<div class="card">
+        <div class="vq-eyebrow">C5 &middot; canonical full</div>
+        <h3 style="margin-top:6px">Board</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">Full chart, multi-series, wide table</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. Cash flow & revenue &middot; max <code>12&times;9</code></p>
+        <div class="lawdemo" style="--c:6;--r:6"><span>6c &times; 6r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>full</code></td><td class="n">6&times;6</td><td class="n">784&times;504</td><td class="n">593</td></tr>
+<tr><td><code>narrow</code></td><td class="n">5&times;7</td><td class="n">650&times;592</td><td class="n">415</td></tr>
+<tr><td><code>min</code></td><td class="n">4&times;8</td><td class="n">515&times;680</td><td class="n">295</td></tr></tbody></table></div>
+<div class="card">
+        <div class="vq-eyebrow">C6 &middot; canonical full</div>
+        <h3 style="margin-top:6px">Canvas</h3>
+        <p style="color:var(--vq-text-2);font-size:13.5px;line-height:1.55;margin:6px 0 4px">Hero chart, P&L statement, cohort grid, map</p>
+        <p style="color:var(--vq-text-3);font-size:12.5px;margin-bottom:14px">e.g. Profit & loss statement &middot; max <code>12&times;16</code></p>
+        <div class="lawdemo" style="--c:8;--r:8"><span>8c &times; 8r</span></div>
+        <table style="margin-top:14px"><thead><tr><th>Fit</th><th class="n">Span</th><th class="n">@1920</th><th class="n">Floor</th></tr></thead>
+        <tbody><tr style=&quot;background:var(--vq-accent-quiet)&quot;><td><code>full</code></td><td class="n">8&times;8</td><td class="n">1054&times;680</td><td class="n">733</td></tr>
+<tr><td><code>narrow</code></td><td class="n">6&times;10</td><td class="n">784&times;856</td><td class="n">533</td></tr>
+<tr><td><code>min</code></td><td class="n">4&times;12</td><td class="n">515&times;1032</td><td class="n">295</td></tr></tbody></table></div></div>
+
+    <div style="height:24px"></div>
+    <div class="card">
+      <h3>Resolution matrix</h3>
+      <p class="lawnote" style="margin-bottom:14px">
+        <b style="color:var(--vq-warning)">^</b> span widened to clear its floor &middot;
+        <b style="color:var(--vq-accent-text)">v</b> degraded to a leaner fit &middot;
+        <b style="color:var(--vq-text-3)">!</b> spans the full grid.
+        Verified across 21,126 resolutions &mdash; every integer viewport from 320 to 3840 &times; 6 categories.
+        No card ever falls below its floor, exceeds the grid, or exceeds its category maximum.</p>
+      <div style="overflow-x:auto"><table class="lawtable"><thead><tr><th>Screen</th><th class="n">N</th><th class="n">C1</th><th class="n">C2</th><th class="n">C3</th><th class="n">C4</th><th class="n">C5</th><th class="n">C6</th></tr></thead>
+        <tbody><tr><td>Android baseline</td><td class="n">4</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">stacked<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;5<br><span style="color:var(--vq-text-3);font-size:10.5px">compact<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;12<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPhone 12-15</td><td class="n">4</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline<b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;12<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPhone Plus / Max</td><td class="n">4</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline<b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td><td class="n">4&times;12<br><span style="color:var(--vq-text-3);font-size:10.5px">min<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPad 9.7 portrait</td><td class="n">6</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">4&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b></span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td><td class="n">6&times;10<br><span style="color:var(--vq-text-3);font-size:10.5px">narrow<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPad Air portrait</td><td class="n">6</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td><td class="n">6&times;10<br><span style="color:var(--vq-text-3);font-size:10.5px">narrow<b style="color:var(--vq-accent-text)">v</b><b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPad 9.7 landscape</td><td class="n">8</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">4&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b></span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>iPad Air landscape</td><td class="n">8</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>1280 screen (FHD @150%)</td><td class="n">8</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>1366 screen (HD laptop)</td><td class="n">8</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>1440 screen (MBP13)</td><td class="n">8</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full<b style="color:var(--vq-text-3)">!</b></span></td></tr>
+<tr><td>1536 screen (FHD @125%)</td><td class="n">10</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">4&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard<b style="color:var(--vq-warning)">^</b></span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td></tr>
+<tr><td>1600 screen</td><td class="n">10</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td></tr>
+<tr style="background:var(--vq-accent-quiet)"><td>1920 screen (FHD)  *REF*</td><td class="n">12</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td></tr>
+<tr><td>2560 screen (QHD)</td><td class="n">16</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td></tr>
+<tr><td>3440 ultrawide</td><td class="n">24</td><td class="n">2&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">icon+label</span></td><td class="n">4&times;1<br><span style="color:var(--vq-text-3);font-size:10.5px">inline</span></td><td class="n">3&times;2<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">3&times;4<br><span style="color:var(--vq-text-3);font-size:10.5px">standard</span></td><td class="n">6&times;6<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td><td class="n">8&times;8<br><span style="color:var(--vq-text-3);font-size:10.5px">full</span></td></tr></tbody></table></div>
+    </div>
+
+    <div style="height:24px"></div>
+    <div class="grid c2">
+      <div class="card">
+        <h3>Format-to-fit</h3>
+        <p class="lawnote" style="margin-bottom:12px">Measured in the shipping face (Space Grotesk 600, tabular,
+          digit advance <code>0.62em</code>) the worst-case 20-digit + 4-decimal value is
+          <b>723px</b> at metric size. No card can be that wide, so the premise inverts:
+          <b>a card is never sized to its number &mdash; the number formats to the card</b>, and the exact value is
+          always one hover away.</p>
+        <table class="lawtable"><thead><tr><th>Rung</th><th class="n">20px</th><th class="n">26px</th>
+          <th class="n">38px</th><th>Sample</th></tr></thead><tbody><tr><td><code>full4</code></td><td class="n">380</td><td class="n">494</td><td class="n">723</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 99,999,999,999,999,999,999.9999</td></tr>
+<tr><td><code>full2</code></td><td class="n">257</td><td class="n">335</td><td class="n">489</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 9,999,999,999,999.99</td></tr>
+<tr><td><code>full</code></td><td class="n">196</td><td class="n">255</td><td class="n">373</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 999,999,999.99</td></tr>
+<tr><td><code>grouped</code></td><td class="n">172</td><td class="n">223</td><td class="n">326</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 9,999,999.99</td></tr>
+<tr><td><code>abbr2</code></td><td class="n">123</td><td class="n">160</td><td class="n">234</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 999.99M</td></tr>
+<tr><td><code>abbr1</code></td><td class="n">111</td><td class="n">144</td><td class="n">211</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 999.9M</td></tr>
+<tr><td><code>abbr0</code></td><td class="n">93</td><td class="n">120</td><td class="n">176</td><td style="font-family:var(--vq-font-numeric);font-size:12px">PKR 999M</td></tr>
+<tr><td><code>bare</code></td><td class="n">50</td><td class="n">65</td><td class="n">95</td><td style="font-family:var(--vq-font-numeric);font-size:12px">999M</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <h3>Band packing</h3>
+        <p class="lawnote" style="margin-bottom:14px">A grid row band holds only cards of equal row-span. A taller card
+          starts a new band rather than sitting beside shorter ones and leaving a hole. Leftover columns are handed back
+          round-robin to cards below their category maximum, so a band is always flush.
+          <b>Cards never reorder</b> &mdash; the author's sequence is the reading order on every screen.</p>
+        <div class="lawgrid" style="grid-auto-rows:44px">
+          <div class="lawcell" style="grid-column:span 3">3</div>
+          <div class="lawcell" style="grid-column:span 3">3</div>
+          <div class="lawcell" style="grid-column:span 6">6 &larr; grew</div>
+          <div class="lawcell" style="grid-column:span 4;grid-row:span 2">4&times;2</div>
+          <div class="lawcell" style="grid-column:span 4;grid-row:span 2">4&times;2</div>
+          <div class="lawcell" style="grid-column:span 4;grid-row:span 2">4&times;2</div>
+          <div class="lawcell" style="grid-column:span 12">12 &mdash; board band</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="rules">
+  <div class="wrap">
+    <h2 class="sec">The rules that survive from v2</h2>
+    <div style="height:12px"></div>
+    <div class="rule"><b>One primary per view</b><span>Two primaries is no primary. The mint glow is reserved for it.</span></div>
+    <div class="rule"><b>One focal card per screen</b><span>Exactly one mint-filled card. Everything else is a white floater or the single ink card.</span></div>
+    <div class="rule"><b>Never scale on hover</b><span>Buttons lift 1px, cards 2px, sidebar items change colour only. The one legal scale-plus-clip is an image inside a fixed-ratio frame.</span></div>
+    <div class="rule"><b>No meaning in colour alone</b><span>Status = icon + word. Negative = sign + parentheses + <span class="no">danger</span>. Passing = tick + <span class="yes">word</span>.</span></div>
+    <div class="rule"><b>Tabular figures everywhere</b><span><span class="k">tnum</span> globally; money columns line up or the product looks careless.</span></div>
+    <div class="rule"><b>Twelve z-index values, no more</b><span><span class="k">base 0</span> <span class="k">raised 10</span> <span class="k">sticky 100</span> <span class="k">nav 200</span> <span class="k">rail 300</span> <span class="k">dropdown 400</span> <span class="k">drawer 500</span> <span class="k">modal 600</span> <span class="k">popover 700</span> <span class="k">tooltip 800</span> <span class="k">toast 900</span> <span class="k">command 1000</span></span></div>
+    <div class="rule"><b>Clipping is not stacking</b><span>If something is invisible, look for an <span class="k">overflow:hidden</span> ancestor before touching z-index. Portal tooltips and dropdowns to <span class="k">body</span>.</span></div>
+    <div class="rule"><b>Tables have no vertical lines</b><span>The point is that you replaced the spreadsheet.</span></div>
+    <div class="rule"><b>Never animate a ledger figure</b><span>Count-ups belong on marketing stats, not on a balance.</span></div>
+    <div class="rule"><b>Ambient motion is marketing-only</b><span>Above the fold, ≥768px, and it stops under <span class="k">prefers-reduced-motion</span>.</span></div>
+    <div class="rule" style="border-bottom:0"><b>No emoji, ever</b><span>Colour, shape and motion carry the playfulness.</span></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+    <img src="assets/logo-mark.png" alt="" width="26" height="26">
+    <span style="font:600 18px/1 var(--vq-font-display);letter-spacing:-.03em;color:#EDF2EF">VenQore</span>
+    <span>Design system v5 · Qore · August 2026</span>
+    <span style="margin-left:auto">Tokens live in <span class="k" style="background:rgb(255 255 255/.08);border-color:rgb(255 255 255/.12);color:#C6F5E9">styles.css</span> — components in <span class="k" style="background:rgb(255 255 255/.08);border-color:rgb(255 255 255/.12);color:#C6F5E9">components/</span></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('tgl'),ic=document.getElementById('tglIcon'),lb=document.getElementById('tglLabel');
+  var saved=null;try{saved=localStorage.getItem('vq-theme')}catch(e){}
+  if(saved){root.setAttribute('data-theme',saved)}
+  function sync(){var d=root.getAttribute('data-theme')==='dark';ic.textContent=d?'☀':'☾';lb.textContent=d?'Light':'Dark'}
+  sync();
+  btn.addEventListener('click',function(){
+    var d=root.getAttribute('data-theme')==='dark';
+    root.classList.add('vq-theming');
+    root.setAttribute('data-theme',d?'light':'dark');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){root.classList.remove('vq-theming')})});
+    try{localStorage.setItem('vq-theme',d?'light':'dark')}catch(e){}
+    sync();
+  });
+})();
+</script>
+</body>
+</html>

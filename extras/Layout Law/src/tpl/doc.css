@@ -1,0 +1,212 @@
+.simbar{position:sticky;top:0;z-index:60;background:var(--vq-ink-50);
+ padding:10px 0 12px;border-bottom:1px solid var(--vq-ink-200);margin-bottom:14px}
+.stage{background:var(--vq-ink-200);border-radius:18px;padding:14px;overflow:hidden;
+ display:flex;justify-content:center;align-items:flex-start}
+.device{background:var(--vq-ink-950);border-radius:16px;padding:9px;flex:0 0 auto;
+ box-shadow:0 18px 50px -18px rgba(6,10,9,.55);transform-origin:top center}
+.screen{background:var(--vq-ink-25);border-radius:9px;overflow:hidden;position:relative;
+ display:flex;flex-direction:column}
+.dbar{height:64px;flex:0 0 64px;display:flex;align-items:center;gap:8px;padding:0 12px;
+ background:var(--vq-ink-0);border-bottom:1px solid var(--vq-ink-200);font-size:13px}
+.dbar .title{font-family:var(--vq-font-display);font-weight:700;font-size:17px;
+ letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dbar .docno{font-family:var(--vq-font-numeric);font-size:12px;color:var(--vq-ink-500)}
+.iconbtn{width:38px;height:38px;border-radius:10px;display:inline-flex;align-items:center;
+ justify-content:center;color:var(--vq-ink-600);flex:0 0 auto;font-size:16px}
+.iconbtn:hover{background:var(--vq-ink-100)}
+.docscroll{flex:1;min-height:0;overflow-y:auto;padding:var(--vq-margin);
+ display:flex;flex-direction:column;gap:var(--vq-gutter)}
+/* A scrolling flex column must not SHRINK its children — the default
+   flex-shrink:1 compresses them to nothing and, because a zone clips its own
+   overflow, the content vanishes instead of scrolling. This is the single
+   line between "the invoice renders" and "only the summary renders". */
+.docscroll > *{flex:0 0 auto}
+.zone{background:var(--vq-ink-0);border:1px solid var(--vq-ink-200);border-radius:14px;
+ min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.zone-h{height:var(--vq-zoneh,44px);flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 14px;
+ border-bottom:1px solid var(--vq-ink-100);font-size:10px;font-weight:800;
+ letter-spacing:.09em;text-transform:uppercase;color:var(--vq-ink-500)}
+.hdr{display:grid;gap:12px 16px;padding:14px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+ color:var(--vq-ink-500);display:flex;align-items:center;gap:5px}
+.f .req{color:var(--vq-coral-500)}
+.f .ctl{height:42px;border:1px solid var(--vq-ink-300);border-radius:9px;padding:0 11px;
+ display:flex;align-items:center;background:var(--vq-ink-0);font-size:14px;
+ min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;gap:8px}
+.f .ctl.sel{border-color:var(--vq-teal-400);background:var(--vq-teal-50)}
+.f .ctl .ph{color:var(--vq-ink-400)}
+.f .hint{font-size:10px;color:var(--vq-ink-400)}
+.party-card{display:flex;align-items:center;gap:10px;padding:11px 14px;
+ border:1px solid var(--vq-teal-300);background:var(--vq-teal-50);border-radius:10px}
+.avatar{width:36px;height:36px;border-radius:10px;background:var(--vq-teal-200);
+ color:var(--vq-teal-900);display:flex;align-items:center;justify-content:center;
+ font-weight:800;flex:0 0 auto}
+.body{display:grid;gap:var(--vq-gutter);align-items:start;min-width:0}
+.lines-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.lines-tbl th{font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--vq-ink-500);font-weight:800;padding:8px 8px;text-align:left;
+ border-bottom:1px solid var(--vq-ink-200);white-space:nowrap}
+.lines-tbl td{padding:6px 8px;border-bottom:1px solid var(--vq-ink-100);vertical-align:middle}
+.lines-tbl th.n,.lines-tbl td.n{text-align:right}
+.cell{height:36px;border:1px solid transparent;border-radius:8px;padding:0 8px;
+ display:flex;align-items:center;background:transparent;width:100%;font-size:13px}
+.cell:hover{border-color:var(--vq-ink-200);background:var(--vq-ink-25)}
+.cell.n{justify-content:flex-end;font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums}
+.cell.name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;
+ line-height:36px}
+.linecard{border-bottom:1px solid var(--vq-ink-100);padding:11px 14px;display:flex;
+ flex-direction:column;gap:8px}
+.linecard .top{display:flex;align-items:baseline;gap:10px}
+.linecard .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;
+ white-space:nowrap}
+.linecard .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:8px}
+.mini{display:flex;flex-direction:column;gap:2px}
+.mini .k{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+ color:var(--vq-ink-400)}
+.mini .v{font-family:var(--vq-font-numeric);font-size:13px;font-weight:700}
+.addline{display:flex;align-items:center;gap:8px;padding:11px 14px;color:var(--vq-teal-700);
+ font-weight:700;font-size:13px;width:100%;border-top:1px solid var(--vq-ink-100)}
+.addline:hover{background:var(--vq-teal-50)}
+/* These heights are the LAW's, written onto the screen as custom properties
+   by the renderer. A summary column whose rows are 38px tall while the law
+   measured 36 is a column the law calls stickable and the browser does not —
+   which is how Complete sale ended up 13px below the fold on a 1280x570. */
+.sum-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ height:var(--vq-sumrow,36px);flex:0 0 auto;padding:0 14px;font-size:13px}
+.sum-row .k{color:var(--vq-ink-600);flex:0 0 auto}
+.sum-row .v{font-family:var(--vq-font-numeric);font-weight:600;text-align:right;min-width:0}
+.sum-row.tot{border-top:1px solid var(--vq-ink-200);background:var(--vq-ink-25);
+ height:var(--vq-sumtot,51px);padding:0 14px}
+.sum-row.tot .k{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+ color:var(--vq-ink-500)}
+.sum-row.tot .v{color:var(--vq-teal-800);font-weight:700}
+.sum-row.bal .v{color:var(--vq-coral-700)}
+.actions{display:flex;gap:8px;padding:0 14px;align-items:center;flex:0 0 auto;
+ height:var(--vq-actions,68px);border-top:1px solid var(--vq-ink-100);overflow:hidden}
+.btn{height:var(--vq-btnh,44px);border-radius:10px;padding:0 16px;font-weight:700;font-size:14px;
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ border:1px solid var(--vq-ink-300);background:var(--vq-ink-0);color:var(--vq-ink-700);
+ white-space:nowrap}
+.btn.pri{background:var(--vq-teal-600);color:#fff;border-color:var(--vq-teal-600);flex:1}
+.btn.pri:hover{background:var(--vq-teal-700)}
+.btn:hover{background:var(--vq-ink-50)}
+.stickybar{position:sticky;bottom:0;z-index:20;background:var(--vq-ink-0);
+ border:1px solid var(--vq-ink-200);border-radius:14px;
+ box-shadow:0 -8px 28px -14px rgba(6,10,9,.35)}
+.readout{font-family:var(--vq-font-numeric);font-size:12.5px;line-height:1.75;color:var(--vq-ink-700)}
+.readout b{color:var(--vq-ink-900)}
+.hint{font-size:12px;color:var(--vq-ink-500)}
+.capchip{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:6px;
+ margin:0 4px 4px 0;background:var(--vq-teal-50);color:var(--vq-teal-800);
+ border:1px solid var(--vq-teal-200)}
+.capchip.off{background:var(--vq-ink-50);color:var(--vq-ink-400);border-color:var(--vq-ink-200);
+ text-decoration:line-through}
+input[type=range]{accent-color:var(--vq-teal-600)}
+.matrix td:first-child{position:sticky;left:0;background:var(--vq-ink-0);font-weight:600;
+ border-right:1px solid var(--vq-ink-200);z-index:1}
+.matrix th:first-child{left:0;z-index:3}
+.matrix td.y{color:var(--vq-teal-700);font-weight:800;text-align:center}
+.matrix td.x{color:var(--vq-ink-300);text-align:center}
+
+/* ══ v2: the document composer ═══════════════════════════════════════════ */
+.ctlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+ gap:10px 20px;margin-top:11px;padding-top:11px;border-top:1px solid var(--vq-ink-200)}
+.ctl-l{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+ color:var(--vq-ink-500);margin-bottom:5px;display:block}
+.seg{display:inline-flex;background:var(--vq-ink-100);border-radius:9px;padding:3px;gap:2px;
+ flex-wrap:wrap}
+.seg button{border-radius:7px;padding:5px 10px;font-size:12px;font-weight:700;
+ color:var(--vq-ink-600);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--vq-ink-0);color:var(--vq-teal-800);
+ box-shadow:0 1px 3px rgba(6,10,9,.13)}
+.seg button[disabled]{opacity:.34}
+.ctl-n{font-size:10.5px;color:var(--vq-ink-400);margin-top:4px;line-height:1.5}
+
+/* the body is one grid: lines | splitter | summary */
+.docmain{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.docscroll{scroll-behavior:auto}
+.docbody{display:grid;gap:0;align-items:start;min-width:0}
+.docbody>.zone{min-width:0}
+.sumcol{min-width:0;display:flex;flex-direction:column;gap:var(--vq-gutter)}
+.sumcol.stick{position:sticky;top:0;align-self:start;max-height:100%;overflow-y:auto;
+ scrollbar-width:thin}
+.vsplit{cursor:col-resize;position:relative;align-self:stretch;touch-action:none;
+ display:flex;align-items:center;justify-content:center}
+.vsplit::before{content:"";position:absolute;top:6px;bottom:6px;left:50%;width:2px;
+ margin-left:-1px;border-radius:2px;background:var(--vq-ink-200);transition:background .12s}
+.vsplit:hover::before,.vsplit.dragging::before{background:var(--vq-teal-500);width:4px;margin-left:-2px}
+.vsplit::after{content:"";position:absolute;top:50%;margin-top:-16px;height:32px;width:4px;
+ border-radius:3px;background:var(--vq-ink-300)}
+.vsplit:hover::after,.vsplit.dragging::after{background:var(--vq-teal-600)}
+.vsplit:focus-visible{outline:none}
+.vsplit:focus-visible::before{background:var(--vq-teal-600);width:4px;margin-left:-2px}
+
+/* the collapsed details strip — one line, and it is a BUTTON */
+.strip{display:flex;align-items:center;gap:12px;width:100%;padding:0 14px;height:60px;
+ background:var(--vq-ink-0);border:1px solid var(--vq-ink-200);border-radius:14px;
+ text-align:left;min-width:0}
+.strip:hover{border-color:var(--vq-teal-400);background:var(--vq-teal-50)}
+.strip .chev{flex:0 0 auto;color:var(--vq-ink-400);font-size:13px;transition:transform .2s}
+.strip .who{font-weight:700;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;
+ white-space:nowrap}
+.strip .meta{font-family:var(--vq-font-numeric);font-size:11.5px;color:var(--vq-ink-500);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.strip .amt{margin-left:auto;font-family:var(--vq-font-numeric);font-weight:700;font-size:15px;
+ color:var(--vq-teal-800);flex:0 0 auto}
+.zone-h .togg{margin-left:auto;font-weight:800;color:var(--vq-teal-700);font-size:10px;
+ letter-spacing:.08em}
+
+/* THE DOCK. Bottom-right, exactly where you asked for it — and a REAL ROW,
+   not a float. Its height is taken out of the scroller before anything else
+   is measured, so it cannot cover the last line the way the Counter POS's
+   browse button covered the payment panel. The row is reserved from the
+   start and the bar fades into it once you scroll, so nothing ever shifts. */
+.dockrow{flex:0 0 auto;display:flex;justify-content:flex-end;align-items:center;
+ padding:0 var(--vq-margin) var(--vq-margin);pointer-events:none}
+.dockbar{display:flex;align-items:center;gap:12px;padding:0 12px 0 16px;
+ height:var(--vq-dockh,60px);max-width:100%;min-width:0;
+ background:var(--vq-ink-950);color:#fff;border-radius:14px;
+ box-shadow:0 16px 40px -14px rgba(6,10,9,.55);
+ opacity:0;transform:translateY(8px);pointer-events:none;
+ transition:opacity .18s,transform .18s}
+.dockbar.on{opacity:1;transform:none;pointer-events:auto}
+.dockbar>div{min-width:0;flex:0 1 auto}
+.dockbar .v,.dockbar .bal{max-width:100%}
+.dockbar .k{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+ color:var(--vq-teal-300)}
+.dockbar .v{font-family:var(--vq-font-numeric);font-weight:700;font-size:20px;line-height:1.1;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dockbar .bal{font-family:var(--vq-font-numeric);font-size:11px;color:var(--vq-ink-300);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dockbar .btn{height:44px;background:var(--vq-teal-500);border-color:var(--vq-teal-500);color:#fff;
+ flex:0 0 auto}
+.dockbar .btn:hover{background:var(--vq-teal-400)}
+.dockbar .btn.ghost{background:transparent;border-color:rgba(255,255,255,.3);color:#fff}
+
+/* line cards, and the tap-to-adjust sheet you liked in the register */
+.linecard{cursor:pointer}
+.linecard:hover{background:var(--vq-teal-50)}
+.linecard.open{background:var(--vq-teal-50);box-shadow:inset 3px 0 0 var(--vq-teal-500)}
+.adjust{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;
+ padding:10px 14px 12px;background:var(--vq-teal-50);border-bottom:1px solid var(--vq-teal-200)}
+.adjfield{display:flex;flex-direction:column;gap:3px}
+.adjfield .k{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+ color:var(--vq-ink-500)}
+.stepper{display:flex;align-items:center;height:40px;border:1px solid var(--vq-ink-300);
+ border-radius:9px;background:var(--vq-ink-0);overflow:hidden}
+.stepper button{width:34px;height:100%;font-size:16px;font-weight:700;color:var(--vq-teal-700)}
+.stepper button:hover{background:var(--vq-teal-100)}
+.stepper .n{flex:1;text-align:center;font-family:var(--vq-font-numeric);font-weight:700;
+ font-size:14px;min-width:0}
+.adjbox{height:40px;border:1px solid var(--vq-ink-300);border-radius:9px;background:var(--vq-ink-0);
+ display:flex;align-items:center;justify-content:flex-end;padding:0 10px;
+ font-family:var(--vq-font-numeric);font-weight:700;font-size:14px}
+.rm{height:40px;border-radius:9px;border:1px solid var(--vq-coral-300);color:var(--vq-coral-700);
+ background:var(--vq-ink-0);font-weight:700;font-size:13px}
+.presetrow{display:flex;gap:7px;flex-wrap:wrap}
+.demote{margin-top:8px;font-size:11.5px;color:var(--vq-butter-800);background:var(--vq-butter-50);
+ border:1px solid var(--vq-butter-200);border-radius:9px;padding:8px 11px;line-height:1.55}
+.heldpill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;
+ font-size:11px;font-weight:800;background:var(--vq-butter-100);color:var(--vq-butter-800);
+ white-space:nowrap}

@@ -1,0 +1,41 @@
+/* ==========================================================================
+   VenQore — spacing & shell tokens  (Layout Law v2.0.0)
+   Replaces tokens/spacing.css. Generated from layout-law.json.
+   ========================================================================== */
+:root {
+  /* --- the only gap value in the product, on BOTH axes ------------------ */
+  --vq-gutter:         24px;
+
+  /* --- the row track. equal to the header height: one number, two jobs --- */
+  --vq-row:            64px;
+  --vq-row-pitch:      88px;   /* row + gutter. informational only. */
+
+  /* --- shell ------------------------------------------------------------ */
+  --vq-sidebar:        264px;
+  --vq-sidebar-rail:    72px;
+  --vq-subnav:         224px;
+  --vq-header-h:        64px;
+  --vq-terminal-bar:    56px;
+
+  /* --- ramps: chrome that must not cost content ------------------------- */
+  --vq-margin: var(--vq-margin-now, clamp(16px, calc(16px + (100vw - 600px) / 6), 24px));
+  --vq-rail-w: var(--vq-rail-now, clamp(0px, calc((100vw - 1024px) * 1), 72px));
+
+  /* --- card ------------------------------------------------------------- */
+  --vq-card-pad:       20px;    /* cards >= 3 columns */
+  --vq-card-pad-sm:    16px; /* cards <  3 columns */
+
+  /* --- derived, for reference. do not author against these -------------- */
+  --vq-push-min:      1216px;    /* nav pushes at/above, overlays below */
+  --vq-col-target:     112px;
+  --vq-col-floor:       92px;
+}
+
+/* The step scale. Everything is a multiple of 4, and the two values that
+   matter — 20 and 24 — are the card padding and the gutter. If a spacing
+   value in a component is not on this scale, it is a bug, not a decision. */
+:root {
+  --vq-s-1:  4px;  --vq-s-2:  8px;  --vq-s-3: 12px;  --vq-s-4: 16px;
+  --vq-s-5: 20px;  --vq-s-6: 24px;  --vq-s-8: 32px;  --vq-s-10: 40px;
+  --vq-s-12: 48px; --vq-s-16: 64px; --vq-s-20: 80px; --vq-s-24: 96px;
+}
