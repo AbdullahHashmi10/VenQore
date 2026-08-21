@@ -2180,7 +2180,7 @@ export default function NewDashboard(props) {
               <span className="active">Command Center</span>
             </div>
             <div className={`vq-status-pill ${isEditMode ? 'is-editing' : ''}`}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isEditMode ? '#f5b32e' : 'var(--vq-teal-500)' }}></span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isEditMode ? 'var(--vq-butter-500)' : 'var(--vq-teal-500)' }}></span>
               <span>{isEditMode ? 'Edit Mode Active' : 'Live System'}</span>
             </div>
           </div>
@@ -2198,7 +2198,7 @@ export default function NewDashboard(props) {
                 setStep(1);
               }}
               className="vqb vqb--primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 600 }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>Add New Card</span>
@@ -2304,7 +2304,7 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── Exact Step 1 & Step 2 Add Cards Modal (Matching Screenshot) ── */}
+      {/* ── Exact Step 1 & Step 2 Add Cards Modal (Strict V6 Design System) ── */}
       {modalOpen && (
         <div className="vq-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
@@ -2328,8 +2328,9 @@ export default function NewDashboard(props) {
                   className="vq-modal-close-x"
                   onClick={() => setModalOpen(false)}
                   aria-label="Close modal"
+                  title="Close modal"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
               </div>
             </div>
@@ -2482,9 +2483,9 @@ export default function NewDashboard(props) {
                         id="draft-accent"
                         checked={draftAccent}
                         onChange={e => setDraftAccent(e.target.checked)}
-                        style={{ width: '16px', height: '16px' }}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--vq-teal-500)' }}
                       />
-                      <label htmlFor="draft-accent" style={{ fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                      <label htmlFor="draft-accent" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--vq-text)', cursor: 'pointer' }}>
                         Accent Card (Highlighted Glare)
                       </label>
                     </div>
@@ -2492,7 +2493,7 @@ export default function NewDashboard(props) {
 
                   {/* Right Live Dashboard Preview */}
                   <div className="vq-preview-stage">
-                    <div style={{ position: 'absolute', top: '14px', left: '18px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#8b9a93', letterSpacing: '0.06em' }}>
+                    <div style={{ position: 'absolute', top: '14px', left: '18px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--vq-text-3)', letterSpacing: '0.06em' }}>
                       LIVE DASHBOARD PREVIEW
                     </div>
                     <div ref={previewRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}></div>
@@ -2529,7 +2530,7 @@ export default function NewDashboard(props) {
                   <button
                     className="vqb vqb--primary"
                     onClick={handleAddCardConfirm}
-                    style={{ padding: '8px 20px', borderRadius: '999px', fontSize: '13px', fontWeight: 700 }}
+                    style={{ padding: '9px 24px', borderRadius: 'var(--vq-r-full)', fontSize: '13px', fontWeight: 700 }}
                   >
                     Add to Dashboard
                   </button>
