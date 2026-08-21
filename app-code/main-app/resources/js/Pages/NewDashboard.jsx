@@ -1286,10 +1286,19 @@ function tools(){
 
 /* The grid's own geometry — resize snaps to this, nothing else. */
 const GRID = { cols: 12, unit: 64, gutter: 24 };
+
 function sizeOf(c){
   if (c.w && c.h) return [c.w, c.h];              /* hand-resized */
-  const f = FITS[c.cat][Math.min(c.fit, FITS[c.cat].length - 1)];
-  return [f[0], f[1]];
+  if (c.type === 'action_hub') return [6, 2];
+  if (c.type === 'bank_liquidity') return [6, 2];
+  if (c.type === 'alerts_hub') return [6, 3];
+  if (c.type === 'growth_engine') return [6, 2];
+  if (c.type === 'custom_button') return [3, 2];
+  if (c.cat && FITS[c.cat]) {
+    const f = FITS[c.cat][Math.min(c.fit || 0, FITS[c.cat].length - 1)];
+    return [f[0], f[1]];
+  }
+  return [4, 3];
 }
 
 function hostDimensions(host, card) {
@@ -1365,15 +1374,17 @@ function renderCard(c){
           <button class="vqc-act vqc-del" title="Remove"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
         </div>
       </div>
-      <div class="vqc-action-hub-title">${c.title || 'Quick Operations'}</div>
-      <div class="vqc-action-hub-sub">Point of sale, purchases & quick dispatch</div>
+      <div>
+        <div class="vqc-action-hub-title">${c.title || 'Quick Operations Hub'}</div>
+        <div class="vqc-action-hub-sub">Point of sale, purchases & quick dispatch</div>
+      </div>
       <div class="vqc-action-hub-grid">
         <a href="/pos" class="vqc-hub-btn vqc-hub-btn--sales">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
           <span>Point of Sale</span>
         </a>
         <a href="/s/my-business-store-353/purchase-orders" class="vqc-hub-btn vqc-hub-btn--purchase">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           <span>Purchase Order</span>
         </a>
         <button type="button" class="vqc-hub-btn vqc-hub-btn--actions" onclick="window.VenQoreCards?.openGlassActions?.()">
@@ -2650,7 +2661,7 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── 1. CENTER 3D FLOATING FOLDER CATEGORY LAUNCHER (NO CARD CONTAINER) ── */}
+      {/* ── 1. CENTER 3D FLOATING FOLDER CATEGORY LAUNCHER (PURE FLOATING FOLDER) ── */}
       {folderLauncherOpen && (
         <div className="vq-folder-portal-overlay" onClick={() => setFolderLauncherOpen(false)}>
           <button
