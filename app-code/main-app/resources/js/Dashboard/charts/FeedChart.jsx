@@ -1,41 +1,36 @@
 import React from 'react';
-import { CreditCard, ArrowRight } from 'lucide-react';
 
+import { EmptyPlot, seriesColor } from './kit';
+
+/**
+ * FeedChart — what just happened.
+ *
+ * A feed is the one card where the most recent row matters more than the
+ * biggest, so it keeps the order it arrives in and does not sort. It also does
+ * not cap at three the way the old one did: the card's fit decides how many fit
+ * and the rest scroll, because "three most recent sales" and "the sales feed"
+ * are different cards and only one of them was asked for.
+ */
 export default function FeedChart({ data }) {
-    const items = data?.items || [];
+    const items = data?.items || data?.rows || [];
 
-    if (items.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-full text-ink-muted dark:text-ink-secondary text-3xs font-bold uppercase tracking-wider select-none">
-                No Activity Feed
-            </div>
-        );
+    if (!Array.isArray(items) || items.length === 0) {
+        return <EmptyPlot label="Nothing yet today" />;
     }
 
     return (
-        <div className="w-full h-full flex flex-col justify-start overflow-hidden">
-            <div className="grow overflow-y-auto max-h-[96px] custom-scrollbar flex flex-col gap-2 pr-1">
-                {items.slice(0, 3).map((item, i) => (
-                    <div 
-                        key={item.id || i}
-                        className="flex items-center justify-between gap-3 p-1.5 rounded-xl border border-line dark:border-line bg-sunken dark:bg-sunken select-none text-3xs font-bold"
-                    >
-                        <div className="flex items-center gap-2 min-w-0">
-                            <div className="p-1 rounded-lg bg-brand-500/10 text-brand-500 shrink-0">
-                                <CreditCard size={10} />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="text-ink truncate max-w-[120px]">{item.title}</div>
-                                <div className="text-ink-muted dark:text-ink-muted text-4xs font-semibold">{item.subtitle}</div>
-                            </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                            <div className="text-brand-600 dark:text-brand-400">{item.value}</div>
-                            <div className="text-[7px] text-ink-muted font-semibold">{item.at}</div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+        <div className="vqc-tb">
+            {items.map((item, i) => (
+                <div key={item.id ?? i} className="vqc-tr" style={{ '--d': `${i * 40}ms` }}>
+                    <span className="vqc-fd" style={{ background: seriesColor(0) }} aria-hidden="true" />
+                    <span className="vqc-tn" title={item.title}>
+                        {item.title}
+                        {item.subtitle && <span className="vqc-ft"> · {item.subtitle}</span>}
+                    </span>
+                    <span className="vqc-tv">{item.value}</span>
+                    <span className="vqc-ft">{item.at}</span>
+                </div>
+            ))}
         </div>
     );
 }

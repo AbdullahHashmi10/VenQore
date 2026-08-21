@@ -38,13 +38,17 @@ import {
     getActiveTheme,
 } from '../theme/active.js';
 import {
+    CONTROLLED_PALETTES,
     DENSITY_TOKENS,
+    REQUIRED_ROLES,
     SEMANTIC_TOKENS,
     SHAPE_TOKENS,
     TYPOGRAPHY_TOKENS,
     cssVar,
+    paletteColorRef,
     validateTheme,
 } from '../theme/contract.js';
+import { shadowedV6Colours, v6ReservedPaletteFamilies } from '../theme/build/v6-owned.js';
 import {
     DEFAULT_APPEARANCE,
     appearanceFromPage,
@@ -111,6 +115,43 @@ describe('CSS custom property naming', () => {
         const invalid = [...new Set(referenced.filter((name) => !VALID_CUSTOM_PROPERTY.test(name)))];
 
         expect(invalid).toEqual([]);
+    });
+
+    /**
+     * The same failure mode as the `--vq-space-1.5` bug above, arrived at from
+     * the other direction — and it shipped.
+     *
+     * This sheet holds bare channel triplets so Tailwind's `/30` opacity
+     * modifiers work. The V6 token layer holds resolved colours under some of
+     * the same names, and app.css imports this sheet LAST, so on any shared
+     * name the triplet won. `background: var(--vq-accent-fill)` then resolved
+     * to `8 137 117`, which is invalid at computed-value time, so the browser
+     * dropped the declaration whole. Thirteen semantic tokens — every accent,
+     * every focus ring, the slot-1 chart mark — painted nothing in both modes,
+     * across the entire product, with no error anywhere.
+     *
+     * The generator now moves those families to `--vq-tw-*` on its own. This
+     * asserts it stayed moved.
+     */
+    it('shadows no V6 colour token with a channel triplet', () => {
+        expect(shadowedV6Colours(css)).toEqual([]);
+    });
+
+    /**
+     * And that the move did not simply delete them: `bg-teal-600` and its ~180
+     * siblings still have to resolve to something.
+     */
+    it('still binds every reserved palette family under --vq-tw-*', () => {
+        const reserved = v6ReservedPaletteFamilies([...CONTROLLED_PALETTES, ...REQUIRED_ROLES]);
+
+        expect(reserved.size).toBeGreaterThan(0);
+
+        for (const family of reserved) {
+            expect(css).toContain(`--vq-tw-${family}-500:`);
+            expect(paletteColorRef(family, 500, reserved)).toBe(
+                `rgb(var(--vq-tw-${family}-500) / <alpha-value>)`,
+            );
+        }
     });
 });
 

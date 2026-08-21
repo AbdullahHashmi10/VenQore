@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
-import { vq } from '@/theme/runtime';
+import { vq, role } from '@/theme/runtime';
 import {
     TrendingUp, TrendingDown, DollarSign, Users, Package,
     AlertCircle, Clock, FileText, Activity, ArrowUpRight,
@@ -24,9 +24,12 @@ import {
    VQ v2 chart series (resolved at runtime from CSS vars)
    We pull the computed value once on mount.
 ────────────────────────────────────────────── */
+/** Returned when there is no document to ask, or the property is unset. */
+const FALLBACK_INK = '#888';
+
 function getCssVar(name) {
-    if (typeof window === 'undefined') return '#888';
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888';
+    if (typeof window === 'undefined') return FALLBACK_INK;
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || FALLBACK_INK;
 }
 
 /* ─────────────────────────────────────────────
@@ -251,11 +254,14 @@ export default function AdminDashboard({
 
     const [inventoryHoveredIndex, setInventoryHoveredIndex] = useState(null);
 
-    /* Get accent colour for LaserFlow (teal, extracted from CSS) */
-    const [laserColor, setLaserColor] = useState('#2EC4B6');
+    /* LaserFlow paints to a canvas, so it needs a resolved colour rather than a
+       var(). Read the brand token once on mount — it is the same --vq-accent the
+       rest of the page uses, so the beam follows the theme instead of pinning a
+       literal teal beside it. */
+    const [laserColor, setLaserColor] = useState(role.brand[500]);
     useEffect(() => {
         const c = getCssVar('--vq-accent');
-        if (c && c !== '#888') setLaserColor(c);
+        if (c && c !== FALLBACK_INK) setLaserColor(c);
     }, []);
 
     return (
@@ -263,14 +269,6 @@ export default function AdminDashboard({
             <Head title="Executive Dashboard" />
 
             <style>{`
-                :root, [data-theme="dark"], [data-theme="light"], .admin-layout, main, #app {
-                    --vq-teal-400: #00aa98 !important;
-                    --vq-teal-500: #00aa98 !important;
-                    --vq-teal-600: #009988 !important;
-                    --vq-accent: #00aa98 !important;
-                    --vq-series-1: #00aa98 !important;
-                    --chart-1: #00aa98 !important;
-                }
                 @keyframes vq-fade-up {
                     from { opacity: 0; transform: translateY(16px); }
                     to   { opacity: 1; transform: translateY(0); }

@@ -65,7 +65,16 @@
 @import './tokens/elevation.css';
 @import './tokens/motion.css';
 @import './tokens/theme.css';
+
+/* Values the card layer needs that V6 does not declare. Additions ON the
+   design system, so deliberately not inside tokens/ — see the file header. */
+@import './card-layer.css';
+
 @import './tokens/base.css';
+
+/* The dashboard card layer — the .vqc card face, ported from the v6 card
+   builder. Loaded after base.css so it can override element defaults. */
+@import './cards.css';
 
 /* Deprecated v2.0 names, aliased onto V6. Shrinks to nothing — see the file. */
 @import './compat.css';

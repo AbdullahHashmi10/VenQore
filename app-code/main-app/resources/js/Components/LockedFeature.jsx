@@ -158,11 +158,16 @@ export default function LockedFeature({
                                     We are currently finalizing the security and performance audits.
                                 </p>
 
+                                {/* The V6 Button styles itself from tokens and
+                                    declares no `className`, so the stack of
+                                    !bg-neutral-* overrides that used to sit
+                                    here was being dropped by React in silence.
+                                    The secondary variant — a light card face —
+                                    reads correctly on this dark panel, and
+                                    stock Tailwind greys are off the palette
+                                    anyway (DESIGN-RULES §4). */}
                                 <div className="flex justify-center">
-                                    <SecondaryButton
-                                        onClick={() => setShowComingSoon(false)}
-                                        className="!bg-neutral-800 !text-neutral-300 !border-neutral-700 hover:!bg-neutral-700 hover:!text-white"
-                                    >
+                                    <SecondaryButton onClick={() => setShowComingSoon(false)}>
                                         Acknowledge
                                     </SecondaryButton>
                                 </div>

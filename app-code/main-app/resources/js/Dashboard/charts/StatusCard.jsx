@@ -1,42 +1,59 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, HelpCircle, XCircle } from 'lucide-react';
 
-export default function StatusCard({ data, definition }) {
-    const state = data?.state || 'unknown';
-    const label = data?.label || 'Unknown';
+/**
+ * StatusCard — a state, in a word.
+ *
+ * ── §2 · nothing meaningful is colour alone ─────────────────────────────────
+ *
+ * A status gets an icon AND a word, always. Roughly 1 in 12 men cannot reliably
+ * separate the red from the green, and a red dot and a green dot are the same
+ * dot to them — so the icon shape differs (a tick, a triangle, a cross) and the
+ * word is always printed.
+ *
+ * The old version painted each severity with a nine-class Tailwind pigment
+ * string the product does not own, and then hard-coded two checks — "General
+ * Ledger Structure Ok" and "Debits Match Credits" — into every status card
+ * regardless of what it was showing. Those come from the reading now, or they
+ * do not appear.
+ */
+
+const TONES = {
+    ok:      { className: 'vqc-dot--ok',   Icon: CheckCircle2,  chip: 'vqc-chip--ok' },
+    warning: { className: 'vqc-dot--warn', Icon: AlertTriangle, chip: 'vqc-chip--warn' },
+    danger:  { className: 'vqc-dot--bad',  Icon: XCircle,       chip: 'vqc-chip--bad' },
+    neutral: { className: '',              Icon: HelpCircle,    chip: '' },
+};
+
+export default function StatusCard({ data }) {
     const severity = data?.severity || 'neutral';
-
-    let ColorIcon = AlertCircle;
-    let pillColor = 'text-ink-secondary bg-sunken border-line  dark:bg-sunken dark:border-line';
-
-    if (severity === 'ok') {
-        ColorIcon = CheckCircle2;
-        pillColor = 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20';
-    } else if (severity === 'warning') {
-        ColorIcon = AlertCircle;
-        pillColor = 'text-amber-700 bg-amber-50 border-amber-100 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20';
-    } else if (severity === 'danger') {
-        ColorIcon = XCircle;
-        pillColor = 'text-rose-700 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20';
-    }
+    const tone = TONES[severity] || TONES.neutral;
+    const label = data?.label || 'Unknown';
+    const checks = Array.isArray(data?.checks) ? data.checks : [];
 
     return (
-        <div className="flex flex-col justify-between h-full w-full relative">
-            <div className="flex items-center gap-2 border px-3 py-2 rounded-xl w-fit font-semibold text-sm tracking-tight transition-transform duration-normal select-none shrink-0 mb-2 shadow-sm capitalize z-10 class-pill-state">
-                <ColorIcon size={16} className="shrink-0" />
-                <span className={pillColor.split(' ')[0]}>{label}</span>
-            </div>
+        <div className="vqc-status">
+            <span className={`vqc-dot ${tone.className}`.trim()}>
+                <i aria-hidden="true" />
+                <span>{label}</span>
+            </span>
 
-            <div className="flex flex-col gap-1.5 grow justify-center shrink-0 z-10 mt-1 select-none">
-                <div className="flex items-center gap-2 text-3xs font-semibold text-ink-muted">
-                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                    <span>General Ledger Structure Ok</span>
-                </div>
-                <div className="flex items-center gap-2 text-3xs font-semibold text-ink-muted">
-                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                    <span>Debits Match Credits</span>
-                </div>
-            </div>
+            {data?.detail && <p className="vqc-ctx">{data.detail}</p>}
+
+            {checks.length > 0 && (
+                <ul className="vqc-checks">
+                    {checks.map((check, i) => {
+                        const ok = check.ok ?? check.passed ?? true;
+                        const CheckIcon = ok ? CheckCircle2 : XCircle;
+                        return (
+                            <li key={check.label ?? i} className={ok ? '' : 'is-bad'}>
+                                <CheckIcon size={12} aria-hidden="true" />
+                                <span>{check.label ?? String(check)}</span>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
         </div>
     );
 }

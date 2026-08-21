@@ -233,6 +233,16 @@ export const cssVar = {
     ramp: (name, shade) => `${VAR_PREFIX}-ramp-${safeKey(name)}-${safeKey(shade)}`,
     /** `--vq-indigo-600` — what Tailwind reads; points at a ramp variable. */
     palette: (name, shade) => `${VAR_PREFIX}-${safeKey(name)}-${safeKey(shade)}`,
+    /**
+     * `--vq-tw-teal-600` — the same thing, out of the way.
+     *
+     * Used for the handful of families whose plain name is already spoken for
+     * by an authored V6 token holding a RESOLVED COLOUR rather than a channel
+     * triplet. Both can't live at `--vq-teal-600`: whichever loads last wins,
+     * and if that's the triplet then every `var()` reading it as a colour is
+     * dropped by the browser without a word. See theme/build/v6-owned.js.
+     */
+    paletteAliased: (name, shade) => `${VAR_PREFIX}-tw-${safeKey(name)}-${safeKey(shade)}`,
     /** `--vq-bg-surface` */
     semantic: (key) => `${VAR_PREFIX}-${safeKey(key)}`,
     /** `--vq-font-sans` */
@@ -258,8 +268,25 @@ export const cssVar = {
  * is what keeps `/30` opacity modifiers working — see color.js for why the
  * variables hold bare channel triplets rather than hex.
  */
-export const paletteColorRef = (name, shade) =>
-    `rgb(var(${cssVar.palette(name, shade)}) / <alpha-value>)`;
+/**
+ * Which of the two names this palette's triplet actually lives under.
+ *
+ * `reserved` is the set of families the V6 token layer has claimed, computed
+ * at build time by theme/build/v6-owned.js and passed in by both the generator
+ * and tailwind.config.js — so the name that is WRITTEN is by construction the
+ * name that is READ, which is the same guarantee cssVar itself exists to give.
+ *
+ * Omit `reserved` and nothing is reserved, which is the behaviour every caller
+ * had before the namespace split.
+ */
+export const paletteVar = (name, shade, reserved) => (
+    reserved && reserved.has(name)
+        ? cssVar.paletteAliased(name, shade)
+        : cssVar.palette(name, shade)
+);
+
+export const paletteColorRef = (name, shade, reserved) =>
+    `rgb(var(${paletteVar(name, shade, reserved)}) / <alpha-value>)`;
 
 export const semanticColorRef = (key) =>
     `rgb(var(${cssVar.semantic(key)}) / <alpha-value>)`;

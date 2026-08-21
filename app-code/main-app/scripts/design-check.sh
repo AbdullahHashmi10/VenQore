@@ -220,6 +220,51 @@ elif [[ "$BASELINE" -eq 1 ]]; then
   bad "oxlint correctness" "cannot baseline — oxlint or the fixture is missing"
 fi
 
+# ── token namespace — blocking ──────────────────────────────────────────────
+#
+# Two layers write --vq-* into the same cascade and they hold different TYPES.
+# The V6 token layer holds resolved colours; theme.generated.css holds bare
+# channel triplets, because Tailwind reads them through
+# `rgb(var(--vq-teal-600) / <alpha-value>)`. app.css loads the generated sheet
+# last, so on any shared name the triplet wins — and a triplet is not a colour,
+# so every `var()` reading it as one is dropped by the browser silently.
+#
+# That shipped. Thirteen semantic tokens (every accent, every focus ring, the
+# slot-1 chart mark) painted nothing product-wide, in both modes, with no error
+# anywhere and no failing test. The generator now routes the colliding families
+# to --vq-tw-* by itself; this is the check that says it still does.
+echo
+echo "  token namespace — blocking"
+
+if [[ -f resources/css/theme.generated.css ]]; then
+  shadow_out=$(node --input-type=module -e "
+    import fs from 'node:fs';
+    const { shadowedV6Colours } = await import('./resources/js/theme/build/v6-owned.js');
+    const css = fs.readFileSync('resources/css/theme.generated.css', 'utf8');
+    process.stdout.write(shadowedV6Colours(css).join('\n'));
+  " 2>&1) || shadow_out="HARNESS BROKEN — $shadow_out"
+
+  if [[ -z "$shadow_out" ]]; then
+    ok "V6 colour token shadowed" "0"
+  else
+    bad "V6 colour token shadowed" "$(printf '%s\n' "$shadow_out" | wc -l | tr -d ' ')"
+    printf '%s\n' "$shadow_out" | head -8 | sed 's|^|      |'
+    echo "      → these names hold a V6 colour and a generated triplet. Run: npm run theme:build" | sed 's|^|  |'
+  fi
+else
+  note "V6 colour token shadowed" "theme.generated.css missing — run npm run theme:build"
+fi
+
+# The other half of the same rule: a component may not re-declare a design
+# token to work around it painting nothing. Every one of these was a symptom.
+tokpatch=$(grep -rnE -- '--vq-[a-z0-9-]+:[^;]*!important' "$SRC" --include=*.jsx 2>/dev/null || true)
+if [[ -z "$tokpatch" ]]; then
+  ok "token override in a page" "0"
+else
+  bad "token override in a page" "$(printf '%s\n' "$tokpatch" | wc -l | tr -d ' ')"
+  printf '%s\n' "$tokpatch" | head -5 | sed 's|^|      |'
+fi
+
 echo
 if [[ "$FAIL" -eq 0 ]]; then
   echo "  All design checks pass."

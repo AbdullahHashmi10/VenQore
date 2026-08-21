@@ -1,278 +1,224 @@
-import React, { useId } from 'react';
-import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import React, { useMemo } from 'react';
+
+import { AreaChart } from '@/Components/Charts/area-chart';
+import { Area } from '@/Components/Charts/area';
+import { Bar } from '@/Components/Charts/bar';
+import { BarChart } from '@/Components/Charts/bar-chart';
+import { Line } from '@/Components/Charts/line';
+import { LineChart } from '@/Components/Charts/line-chart';
 
 import { formatValue } from '../utils/format';
-import { PALETTE } from './palette';
+import { variantOf } from '../variantLaw';
+import { padSeries, seriesList, toRows, useChartMotion } from './kit';
 
 /**
- * StatChart — the number block.
+ * StatChart — the body under a number.
  *
- * The default chart for every SCALAR reading, so it is the one a user sees most
- * and the exemplar the other eight follow.
+ * ── What this is not, any more ──────────────────────────────────────────────
  *
- * ── What this was ───────────────────────────────────────────────────────────
+ * It used to be the whole card: it rendered the value at 38px, the delta pill,
+ * the context line and a sparkline, which meant a line chart's card had no
+ * number, a gauge's card had two, and each of the nine chart components decided
+ * its own type scale independently. The frame owns all of that now (M2 and M3
+ * are frame mechanisms, not per-chart ones), and this draws what is left.
  *
- * One line of it broke four rules at once. It set the value in a weight of 800
- * (above the system's 700 ceiling), in an off-system true-neutral grey, with a
- * 300ms transition (not one of the four legal durations), scaling on group
- * hover — the named bug. The reference never scales a card on hover, and a KPI
- * figure that grows when the pointer passes over it makes the whole board feel
- * unstable.
+ * ── The four reads ──────────────────────────────────────────────────────────
  *
- * The offending classes are described rather than quoted here on purpose: the
- * CI greps in DESIGN-RULES v3.0 §16 match on text, and a file that documents a
- * violation should not read as one.
+ * A single number with no context cannot be acted on — "Rs 920,625" is a
+ * different fact depending on whether it is today or the year, and "672" on
+ * its own does not say what it counts or which way it is going. So a stat card
+ * offers four bodies, and the frame states the label and the window above all
+ * of them:
  *
- * ── The three mechanisms it now implements ──────────────────────────────────
+ *   `number`  nothing at all — the frame's figure, delta and window, one row
+ *   `spark`   the shape of the run-up
+ *   `delta`   this half of the window against the last
+ *   `plain`   lowest, average, highest, latest — and when each happened
  *
- * **M2 · Three type sizes, never two, never four.** Eyebrow 11px uppercase →
- * value 38px (or 26px on a lean card) in Space Grotesk, tabular → unit at half
- * the value, demoted and baseline-aligned. The label-to-value jump is ≥2.3×.
- * Nothing sits between them, and a fourth size in this block is a fail.
+ * `number` exists because a card that is only a number should be allowed to be
+ * only a number, at 3×1, rather than forced into three rows of whitespace. The
+ * Variant Law drops the size floor to match.
  *
- * **M3 · The delta is a pill with a glyph, and it is the smallest thing on the
- * card.** Direction is carried by an arrow *and* a sign, never by colour alone
- * — roughly 1 in 12 men cannot reliably separate the red from the green. The
- * pill carries the semantic colour; the context sentence beside it never does.
+ * ── M5 · one hue ────────────────────────────────────────────────────────────
  *
- * **M5 · One hue.** The sparkline is a single accent stroke over a wash that
- * fades to transparent. No axis, no grid, no second colour.
+ * A single accent stroke over a wash that fades to transparent. No axis, no
+ * grid, no second colour, no tooltip — a sparkline answers "which way, and how
+ * steadily", and every mark added to it answers a question nobody asked it.
  */
-export default function StatChart({ data, definition, settings, card }) {
-    const value = data?.value;
+export default function StatChart({ data, definition, meta, settings, card }) {
+    const motion = useChartMotion();
+    const variant = variantOf(card ?? { chart: 'stat' });
+
+    const unit = meta?.unit || definition?.unit || 'decimal';
+    const precision = meta?.precision ?? definition?.precision ?? 0;
     const previous = data?.previous;
-    const changePct = data?.change_pct;
-    const direction = definition?.direction || 'neutral';
-    const unit = definition?.unit || 'decimal';
-    const precision = definition?.precision ?? 0;
 
-    const displayValue = formatValue(value, unit, precision, settings);
-    const displayPrevious = previous != null
-        ? formatValue(previous, unit, precision, settings)
-        : null;
-
-    // M2: 38px or 26px. No other size. A C1 tile and a C2 strip are the two
-    // categories that cannot hold 38px without the number touching its own
-    // frame, so they take the small step; everything else takes the full one.
-    const lean = card?.category === 'C1' || card?.category === 'C2';
-
-    // M1: on the one accent-filled card of the board, everything inverts. The
-    // frame paints the mint fill; the block on top of it has to follow, or the
-    // headline metric is the one number nobody can read.
-    const accent = Boolean(card?.style?.accent);
-
-    const trend = resolveTrend(changePct, direction);
-
-    return (
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            height: '100%',
-            width: '100%',
-            position: 'relative',
-        }}>
-            {/* ── The number block ─────────────────────────────────────────── */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                justifyContent: 'space-between',
-                gap: '10px',
-                flexShrink: 0,
-            }}>
-                <div
-                    // Space Grotesk with tabular figures. In a financial product
-                    // proportional figures in a column are a typo you can see
-                    // from across the room.
-                    style={{
-                        fontFamily: 'var(--vq-font-numeric)',
-                        fontSize: lean ? 'var(--vq-fs-metric-sm)' : 'var(--vq-fs-metric)',
-                        lineHeight: 'var(--vq-lh-metric)',
-                        letterSpacing: 'var(--vq-ls-metric)',
-                        fontWeight: 'var(--vq-fw-semi)',
-                        color: accent ? 'var(--vq-on-accent)' : 'var(--vq-text)',
-                        fontVariantNumeric: 'tabular-nums',
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                    }}
-                    title={String(value ?? '')}
-                >
-                    {displayValue}
-                </div>
-
-                {trend && <DeltaPill trend={trend} changePct={changePct} accent={accent} />}
-            </div>
-
-            {/* ── Context and sparkline ────────────────────────────────────── */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                gap: '10px',
-                marginTop: 'auto',
-            }}>
-                {/* M3: the context sentence is never tinted. Only the pill
-                    carries semantic colour; this is plain metadata. */}
-                <div style={{
-                    fontFamily: 'var(--vq-font-numeric)',
-                    fontSize: 'var(--vq-fs-eyebrow)',
-                    lineHeight: 'var(--vq-lh-eyebrow)',
-                    letterSpacing: 'var(--vq-ls-eyebrow)',
-                    textTransform: 'uppercase',
-                    fontWeight: 'var(--vq-fw-medium)',
-                    color: accent ? 'rgb(255 255 255 / .72)' : 'var(--vq-text-3)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                }}>
-                    {displayPrevious ? `vs ${displayPrevious}` : ''}
-                </div>
-
-                <Sparkline points={data?.series} accent={accent} />
-            </div>
-        </div>
+    /* A single reading still draws — flat, on a real scale. See `padSeries`. */
+    const list = useMemo(
+        () => padSeries(seriesList(data), meta, meta?.label || definition?.label || 'Value'),
+        [data, meta, definition],
     );
-}
+    const rows = useMemo(() => toRows(list, { asDate: false }), [list]);
 
-/* ------------------------------------------------------------------ *
- * Delta
- * ------------------------------------------------------------------ */
-
-/**
- * Which way is good depends on the reading, not on the sign.
- *
- * A rising cost and a rising revenue are the same arrow and opposite news, so
- * `direction` on the definition decides the colour and the arrow reports the
- * movement. Neutral readings get ink rather than the brand: teal means "this is
- * the brand", and a delta is data.
- */
-function resolveTrend(changePct, direction) {
-    if (changePct == null) return null;
-
-    const rising = changePct > 0;
-    const flat = changePct === 0;
-
-    if (flat) {
-        return { tone: 'neutral', Icon: Minus, sign: '' };
-    }
-
-    const Icon = rising ? ArrowUpRight : ArrowDownRight;
-    const sign = rising ? '+' : '−';
-
-    if (direction === 'upper_is_better') {
-        return { tone: rising ? 'success' : 'danger', Icon, sign };
-    }
-    if (direction === 'lower_is_better') {
-        return { tone: rising ? 'danger' : 'success', Icon, sign };
-    }
-    return { tone: 'neutral', Icon, sign };
-}
-
-const TONE_TOKENS = {
-    success: { fg: 'var(--vq-success)', bg: 'var(--vq-success-bg)', line: 'var(--vq-success-line)' },
-    danger: { fg: 'var(--vq-danger)', bg: 'var(--vq-danger-bg)', line: 'var(--vq-danger-line)' },
-    neutral: { fg: 'var(--vq-text-2)', bg: 'var(--vq-sunken)', line: 'var(--vq-line)' },
-};
-
-function DeltaPill({ trend, changePct, accent }) {
-    // On the accent fill a semantic tint has nothing to sit against — a pale
-    // green pill on mint is invisible. The pill goes to a white scrim instead,
-    // and the GLYPH keeps carrying the direction, which is what M3 actually
-    // requires: never colour alone.
-    const t = accent
-        ? { fg: 'var(--vq-on-accent)', bg: 'rgb(255 255 255 / .18)', line: 'rgb(255 255 255 / .28)' }
-        : TONE_TOKENS[trend.tone];
-
-    return (
-        <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '3px',
-            flexShrink: 0,
-            padding: '2px 8px',
-            borderRadius: 'var(--vq-r-full)',
-            background: t.bg,
-            border: `1px solid ${t.line}`,
-            color: t.fg,
-            // M3: the delta is the smallest thing on the card.
-            fontFamily: 'var(--vq-font-numeric)',
-            fontSize: 'var(--vq-fs-eyebrow)',
-            lineHeight: 'var(--vq-lh-eyebrow)',
-            fontWeight: 'var(--vq-fw-semi)',
-            fontVariantNumeric: 'tabular-nums',
-            whiteSpace: 'nowrap',
-        }}>
-            {/* Glyph AND sign AND number. Never colour alone. */}
-            <trend.Icon size={11} strokeWidth={2.25} aria-hidden="true" />
-            <span>{trend.sign}{Math.abs(changePct).toFixed(1)}%</span>
-        </div>
+    const format = (v) => formatValue(v, unit, precision, settings);
+    const values = useMemo(
+        () => rows.map((r) => r.s0).filter((v) => typeof v === 'number'),
+        [rows],
     );
-}
 
-/* ------------------------------------------------------------------ *
- * Sparkline
- * ------------------------------------------------------------------ */
+    /* The frame already carries the figure, the delta and the window. */
+    if (variant === 'number') return null;
 
-const SPARK_W = 120;
-const SPARK_H = 36;
+    /* ── Period comparison — this half of the window against the last ──── */
+    if (variant === 'delta') {
+        if (values.length < 2) return contextOnly(previous, format);
 
-/**
- * One accent stroke over a wash that fades to transparent. No axis, no grid, no
- * second hue — M5.
- *
- * The gradient id comes from `useId()`. It used to be the literal string
- * `statSparkGradient`, so a board with four stat cards emitted four elements
- * with the same DOM id and every one of them referenced the first — which is
- * invisible until the first card unmounts and the other three lose their fill.
- */
-function Sparkline({ points, accent }) {
-    const gradientId = useId().replace(/:/g, '');
-    // The stroke is the accent everywhere except ON the accent, where it would
-    // vanish into its own background.
-    const ink = accent ? 'var(--vq-on-accent)' : PALETTE.accent;
+        const half = Math.floor(values.length / 2);
+        const mean = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
+        const prev = mean(values.slice(0, half));
+        const curr = mean(values.slice(half));
+        const max = Math.max(prev, curr) || 1;
+        const up = curr >= prev;
+        const pct = prev ? Math.abs(((curr - prev) / prev) * 100).toFixed(1) : '0.0';
 
-    if (!Array.isArray(points) || points.length < 2) return null;
+        return (
+            <div className="vqc-stat">
+                <ComparisonRow label="This window" value={curr} max={max} format={format} accent />
+                <ComparisonRow label="Previous" value={prev} max={max} format={format} />
+                <p className="vqc-stat-note">
+                    {up ? 'Up' : 'Down'} {pct}% on the first half of the period.
+                </p>
+            </div>
+        );
+    }
 
-    const min = Math.min(...points);
-    const max = Math.max(...points);
-    const range = max - min || 1;
+    /* ── Min / avg / max — the four facts, and when each happened ──────── */
+    if (variant === 'plain') {
+        if (!values.length) return contextOnly(previous, format);
 
-    const coords = points.map((p, i) => ({
-        x: (i / (points.length - 1)) * SPARK_W,
-        // 4px of headroom top and bottom so the stroke is never clipped by its
-        // own viewBox at the extremes.
-        y: SPARK_H - 4 - ((p - min) / range) * (SPARK_H - 8),
-    }));
+        const lo = Math.min(...values);
+        const hi = Math.max(...values);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const nameAt = (v) => {
+            const i = rows.findIndex((r) => r.s0 === v);
+            return i >= 0 ? String(rows[i].name ?? '') : '';
+        };
 
-    const line = `M ${coords[0].x} ${coords[0].y} `
-        + coords.slice(1).map((c) => `L ${c.x} ${c.y}`).join(' ');
-    const area = `${line} L ${SPARK_W} ${SPARK_H} L 0 ${SPARK_H} Z`;
-
-    return (
-        <div style={{ width: SPARK_W, height: SPARK_H, flexShrink: 0 }} aria-hidden="true">
-            <svg
-                viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-                style={{ width: '100%', height: '100%', overflow: 'visible' }}
-            >
-                <defs>
-                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={ink} stopOpacity="0.22" />
-                        <stop offset="100%" stopColor={ink} stopOpacity="0" />
-                    </linearGradient>
-                </defs>
-
-                <path d={area} fill={`url(#${gradientId})`} />
-                <path
-                    d={line}
-                    fill="none"
-                    stroke={ink}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+        return (
+            <div className="vqc-stat vqc-stat--facts">
+                <Fact label="Lowest" value={format(lo)} when={nameAt(lo)} />
+                <Fact label="Average" value={format(avg)} when="mean" />
+                <Fact label="Highest" value={format(hi)} when={nameAt(hi)} />
+                <Fact
+                    label="Latest"
+                    value={format(values[values.length - 1])}
+                    when={String(rows[rows.length - 1]?.name ?? '')}
                 />
-            </svg>
+            </div>
+        );
+    }
+
+    /* ── Sparkline — the shape of the run-up ───────────────────────────── */
+    const hasSpark = rows.length > 1;
+    const hasContext = previous !== null && previous !== undefined;
+
+    /* `padSeries` guarantees two points, so there is always a line to draw —
+       flat when the value did not move, which is the honest picture of a
+       quiet day rather than an empty box. */
+
+    /* bklit's scaled charts want real Dates; a stat's x is positional, so
+       stand-in days keep the spacing even without inventing a calendar. */
+    const dated = rows.map((r, i) => ({ ...r, date: new Date(i * 864e5) }));
+    const sparkStyle = card?.chart === 'sparkline' ? variant : 'area';
+
+    return (
+        <div className="vqc-spark-wrap">
+            {hasContext && (
+                <span className="vqc-ctx">vs {format(previous)}</span>
+            )}
+
+            {hasSpark && (
+                <div className="vqc-spark">
+                    {sparkStyle === 'bars' ? (
+                        <BarChart
+                            data={rows}
+                            xDataKey="name"
+                            className="h-full"
+                            aspectRatio="auto"
+                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            {...motion}
+                        >
+                            <Bar dataKey="s0" fill="var(--chart-1)" lineCap={2} />
+                        </BarChart>
+                    ) : sparkStyle === 'line' ? (
+                        <LineChart
+                            data={dated}
+                            xDataKey="date"
+                            className="h-full"
+                            aspectRatio="auto"
+                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            {...motion}
+                        >
+                            <Line dataKey="s0" stroke="var(--chart-1)" strokeWidth={2} />
+                        </LineChart>
+                    ) : (
+                        <AreaChart
+                            data={dated}
+                            xDataKey="date"
+                            className="h-full"
+                            aspectRatio="auto"
+                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            {...motion}
+                        >
+                            <Area
+                                dataKey="s0"
+                                fill="var(--chart-1)"
+                                stroke="var(--chart-1)"
+                                fillOpacity={0.22}
+                                gradientToOpacity={0}
+                                strokeWidth={2}
+                            />
+                        </AreaChart>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** When there is no run-up to draw, the comparison is still worth stating. */
+function contextOnly(previous, format) {
+    if (previous === null || previous === undefined) return null;
+    return (
+        <div className="vqc-stat">
+            <p className="vqc-stat-note">vs {format(previous)} in the previous window.</p>
+        </div>
+    );
+}
+
+function ComparisonRow({ label, value, max, format, accent = false }) {
+    return (
+        <div className="vqc-cmp">
+            <span className="vqc-cmp-label">{label}</span>
+            <span className="vqc-cmp-track">
+                <i
+                    style={{
+                        width: `${Math.max(2, (value / max) * 100).toFixed(0)}%`,
+                        background: accent ? 'var(--chart-1)' : 'var(--vq-chart-track-data)',
+                    }}
+                />
+            </span>
+            <b className="vqc-cmp-value">{format(value)}</b>
+        </div>
+    );
+}
+
+function Fact({ label, value, when }) {
+    return (
+        <div className="vqc-fact">
+            <span>{label}</span>
+            <b>{value}</b>
+            {when ? <em>{when}</em> : null}
         </div>
     );
 }

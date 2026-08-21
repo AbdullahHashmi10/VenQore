@@ -28,16 +28,30 @@ import { toTriplet, toHex, contrastRatio, SHADES } from '../color.js';
 import {
     validateTheme,
     cssVar,
+    paletteVar,
     CONTROLLED_PALETTES,
     REQUIRED_ROLES,
     SEMANTIC_TOKENS,
 } from '../contract.js';
+import { v6ReservedPaletteFamilies, shadowedV6Colours } from './v6-owned.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../../..');
 const OUTPUT_PATH = path.join(PROJECT_ROOT, 'resources/css/theme.generated.css');
 
 const isCheckMode = process.argv.includes('--check');
+
+/**
+ * Palette families the V6 token layer has already claimed for resolved colours.
+ *
+ * Derived from the token CSS on every build, never typed — see v6-owned.js for
+ * what goes wrong when both layers write the same name. Today this is
+ * `teal`, `sky`, `lime`; it is whatever V6 says it is tomorrow.
+ */
+const RESERVED_PALETTES = v6ReservedPaletteFamilies([
+    ...CONTROLLED_PALETTES,
+    ...REQUIRED_ROLES,
+]);
 
 /* ------------------------------------------------------------------ *
  * Emitters
@@ -102,11 +116,14 @@ function emitPaletteBindings(theme) {
     }
 
     for (const [rampName, palettes] of grouped) {
-        out.push(`\n    /* ${palettes.join(', ')} → ${rampName} */`);
+        const moved = palettes.filter((p) => RESERVED_PALETTES.has(p));
+        out.push(`\n    /* ${palettes.join(', ')} → ${rampName}${
+            moved.length ? ` (${moved.join(', ')} under --vq-tw-*: V6 owns the plain name)` : ''
+        } */`);
         for (const palette of palettes) {
             for (const shade of SHADES) {
                 out.push(line(
-                    cssVar.palette(palette, shade),
+                    paletteVar(palette, shade, RESERVED_PALETTES),
                     `var(${cssVar.ramp(rampName, shade)})`,
                 ));
             }
@@ -119,7 +136,7 @@ function emitPaletteBindings(theme) {
     for (const role of REQUIRED_ROLES) {
         for (const shade of SHADES) {
             out.push(line(
-                cssVar.palette(role, shade),
+                paletteVar(role, shade, RESERVED_PALETTES),
                 `var(${cssVar.ramp(role, shade)})`,
             ));
         }
@@ -538,6 +555,35 @@ function main() {
     const theme = getActiveTheme();
     const css = buildCss(theme);
 
+    /*
+     * The guard.
+     *
+     * A generated triplet landing on a name the V6 layer holds a colour in is
+     * not a style regression — it is a silent one. `background: var(--vq-…)`
+     * resolves to `8 137 117`, which is invalid at computed-value time, so the
+     * browser drops the whole declaration and paints nothing. Nobody sees an
+     * error; they see an invisible button and go looking in the component.
+     *
+     * That cost a lot of hours once. It costs this check now.
+     */
+    const shadowed = shadowedV6Colours(css);
+    if (shadowed.length) {
+        console.error(
+            `\n[theme] Build aborted — ${shadowed.length} generated name(s) would ` +
+            'shadow a V6 colour token:\n',
+        );
+        for (const name of shadowed) console.error(`    • ${name}`);
+        console.error(
+            '\n        The V6 layer holds resolved colours in these names and this\n' +
+            '        sheet would overwrite them with channel triplets. Everything\n' +
+            '        reading them as a colour would then paint nothing, silently.\n\n' +
+            '        Fix: the family belongs in the --vq-tw-* namespace. That is\n' +
+            '        automatic for anything listed in CONTROLLED_PALETTES or\n' +
+            '        REQUIRED_ROLES — see theme/build/v6-owned.js.\n',
+        );
+        process.exit(1);
+    }
+
     if (isCheckMode) {
         const existing = fs.existsSync(OUTPUT_PATH)
             ? fs.readFileSync(OUTPUT_PATH, 'utf8')
@@ -560,7 +606,8 @@ function main() {
     console.log(
         `[theme] ${theme.name} → resources/css/theme.generated.css ` +
         `(${varCount} variables, ${Object.keys(theme.ramps).length} ramps, ` +
-        `${CONTROLLED_PALETTES.length} Tailwind palettes bound)`,
+        `${CONTROLLED_PALETTES.length} Tailwind palettes bound` +
+        `${RESERVED_PALETTES.size ? `, ${[...RESERVED_PALETTES].join('/')} via --vq-tw-*` : ''})`,
     );
 
     const warnings = auditContrast(theme);

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore — Design System v1.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root{
+  /* ---- TEAL (brand) ---- */
+  --teal-50:#ECF9FB; --teal-100:#D7F1F5; --teal-200:#B4E1E8; --teal-300:#8BC8D2;
+  --teal-400:#5DA5B0; --teal-500:#327882; --teal-600:#21656F; --teal-700:#124E56;
+  --teal-800:#0C393F; --teal-900:#08272B; --teal-950:#021416;
+  /* ---- INK (cool neutral) ---- */
+  --ink-0:#FFFFFF; --ink-25:#F9FAFC; --ink-50:#F4F6F8; --ink-100:#EBEDEF; --ink-200:#D9DDE0;
+  --ink-300:#BFC3C8; --ink-400:#9A9FA5; --ink-500:#777C83; --ink-550:#6C7278; --ink-600:#595E64;
+  --ink-700:#3F444A; --ink-800:#282D32; --ink-900:#151A1F; --ink-950:#0A0B0F; --ink-1000:#030509;
+  /* ---- semantic ---- */
+  --ok:#1A7F51; --ok-d:#54CC8E; --warn:#A85B05; --warn-d:#EFB146;
+  --bad:#BD3838; --bad-d:#F17070; --info:#0070A6; --info-d:#61B9EA;
+
+  --bg:var(--ink-0); --surface:var(--ink-25); --sunken:var(--ink-50);
+  --tx:var(--ink-900); --tx2:var(--ink-600); --tx3:var(--ink-550);
+  --line:var(--ink-200); --line-soft:var(--ink-100);
+  --accent:var(--teal-500); --accent-tx:var(--teal-600);
+
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r-sm:6px; --r:10px; --r-lg:16px; --r-xl:24px; --r-full:999px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --maxw:1080px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--tx);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  font-feature-settings:"cv11","ss01","tnum";
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+@media(max-width:700px){.wrap{padding:0 20px}}
+
+/* HERO */
+.hero{background:var(--ink-950);color:var(--ink-50);padding:88px 0 72px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;inset:auto -10% -60% 30%;height:420px;
+  background:radial-gradient(closest-side,rgba(50,120,130,.55),transparent 70%);filter:blur(20px);pointer-events:none}
+.hero .wrap{position:relative;z-index:1}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal-400)}
+h1{font-size:clamp(38px,6vw,64px);line-height:1.04;letter-spacing:-.033em;font-weight:600;margin:18px 0 0}
+h1 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+.lede{font-size:19px;color:var(--ink-300);max-width:62ch;margin-top:20px;line-height:1.55}
+.meta{margin-top:34px;display:flex;gap:10px;flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:var(--r-full);
+  border:1px solid rgba(255,255,255,.14);color:var(--ink-300)}
+
+/* SECTIONS */
+section{padding:72px 0;border-top:1px solid var(--line-soft)}
+section:first-of-type{border-top:0}
+.snum{font-family:var(--mono);font-size:11px;color:var(--teal-600);letter-spacing:.14em;text-transform:uppercase}
+h2{font-size:clamp(26px,3.4vw,34px);line-height:1.15;letter-spacing:-.025em;font-weight:600;margin:10px 0 14px}
+h3{font-size:17px;font-weight:600;letter-spacing:-.012em;margin:34px 0 12px}
+h4{font-size:13px;font-weight:600;letter-spacing:.02em;margin:22px 0 10px;color:var(--tx2);text-transform:uppercase;font-family:var(--mono);font-size:11px;letter-spacing:.13em}
+p{max-width:72ch;margin-bottom:14px;color:var(--tx2)}
+p.big{font-size:18px;color:var(--tx);line-height:1.55}
+strong{color:var(--tx);font-weight:600}
+a{color:var(--accent-tx)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--sunken);border:1px solid var(--line-soft);padding:1px 6px;border-radius:var(--r-sm)}
+ul{margin:0 0 16px 0;padding-left:0;list-style:none;max-width:72ch}
+ul li{position:relative;padding-left:20px;margin-bottom:8px;color:var(--tx2)}
+ul li::before{content:'';position:absolute;left:2px;top:11px;width:5px;height:5px;border-radius:50%;background:var(--teal-400)}
+
+/* VERDICT CARD */
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;margin:8px 0 26px}
+.verdict .score{display:flex;align-items:baseline;gap:14px;margin-bottom:14px}
+.score b{font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.score span{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--tx3)}
+
+/* SWATCHES */
+.ramp{display:grid;grid-template-columns:repeat(11,1fr);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);margin:14px 0 6px}
+.ramp.n11{grid-template-columns:repeat(11,1fr)}
+.sw{aspect-ratio:1/1.5;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 6px;font-family:var(--mono);font-size:9px;line-height:1.3}
+.sw b{font-weight:500;display:block;opacity:.95}
+.sw i{font-style:normal;opacity:.62;font-size:8px}
+@media(max-width:760px){.ramp{grid-template-columns:repeat(6,1fr)}.sw{aspect-ratio:1/1.2}}
+
+/* TOKEN TABLE */
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0 20px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+   color:var(--tx3);font-weight:500;padding:0 12px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--tx2)}
+td:first-child{color:var(--tx);font-family:var(--mono);font-size:12px;white-space:nowrap}
+.chip{display:inline-block;width:13px;height:13px;border-radius:4px;vertical-align:-2px;margin-right:7px;border:1px solid rgba(0,0,0,.12)}
+.pass{color:var(--ok);font-family:var(--mono);font-size:11.5px;font-weight:500;white-space:nowrap}
+.fail{color:var(--bad);font-family:var(--mono);font-size:11.5px;font-weight:500;white-space:nowrap}
+
+/* CALLOUT */
+.note{border-left:2px solid var(--teal-500);background:var(--teal-50);padding:16px 20px;border-radius:0 var(--r) var(--r) 0;margin:20px 0;max-width:76ch}
+.note.warn{border-color:var(--warn);background:#FDF6EC}
+.note.bad{border-color:var(--bad);background:#FDF0F0}
+.note p{margin-bottom:0;color:var(--ink-700)}
+.note p+p{margin-top:10px}
+.note .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-700);display:block;margin-bottom:7px;font-weight:500}
+.note.warn .lbl{color:#8a4a04}.note.bad .lbl{color:#962c2c}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:18px 0}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;background:var(--bg)}
+.card h5{font-size:14px;font-weight:600;margin-bottom:7px}
+.card p{font-size:13.5px;margin-bottom:0}
+
+/* TYPE SPECIMEN */
+.spec{border-bottom:1px solid var(--line-soft);padding:16px 0;display:grid;grid-template-columns:132px 1fr;gap:20px;align-items:baseline}
+.spec .lbl{font-family:var(--mono);font-size:10.5px;color:var(--tx3);line-height:1.5}
+@media(max-width:700px){.spec{grid-template-columns:1fr;gap:6px}}
+
+/* BUTTON DEMOS */
+.btnrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0 6px;padding:22px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--line)}
+.btnrow.dark{background:var(--ink-950);border-color:rgba(255,255,255,.09)}
+.btn{font-family:var(--sans);font-size:14px;font-weight:500;padding:11px 22px;border-radius:var(--r-full);
+  border:1px solid transparent;cursor:pointer;transition:all .18s var(--ease);letter-spacing:-.006em}
+.btn-p{background:var(--teal-500);color:#fff}
+.btn-p:hover{background:var(--teal-600);transform:translateY(-1px)}
+.btn-s{background:var(--ink-900);color:#fff}
+.btn-s:hover{background:var(--ink-800)}
+.btn-g{background:transparent;color:var(--tx);border-color:var(--line)}
+.btn-g:hover{border-color:var(--ink-400);background:var(--sunken)}
+.btn-t{background:transparent;color:var(--accent-tx);padding:11px 6px}
+.btn-t:hover{color:var(--teal-700)}
+.btn-w{background:#fff;color:var(--ink-950)}
+.btn-dg{background:transparent;color:var(--ink-100);border-color:rgba(255,255,255,.2)}
+
+/* SPACING VIZ */
+.spacescale{display:flex;align-items:flex-end;gap:8px;margin:16px 0;flex-wrap:wrap}
+.spacescale div{background:var(--teal-200);border-radius:3px 3px 0 0;position:relative;min-width:26px}
+.spacescale div span{position:absolute;bottom:-19px;left:0;font-family:var(--mono);font-size:9px;color:var(--tx3)}
+
+/* GRADIENT DEMOS */
+.gradbox{height:190px;border-radius:var(--r-lg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.05em;position:relative;overflow:hidden}
+.g-rec{background:linear-gradient(170deg,#0A0B0F 0%,#0C393F 46%,#21656F 74%,#327882 100%)}
+.g-cur{background:linear-gradient(180deg,#07080d 10%,#327882 50%,#fafafa 90%)}
+.g-mesh{background:#0A0B0F;position:relative}
+.g-mesh::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(50% 60% at 18% 12%,rgba(50,120,130,.55),transparent 68%),
+             radial-gradient(46% 52% at 82% 78%,rgba(18,78,86,.62),transparent 66%),
+             radial-gradient(38% 40% at 60% 25%,rgba(93,165,176,.22),transparent 70%)}
+
+/* MOTION TABLE */
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal-500);margin-right:8px;vertical-align:1px}
+
+/* FIX LIST */
+.fix{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:0 var(--r) var(--r) 0;padding:16px 20px;margin-bottom:12px}
+.fix.mid{border-left-color:var(--warn)}
+.fix.low{border-left-color:var(--teal-400)}
+.fix .sev{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--bad);font-weight:500}
+.fix.mid .sev{color:var(--warn)}.fix.low .sev{color:var(--teal-600)}
+.fix h5{font-size:15px;font-weight:600;margin:5px 0 6px}
+.fix p{font-size:13.5px;margin-bottom:0}
+
+footer{background:var(--ink-950);color:var(--ink-400);padding:44px 0;margin-top:56px;font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer b{color:var(--ink-100);font-weight:600}
+.toc{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;padding:18px 0;border-bottom:1px solid var(--line-soft);position:sticky;top:0;background:var(--bg);z-index:10}
+section{scroll-margin-top:60px}
+.toc a{color:var(--tx3);text-decoration:none}
+.toc a:hover{color:var(--accent-tx)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">VenQore Design System · v1.0</div>
+    <h1>The teal is <em>right</em>.<br>Here's the system around it.</h1>
+    <p class="lede">A complete visual language for the AI ERP builder positioning: colour tokens verified for contrast, a type system tuned for numbers, spacing, components, motion — and the six things in the current build to fix before launch.</p>
+    <div class="meta">
+      <span class="pill">#327882 · OKLCH 53.3% 0.071 208°</span>
+      <span class="pill">17 pairings checked</span>
+      <span class="pill">WCAG 2.1 AA</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="toc">
+  <a href="#verdict">01 Colour verdict</a>
+  <a href="#palette">02 Palette</a>
+  <a href="#tokens">03 Tokens</a>
+  <a href="#gradient">04 Gradients</a>
+  <a href="#type">05 Type</a>
+  <a href="#space">06 Space & shape</a>
+  <a href="#comp">07 Components</a>
+  <a href="#motion">08 Motion</a>
+  <a href="#fixes">09 Fixes</a>
+</div>
+
+<!-- ============ 01 ============ -->
+<section id="verdict">
+  <div class="snum">01</div>
+  <h2>The colour verdict</h2>
+
+  <div class="verdict">
+    <div class="score">
+      <b style="color:var(--teal-600)">Keep it.</b>
+      <span>#327882 — deep slate teal</span>
+    </div>
+    <p class="big" style="margin-bottom:0">It is the right choice for this product, and it is right for a reason worth understanding: it is a <strong>low-chroma</strong> colour (0.071 in OKLCH, where a saturated brand blue runs 0.15–0.20). Low chroma reads as considered rather than loud. On a product whose entire argument is <em style="font-family:var(--serif)">trust my arithmetic</em>, that is exactly the register you want.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h5>Why it works here</h5>
+      <p><strong>It's not the AI colour.</strong> Every AI product in 2026 is violet-to-indigo. Teal reads finance-adjacent and calm, which is the rarer and more defensible position for software that touches money.</p>
+      <p style="margin-top:10px"><strong>It's already yours.</strong> Your logo mark is built from it. The brand is coherent before you've written a rule down.</p>
+      <p style="margin-top:10px"><strong>It behaves in both themes.</strong> Hue 208° stays recognisably itself from 5% to 95% lightness — many brand colours turn muddy or neon at the ends of the ramp. This one doesn't.</p>
+    </div>
+    <div class="card">
+      <h5>The one thing to watch</h5>
+      <p>At 53% lightness it sits almost exactly in the middle of the range, which makes it a <strong>great fill</strong> and a <strong>mediocre text colour on dark backgrounds</strong>.</p>
+      <p style="margin-top:10px">White on #327882 = <span class="pass">5.07:1 ✓</span> — buttons are fine.<br>
+      #327882 on white = <span class="pass">5.07:1 ✓</span> — light-mode text is fine.<br>
+      #327882 on #0A0B0F = <span class="fail">3.88:1 ✗</span> — <strong>fails AA</strong>.</p>
+      <p style="margin-top:10px">Your current build uses <code>#327882</code> as a text and label colour throughout the dark drawer. Fix: use <code>#5DA5B0</code> (teal-400) for anything that is <em style="font-family:var(--serif)">text</em> on a dark surface. Same hue, reads as the same brand colour, <span class="pass">7.0:1 ✓</span>.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="lbl">The rule, in one line</span>
+    <p><strong>teal-500 fills. teal-600 writes on light. teal-400 writes on dark.</strong> Three tokens, one decision, never think about it again.</p>
+  </div>
+
+  <h3>Where it sits against the category</h3>
+  <p>Worth knowing what you're standing next to: Odoo is violet, Zoho is red-and-multicolour, SAP is a corporate blue, NetSuite is a warm grey-blue, QuickBooks is a bright green, Xero is a bright cyan-blue. Teal-at-low-chroma is genuinely open ground in this category — the nearest neighbour is Xero, and Xero sits far brighter and far more saturated. You are not going to be mistaken for anyone.</p>
+</section>
+
+<!-- ============ 02 ============ -->
+<section id="palette">
+  <div class="snum">02</div>
+  <h2>The palette</h2>
+  <p>Two ramps, eleven steps each, generated in OKLCH so perceived lightness moves evenly. Every step below is annotated with its contrast against white / against <code>#0A0B0F</code>.</p>
+
+  <h4>Teal — brand</h4>
+  <div class="ramp">
+    <div class="sw" style="background:#ECF9FB;color:#08272B"><b>50</b><i>ECF9FB</i></div>
+    <div class="sw" style="background:#D7F1F5;color:#08272B"><b>100</b><i>D7F1F5</i></div>
+    <div class="sw" style="background:#B4E1E8;color:#08272B"><b>200</b><i>B4E1E8</i></div>
+    <div class="sw" style="background:#8BC8D2;color:#08272B"><b>300</b><i>8BC8D2</i></div>
+    <div class="sw" style="background:#5DA5B0;color:#021416"><b>400</b><i>5DA5B0</i></div>
+    <div class="sw" style="background:#327882;color:#fff"><b>500</b><i>327882</i></div>
+    <div class="sw" style="background:#21656F;color:#fff"><b>600</b><i>21656F</i></div>
+    <div class="sw" style="background:#124E56;color:#fff"><b>700</b><i>124E56</i></div>
+    <div class="sw" style="background:#0C393F;color:#fff"><b>800</b><i>0C393F</i></div>
+    <div class="sw" style="background:#08272B;color:#fff"><b>900</b><i>08272B</i></div>
+    <div class="sw" style="background:#021416;color:#fff"><b>950</b><i>021416</i></div>
+  </div>
+  <p style="font-size:13px;color:var(--tx3)">400 is the dark-mode text accent · 500 is the fill · 600 is the light-mode text accent · 800/900 are dark surfaces that still carry brand · 50/100 are tint backgrounds for callouts.</p>
+
+  <h4>Ink — cool neutral (hue 250°, chroma 0.012)</h4>
+  <div class="ramp">
+    <div class="sw" style="background:#F9FAFC;color:#151A1F"><b>25</b><i>F9FAFC</i></div>
+    <div class="sw" style="background:#F4F6F8;color:#151A1F"><b>50</b><i>F4F6F8</i></div>
+    <div class="sw" style="background:#EBEDEF;color:#151A1F"><b>100</b><i>EBEDEF</i></div>
+    <div class="sw" style="background:#D9DDE0;color:#151A1F"><b>200</b><i>D9DDE0</i></div>
+    <div class="sw" style="background:#BFC3C8;color:#151A1F"><b>300</b><i>BFC3C8</i></div>
+    <div class="sw" style="background:#9A9FA5;color:#0A0B0F"><b>400</b><i>9A9FA5</i></div>
+    <div class="sw" style="background:#6C7278;color:#fff"><b>550</b><i>6C7278</i></div>
+    <div class="sw" style="background:#595E64;color:#fff"><b>600</b><i>595E64</i></div>
+    <div class="sw" style="background:#3F444A;color:#fff"><b>700</b><i>3F444A</i></div>
+    <div class="sw" style="background:#151A1F;color:#fff"><b>900</b><i>151A1F</i></div>
+    <div class="sw" style="background:#0A0B0F;color:#fff"><b>950</b><i>0A0B0F</i></div>
+  </div>
+  <p style="font-size:13px;color:var(--tx3)">Cool, not pure grey — a faint blue cast (chroma 0.012) makes neutrals sit with the teal instead of beside it. Do not use pure <code>#808080</code> anywhere; it will look dirty next to this ramp.</p>
+
+  <h4>Semantic</h4>
+  <table>
+    <tr><th>Role</th><th>Light mode</th><th>Dark mode</th><th>Use for</th></tr>
+    <tr><td>Success</td><td><span class="chip" style="background:#1A7F51"></span>#1A7F51 <span class="pass">5.0</span></td><td><span class="chip" style="background:#54CC8E"></span>#54CC8E <span class="pass">9.7</span></td><td>Posted, reconciled, in stock, test passing</td></tr>
+    <tr><td>Warning</td><td><span class="chip" style="background:#A85B05"></span>#A85B05 <span class="pass">5.0</span></td><td><span class="chip" style="background:#EFB146"></span>#EFB146 <span class="pass">10.4</span></td><td>Low stock, nearing expiry, needs approval</td></tr>
+    <tr><td>Danger</td><td><span class="chip" style="background:#BD3838"></span>#BD3838 <span class="pass">5.6</span></td><td><span class="chip" style="background:#F17070"></span>#F17070 <span class="pass">6.8</span></td><td>Out of balance, failed, overdue, destructive</td></tr>
+    <tr><td>Info</td><td><span class="chip" style="background:#0070A6"></span>#0070A6 <span class="pass">5.4</span></td><td><span class="chip" style="background:#61B9EA"></span>#61B9EA <span class="pass">9.0</span></td><td>Neutral system notices only</td></tr>
+  </table>
+  <div class="note warn">
+    <span class="lbl">ERP-specific rule</span>
+    <p>In a financial product, semantic colour is <strong>data</strong>, not decoration. Never use teal to mean "good" and never use the semantic greens or reds for a brand accent — the moment a user learns that green means <em style="font-family:var(--serif)">reconciled</em>, a green button becomes a lie. Keep the two systems completely separate.</p>
+    <p>And never encode meaning in colour alone: a red figure also gets a minus sign or a parenthesis, a passing test also gets a ✓. Roughly 1 in 12 men can't reliably separate your red from your green.</p>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section id="tokens">
+  <div class="snum">03</div>
+  <h2>Applied tokens</h2>
+  <p>Ship these as CSS custom properties. Never write a raw hex in a component — every colour decision on the site should resolve to one of these names.</p>
+
+  <h4>Light theme</h4>
+  <table>
+    <tr><th>Token</th><th>Value</th><th>Contrast</th><th>Use</th></tr>
+    <tr><td>--bg</td><td><span class="chip" style="background:#fff"></span>#FFFFFF</td><td>—</td><td>Page background</td></tr>
+    <tr><td>--surface</td><td><span class="chip" style="background:#F9FAFC"></span>#F9FAFC</td><td>—</td><td>Cards, raised panels</td></tr>
+    <tr><td>--sunken</td><td><span class="chip" style="background:#F4F6F8"></span>#F4F6F8</td><td>—</td><td>Alternating sections, code, table stripes</td></tr>
+    <tr><td>--text</td><td><span class="chip" style="background:#151A1F"></span>#151A1F</td><td><span class="pass">17.5 ✓</span></td><td>Headings, body</td></tr>
+    <tr><td>--text-2</td><td><span class="chip" style="background:#595E64"></span>#595E64</td><td><span class="pass">6.5 ✓</span></td><td>Secondary body, subheads</td></tr>
+    <tr><td>--text-3</td><td><span class="chip" style="background:#6C7278"></span>#6C7278</td><td><span class="pass">4.9 ✓</span></td><td>Captions, labels — the lightest legal text</td></tr>
+    <tr><td>--accent</td><td><span class="chip" style="background:#327882"></span>#327882</td><td><span class="pass">5.1 ✓</span></td><td>Button fills, active states</td></tr>
+    <tr><td>--accent-text</td><td><span class="chip" style="background:#21656F"></span>#21656F</td><td><span class="pass">6.7 ✓</span></td><td>Links, inline accent text</td></tr>
+    <tr><td>--line</td><td><span class="chip" style="background:#D9DDE0"></span>#D9DDE0</td><td>—</td><td>Borders, dividers</td></tr>
+    <tr><td>--line-soft</td><td><span class="chip" style="background:#EBEDEF"></span>#EBEDEF</td><td>—</td><td>Table rows, subtle rules</td></tr>
+  </table>
+
+  <h4>Dark theme</h4>
+  <table>
+    <tr><th>Token</th><th>Value</th><th>Contrast</th><th>Use</th></tr>
+    <tr><td>--bg</td><td><span class="chip" style="background:#0A0B0F"></span>#0A0B0F</td><td>—</td><td>Page background — not pure black</td></tr>
+    <tr><td>--surface</td><td><span class="chip" style="background:#12141A"></span>#12141A</td><td>—</td><td>Cards</td></tr>
+    <tr><td>--raised</td><td><span class="chip" style="background:#1A1D25"></span>#1A1D25</td><td>—</td><td>Menus, modals, popovers</td></tr>
+    <tr><td>--text</td><td><span class="chip" style="background:#F4F6F8"></span>#F4F6F8</td><td><span class="pass">18.2 ✓</span></td><td>Headings, body — not pure white</td></tr>
+    <tr><td>--text-2</td><td><span class="chip" style="background:#BFC3C8"></span>#BFC3C8</td><td><span class="pass">11.1 ✓</span></td><td>Secondary</td></tr>
+    <tr><td>--text-3</td><td><span class="chip" style="background:#9A9FA5"></span>#9A9FA5</td><td><span class="pass">7.4 ✓</span></td><td>Captions</td></tr>
+    <tr><td>--accent</td><td><span class="chip" style="background:#327882"></span>#327882</td><td><span class="pass">5.1 ✓</span></td><td>Fills only — white text on top</td></tr>
+    <tr><td>--accent-text</td><td><span class="chip" style="background:#5DA5B0"></span>#5DA5B0</td><td><span class="pass">7.0 ✓</span></td><td><strong>Links and accent text — use this, not #327882</strong></td></tr>
+    <tr><td>--line</td><td>rgba(255,255,255,.10)</td><td>—</td><td>Borders</td></tr>
+  </table>
+
+  <div class="note bad">
+    <span class="lbl">Found in your current build</span>
+    <p>In <code>index.html</code>, the customiser drawer sets every section label and every uppercase heading to <code>text-[#327882]</code> on a <code>zinc-950</code> background. That's <span class="fail">3.88:1</span> — below AA for text at any weight under 18.66px bold. All of those labels are 9–11px. Swap the class to <code>text-[#5DA5B0]</code> and it passes at 7.0:1 with no visible change in brand feel.</p>
+  </div>
+
+  <h4>Never do these</h4>
+  <ul>
+    <li>Pure black <code>#000000</code> as a background — it makes every shadow invisible and every white text vibrate. <code>#0A0B0F</code> instead.</li>
+    <li>Pure white <code>#FFFFFF</code> as body text on dark — 19.7:1 is harsher than anything print would ever use. <code>#F4F6F8</code> instead.</li>
+    <li>More than three greys in one view. If you need a fourth, your hierarchy is wrong, not your palette.</li>
+    <li>Teal on teal for text. Tint backgrounds (teal-50) take <em style="font-family:var(--serif)">ink</em> text, not teal text.</li>
+  </ul>
+</section>
+
+<!-- ============ 04 ============ -->
+<section id="gradient">
+  <div class="snum">04</div>
+  <h2>Gradients</h2>
+  <p>Your current hero gradient runs dark → teal → near-white top to bottom, and flips in dark mode. It's ambitious and it's causing two problems: text colour has to invert with it (which is why the headline is white in light mode and black in dark mode — a rule nobody can maintain), and the near-white bottom kills the depth the top half worked to build.</p>
+
+  <div class="grid3">
+    <div>
+      <div class="gradbox g-cur" style="color:#fff">CURRENT</div>
+      <p style="font-size:12.5px;margin-top:9px">Dark → teal → white. Full-value swing forces inverted text rules and washes out at the fold.</p>
+    </div>
+    <div>
+      <div class="gradbox g-rec" style="color:#D7F1F5">RECOMMENDED</div>
+      <p style="font-size:12.5px;margin-top:9px"><code>linear-gradient(170deg,#0A0B0F 0%,#0C393F 46%,#21656F 74%,#327882 100%)</code> — stays dark throughout, so text is white, always. Four stops instead of three kills banding.</p>
+    </div>
+    <div>
+      <div class="gradbox g-mesh" style="color:#8BC8D2">MESH (hero)</div>
+      <p style="font-size:12.5px;margin-top:9px">Three offset radial gradients over <code>#0A0B0F</code>. Better than a linear behind a WebGL canvas because it has no directional seam to fight with.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="lbl">The four gradient rules</span>
+    <p><strong>1. Never cross the midpoint.</strong> A gradient that goes from dark to light forces you to invert text mid-section. Keep every gradient entirely in the dark half or entirely in the light half.<br>
+    <strong>2. Three stops minimum, four preferred.</strong> Two-stop gradients band visibly on cheap monitors — which is what most of your buyers have.<br>
+    <strong>3. Move hue, not just lightness.</strong> #0A0B0F → #327882 shifts hue 250° → 208°, which is why it feels like light rather than a fade.<br>
+    <strong>4. One gradient per page.</strong> It's the hero's signature. A second one makes the first one ordinary.</p>
+  </div>
+
+  <h3>About the fluid simulation</h3>
+  <p>It's a beautiful piece of work and it should stay — a real-time WebGL fluid field is a legitimate "this was made by someone who cares" signal, and it costs you nothing at the top of the page. Four conditions on keeping it:</p>
+  <ul>
+    <li><strong>Do not let it cover the gradient.</strong> Right now <code>#fluid-canvas</code> sits at <code>z-index:1</code> and <code>.hero-gradient-overlay</code> at <code>z-index:0</code> — the canvas paints over the gradient, so the gradient underneath is doing no work. Put the gradient above the canvas with a low-alpha overlay, or drop the canvas to <code>z-index:0</code> and set the overlay to a semi-transparent scrim.</li>
+    <li><strong>Kill it on mobile.</strong> Continuous WebGL is a battery and thermal problem on a phone. Serve a static mesh gradient below 768px — nobody will know.</li>
+    <li><strong>Respect <code>prefers-reduced-motion</code>.</strong> Freeze the sim and render one static frame. This is an accessibility requirement, not a nicety — motion like this triggers vestibular symptoms in some people.</li>
+    <li><strong>Fade it out below the fold.</strong> It should feel like the top of the page, not like a background the whole site is sitting on.</li>
+  </ul>
+</section>
+
+<!-- ============ 05 ============ -->
+<section id="type">
+  <div class="snum">05</div>
+  <h2>Typography</h2>
+  <p>Your current pairing — Inter with Instrument Serif italic accents — is genuinely good, and it's the part of the current design I'd change least. Keep both. Add one thing.</p>
+
+  <div class="grid3">
+    <div class="card">
+      <h5 style="font-family:var(--sans)">Inter</h5>
+      <p><strong>Everything.</strong> UI, headings, body, buttons. Weights 400 / 500 / 600 only — three weights is a system, five is a mess. Never use 700 for a heading; at display sizes 600 with tight tracking reads stronger and more expensive.</p>
+    </div>
+    <div class="card">
+      <h5 style="font-family:var(--serif);font-style:italic;font-size:19px;font-weight:400">Instrument Serif</h5>
+      <p><strong>One word per page.</strong> Italic only. It's the brand's signature and it works because it's rare. Two on a page and it's a style; three and it's noise.</p>
+    </div>
+    <div class="card">
+      <h5 style="font-family:var(--mono)">JetBrains Mono</h5>
+      <p><strong>Add this.</strong> Eyebrows, labels, data, code, version numbers, test counts. For an ERP a mono face does real work: it makes numbers look <em style="font-family:var(--serif)">measured</em>, which is the entire brand argument.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="lbl">The detail that matters most for this product</span>
+    <p>Set <code>font-feature-settings:"tnum"</code> globally, or at minimum on every table, price, dashboard figure and report. Tabular figures make all digits the same width so columns of numbers align down the page. In a financial product, proportional figures in a table are the visual equivalent of a typo — and almost nobody remembers to switch them on.</p>
+    <p>Also worth setting on Inter: <code>"cv11"</code> (single-storey <em style="font-family:var(--serif)">a</em> alternate off / disambiguated 1lI) and <code>"ss01"</code>. Small refinements, but they're what separates a site that used Inter from a site that <em style="font-family:var(--serif)">specified</em> Inter.</p>
+  </div>
+
+  <h3>The scale</h3>
+  <p style="font-size:13px;color:var(--tx3)">Ratio 1.25 at the body end, opening to ~1.4 at display sizes. All display sizes carry negative tracking — this is the single biggest difference between amateur and professional type on a landing page.</p>
+
+  <div class="spec"><div class="lbl">Display<br>60/1.04/-3.3%<br>weight 600</div><div style="font-size:52px;line-height:1.04;letter-spacing:-.033em;font-weight:600">Built around your business</div></div>
+  <div class="spec"><div class="lbl">H1 page<br>40/1.1/-2.8%<br>weight 600</div><div style="font-size:38px;line-height:1.1;letter-spacing:-.028em;font-weight:600">Describe your business</div></div>
+  <div class="spec"><div class="lbl">H2 section<br>32/1.15/-2.5%<br>weight 600</div><div style="font-size:30px;line-height:1.15;letter-spacing:-.025em;font-weight:600">The one part AI can't touch</div></div>
+  <div class="spec"><div class="lbl">H3<br>20/1.3/-1.5%<br>weight 600</div><div style="font-size:20px;line-height:1.3;letter-spacing:-.015em;font-weight:600">One engine, every module</div></div>
+  <div class="spec"><div class="lbl">Lede<br>19/1.55/-0.6%<br>weight 400</div><div style="font-size:19px;line-height:1.55;letter-spacing:-.006em;color:var(--tx2)">Tell VenQore how you actually work. It assembles the system that runs it.</div></div>
+  <div class="spec"><div class="lbl">Body<br>16/1.6/0<br>weight 400</div><div style="font-size:16px;line-height:1.6;color:var(--tx2)">Every module posts through one double-entry accounting engine.</div></div>
+  <div class="spec"><div class="lbl">Small<br>14/1.55<br>weight 400</div><div style="font-size:14px;line-height:1.55;color:var(--tx2)">Nothing goes live until you approve it.</div></div>
+  <div class="spec"><div class="lbl">Caption<br>13/1.5<br>--text-3</div><div style="font-size:13px;line-height:1.5;color:var(--tx3)">Amazon SP-API approved · UK marketplace</div></div>
+  <div class="spec"><div class="lbl">Eyebrow / label<br>11 mono<br>tracking +14%</div><div style="font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)">Core Ledger</div></div>
+  <div class="spec"><div class="lbl">Data / figure<br>mono, tnum</div><div style="font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:-.01em">7 / 7 &nbsp;·&nbsp; 73 tests &nbsp;·&nbsp; 240+</div></div>
+
+  <h3>Type rules</h3>
+  <ul>
+    <li><strong>Measure: 60–75 characters.</strong> Set <code>max-width:72ch</code> on paragraphs and never let a full-width container decide your line length.</li>
+    <li><strong>Tracking is a function of size.</strong> ≥40px → −3%; 24–40px → −2.5%; 18–24px → −1.5%; body → 0; ≤13px uppercase → +12 to +16%.</li>
+    <li><strong>One weight jump per hierarchy step.</strong> If 600 next to 400 isn't enough separation, change the size or the colour — not the weight.</li>
+    <li><strong>Headlines break where the meaning breaks.</strong> Use <code>&lt;br&gt;</code> deliberately in hero copy; never let the browser choose. And never leave a one-word last line.</li>
+    <li><strong>Self-host the fonts.</strong> <code>woff2</code>, <code>font-display:swap</code>, preloaded. Google Fonts' CDN costs you a DNS lookup, a connection and a render-blocking request on every first visit.</li>
+  </ul>
+</section>
+
+<!-- ============ 06 ============ -->
+<section id="space">
+  <div class="snum">06</div>
+  <h2>Space &amp; shape</h2>
+
+  <h4>Spacing scale — 4px base</h4>
+  <div class="spacescale">
+    <div style="height:4px;width:26px"><span>4</span></div>
+    <div style="height:8px;width:26px"><span>8</span></div>
+    <div style="height:12px;width:26px"><span>12</span></div>
+    <div style="height:16px;width:26px"><span>16</span></div>
+    <div style="height:24px;width:26px"><span>24</span></div>
+    <div style="height:32px;width:26px"><span>32</span></div>
+    <div style="height:48px;width:26px"><span>48</span></div>
+    <div style="height:64px;width:26px"><span>64</span></div>
+    <div style="height:96px;width:26px"><span>96</span></div>
+    <div style="height:128px;width:26px"><span>128</span></div>
+  </div>
+  <p style="margin-top:28px">Only these values. If a gap needs to be 20px, the answer is 16 or 24 — the constraint is what produces rhythm. Section padding: <strong>96px desktop / 64px tablet / 48px mobile</strong>. Content max-width <strong>1120px</strong>; text-only blocks <strong>720px</strong>.</p>
+
+  <div class="note">
+    <span class="lbl">The minimalism rule</span>
+    <p>Minimal design is not fewer elements — it's <strong>more space between the elements you kept</strong>. When a section looks cluttered the instinct is to delete something; the fix is almost always to double the padding first. Your current hero already does this well. The footer doesn't: four link columns at 32px gaps read as dense. Take them to 64.</p>
+  </div>
+
+  <h4>Radius</h4>
+  <table>
+    <tr><th>Token</th><th>Value</th><th>Applied to</th></tr>
+    <tr><td>--r-sm</td><td>6px</td><td>Badges, tags, inline code</td></tr>
+    <tr><td>--r</td><td>10px</td><td>Inputs, small cards, dropdowns</td></tr>
+    <tr><td>--r-lg</td><td>16px</td><td>Cards, panels</td></tr>
+    <tr><td>--r-xl</td><td>24px</td><td>Large feature containers, section blocks</td></tr>
+    <tr><td>--r-full</td><td>999px</td><td>Buttons, pills, avatars</td></tr>
+  </table>
+  <p>Your current build uses a custom <code>2.3rem</code> (36.8px) radius. That's a lot of curve — it reads friendly-consumer, which fights the financial-precision argument. Cap at 24px for containers. Fully-round buttons are the exception and they're the right call: pill buttons against square-ish cards is a deliberate, good contrast.</p>
+
+  <h4>Elevation</h4>
+  <p>Four levels, no more. In light mode use shadow; in dark mode use <strong>surface lightness</strong>, not shadow — a black shadow on a near-black background is invisible, and this is the most common dark-mode mistake.</p>
+  <table>
+    <tr><th>Level</th><th>Light</th><th>Dark</th></tr>
+    <tr><td>0 — flat</td><td>1px border, no shadow</td><td>1px rgba(255,255,255,.08)</td></tr>
+    <tr><td>1 — card</td><td>0 1px 2px rgba(10,11,15,.05)</td><td>background → #12141A</td></tr>
+    <tr><td>2 — raised</td><td>0 4px 16px rgba(10,11,15,.07)</td><td>background → #1A1D25</td></tr>
+    <tr><td>3 — overlay</td><td>0 16px 48px rgba(10,11,15,.13)</td><td>#1A1D25 + 1px white border @10%</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--tx3)">Shadows are always neutral-dark and never coloured. A teal-tinted shadow looks like a mistake at 100% zoom and a bug at 200%.</p>
+
+  <h4>Grid</h4>
+  <p>12 columns, 24px gutters, 32px page margin desktop / 20px mobile. Breakpoints: <code>640 · 768 · 1024 · 1280</code>. Design mobile-first at 375px — over half your visitors will be on a phone, and an ERP landing page is exactly the kind of thing people evaluate on a phone and buy on a laptop.</p>
+</section>
+
+<!-- ============ 07 ============ -->
+<section id="comp">
+  <div class="snum">07</div>
+  <h2>Components</h2>
+
+  <h4>Buttons — light</h4>
+  <div class="btnrow">
+    <button class="btn btn-p">Start building →</button>
+    <button class="btn btn-s">Start building →</button>
+    <button class="btn btn-g">See how it works</button>
+    <button class="btn btn-t">Read the docs →</button>
+  </div>
+  <h4>Buttons — dark</h4>
+  <div class="btnrow dark">
+    <button class="btn btn-p">Start building →</button>
+    <button class="btn btn-w">Start building →</button>
+    <button class="btn btn-dg">Watch a 2-minute build</button>
+    <button class="btn btn-t" style="color:#5DA5B0">Read the docs →</button>
+  </div>
+
+  <ul>
+    <li><strong>One primary per view.</strong> Two primaries is no primary. Your current hero has "See Demo" and "Book a Call" competing at equal weight — pick one.</li>
+    <li><strong>Height 44px minimum</strong> (48px on mobile). That's the touch-target floor, and it's not negotiable.</li>
+    <li><strong>Padding 22px horizontal</strong> — buttons that hug their label look cheap.</li>
+    <li><strong>Hover: darken one ramp step + <code>translateY(-1px)</code>.</strong> Never scale a button on hover; it makes the layout feel unstable.</li>
+    <li><strong>Focus: 2px offset ring in <code>--accent</code>.</strong> Your current CSS has a <code>.no-focus-ring</code> class on the hero textarea. Remove it — that's the keyboard equivalent of hiding the cursor.</li>
+  </ul>
+
+  <h4>Cards</h4>
+  <div class="grid3">
+    <div class="card">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);margin-bottom:9px">01</div>
+      <h5>Describe</h5>
+      <p>Tell VenQore what your business does, in sentences. No forms, no discovery call.</p>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);margin-bottom:9px">02</div>
+      <h5>Review your Blueprint</h5>
+      <p>Every module, field and role — named in your words. Change anything.</p>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);margin-bottom:9px">03</div>
+      <h5>Go live</h5>
+      <p>Approve, and your system exists. First sale before the day is out.</p>
+    </div>
+  </div>
+  <p><strong>Card rules:</strong> 1px border <em style="font-family:var(--serif)">or</em> a shadow, never both. 20–24px internal padding. Same height in a row — set the shortest card's copy length as the ceiling for all of them. Numbered eyebrows in mono for any sequence.</p>
+
+  <h4>Inputs</h4>
+  <p>Height 48px, radius 10px, 1px <code>--line</code> border, 16px internal padding. <strong>Font-size 16px minimum</strong> — anything smaller makes iOS Safari zoom on focus, which feels broken. Focus: border → <code>--accent</code> plus a 3px ring at 15% alpha. Labels sit above the field, always, in 13px <code>--text-2</code>; placeholder text is never a substitute for a label.</p>
+  <p>The hero prompt field is the exception and should stay as it is: borderless, transparent, one hairline underneath, 18–20px text. It should feel like writing, not like filling in a form. That instinct in your current build is correct.</p>
+
+  <h4>Tables — the ERP-specific component</h4>
+  <p>You will have more tables than any other component, and they are where a financial product either looks trustworthy or doesn't.</p>
+  <ul>
+    <li><strong>Numbers right-aligned, mono, tabular figures.</strong> Non-negotiable.</li>
+    <li><strong>Labels left-aligned, sans.</strong> Never centre anything in a data table except a status chip.</li>
+    <li>Row height 48px, header 40px, header text 11px mono uppercase in <code>--text-3</code>.</li>
+    <li><strong>Horizontal rules only</strong> — vertical lines make a table look like a spreadsheet, and the whole point is that you replaced the spreadsheet.</li>
+    <li>Negative numbers in <code>--danger</code> <em style="font-family:var(--serif)">and</em> in parentheses. Colour alone is not a signal.</li>
+    <li>Totals row: 1px <code>--line</code> above, weight 600, never a filled background.</li>
+  </ul>
+
+  <h4>Navigation</h4>
+  <p>Height 64px (72px is generous, 96px — your current value — is a lot of screen given away before anyone has read a word). Transparent over the hero, then on scroll: <code>rgba(255,255,255,.85)</code> + <code>backdrop-filter:blur(12px)</code> + a 1px bottom border. Transition over 200ms. Logo 28px. Links 14px weight 500 in <code>--text-2</code>, going to <code>--text</code> on hover.</p>
+</section>
+
+<!-- ============ 08 ============ -->
+<section id="motion">
+  <div class="snum">08</div>
+  <h2>Motion</h2>
+  <p>The rule for this brand: motion should read as <strong>mechanical precision</strong>, not playfulness. Things assemble, settle and lock. Nothing bounces, nothing wobbles, nothing overshoots — an accounting product that springs is telling you something untrue about itself.</p>
+
+  <table>
+    <tr><th>Token</th><th>Duration</th><th>Easing</th><th>Applied to</th></tr>
+    <tr><td>instant</td><td>100ms</td><td>ease-out</td><td>Hover colour, focus ring</td></tr>
+    <tr><td>fast</td><td>180ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Buttons, chips, small state changes</td></tr>
+    <tr><td>base</td><td>280ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Dropdowns, tabs, accordions</td></tr>
+    <tr><td>slow</td><td>480ms</td><td>cubic-bezier(.16,1,.3,1)</td><td>Scroll reveals, drawers, modals</td></tr>
+    <tr><td>ambient</td><td>6–10s</td><td>ease-in-out, infinite</td><td>Gradient drift, fluid field only</td></tr>
+  </table>
+
+  <ul>
+    <li><strong>Scroll reveal:</strong> <code>opacity 0→1</code> + <code>translateY(20px→0)</code> over 480ms, 60ms stagger between siblings. Once only — never re-animate on scroll-up. Your existing <code>.reveal-item</code> already does this correctly; keep it, reduce the travel from 24px to 20px.</li>
+    <li><strong>The Blueprint animation is the exception.</strong> That one should be slow and legible — modules appearing one at a time over ~2.5s total, with the state labels changing as it goes. Let people <em style="font-family:var(--serif)">watch</em> it. It's the product demo; rushing it wastes the only moment where motion is doing sales work.</li>
+    <li><strong>Never animate:</strong> a number counting up on a financial figure (it reads as a slot machine), anything that shifts layout after paint, or the fluid sim below the fold.</li>
+    <li><strong><code>prefers-reduced-motion</code>:</strong> reveals become instant opacity fades, the fluid canvas renders one static frame, ambient loops stop. One media query, and it's an accessibility requirement rather than an option.</li>
+  </ul>
+</section>
+
+<!-- ============ 09 ============ -->
+<section id="fixes">
+  <div class="snum">09</div>
+  <h2>Nine fixes in the current build</h2>
+  <p>In order of how much they cost you. The first four are the ones I'd do before showing the site to anyone.</p>
+
+  <div class="fix">
+    <div class="sev">Critical · 5 minutes</div>
+    <h5>The customiser drawer ships to production</h5>
+    <p>The floating settings panel with vorticity, splat force, pressure iterations and dye resolution controls is a development tool sitting on your marketing site. A prospective buyer's first impression of a financial system should not be a physics control panel. Gate it behind <code>?debug=1</code>. Highest risk-to-effort ratio on this list.</p>
+  </div>
+
+  <div class="fix">
+    <div class="sev">Critical · rewrite</div>
+    <h5>The copy is still a template</h5>
+    <p><code>&lt;title&gt;VenQore — Design with AI&lt;/title&gt;</code>, "the future of creativity", "VenQore uses advanced AI to transform your ideas into stunning designs", a pricing page selling "50 design generations/month". None of this is your product. Everything in the copy bible replaces it.</p>
+  </div>
+
+  <div class="fix">
+    <div class="sev">Critical · 2 minutes</div>
+    <h5>Dark-mode accent text fails contrast</h5>
+    <p><code>text-[#327882]</code> on <code>zinc-950</code> is 3.88:1 across every label in the drawer and every uppercase section heading. Replace with <code>#5DA5B0</code>.</p>
+  </div>
+
+  <div class="fix">
+    <div class="sev">Critical · 1 minute</div>
+    <h5><code>.no-focus-ring</code> on the hero input</h5>
+    <p>The single most important interactive element on the site is unreachable-looking by keyboard. Remove the class, style the focus state properly instead.</p>
+  </div>
+
+  <div class="fix mid">
+    <div class="sev">High · half a day</div>
+    <h5>The dual-theme inversion is unmaintainable</h5>
+    <p>The headline is <code>text-white dark:text-black</code> and the sub-text is <code>text-black dark:text-white</code> — because the gradient itself inverts. Every new section will need this reasoning applied by hand, and one of them will get it wrong. Go dark-hero / light-body, single theme, and keep the toggle for inside the product.</p>
+  </div>
+
+  <div class="fix mid">
+    <div class="sev">High · 20 minutes</div>
+    <h5>Tailwind is loading from the CDN</h5>
+    <p><code>cdn.tailwindcss.com</code> is explicitly a prototyping tool — it compiles your CSS in the browser on every visit. It's a render-blocking script plus a JIT compile before anything paints. Build a real stylesheet before launch.</p>
+  </div>
+
+  <div class="fix mid">
+    <div class="sev">Medium · 30 minutes</div>
+    <h5>Nav has seven links and no hierarchy</h5>
+    <p>Features · Templates · Pricing · Resources · Contact · Join — plus a separator. "Templates" and "Join" aren't your product's language. Five links, two buttons, one primary CTA that says <em style="font-family:var(--serif)">Start building</em>.</p>
+  </div>
+
+  <div class="fix low">
+    <div class="sev">Medium</div>
+    <h5>Fluid canvas covers the gradient it's meant to sit on</h5>
+    <p><code>#fluid-canvas</code> is <code>z-index:1</code>, <code>.hero-gradient-overlay</code> is <code>z-index:0</code>. Whatever the gradient is doing, the canvas is on top of it. Restack, and add mobile + reduced-motion fallbacks while you're in there.</p>
+  </div>
+
+  <div class="fix low">
+    <div class="sev">Low</div>
+    <h5>Small things</h5>
+    <p>Nav is 96px tall — take it to 64. The <code>4xl:2.3rem</code> radius is too round for a financial product — cap containers at 24px. Footer watermark at <code>text-[16vw]</code> with <code>mb-[12vw]</code> is doing a lot; either commit to it as a signature or cut it. And every footer link currently points at <code>#</code>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="snum">10</div>
+  <h2>The one-paragraph summary</h2>
+  <p class="big">Keep the teal, keep Inter with the serif italic accent, keep the fluid hero — those three decisions are good and they're already yours. Add a mono face for numbers and turn on tabular figures, because that's what makes an ERP look like it can count. Drop to a single theme so you stop maintaining two versions of every section. Replace every word of the template copy with the positioning: <strong>the ERP that builds itself around your business, with double-entry accounting the AI can't touch.</strong> Then take the settings drawer off the production page before anyone sees it.</p>
+</section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b>VenQore Design System v1.0</b> — August 2026</div>
+    <div style="font-family:var(--mono);font-size:11px">#327882 · 17 pairings verified · WCAG 2.1 AA</div>
+  </div>
+</footer>
+
+</body>
+</html>

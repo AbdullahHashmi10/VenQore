@@ -85,6 +85,10 @@ class ReckonerController extends Controller
                 'drill_route' => $definition['drill_route'],
                 'charts' => \App\Reckoner\ReckonerCharts::for($definition['shape']),
                 'default_chart' => \App\Reckoner\ReckonerCharts::default($definition['shape']),
+                // "New" badge in the add-card library. The prototype called
+                // these "extra"; the product word is New.
+                'is_new' => (bool) ($definition['is_new'] ?? false),
+                'module' => $definition['module'] ?? null,
             ];
         }
 

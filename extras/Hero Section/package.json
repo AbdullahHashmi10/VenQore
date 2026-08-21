@@ -1,0 +1,13 @@
+{
+  "name": "hero-section",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "jsrepo": "^3.8.1",
+    "motion": "^12.43.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "shadcn": "^4.18.0"
+  }
+}

@@ -90,6 +90,14 @@ final class Reckoner
                 continue;
             }
 
+            // Module gate — mirrors gate 5b in readMany(), so the catalogue
+            // and a read can never disagree about a switched-off module.
+            if (! $this->passesModules($t, $u, $definition['module'] ?? null)) {
+                $availability[$key] = false;
+
+                continue;
+            }
+
             $availability[$key] = true;
         }
 
@@ -171,6 +179,16 @@ final class Reckoner
 
                     continue;
                 }
+            }
+
+            // 5b. Module — a reading owned by a tenant module disappears with
+            // the module, exactly as its nav item does (ModuleNavBuilder).
+            // "Switched off" is not "plan-locked" and not "no data yet", so it
+            // reports as not_applicable.
+            if ($t !== null && ! $this->passesModules($t, $u, $definition['module'] ?? null)) {
+                $results[$id] = ReckonerResult::failure($id, $key, 'not_applicable', 'This store has this module switched off.');
+
+                continue;
             }
 
             // 6a. Validate period
@@ -416,6 +434,28 @@ final class Reckoner
     /* ------------------------------------------------------------------ *
      * Gate helpers — logic ported verbatim from WidgetRegistry (§4.1).
      * ------------------------------------------------------------------ */
+
+    /**
+     * The module gate. `null` = core reading, never gated. A string is one
+     * owning module; an array means the reading survives while ANY listed
+     * module is visible. Uses ModuleService::enabled() (not visible()) so a
+     * beta module a tenant has switched on still feeds its cards — the
+     * permission dimension is already gate 3's job.
+     */
+    private function passesModules(?Tenant $tenant, User $user, string|array|null $module): bool
+    {
+        if ($module === null || $tenant === null) {
+            return true;
+        }
+
+        foreach ((array) $module as $moduleKey) {
+            if (\App\Services\ModuleService::enabled($tenant, $moduleKey)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private function passesPermissions(User $user, array $permissions): bool
     {

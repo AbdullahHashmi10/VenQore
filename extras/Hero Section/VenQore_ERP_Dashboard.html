@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VenQore · Production ERP Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+
+// Pure Multiples 64px Corner Resizing Engine with Snapping
+let activeResizeCard = null;
+let startX = 0, startY = 0, startWidth = 0, startHeight = 0;
+
+function startCornerResize(e, cardId) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  activeResizeCard = document.getElementById(cardId);
+  if (!activeResizeCard) return;
+
+  activeResizeCard.classList.add('resizing');
+  startX = e.clientX;
+  startY = e.clientY;
+  
+  const rect = activeResizeCard.getBoundingClientRect();
+  startWidth = rect.width;
+  startHeight = rect.height;
+
+  document.addEventListener('mousemove', onCornerResizeMove);
+  document.addEventListener('mouseup', onCornerResizeUp);
+}
+
+function onCornerResizeMove(e) {
+  if (!activeResizeCard) return;
+
+  const deltaX = e.clientX - startX;
+  const deltaY = e.clientY - startY;
+
+  const minCols = parseInt(activeResizeCard.getAttribute('data-min-cols')) || 3;
+  const maxCols = parseInt(activeResizeCard.getAttribute('data-max-cols')) || 12;
+  const minHUnits = parseInt(activeResizeCard.getAttribute('data-min-h')) || 1;
+  const maxHUnits = parseInt(activeResizeCard.getAttribute('data-max-h')) || 9;
+
+  const colUnit = 114;
+  const rowUnit = 64;
+  const colGutter = 24;
+
+  const newWidth = Math.max((minCols * colUnit) + ((minCols - 1) * colGutter), startWidth + deltaX);
+  const newHeight = Math.max(minHUnits * rowUnit, startHeight + deltaY);
+
+  // Snaps horizontally between minCols and maxCols
+  let snappedSpan = Math.round((newWidth + colGutter) / (colUnit + colGutter));
+  if (snappedSpan < minCols) snappedSpan = minCols;
+  if (snappedSpan > maxCols) snappedSpan = maxCols;
+
+  for (let s = 1; s <= 12; s++) {
+    activeResizeCard.classList.remove('col-span-' + s);
+  }
+  activeResizeCard.classList.add('col-span-' + snappedSpan);
+  activeResizeCard.setAttribute('data-span', snappedSpan);
+
+  // Snaps vertically as pure multiples of 64px
+  let snappedHUnit = Math.round(newHeight / rowUnit);
+  if (snappedHUnit < minHUnits) snappedHUnit = minHUnits;
+  if (snappedHUnit > maxHUnits) snappedHUnit = maxHUnits;
+
+  const exactHeightPx = snappedHUnit * rowUnit;
+
+  ['h-1h', 'h-2h', 'h-3h', 'h-4h', 'h-5h', 'h-6h', 'h-7h', 'h-8h', 'h-9h',
+   'h-64', 'h-128', 'h-152', 'h-192', 'h-240', 'h-256', 'h-320', 'h-328', 'h-384', 'h-416', 'h-504', 'h-512', 'h-592', 'h-680', 'h-768']
+    .forEach(c => activeResizeCard.classList.remove(c));
+  
+  activeResizeCard.classList.add('h-' + snappedHUnit + 'h');
+  activeResizeCard.style.height = exactHeightPx + 'px';
+  activeResizeCard.style.minHeight = exactHeightPx + 'px';
+
+  // Dynamic canvas adjustment for chart containers
+  const cashflowChart = document.getElementById('cashflowChart');
+  if (cashflowChart && cashflowChart.closest('#' + activeResizeCard.id)) {
+    const container = cashflowChart.parentElement;
+    if (container) container.style.height = Math.max(160, exactHeightPx - 80) + 'px';
+  }
+  const categoryChart = document.getElementById('categoryChart');
+  if (categoryChart && categoryChart.closest('#' + activeResizeCard.id)) {
+    const container = categoryChart.parentElement;
+    if (container) container.style.height = Math.max(140, exactHeightPx - 130) + 'px';
+  }
+}
+
+function onCornerResizeUp() {
+  if (!activeResizeCard) return;
+  activeResizeCard.classList.remove('resizing');
+  activeResizeCard = null;
+  document.removeEventListener('mousemove', onCornerResizeMove);
+  document.removeEventListener('mouseup', onCornerResizeUp);
+
+  if (cashflowChartInstance) cashflowChartInstance.resize();
+  if (categoryChartInstance) categoryChartInstance.resize();
+}
+
+function toggleErpSidebar() {
+  const wrapper = document.getElementById('erpScreenWrapper');
+  const frame = document.getElementById('dashboardViewportFrame');
+  const btn = document.getElementById('erpSidebarDockBtn');
+  
+  if (wrapper) wrapper.classList.toggle('sidebar-retracted');
+  if (frame) frame.classList.toggle('sidebar-retracted');
+  
+  const isRetracted = (wrapper && wrapper.classList.contains('sidebar-retracted')) || (frame && frame.classList.contains('sidebar-retracted'));
+  
+  if (btn) {
+    btn.textContent = isRetracted ? '▶' : '◀';
+    btn.title = isRetracted ? 'Expand Sidebar' : 'Retract Sidebar';
+  }
+  
+  setTimeout(() => {
+    if (cashflowChartInstance) cashflowChartInstance.resize();
+    if (categoryChartInstance) categoryChartInstance.resize();
+  }, 280);
+}
+
+</script>
+
+<style>
+/* ==========================================================================
+   Design Tokens & Living Neutral Theme Variables
+   ========================================================================== */
+:root {
+  --canvas: #0A0D10;
+  --surface: #11151A;
+  --surface-lift: #171C22;
+  --sunken: #07090C;
+  --line: #222B35;
+  --line-soft: #1B222A;
+  --line-strong: #323F4E;
+  
+  --text: #F2F5F8;
+  --text2: #9BA8B6;
+  --text3: #627181;
+  --text-inverse: #0A0D10;
+  
+  --accent: #0BAA8F;
+  --accent-text: #23C4A6;
+  --accent-soft: rgba(11, 170, 143, 0.14);
+  --accent-strong: #08816D;
+  
+  --success: #32A87D;
+  --success-d: #46C495;
+  --warning: #D9822B;
+  --warning-d: #F39C38;
+  --danger: #D84A43;
+  --danger-d: #EE6A63;
+  --info: #1B7096;
+  --info-d: #2E8CB8;
+  --ai: #E0533C;
+  
+  --teal-300: #5DA5B0;
+  --teal-400: #3D8B96;
+  --teal-500: #0BAA8F;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+  
+  --dur-fast: 160ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  
+  --grid-cols: 12;
+  --col-gutter: 24px;
+  --row-gutter: 24px;
+}
+
+html[data-theme="light"], body.vq-light {
+  --canvas: #F5F7FA;
+  --surface: #FFFFFF;
+  --surface-lift: #FFFFFF;
+  --sunken: #EBEFF4;
+  --line: #DCE2E9;
+  --line-soft: #E5EAF0;
+  --line-strong: #C3CCD6;
+  
+  --text: #11171D;
+  --text2: #52606D;
+  --text3: #7C8B9B;
+  --text-inverse: #FFFFFF;
+  
+  --accent: #0BAA8F;
+  --accent-text: #08816D;
+  --accent-soft: rgba(11, 170, 143, 0.12);
+  --accent-strong: #065F50;
+  
+  --success: #23855E;
+  --success-d: #186345;
+  --warning: #BF6A1E;
+  --warning-d: #964F11;
+  --danger: #C23028;
+  --danger-d: #961F19;
+  --info: #135878;
+  --info-d: #0E425C;
+  --ai: #C73E28;
+  
+  --teal-300: #08816D;
+}
+
+/* Senior Mode Scaling (+30%) */
+html.senior-mode {
+  font-size: 130% !important;
+}
+html.senior-mode .kpi .v {
+  font-size: 34px !important;
+}
+html.senior-mode .btn,
+html.senior-mode .frame-badge,
+html.senior-mode .preset-select {
+  min-height: 44px !important;
+  font-size: 13px !important;
+}
+html.senior-mode .erp-nav-link {
+  font-size: 15px !important;
+  padding: 12px 14px !important;
+}
+
+/* Global Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--canvas);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top App Bar */
+header.app-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 15px;
+}
+.brandmark {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #0BAA8F, #065446);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #FFF;
+  font: 700 13px 'Space Grotesk', sans-serif;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.theme-toggle-btn {
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font: 500 12px 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+.theme-toggle-btn:hover {
+  background: var(--surface-lift);
+  border-color: var(--accent);
+}
+
+/* Main Container */
+main.dashboard-container {
+  flex: 1;
+  padding: 24px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Real PC Screen Simulator Frame
+   ========================================================================== */
+.dashboard-viewport-frame {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  border: 3px solid #0BAA8F !important;
+  border-radius: 20px !important;
+  background: var(--canvas) !important;
+  box-shadow: 0 0 0 5px rgba(11, 170, 143, 0.2), 0 24px 64px rgba(0, 0, 0, 0.6) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transition: max-width 320ms var(--ease), width 320ms var(--ease) !important;
+}
+
+.dashboard-viewport-frame.preset-pc-4k     { max-width: 1920px !important; }
+.dashboard-viewport-frame.preset-pc-2k     { max-width: 1600px !important; }
+.dashboard-viewport-frame.preset-pc-1080   { max-width: 1440px !important; }
+.dashboard-viewport-frame.preset-pc-laptop { max-width: 1280px !important; }
+.dashboard-viewport-frame.preset-pc-mac    { max-width: 1152px !important; }
+.dashboard-viewport-frame.preset-pc-pos    { max-width: 960px !important; }
+
+/* Frame Bezel Bar */
+.frame-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: #060708;
+  border-bottom: 2px solid #0BAA8F;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: #A8B2B3;
+  flex-wrap: wrap;
+  gap: 10px;
+  user-select: none;
+  position: relative;
+}
+body.vq-light .frame-bar {
+  background: #F0F4F4 !important;
+  color: #3D4344 !important;
+}
+.frame-dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.frame-dots span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.frame-dots span:nth-child(1) { background: #E06D63; }
+.frame-dots span:nth-child(2) { background: #FFCD5B; }
+.frame-dots span:nth-child(3) { background: #32A87D; }
+
+.preset-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.preset-select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font: 500 11px 'JetBrains Mono', monospace;
+  cursor: pointer;
+  outline: none;
+}
+.frame-badge {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font: 600 11px 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+
+/* Floating Grid & Gutter Settings Panel */
+.grid-settings-popover {
+  position: absolute;
+  top: 48px;
+  right: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  padding: 18px;
+  z-index: 100;
+  width: 320px;
+  display: none;
+}
+.grid-settings-popover.active {
+  display: block;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.setting-label {
+  font: 600 12px 'Inter', sans-serif;
+  color: var(--text);
+}
+.setting-chips {
+  display: flex;
+  gap: 4px;
+}
+.setting-chip {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font: 600 11px 'JetBrains Mono', monospace;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.setting-chip:hover, .setting-chip.active {
+  background: #0BAA8F !important;
+  color: #FFF !important;
+  border-color: #23C4A6 !important;
+}
+
+/* ==========================================================================
+   Two-Section Layout (Flush Left Sidebar + 12-Col Workspace with 24px Gutters)
+   ========================================================================== */
+.dashboard-frame-body {
+  padding: 0 24px 24px 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+}
+
+.erp-screen-wrapper {
+  display: flex;
+  gap: var(--col-gutter, 24px);
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  align-items: stretch;
+}
+
+/* Left Section: Flush Left Product Sidebar */
+.erp-sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 720px;
+  box-sizing: border-box;
+  transition: width 260ms var(--ease), min-width 260ms var(--ease), padding 260ms ease;
+  z-index: 10;
+}
+
+/* When Retracted: Takes 1 Column Space (Icon-Only Rail) */
+.erp-screen-wrapper.sidebar-retracted .erp-sidebar {
+  width: 72px !important;
+  min-width: 72px !important;
+  padding: 20px 8px !important;
+  align-items: center !important;
+}
+.erp-screen-wrapper.sidebar-retracted .erp-branch-info,
+.erp-screen-wrapper.sidebar-retracted .erp-nav-link span:not(.erp-icon),
+.erp-screen-wrapper.sidebar-retracted .erp-user-meta {
+  display: none !important;
+}
+.erp-screen-wrapper.sidebar-retracted .erp-nav-link {
+  justify-content: center !important;
+  padding: 10px !important;
+}
+
+.erp-brand-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.erp-logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #0BAA8F, #065446);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font: 700 13px 'Space Grotesk', sans-serif;
+  color: #FFFFFF;
+}
+.erp-branch-info strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.2;
+}
+.erp-branch-badge {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--teal-300);
+}
+.erp-dock-toggle {
+  background: rgba(11, 170, 143, 0.15);
+  border: 1px solid rgba(11, 170, 143, 0.3);
+  color: var(--teal-300);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font: 600 11px 'JetBrains Mono', monospace;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--dur-fast) ease;
+}
+.erp-dock-toggle:hover {
+  background: #0BAA8F;
+  color: #FFF;
+}
+
+.erp-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 14px;
+  flex: 1;
+}
+.erp-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text2);
+  font: 500 13px 'Inter', sans-serif;
+  text-decoration: none;
+  transition: all var(--dur-fast) ease;
+}
+.erp-nav-link:hover {
+  background: var(--sunken);
+  color: var(--text);
+}
+.erp-nav-link.active {
+  background: rgba(11, 170, 143, 0.15);
+  color: var(--teal-300);
+  border: 1px solid rgba(11, 170, 143, 0.3);
+  font-weight: 600;
+}
+.erp-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+}
+
+.erp-user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+.erp-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1B7096;
+  color: #FFF;
+  display: grid;
+  place-items: center;
+  font: 700 11px 'Space Grotesk', sans-serif;
+}
+.erp-user-meta strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.2;
+}
+.erp-user-meta span {
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text3);
+}
+
+/* Right Section: 12-Column Main Workspace */
+.erp-right-workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-top: 16px;
+}
+
+/* Live 12-Column Background Guide Overlay (24px Gaps) */
+.dashboard-grid-guide-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 12), minmax(0, 1fr));
+  gap: var(--col-gutter, 24px);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity var(--dur-fast) ease;
+}
+.dashboard-grid-guide-overlay.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.grid-col-guide {
+  background: rgba(11, 170, 143, 0.04);
+  border-left: 1px dashed rgba(11, 170, 143, 0.25);
+  border-right: 1px dashed rgba(11, 170, 143, 0.25);
+  height: 100%;
+}
+
+.dashboard-content-layer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+/* Top Application Header (ZERO Dividing Lines) */
+.erp-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 0;
+  border-bottom: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.erp-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 10px;
+  min-width: 280px;
+}
+.erp-search-input {
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--text);
+  width: 100%;
+}
+.erp-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Segment Pill */
+.segment {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+.segment button {
+  background: transparent;
+  border: 0;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font: 500 12px 'Inter', sans-serif;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+.segment button.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font: 500 12.5px 'Inter', sans-serif;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--dur-fast) ease;
+  white-space: nowrap;
+}
+.btn.primary {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+.btn.primary:hover {
+  background: var(--surface-lift);
+  border-color: var(--accent);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--text2);
+}
+.btn.ghost:hover {
+  color: var(--text);
+}
+.btn.ai {
+  background: rgba(224, 83, 60, 0.12);
+  border-color: rgba(224, 83, 60, 0.3);
+  color: #FF9B82;
+}
+
+/* 12-Column Subgrids with 24px Gutters */
+.grid12 {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 12), minmax(0, 1fr));
+  column-gap: var(--col-gutter, 24px);
+  row-gap: var(--row-gutter, 24px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.erp-kpi-subgrid,
+.erp-charts-subgrid,
+.erp-table-subgrid {
+  align-items: start !important; /* Independent card heights without adjacent shrinking */
+}
+
+/* Column Spans */
+.col-span-12 { grid-column: span 12 / span 12; }
+.col-span-11 { grid-column: span 11 / span 11; }
+.col-span-10 { grid-column: span 10 / span 10; }
+.col-span-9  { grid-column: span 9 / span 9; }
+.col-span-8  { grid-column: span 8 / span 8; }
+.col-span-7  { grid-column: span 7 / span 7; }
+.col-span-6  { grid-column: span 6 / span 6; }
+.col-span-5  { grid-column: span 5 / span 5; }
+.col-span-4  { grid-column: span 4 / span 4; }
+.col-span-3  { grid-column: span 3 / span 3; }
+.col-span-2  { grid-column: span 2 / span 2; }
+.col-span-1  { grid-column: span 1 / span 1; }
+
+/* Cards Styling */
+.card, .kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* KPI Card */
+.kpi {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px;
+}
+.kpi .k {
+  font: 600 11.5px 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text2);
+}
+.kpi .v {
+  font: 700 26px 'Space Grotesk', sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  margin: 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.delta {
+  font: 500 11.5px 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.delta.up { color: var(--success-d); }
+.delta.down { color: var(--danger-d); }
+.status.warning {
+  color: var(--warning-d);
+  font: 600 10.5px 'JetBrains Mono', monospace;
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+.chip {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font: 500 11.5px 'Inter', sans-serif;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+.chip.active {
+  background: var(--accent);
+  color: #FFF;
+  border-color: var(--accent);
+}
+.btnrow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Table */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+th {
+  padding: 10px 14px;
+  text-align: left;
+  color: var(--text3);
+  font: 600 10px 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--line);
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text2);
+}
+td code {
+  font: 11px 'JetBrains Mono', monospace;
+  background: var(--sunken);
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--line-soft);
+}
+.num {
+  text-align: right;
+  font-family: 'Space Grotesk', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.status.success {
+  color: var(--success-d);
+  font: 600 10.5px 'JetBrains Mono', monospace;
+}
+.status.info {
+  color: var(--info-d);
+  font: 600 10.5px 'JetBrains Mono', monospace;
+}
+
+/* Callout & Rules */
+.callout.ai {
+  background: rgba(224, 83, 60, 0.08);
+  border-left: 3px solid var(--ai);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.pill.ai {
+  background: rgba(224, 83, 60, 0.12);
+  border: 1px solid rgba(224, 83, 60, 0.3);
+  color: #FF9B82;
+  font: 600 10px 'JetBrains Mono', monospace;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+.rule-list {
+  display: grid;
+  gap: 6px;
+}
+.rule {
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  border-radius: 8px;
+}
+.rule b {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text);
+}
+.rule span {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* Drag and Drop Card Styling */
+.draggable-card {
+  position: relative !important;
+  cursor: grab !important;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease, opacity var(--dur-fast) ease !important;
+}
+.draggable-card:active {
+  cursor: grabbing !important;
+}
+.draggable-card.dragging {
+  opacity: 0.4 !important;
+  transform: scale(0.98) !important;
+  outline: 2px dashed #0BAA8F !important;
+}
+.draggable-card.drag-over {
+  outline: 2px solid #23C4A6 !important;
+  box-shadow: 0 0 16px rgba(11, 170, 143, 0.5) !important;
+  transform: scale(1.01) !important;
+}
+
+/* Corner-Drag Resize Handle */
+.corner-resize-handle {
+  position: absolute !important;
+  right: 2px !important;
+  bottom: 2px !important;
+  width: 18px !important;
+  height: 18px !important;
+  cursor: nwse-resize !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  color: var(--text3) !important;
+  opacity: 0.5 !important;
+  transition: opacity 140ms ease, color 140ms ease, transform 140ms ease !important;
+  user-select: none !important;
+  z-index: 15 !important;
+  border-bottom-right-radius: var(--radius-lg) !important;
+}
+.corner-resize-handle:hover,
+.draggable-card.resizing .corner-resize-handle {
+  opacity: 1 !important;
+  color: var(--teal-300) !important;
+  transform: scale(1.2) !important;
+}
+.draggable-card.resizing {
+  outline: 2px solid #0BAA8F !important;
+  box-shadow: 0 0 20px rgba(11, 170, 143, 0.4) !important;
+}
+
+
+/* ==========================================================================
+   Exact Tailored Sidebar Widths & Retracted State
+   ========================================================================== */
+.preset-pc-1920 .erp-sidebar { width: 240px !important; min-width: 240px !important; flex: 0 0 240px !important; }
+.preset-pc-1440 .erp-sidebar { width: 220px !important; min-width: 220px !important; flex: 0 0 220px !important; }
+.preset-pc-1280 .erp-sidebar { width: 200px !important; min-width: 200px !important; flex: 0 0 200px !important; }
+.preset-pc-1024 .erp-sidebar { width: 180px !important; min-width: 180px !important; flex: 0 0 180px !important; }
+
+.erp-sidebar {
+  transition: width 0.22s ease, min-width 0.22s ease, max-width 0.22s ease, padding 0.22s ease, flex-basis 0.22s ease !important;
+}
+.erp-workspace {
+  transition: width 0.22s ease, max-width 0.22s ease !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+}
+
+/* Sidebar Retracted (Collapsed) State -> 76px Icon Rail Across All Presets */
+.sidebar-retracted .erp-sidebar,
+.sidebar-collapsed .erp-sidebar,
+.preset-pc-1920.sidebar-retracted .erp-sidebar,
+.preset-pc-1440.sidebar-retracted .erp-sidebar,
+.preset-pc-1280.sidebar-retracted .erp-sidebar,
+.preset-pc-1024.sidebar-retracted .erp-sidebar,
+.preset-pc-1920 .sidebar-retracted .erp-sidebar,
+.preset-pc-1440 .sidebar-retracted .erp-sidebar,
+.preset-pc-1280 .sidebar-retracted .erp-sidebar,
+.preset-pc-1024 .sidebar-retracted .erp-sidebar {
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+  flex: 0 0 76px !important;
+  padding: 16px 8px !important;
+  align-items: center !important;
+}
+
+.sidebar-retracted .erp-sidebar .erp-branch-info,
+.sidebar-retracted .erp-sidebar .erp-nav-link span:not(.erp-icon),
+.sidebar-retracted .erp-sidebar .erp-user-meta {
+  display: none !important;
+}
+.sidebar-retracted .erp-sidebar .erp-nav-link {
+  justify-content: center !important;
+  padding: 10px !important;
+  width: 48px !important;
+  height: 48px !important;
+  margin: 0 auto 6px auto !important;
+  border-radius: 10px !important;
+}
+.sidebar-retracted .erp-sidebar .erp-nav-link .erp-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  margin: 0 auto !important;
+}
+.sidebar-retracted .erp-sidebar .erp-brand-box {
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* Fluid Workspace Expansion when Sidebar is Retracted */
+.sidebar-retracted .erp-workspace,
+.sidebar-collapsed .erp-workspace,
+.preset-pc-1920.sidebar-retracted .erp-workspace,
+.preset-pc-1440.sidebar-retracted .erp-workspace,
+.preset-pc-1280.sidebar-retracted .erp-workspace,
+.preset-pc-1024.sidebar-retracted .erp-workspace,
+.preset-pc-1920 .sidebar-retracted .erp-workspace,
+.preset-pc-1440 .sidebar-retracted .erp-workspace,
+.preset-pc-1280 .sidebar-retracted .erp-workspace,
+.preset-pc-1024 .sidebar-retracted .erp-workspace {
+  max-width: none !important;
+  width: calc(100% - 76px) !important;
+  flex: 1 1 auto !important;
+}
+
+/* Pure Multiples of 64px Height Classes */
+.h-1h, .h-64  { height: 64px !important;  min-height: 64px !important; }
+.h-2h, .h-128 { height: 128px !important; min-height: 128px !important; }
+.h-3h, .h-192 { height: 192px !important; min-height: 192px !important; }
+.h-4h, .h-256 { height: 256px !important; min-height: 256px !important; }
+.h-5h, .h-320 { height: 320px !important; min-height: 320px !important; }
+.h-6h, .h-384 { height: 384px !important; min-height: 384px !important; }
+.h-7h, .h-448 { height: 448px !important; min-height: 448px !important; }
+.h-8h, .h-512 { height: 512px !important; min-height: 512px !important; }
+.h-9h, .h-576 { height: 576px !important; min-height: 576px !important; }
+
+/* Subgrid Layouts with Independent Card Isolation */
+.erp-minipills-subgrid,
+.erp-kpi-subgrid,
+.erp-charts-subgrid,
+.erp-table-subgrid {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: var(--col-gutter, 24px) !important;
+  width: 100% !important;
+  align-items: start !important;
+}
+
+/* Mini Pill Cards */
+.mini-pill-card {
+  padding: 12px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 64px !important;
+}
+.mini-pill-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.mini-pill-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+.mini-pill-icon.inflow {
+  background: rgba(43, 165, 209, 0.15) !important;
+  color: #2BA5D1 !important;
+  border: 1px solid rgba(43, 165, 209, 0.3) !important;
+}
+.mini-pill-icon.outflow {
+  background: rgba(242, 106, 71, 0.15) !important;
+  color: #F26A47 !important;
+  border: 1px solid rgba(242, 106, 71, 0.3) !important;
+}
+.mini-pill-label {
+  font: 600 12px 'JetBrains Mono', monospace !important;
+  color: var(--text) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+.mini-pill-value {
+  font: 700 20px 'Space Grotesk', sans-serif !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.02em !important;
+}
+.mini-pill-value.inflow { color: #2BA5D1 !important; }
+.mini-pill-value.outflow { color: #F26A47 !important; }
+
+/* Corner Resize Handle */
+.corner-resize-handle {
+  position: absolute !important;
+  right: 8px !important;
+  bottom: 6px !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: se-resize !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  color: var(--text3, rgba(255, 255, 255, 0.4)) !important;
+  user-select: none !important;
+  z-index: 30 !important;
+  opacity: 0.7 !important;
+  transition: opacity 0.15s ease, color 0.15s ease !important;
+}
+.draggable-card:hover .corner-resize-handle,
+.kpi:hover .corner-resize-handle,
+.card:hover .corner-resize-handle,
+.mini-pill-card:hover .corner-resize-handle {
+  opacity: 1 !important;
+  color: var(--teal-300, #23C4A6) !important;
+}
+
+/* Senior Mode Typography Scaling (+30%) */
+.senior-mode .kpi .k { font-size: 15px !important; }
+.senior-mode .kpi .v { font-size: 28px !important; }
+.senior-mode .kpi .delta { font-size: 15px !important; }
+.senior-mode .mini-pill-label { font-size: 15px !important; }
+.senior-mode .mini-pill-value { font-size: 26px !important; }
+.senior-mode th { font-size: 14px !important; }
+.senior-mode td { font-size: 16px !important; }
+.senior-mode .rule b { font-size: 15px !important; }
+.senior-mode .rule span { font-size: 14px !important; }
+.senior-mode .callout.ai strong { font-size: 16px !important; }
+.senior-mode .callout.ai p { font-size: 14px !important; }
+
+</style>
+</head>
+<body>
+
+<!-- Main Topbar Navigation -->
+<header class="app-top">
+  <a href="#" class="brand">
+    <div class="brandmark">VQ</div>
+    <span>VenQore · Production ERP Dashboard</span>
+  </a>
+  <div class="header-actions">
+    <button class="theme-toggle-btn" id="theme">☾ Dark</button>
+    <button class="theme-toggle-btn" id="seniorToggle">👓 Senior: OFF</button>
+  </div>
+</header>
+
+<main class="dashboard-container">
+  
+  <!-- Real PC Screen Simulator Viewport Frame -->
+  <div class="dashboard-viewport-frame preset-pc-1080" id="dashboardViewportFrame">
+    
+    <!-- Screen Bezel Header Bar with All PC Resolution Presets & Grid Settings -->
+    <div class="frame-bar">
+      <div class="frame-dots">
+        <span></span><span></span><span></span>
+        <span style="font-weight:600;color:var(--text);margin-left:6px" id="currentDeviceLabel">💻 PC · Desktop 1080p FHD (1440px)</span>
+      </div>
+
+      <!-- PC Screen Presets & Grid Settings Controls -->
+      <div class="preset-bar">
+        <span style="font-size:10.5px;color:var(--text3);margin-right:2px">PC RESOLUTION:</span>
+        
+        <select class="preset-select" id="pcPresetSelect" onchange="setDevicePreset(this.value)" style="min-width:220px">
+          <option value="preset-pc-4k">🖥️ 4K Ultra-wide UHD (1920px)</option>
+          <option value="preset-pc-2k">🖥️ 2K / QHD Display (1600px)</option>
+          <option value="preset-pc-1080" selected>💻 Desktop 1080p FHD (1440px)</option>
+          <option value="preset-pc-laptop">💻 15" Standard Laptop (1280px)</option>
+          <option value="preset-pc-mac">💻 13" MacBook / Laptop (1152px)</option>
+          <option value="preset-pc-pos">📟 Compact POS Terminal (960px)</option>
+        </select>
+
+        <button class="frame-badge" id="gridGuideToggle" onclick="toggleGridGuides()" style="border:1px solid #0BAA8F;background:rgba(11,170,143,0.2);color:#23C4A6">📐 Grid: ON</button>
+        
+        <button class="frame-badge" id="gridSettingsToggleBtn" onclick="toggleGridSettingsPanel()" style="border:1px solid var(--line);background:var(--surface);color:var(--text)">⚙️ Grid Settings</button>
+      </div>
+
+      <!-- Floating Grid & Gutter Settings Panel -->
+      <div class="grid-settings-popover" id="gridSettingsPopover">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line-soft);padding-bottom:8px">
+          <strong style="font-size:13px;color:var(--text)">⚙️ Grid &amp; Gutter Settings</strong>
+          <button onclick="toggleGridSettingsPanel()" style="background:transparent;border:0;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">Columns Count</span>
+          <div class="setting-chips" id="colCountChips">
+            <button class="setting-chip" onclick="setGridColumns(6, this)">6</button>
+            <button class="setting-chip" onclick="setGridColumns(8, this)">8</button>
+            <button class="setting-chip" onclick="setGridColumns(10, this)">10</button>
+            <button class="setting-chip active" onclick="setGridColumns(12, this)">12</button>
+            <button class="setting-chip" onclick="setGridColumns(16, this)">16</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">Column Gutter</span>
+          <div class="setting-chips" id="colGutterChips">
+            <button class="setting-chip" onclick="setColumnGutter('8px', this)">8px</button>
+            <button class="setting-chip" onclick="setColumnGutter('16px', this)">16px</button>
+            <button class="setting-chip active" onclick="setColumnGutter('24px', this)">24px</button>
+            <button class="setting-chip" onclick="setColumnGutter('32px', this)">32px</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">Row Gutter</span>
+          <div class="setting-chips" id="rowGutterChips">
+            <button class="setting-chip" onclick="setRowGutter('8px', this)">8px</button>
+            <button class="setting-chip" onclick="setRowGutter('16px', this)">16px</button>
+            <button class="setting-chip active" onclick="setRowGutter('24px', this)">24px</button>
+            <button class="setting-chip" onclick="setRowGutter('32px', this)">32px</button>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;border-top:1px solid var(--line-soft);padding-top:10px;display:flex;justify-content:flex-end">
+          <button class="btn ghost" onclick="resetGridDefaults()" style="font-size:11px">Reset Defaults (12 Cols / 24px)</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Viewport Inner Body (Zero Left Padding · Sidebar Flush Against Left Wall) -->
+    <div class="dashboard-frame-body">
+      
+      <!-- Two-Section Layout: Flush Left Sidebar (2 cols / 1 col) + Right Workspace (12 cols) -->
+      <div class="erp-screen-wrapper" id="erpScreenWrapper">
+        
+        <!-- Left Section: Flush Left Product Sidebar (2 cols expanded / 1 col retracted) -->
+        <aside class="erp-sidebar" id="erpSidebar">
+          <div>
+            <div class="erp-brand-box">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="erp-logo-icon">VQ</div>
+                <div class="erp-branch-info">
+                  <strong class="erp-branch-name">AMD Outlets</strong>
+                  <span class="erp-branch-badge">Main Branch</span>
+                </div>
+              </div>
+              <button class="erp-dock-toggle" id="erpSidebarDockBtn" onclick="toggleErpSidebar()" title="Expand / Retract Sidebar (2 Cols ⟷ 1 Col)">◀</button>
+            </div>
+
+            <nav class="erp-nav-list">
+              <a href="javascript:void(0)" class="erp-nav-link active" title="Overview">
+                <span class="erp-icon">📊</span> <span>Overview</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Sales & POS">
+                <span class="erp-icon">🛒</span> <span>Sales &amp; POS</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Inventory">
+                <span class="erp-icon">📦</span> <span>Inventory</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Accounting">
+                <span class="erp-icon">📑</span> <span>Accounting</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Purchasing">
+                <span class="erp-icon">🚚</span> <span>Purchasing</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Reports">
+                <span class="erp-icon">📈</span> <span>Reports</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Staff & HR">
+                <span class="erp-icon">👥</span> <span>Staff &amp; HR</span>
+              </a>
+              <a href="javascript:void(0)" class="erp-nav-link" title="Settings">
+                <span class="erp-icon">⚙️</span> <span>Settings</span>
+              </a>
+            </nav>
+          </div>
+
+          <div class="erp-user-box">
+            <div class="erp-avatar">AR</div>
+            <div class="erp-user-meta">
+              <strong>Ahmed R.</strong>
+              <span>Cashier #04 · Online</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Section: 12-Column Main Workspace -->
+        <div class="erp-right-workspace">
+          
+          <!-- Live 12-Column Background Guide Overlay (24px Gaps) -->
+          <div class="dashboard-grid-guide-overlay" id="dashboardGridOverlay">
+            <div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div>
+            <div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div>
+            <div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div><div class="grid-col-guide"></div>
+          </div>
+
+          <div class="dashboard-content-layer">
+            
+            <!-- Clean Top Application Header (ZERO Dividing Lines) -->
+            <div class="erp-topbar">
+              <div class="erp-search-field">
+                <span>🔍</span>
+                <input type="text" placeholder="Search accounts, SKUs, invoices (⌘K)..." class="erp-search-input">
+              </div>
+              <div class="erp-topbar-actions">
+                <div class="segment" id="timePeriodSegment">
+                  <button class="active" onclick="switchPeriod('day', this)">Today</button>
+                  <button onclick="switchPeriod('week', this)">Week</button>
+                  <button onclick="switchPeriod('month', this)">Month</button>
+                  <button onclick="switchPeriod('quarter', this)">Quarter</button>
+                </div>
+                <button class="btn primary" onclick="refreshDashboardData()">🔄 Refresh</button>
+                <button class="btn primary" style="background:#0BAA8F;border-color:#23C4A6;color:#fff;font-weight:600">+ New Sale</button>
+              </div>
+            </div>
+
+            <!-- Row 1: KPI Metric Cards (Draggable + Corner Resizable) -->
+            
+            <!-- Category 1: Mini Pill Cards (1H x 6-Col Base) -->
+            <div class="grid12 erp-minipills-subgrid" style="margin-bottom: 24px;">
+              <div class="card col-span-6 h-1h mini-pill-card draggable-card" id="miniPillCard1" data-span="6" data-min-cols="4" data-max-cols="6" data-min-h="1" data-max-h="2" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="mini-pill-left">
+                  <div class="mini-pill-icon inflow">↗</div>
+                  <div>
+                    <span class="mini-pill-label">MONEY IN (TODAY)</span>
+                    <div class="mini-pill-value inflow">Rs 61,250,000.000</div>
+                  </div>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'miniPillCard1')">⋱</div>
+              </div>
+
+              <div class="card col-span-6 h-1h mini-pill-card draggable-card" id="miniPillCard2" data-span="6" data-min-cols="4" data-max-cols="6" data-min-h="1" data-max-h="2" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="mini-pill-left">
+                  <div class="mini-pill-icon outflow">↘</div>
+                  <div>
+                    <span class="mini-pill-label">MONEY OUT (TODAY)</span>
+                    <div class="mini-pill-value outflow">Rs 24,800,000.000</div>
+                  </div>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'miniPillCard2')">⋱</div>
+              </div>
+            </div>
+
+            <div class="grid12 erp-kpi-subgrid" id="kpiContainer" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" style="margin-bottom:var(--row-gutter,24px)">
+              
+              <div class="kpi col-span-3 draggable-card" id="kpiCard1" data-span="3" data-min-cols="3" data-max-cols="6" data-min-h="2" data-max-h="4" class="card col-span-3 h-2h kpi draggable-card" data-span="3" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="k">Gross Revenue (PKR)
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard1')">⋱</div>
+              </div>
+                <div class="v" id="kpiRevenue">Rs 4,820,150.00</div>
+                <span class="delta up">▲ +12.4% <span style="color:var(--text3);font-size:11px">vs last period</span></span>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard1')">⋱</div>
+              </div>
+
+              <div class="kpi col-span-3 draggable-card" id="kpiCard2" data-span="3" data-min-cols="3" data-max-cols="6" data-min-h="2" data-max-h="4" class="card col-span-3 h-2h kpi draggable-card" data-span="3" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="k">Receivables Outstanding
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard2')">⋱</div>
+              </div>
+                <div class="v" id="kpiReceivables">Rs 840,200,450.000.00</div>
+                <span class="delta down">▼ 12 Overdue Invoices</span>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard2')">⋱</div>
+              </div>
+
+              <div class="kpi col-span-3 draggable-card" id="kpiCard3" data-span="3" data-min-cols="3" data-max-cols="6" data-min-h="2" data-max-h="4" class="card col-span-3 h-2h kpi draggable-card" data-span="3" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="k">Net Operating Margin
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard3')">⋱</div>
+              </div>
+                <div class="v" id="kpiMargin">24.8%</div>
+                <span class="delta up">▲ +3.1% <span style="color:var(--text3);font-size:11px">target 22.0%</span></span>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard3')">⋱</div>
+              </div>
+
+              <div class="kpi col-span-3 draggable-card" id="kpiCard4" data-span="3" data-min-cols="3" data-max-cols="6" data-min-h="2" data-max-h="4" class="card col-span-3 h-2h kpi draggable-card" data-span="3" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div class="k">Inventory Active SKUs
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard4')">⋱</div>
+              </div>
+                <div class="v" id="kpiInventory">3,410</div>
+                <span class="status warning" style="font-size:10px">8 Low Stock Items</span>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'kpiCard4')">⋱</div>
+              </div>
+
+            </div>
+
+            <!-- Row 2: Analytics & Breakdown Charts (Draggable + Corner Resizable) -->
+            <div class="grid12 erp-charts-subgrid" id="chartsContainer" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" style="margin-bottom:var(--row-gutter,24px)">
+              
+              <div class="card col-span-8 draggable-card" id="chartCardCashflow" data-span="8" data-min-cols="6" data-max-cols="12" data-min-h="6" data-max-h="9" class="card col-span-8 h-6h draggable-card" data-span="8" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+                  <h4 style="margin:0;font-size:14px;font-weight:600">Cash Flow &amp; Revenue Projection</h4>
+                  <div class="btnrow">
+                    <span class="chip active" onclick="toggleMetric('all', this)">All Flows</span>
+                    <span class="chip" onclick="toggleMetric('revenue', this)">Credits</span>
+                    <span class="chip" onclick="toggleMetric('expenses', this)">Debits</span>
+                  
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'chartCardCashflow')">⋱</div>
+              </div>
+                </div>
+                <div class="chart-container" style="height:260px">
+                  <canvas id="cashflowChart"></canvas>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'chartCardCashflow')">⋱</div>
+              </div>
+
+              <div class="card col-span-4 draggable-card" id="chartCardSales" data-span="4" data-min-cols="3" data-max-cols="6" data-min-h="4" data-max-h="6" class="card col-span-4 h-6h draggable-card" data-span="4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                <div style="margin-bottom:12px">
+                  <h4 style="margin:0;font-size:14px;font-weight:600">Sales by Module</h4>
+                
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'chartCardSales')">⋱</div>
+              </div>
+                <div class="chart-container" style="height:190px">
+                  <canvas id="categoryChart"></canvas>
+                </div>
+                <div style="margin-top:10px;display:grid;gap:3px;font-size:11.5px;font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;font-weight:500">
+                  <div style="display:flex;justify-content:space-between"><span style="color:#5DA5B0">● Accounting &amp; POS</span><span>45% (Rs 2.1M)</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="color:#61B9EA">● Wholesale</span><span>30% (Rs 1.4M)</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="color:#F26A47">● Channels</span><span>15% (Rs 720K)</span></div>
+                  <div style="display:flex;justify-content:space-between"><span style="color:#B266A8">● Services</span><span>10% (Rs 480K)</span></div>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'chartCardSales')">⋱</div>
+              </div>
+
+            </div>
+
+            <!-- Row 3: Operations & AI Assistant (Draggable + Corner Resizable) -->
+            <div class="grid12 erp-table-subgrid" id="operationsContainer" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+              
+              <div class="card col-span-8 draggable-card" id="tableCardLedger" data-span="8" data-min-cols="6" data-max-cols="12" data-min-h="6" data-max-h="9" class="card col-span-8 h-6h draggable-card" data-span="8" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" style="padding:0;overflow:hidden">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                  <h4 style="margin:0;font-size:14px;font-weight:600">Recent Ledger Activity</h4>
+                  <div class="field-box" style="height:32px;min-height:32px;font-size:12px">
+                    <input id="tableSearch" placeholder="Filter entries..." onkeyup="filterLedgerTable()" style="min-height:32px;background:var(--sunken);border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--text);outline:none">
+                  
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'tableCardLedger')">⋱</div>
+              </div>
+                </div>
+                <div class="table-wrap">
+                  <table id="ledgerTable">
+                    <thead>
+                      <tr>
+                        <th>Reference</th>
+                        <th>Account Title</th>
+                        <th>Status</th>
+                        <th class="num">Debit (PKR)</th>
+                        <th class="num">Credit (PKR)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>INV-2026-881</code></td>
+                        <td>Trade receivables · AMD Outlets</td>
+                        <td><span class="status success">Posted</span></td>
+                        <td class="num">Rs 245,000.00</td>
+                        <td class="num">-</td>
+                      </tr>
+                      <tr>
+                        <td><code>INV-2026-881</code></td>
+                        <td>Sales: Retail POS</td>
+                        <td><span class="status success">Posted</span></td>
+                        <td class="num">-</td>
+                        <td class="num">Rs 207,627.12</td>
+                      </tr>
+                      <tr>
+                        <td><code>INV-2026-881</code></td>
+                        <td>Output Sales Tax Payable</td>
+                        <td><span class="status success">Posted</span></td>
+                        <td class="num">-</td>
+                        <td class="num">Rs 37,372.88</td>
+                      </tr>
+                      <tr>
+                        <td><code>DN-0114-REV</code></td>
+                        <td>Purchase Return adjustment</td>
+                        <td><span class="status warning">Pending</span></td>
+                        <td class="num">-</td>
+                        <td class="num" style="color:var(--danger-d)">−(Rs 12,400.00)</td>
+                      </tr>
+                      <tr>
+                        <td><code>PAY-9920-BANK</code></td>
+                        <td>Vendor settlement · Habib Metro</td>
+                        <td><span class="status info">Processing</span></td>
+                        <td class="num">Rs 180,000.00</td>
+                        <td class="num">-</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'tableCardLedger')">⋱</div>
+              </div>
+
+              <div class="card col-span-4 draggable-card" id="aiCardAssistant" data-span="4" data-min-cols="3" data-max-cols="6" data-min-h="4" data-max-h="6" class="card col-span-4 h-6h draggable-card" data-span="4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" style="display:flex;flex-direction:column;justify-content:space-between">
+                <div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <h4 style="margin:0;font-size:14px;font-weight:600">✦ AI Assistant</h4>
+                    <span class="pill ai">Live</span>
+                  
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'aiCardAssistant')">⋱</div>
+              </div>
+                  <div class="callout ai" style="padding:10px 12px;margin-bottom:8px">
+                    <strong style="display:block;margin-bottom:3px;font-size:12.5px">Tax Discrepancy Flagged</strong>
+                    <p style="margin:0;font-size:11.5px;color:var(--text2)">DN-0114-REV requires manual double-entry approval before fiscal close.</p>
+                  </div>
+                  <div class="rule-list">
+                    <div class="rule">
+                      <b>Reconciliation Status</b>
+                      <span>98.4% auto-matched telemetry.</span>
+                    </div>
+                    <div class="rule">
+                      <b>Cashflow Projections</b>
+                      <span>1.2M PKR inflow expected Monday.</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:10px">
+                  <button class="btn ai" style="width:100%" onclick="alert('Running VenQore automated audit checks...')">✦ Run Audit Check</button>
+                </div>
+                <div class="corner-resize-handle" onmousedown="startCornerResize(event, 'aiCardAssistant')">⋱</div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Dashboard State Variables & Chart Instances
+let cashflowChartInstance = null;
+let categoryChartInstance = null;
+
+const periodData = {
+  day: {
+    revenue: "Rs 4,820,150.00",
+    receivables: "Rs 840,200,450.000.00",
+    margin: "24.8%",
+    inventory: "3,410",
+    labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+    credits: [420, 680, 890, 1100, 1450, 1800, 2200],
+    debits: [150, 280, 410, 520, 680, 890, 1050]
+  },
+  week: {
+    revenue: "Rs 28,450,900.00",
+    receivables: "Rs 1,210,000.00",
+    margin: "26.2%",
+    inventory: "3,395",
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    credits: [3200, 4100, 3800, 5200, 6100, 4900, 5800],
+    debits: [1800, 2100, 1900, 2400, 2900, 2200, 2500]
+  },
+  month: {
+    revenue: "Rs 114,820,000.00",
+    receivables: "Rs 3,450,000.00",
+    margin: "25.4%",
+    inventory: "3,410",
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+    credits: [24000, 29000, 31000, 34800],
+    debits: [12000, 14500, 15000, 16800]
+  },
+  quarter: {
+    revenue: "Rs 342,100,000.00",
+    receivables: "Rs 4,120,000.00",
+    margin: "27.1%",
+    inventory: "3,520",
+    labels: ['Q1', 'Q2', 'Q3', 'Q4 (Est)'],
+    credits: [82000, 94000, 101000, 115000],
+    debits: [41000, 46000, 48000, 53000]
+  }
+};
+
+// Theme Switcher (Dark / Light Mode)
+const root = document.documentElement;
+const themeBtn = document.getElementById('theme');
+
+function setTheme(t) {
+  root.dataset.theme = t;
+  document.body.classList.toggle('vq-light', t === 'light');
+  try { localStorage.setItem('vq-master-theme', t); } catch(e) {}
+  if (themeBtn) themeBtn.textContent = t === 'dark' ? '☾ Dark' : '☀ Light';
+  if (typeof updateChartThemes === 'function') updateChartThemes(t);
+}
+
+try {
+  setTheme(localStorage.getItem('vq-master-theme') || 'dark');
+} catch(e) {
+  setTheme('dark');
+}
+
+if (themeBtn) {
+  themeBtn.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
+}
+
+// Initialize Charts
+function initDashboardCharts() {
+  const isDark = root.dataset.theme !== 'light';
+  const textColor = isDark ? '#BFC3C8' : '#595E64';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+  const cashEl = document.getElementById('cashflowChart');
+  if (cashEl) {
+    const ctxCash = cashEl.getContext('2d');
+    cashflowChartInstance = new Chart(ctxCash, {
+      type: 'line',
+      data: {
+        labels: periodData.day.labels,
+        datasets: [
+          {
+            label: 'Credits (Revenue)',
+            data: periodData.day.credits,
+            borderColor: '#0BAA8F',
+            backgroundColor: 'rgba(11, 170, 143, 0.12)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2.5,
+            pointRadius: 3
+          },
+          {
+            label: 'Debits (Expenses)',
+            data: periodData.day.debits,
+            borderColor: '#F26A47',
+            backgroundColor: 'rgba(242, 106, 71, 0.08)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            borderDash: [4, 4],
+            pointRadius: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: textColor, font: { family: 'Inter', size: 12 } }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(ctx) {
+                const val = ctx.parsed.y;
+                const isNeg = val < 0;
+                const absVal = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return ctx.dataset.label + ': ' + (isNeg ? '−(Rs ' + absVal + ')' : 'Rs ' + absVal);
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, font: { family: 'Space Grotesk', size: 11 } }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, font: { family: 'Space Grotesk', size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  const catEl = document.getElementById('categoryChart');
+  if (catEl) {
+    const ctxCat = catEl.getContext('2d');
+    categoryChartInstance = new Chart(ctxCat, {
+      type: 'doughnut',
+      data: {
+        labels: ['Accounting & POS', 'Wholesale Sales', 'Channels & Sync', 'Services & Misc'],
+        datasets: [{
+          data: [45, 30, 15, 10],
+          backgroundColor: ['#0BAA8F', '#F26A47', '#2BA5D1', '#F5B32E'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+}
+
+function updateChartThemes(theme) {
+  if (!cashflowChartInstance) return;
+  const isDark = theme !== 'light';
+  const textColor = isDark ? '#BFC3C8' : '#595E64';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+  if (cashflowChartInstance.options && cashflowChartInstance.options.scales) {
+    cashflowChartInstance.options.scales.x.ticks.color = textColor;
+    cashflowChartInstance.options.scales.x.grid.color = gridColor;
+    cashflowChartInstance.options.scales.y.ticks.color = textColor;
+    cashflowChartInstance.options.scales.y.grid.color = gridColor;
+    cashflowChartInstance.options.plugins.legend.labels.color = textColor;
+    cashflowChartInstance.update();
+  }
+}
+
+function switchPeriod(p, el) {
+  if (el && el.parentNode) {
+    [...el.parentNode.children].forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  const data = periodData[p] || periodData.day;
+  const kRev = document.getElementById('kpiRevenue');
+  const kRec = document.getElementById('kpiReceivables');
+  const kMar = document.getElementById('kpiMargin');
+  const kInv = document.getElementById('kpiInventory');
+
+  if (kRev) kRev.textContent = data.revenue;
+  if (kRec) kRec.textContent = data.receivables;
+  if (kMar) kMar.textContent = data.margin;
+  if (kInv) kInv.textContent = data.inventory;
+
+  if (cashflowChartInstance) {
+    cashflowChartInstance.data.labels = data.labels;
+    cashflowChartInstance.data.datasets[0].data = data.credits;
+    cashflowChartInstance.data.datasets[1].data = data.debits;
+    cashflowChartInstance.update();
+  }
+}
+
+function toggleMetric(type, chipEl) {
+  if (chipEl && chipEl.parentNode) {
+    [...chipEl.parentNode.children].forEach(c => c.classList.remove('active'));
+    chipEl.classList.add('active');
+  }
+
+  if (!cashflowChartInstance) return;
+  if (type === 'revenue') {
+    cashflowChartInstance.data.datasets[0].hidden = false;
+    cashflowChartInstance.data.datasets[1].hidden = true;
+  } else if (type === 'expenses') {
+    cashflowChartInstance.data.datasets[0].hidden = true;
+    cashflowChartInstance.data.datasets[1].hidden = false;
+  } else {
+    cashflowChartInstance.data.datasets[0].hidden = false;
+    cashflowChartInstance.data.datasets[1].hidden = false;
+  }
+  cashflowChartInstance.update();
+}
+
+function filterLedgerTable() {
+  const input = document.getElementById('tableSearch');
+  if (!input) return;
+  const query = input.value.toLowerCase();
+  const rows = document.querySelectorAll('#ledgerTable tbody tr');
+  rows.forEach(tr => {
+    const text = tr.textContent.toLowerCase();
+    tr.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+function refreshDashboardData() {
+  const activeBtn = document.querySelector('#timePeriodSegment button.active');
+  const currentKey = activeBtn ? activeBtn.textContent.toLowerCase().replace('this ', '') : 'day';
+  const key = currentKey === 'today' ? 'day' : currentKey;
+  
+  const kpis = document.querySelectorAll('.kpi .v');
+  kpis.forEach(k => k.style.opacity = '0.4');
+  setTimeout(() => {
+    switchPeriod(key, activeBtn);
+    kpis.forEach(k => k.style.opacity = '1');
+  }, 250);
+}
+
+window.addEventListener('DOMContentLoaded', initDashboardCharts);
+
+// Senior Mode (+30% Scale)
+const seniorBtn = document.getElementById('seniorToggle');
+function setSeniorMode(enable) {
+  root.classList.toggle('senior-mode', enable);
+  if (seniorBtn) {
+    seniorBtn.textContent = enable ? '👓 Senior: 130% ON' : '👓 Senior: OFF';
+    seniorBtn.classList.toggle('active', enable);
+  }
+  try { localStorage.setItem('vq-senior-mode', enable ? 'true' : 'false'); } catch(e) {}
+}
+if (seniorBtn) {
+  seniorBtn.addEventListener('click', () => {
+    const isSenior = root.classList.contains('senior-mode');
+    setSeniorMode(!isSenior);
+  });
+}
+try {
+  if (localStorage.getItem('vq-senior-mode') === 'true') {
+    setSeniorMode(true);
+  }
+} catch(e) {}
+
+// Product ERP Sidebar Dock Toggle (2 cols ⟷ 1 col)
+function toggleErpSidebar() {
+  const wrapper = document.getElementById('erpScreenWrapper');
+  const btn = document.getElementById('erpSidebarDockBtn');
+  if (!wrapper) return;
+  
+  const isRetracted = wrapper.classList.toggle('sidebar-retracted');
+  if (btn) {
+    btn.textContent = isRetracted ? '▶' : '◀';
+    btn.title = isRetracted ? 'Expand Sidebar (2 Columns Space)' : 'Retract Sidebar (1 Column Space)';
+  }
+  
+  setTimeout(() => {
+    if (cashflowChartInstance) cashflowChartInstance.resize();
+    if (categoryChartInstance) categoryChartInstance.resize();
+  }, 280);
+}
+
+// Device Preset Simulator (All PC Resolutions)
+function setDevicePreset(presetClass) {
+  const frame = document.getElementById('dashboardViewportFrame');
+  const label = document.getElementById('currentDeviceLabel');
+  if (!frame) return;
+
+  const presets = [
+    'preset-pc-4k', 'preset-pc-2k', 'preset-pc-1080', 'preset-pc-laptop', 'preset-pc-mac', 'preset-pc-pos'
+  ];
+  presets.forEach(p => frame.classList.remove(p));
+  frame.classList.add(presetClass);
+
+  const labels = {
+    'preset-pc-4k': '🖥️ PC · 4K Ultra-wide UHD (1920px)',
+    'preset-pc-2k': '🖥️ PC · 2K / QHD Display (1600px)',
+    'preset-pc-1080': '💻 PC · Desktop 1080p FHD (1440px)',
+    'preset-pc-laptop': '💻 PC · 15" Standard Laptop (1280px)',
+    'preset-pc-mac': '💻 PC · 13" MacBook / Laptop (1152px)',
+    'preset-pc-pos': '📟 PC · Compact POS Terminal (960px)'
+  };
+  if (label && labels[presetClass]) {
+    label.textContent = labels[presetClass];
+  }
+
+  const pcSelect = document.getElementById('pcPresetSelect');
+  if (pcSelect) pcSelect.value = presetClass;
+
+  setTimeout(() => {
+    if (cashflowChartInstance) cashflowChartInstance.resize();
+    if (categoryChartInstance) categoryChartInstance.resize();
+  }, 350);
+}
+
+// Toggle Visual 12-Column Grid Guides
+function toggleGridGuides() {
+  const overlay = document.getElementById('dashboardGridOverlay');
+  const toggleBtn = document.getElementById('gridGuideToggle');
+  
+  if (overlay) {
+    const isHidden = overlay.classList.toggle('hidden');
+    if (toggleBtn) {
+      toggleBtn.textContent = isHidden ? '📐 Grid: OFF' : '📐 Grid: ON';
+      toggleBtn.style.opacity = isHidden ? '0.6' : '1';
+      toggleBtn.style.background = isHidden ? 'var(--surface)' : 'rgba(11,170,143,0.2)';
+      toggleBtn.style.borderColor = isHidden ? 'var(--line)' : '#0BAA8F';
+      toggleBtn.style.color = isHidden ? 'var(--text2)' : '#23C4A6';
+    }
+  }
+}
+
+// Grid Settings Control Center
+function toggleGridSettingsPanel() {
+  const pop = document.getElementById('gridSettingsPopover');
+  if (pop) pop.classList.toggle('active');
+}
+
+function setGridColumns(n, btn) {
+  document.documentElement.style.setProperty('--grid-cols', n);
+  if (btn) {
+    document.querySelectorAll('#colCountChips .setting-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  rebuildGridGuides(n);
+}
+
+function setColumnGutter(val, btn) {
+  document.documentElement.style.setProperty('--col-gutter', val);
+  if (btn) {
+    document.querySelectorAll('#colGutterChips .setting-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  rebuildGridGuides();
+}
+
+function setRowGutter(val, btn) {
+  document.documentElement.style.setProperty('--row-gutter', val);
+  if (btn) {
+    document.querySelectorAll('#rowGutterChips .setting-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+function resetGridDefaults() {
+  setGridColumns(12, document.querySelector('#colCountChips .setting-chip:nth-child(4)'));
+  setColumnGutter('24px', document.querySelector('#colGutterChips .setting-chip:nth-child(3)'));
+  setRowGutter('24px', document.querySelector('#rowGutterChips .setting-chip:nth-child(3)'));
+}
+
+function rebuildGridGuides(cols) {
+  const numCols = cols || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cols')) || 12;
+  const overlay = document.getElementById('dashboardGridOverlay');
+  if (overlay) {
+    overlay.innerHTML = Array.from({length: numCols}, () => '<div class="grid-col-guide"></div>').join('');
+  }
+}
+
+// Drag and Drop Engine
+let draggedCard = null;
+
+function handleDragStart(e) {
+  draggedCard = e.currentTarget;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', draggedCard.id);
+  setTimeout(() => draggedCard.classList.add('dragging'), 0);
+}
+
+function handleDragEnd(e) {
+  if (draggedCard) {
+    draggedCard.classList.remove('dragging');
+    draggedCard = null;
+  }
+  document.querySelectorAll('.draggable-card').forEach(c => c.classList.remove('drag-over'));
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const targetCard = e.target.closest('.draggable-card');
+  if (targetCard && targetCard !== draggedCard) {
+    document.querySelectorAll('.draggable-card').forEach(c => c.classList.remove('drag-over'));
+    targetCard.classList.add('drag-over');
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const targetCard = e.target.closest('.draggable-card');
+  if (targetCard && draggedCard && targetCard !== draggedCard) {
+    const parent = targetCard.parentNode;
+    const cards = [...parent.children];
+    const draggedIdx = cards.indexOf(draggedCard);
+    const targetIdx = cards.indexOf(targetCard);
+
+    if (draggedIdx < targetIdx) {
+      parent.insertBefore(draggedCard, targetCard.nextSibling);
+    } else {
+      parent.insertBefore(draggedCard, targetCard);
+    }
+  }
+  handleDragEnd(e);
+}
+
+// Corner Drag Resizing Engine with Grid Snapping
+let activeResizeCard = null;
+let startX = 0, startY = 0;
+let startWidth = 0, startHeight = 0;
+let gridContainerWidth = 0;
+
+function startCornerResize(e, cardId) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  activeResizeCard = document.getElementById(cardId);
+  if (!activeResizeCard) return;
+
+  activeResizeCard.classList.add('resizing');
+  startX = e.clientX;
+  startY = e.clientY;
+  
+  const rect = activeResizeCard.getBoundingClientRect();
+  startWidth = rect.width;
+  startHeight = rect.height;
+
+  const parentGrid = activeResizeCard.closest('.grid12') || activeResizeCard.parentElement;
+  gridContainerWidth = parentGrid.getBoundingClientRect().width;
+
+  document.addEventListener('mousemove', onCornerResizeMove);
+  document.addEventListener('mouseup', stopCornerResize);
+}
+
+function onCornerResizeMove(e) {
+  if (!activeResizeCard) return;
+
+  const deltaX = e.clientX - startX;
+  const deltaY = e.clientY - startY;
+
+  const newWidth = Math.max(120, startWidth + deltaX);
+  const newHeight = Math.max(80, startHeight + deltaY);
+
+  const numCols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--grid-cols')) || 12;
+  const colGutter = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--col-gutter')) || 24;
+
+  const colUnitWidth = (gridContainerWidth - ((numCols - 1) * colGutter)) / numCols;
+
+  let snappedSpan = Math.round((newWidth + colGutter) / (colUnitWidth + colGutter));
+  if (snappedSpan < 1) snappedSpan = 1;
+  if (snappedSpan > numCols) snappedSpan = numCols;
+
+  for (let s = 1; s <= 16; s++) {
+    activeResizeCard.classList.remove('col-span-' + s);
+  }
+
+  activeResizeCard.classList.add('col-span-' + snappedSpan);
+  activeResizeCard.setAttribute('data-span', snappedSpan);
+
+  const snappedHeight = Math.round(newHeight / 8) * 8;
+  activeResizeCard.style.height = snappedHeight + 'px';
+  activeResizeCard.style.minHeight = snappedHeight + 'px';
+}
+
+function stopCornerResize(e) {
+  if (activeResizeCard) {
+    activeResizeCard.classList.remove('resizing');
+    activeResizeCard = null;
+  }
+  document.removeEventListener('mousemove', onCornerResizeMove);
+  document.removeEventListener('mouseup', stopCornerResize);
+
+  setTimeout(() => {
+    if (cashflowChartInstance) cashflowChartInstance.resize();
+    if (categoryChartInstance) categoryChartInstance.resize();
+  }, 100);
+}
+</script>
+</body>
+</html>

@@ -13,6 +13,7 @@ import {
     paletteColorRef,
     semanticColorRef,
 } from './resources/js/theme/contract.js';
+import { v6ReservedPaletteFamilies } from './resources/js/theme/build/v6-owned.js';
 
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -60,9 +61,22 @@ import {
  * Builders
  * ------------------------------------------------------------------ */
 
+/**
+ * Families whose plain `--vq-<name>-<shade>` is already an authored V6 colour.
+ *
+ * Their triplets live at `--vq-tw-<name>-<shade>` instead, so `bg-teal-600`
+ * keeps working while `var(--vq-teal-600)` stays the hex the design system
+ * wrote. Read from the same module the generator reads, so the two can never
+ * disagree about which name holds what. See theme/build/v6-owned.js.
+ */
+const RESERVED_PALETTES = v6ReservedPaletteFamilies([
+    ...CONTROLLED_PALETTES,
+    ...REQUIRED_ROLES,
+]);
+
 /** `{ 50: 'rgb(var(--vq-indigo-50) / <alpha-value>)', … }` */
 const rampScale = (name) =>
-    Object.fromEntries(SHADES.map((shade) => [shade, paletteColorRef(name, shade)]));
+    Object.fromEntries(SHADES.map((shade) => [shade, paletteColorRef(name, shade, RESERVED_PALETTES)]));
 
 /** Turn a list of token keys into `{ key: 'var(--vq-prefix-key)' }`. */
 const varMap = (keys, varFn) =>
@@ -212,6 +226,35 @@ export default {
                 },
 
                 focus: semanticColorRef('focus-ring'),
+
+                // 4. Chart ink, for the vendored bklit components.
+                //
+                //    Those components ship Tailwind classes of their own —
+                //    `text-chart-label`, `bg-chart-tooltip-background` — which
+                //    compiled to nothing here, so axis labels rendered in the
+                //    inherited text colour and tooltip panels had no fill. The
+                //    values come from resources/css/bklit-bridge.css, which is
+                //    the single place chart ink is decided; this only teaches
+                //    Tailwind the names.
+                //
+                //    Resolved colours, not triplets, so no /opacity modifier —
+                //    correct, because several are already composited tints.
+                chart: {
+                    1: 'var(--chart-1)',
+                    2: 'var(--chart-2)',
+                    3: 'var(--chart-3)',
+                    4: 'var(--chart-4)',
+                    5: 'var(--chart-5)',
+                    grid: 'var(--chart-grid)',
+                    label: 'var(--chart-label)',
+                    crosshair: 'var(--chart-crosshair)',
+                    background: 'var(--chart-background)',
+                    foreground: 'var(--chart-foreground)',
+                    'foreground-muted': 'var(--chart-foreground-muted)',
+                    'tooltip-background': 'var(--chart-tooltip-background)',
+                    'tooltip-foreground': 'var(--chart-tooltip-foreground)',
+                    'tooltip-muted': 'var(--chart-tooltip-muted)',
+                },
             },
 
             /* ───────────────────────────────────────────────────────────────

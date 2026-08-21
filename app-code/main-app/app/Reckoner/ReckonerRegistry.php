@@ -35,6 +35,94 @@ final class ReckonerRegistry
 {
     private static ?array $cache = null;
 
+    /**
+     * Module ownership — the seventh gate's map.
+     *
+     * A reading listed here belongs to a tenant module (config/modules.php).
+     * When every module in its list is switched off for the tenant, the
+     * reading gates as unavailable — the dashboard mirror of the rule that a
+     * disabled module also loses its nav item (ModuleNavBuilder). A reading
+     * NOT listed here is core and never module-gated; an array means
+     * "visible while ANY of these modules is on" (fail-open by design,
+     * matching ModuleService::enabled()'s unknown-key behaviour).
+     *
+     * Mapping follows config/modules.php's own `cards` declarations
+     * (e.g. khata_credit → receivables, purchases → payables) — the module
+     * file is the source of the taxonomy; this map only translates its
+     * legacy widget ids onto Reckoner keys.
+     */
+    private const MODULE_MAP = [
+        // Inventory
+        'inventory.stock_value' => 'inventory',
+        'inventory.low_stock_count' => 'inventory',
+        'inventory.low_stock_list' => 'inventory',
+        'inventory.out_of_stock_count' => 'inventory',
+        'inventory.overstock_count' => 'inventory',
+        'inventory.product_count' => 'products',
+        // Purchasing
+        'purchasing.spend' => 'purchases',
+        'purchasing.count' => 'purchases',
+        'finance.paid_to_suppliers' => 'purchases',
+        'finance.payables' => 'purchases',
+        // Receivables / khata
+        'finance.receivables' => 'khata_credit',
+        'finance.receivables_aging' => 'khata_credit',
+        // Liquidity — visible while any money-holding module is on
+        'finance.total_liquidity' => ['payments', 'cash_register', 'bank_accounts'],
+        // Expenses
+        'finance.expenses_total' => 'expenses',
+        'finance.expenses_by_category' => 'expenses',
+        // Parties
+        'party.customer_count' => 'customers',
+        'party.new_customers' => 'customers',
+        'party.dormant_customers' => 'customers',
+        'party.supplier_count' => 'suppliers',
+        // Orders / operations
+        'operations.open_sales_orders' => 'sales_orders',
+        'operations.pending_stock_takes' => 'stock_takes',
+        'operations.pending_stock_transfers' => 'stock_transfers',
+        // Production
+        'production.total_cost' => 'production_runs',
+        'production.run_count' => 'production_runs',
+        // Staff
+        'staff.on_shift_count' => 'staff_attendance',
+        'staff.member_count' => 'staff_attendance',
+        // Restaurant
+        'restaurant.tables_occupied' => 'table_service',
+        'restaurant.kitchen_orders_pending' => 'table_service',
+        // Tax
+        'tax.collected' => 'tax_compliance',
+    ];
+
+    /**
+     * Readings tagged "New" in the add-card library.
+     *
+     * These are the analytic readings added on top of the original KPI set
+     * (the card builder prototype called them "extra"; the product word is
+     * "New" — an invitation, not an apology). Purely presentational: the
+     * catalogue exposes it as `is_new` and the library renders the badge.
+     */
+    private const NEW_KEYS = [
+        'sales.revenue_trend',
+        'sales.payment_breakdown',
+        'sales.top_products',
+        'sales.top_customers',
+        'sales.hourly_heatmap',
+        'sales.live_feed',
+        'sales.gross_margin_pct',
+        'finance.profit_trend',
+        'finance.cash_flow_trend',
+        'finance.expenses_by_category',
+        'finance.receivables_aging',
+        'finance.balance_sheet_ok',
+        'finance.net_margin_pct',
+        'inventory.low_stock_list',
+        'inventory.overstock_count',
+        'party.new_customers',
+        'party.dormant_customers',
+        'plan.usage_summary',
+    ];
+
     public static function all(): array
     {
         if (self::$cache !== null) {
@@ -1136,7 +1224,10 @@ final class ReckonerRegistry
 
         foreach ($all as $key => &$def) {
             $def['implemented'] = $def['implemented'] ?? true;
+            $def['module'] = self::MODULE_MAP[$key] ?? null;
+            $def['is_new'] = in_array($key, self::NEW_KEYS, true);
         }
+        unset($def);
 
         return self::$cache = $all;
     }

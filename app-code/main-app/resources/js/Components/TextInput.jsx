@@ -12,7 +12,9 @@ import { Input } from '@/Components/ds';
  * the page breaking.
  */
 export default forwardRef(function TextInput(
-    { type = 'text', className = '', isFocused = false, ...props },
+    // `className` is accepted and dropped — the V6 `Input` declares no such
+    // prop, so React was discarding it silently anyway (ds/no-unknown-prop).
+    { type = 'text', className: _ignoredClassName, isFocused = false, ...props },
     ref,
 ) {
     const local = useRef(null);
@@ -22,5 +24,5 @@ export default forwardRef(function TextInput(
         if (isFocused) el.current?.focus();
     }, [isFocused, el]);
 
-    return <Input ref={el} type={type} className={className} {...props} />;
+    return <Input ref={el} type={type} {...props} />;
 });

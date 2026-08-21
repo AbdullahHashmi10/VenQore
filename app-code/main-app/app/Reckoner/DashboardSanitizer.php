@@ -100,11 +100,34 @@ class DashboardSanitizer
             // incoming `size` of '4x8' is mapped to the nearest legal fit
             // rather than dropped, so a board survives the migration looking
             // like the board the user built.
+            //
+            // A hand-dragged span arrives as w/h that no longer match the
+            // stored fit. Geometry lives in the fit, not in loose numbers, so
+            // rather than discard the drag (which made the card visibly snap
+            // back after every save) the drag is re-expressed as a size and
+            // mapped to the nearest legal fit. The user gets the closest legal
+            // shape to what they drew, and the board stays inside the law.
+            $category = $item['category'] ?? null;
+            $fit = $item['fit'] ?? null;
+            $size = $item['size'] ?? null;
+
+            $draggedW = isset($item['w']) ? (int) $item['w'] : null;
+            $draggedH = isset($item['h']) ? (int) $item['h'] : null;
+
+            if ($draggedW !== null && $draggedH !== null && is_string($category) && is_string($fit)) {
+                $declared = LayoutLaw::findFit($category, $fit);
+                if ($declared !== null && ($declared['w'] !== $draggedW || $declared['h'] !== $draggedH)) {
+                    $size = "{$draggedW}x{$draggedH}";
+                    $category = null;
+                    $fit = null;
+                }
+            }
+
             $geometry = LayoutLaw::coerce([
                 'chart' => $chart,
-                'category' => $item['category'] ?? null,
-                'fit' => $item['fit'] ?? null,
-                'size' => $item['size'] ?? null,
+                'category' => $category,
+                'fit' => $fit,
+                'size' => $size,
                 'x' => $item['x'] ?? 0,
                 'y' => $item['y'] ?? 0,
             ]);

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" class="light style-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Gradient & Fluid Controls | VenQore</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    /* WebGL Fluid Canvas - Preloaded with User Favorite "Difference" blend mode */
+    #fluid-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: auto;
+      mix-blend-mode: difference;
+      filter: blur(1px);
+      opacity: 0.9;
+      transition: filter 0.15s ease, opacity 0.15s ease;
+    }
+
+    html.dark #fluid-canvas {
+      filter: blur(1px);
+      opacity: 0.9;
+    }
+
+    /* Default Gradient Background - Locked Preset */
+    .gradient-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(180deg, 
+        #000000 10%, 
+        #327882 50%, 
+        #ffffff 90%);
+      transition: background 0.4s ease;
+    }
+
+    /* Theme Switcher Button */
+    .toggle-btn {
+      position: fixed;
+      bottom: 2rem;
+      left: 2rem;
+      z-index: 50;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+
+    html.dark .toggle-btn {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .toggle-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Control Panel Styles */
+    .control-panel {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 50;
+      width: 21rem;
+      background: rgba(15, 17, 23, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 1rem;
+      color: #f1f5f9;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+      overflow: hidden;
+    }
+
+    .control-panel.collapsed {
+      transform: translateY(-90%) scale(0.9);
+      opacity: 0.6;
+    }
+
+    .control-panel-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.8rem 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .control-content-scroll {
+      max-height: 78vh;
+      overflow-y: auto;
+    }
+
+    /* Custom scrollbar for control panel */
+    .control-content-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .control-content-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .control-section-title {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 0.4rem 1.2rem;
+      color: #7388DF;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .control-row {
+      padding: 0.55rem 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .control-row-horizontal {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .control-label {
+      color: #cbd5e1;
+    }
+
+    .control-slider {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+      accent-color: #7388DF;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .control-select {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.25rem;
+      color: #f8fafc;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.7rem;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen WebGL Fluid Canvas -->
+  <canvas id="fluid-canvas"></canvas>
+
+  <!-- Inverse Dynamic Gradient Background -->
+  <div class="gradient-bg"></div>
+
+  <!-- Real-time Control Panel -->
+  <div id="control-panel" class="control-panel">
+    <div class="control-panel-header" id="panel-header">
+      <span class="font-bold tracking-wider text-[#7388DF]">MASTER SIMULATOR</span>
+      <span id="collapse-arrow" class="text-xs">▲</span>
+    </div>
+    
+    <div id="panel-content" class="control-content-scroll transition-all duration-300">
+      
+      <!-- SECTION: BACKGROUND GRADIENT -->
+      <div class="control-section-title">Background Gradient</div>
+
+      <!-- Gradient Top Color Picker -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label text-white font-semibold">gradient top color</span>
+        <input type="color" id="picker-bg-top" class="w-8 h-6 rounded cursor-pointer border-0 bg-transparent" value="#000000">
+      </div>
+
+      <!-- Gradient Top Position Slider -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label text-slate-300">top stop position</span>
+          <span id="val-bg-top-pos">10%</span>
+        </div>
+        <input type="range" id="slider-bg-top-pos" class="control-slider" min="0" max="100" value="10">
+      </div>
+
+      <!-- Gradient Mid Color Picker -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label text-white font-semibold">gradient middle color</span>
+        <input type="color" id="picker-bg-mid" class="w-8 h-6 rounded cursor-pointer border-0 bg-transparent" value="#82f0d2">
+      </div>
+
+      <!-- Gradient Mid Position Slider -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label text-slate-300">middle stop position</span>
+          <span id="val-bg-mid-pos">50%</span>
+        </div>
+        <input type="range" id="slider-bg-mid-pos" class="control-slider" min="0" max="100" value="50">
+      </div>
+
+      <!-- Gradient Bottom Color Picker -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label text-white font-semibold">gradient bottom color</span>
+        <input type="color" id="picker-bg-bottom" class="w-8 h-6 rounded cursor-pointer border-0 bg-transparent" value="#ffffff">
+      </div>
+
+      <!-- Gradient Bottom Position Slider -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label text-slate-300">bottom stop position</span>
+          <span id="val-bg-bottom-pos">90%</span>
+        </div>
+        <input type="range" id="slider-bg-bottom-pos" class="control-slider" min="0" max="100" value="90">
+      </div>
+
+      <!-- SECTION: INK DYE PROPERTIES -->
+      <div class="control-section-title">Ink Dye Properties</div>
+      
+      <!-- Ink Opacity (Dye Concentration) -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label font-semibold text-white">ink concentration (opacity)</span>
+          <span id="val-opacity" class="text-white font-bold">45</span>
+        </div>
+        <input type="range" id="slider-opacity" class="control-slider" min="1" max="250" value="45">
+      </div>
+
+      <!-- Density Dissipation -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">dye dissipation (fade speed)</span>
+          <span id="val-dissipation">0.97</span>
+        </div>
+        <input type="range" id="slider-dissipation" class="control-slider" min="0.90" max="1.0" step="0.002" value="0.97">
+      </div>
+
+      <!-- Splat Radius -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">splat radius (spread size)</span>
+          <span id="val-radius">0.2</span>
+        </div>
+        <input type="range" id="slider-radius" class="control-slider" min="0.05" max="1.8" step="0.05" value="0.2">
+      </div>
+
+      <!-- Ink Color Picker -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">fluid ink color</span>
+        <div class="flex items-center gap-2">
+          <input type="color" id="picker-color" class="w-8 h-6 rounded cursor-pointer border-0 bg-transparent" value="#262626">
+        </div>
+      </div>
+
+      <!-- SECTION: MOTION & PHYSICS -->
+      <div class="control-section-title">Fluid Physics</div>
+
+      <!-- Vorticity (Curl) -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">vorticity (swirl details)</span>
+          <span id="val-vorticity">12</span>
+        </div>
+        <input type="range" id="slider-vorticity" class="control-slider" min="0" max="50" value="12">
+      </div>
+
+      <!-- Splat Force -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">splat velocity force</span>
+          <span id="val-force">8500</span>
+        </div>
+        <input type="range" id="slider-force" class="control-slider" min="1000" max="25000" step="500" value="8500">
+      </div>
+
+      <!-- Velocity Dissipation -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">motion dissipation (friction)</span>
+          <span id="val-velocity-dissipation">0.97</span>
+        </div>
+        <input type="range" id="slider-velocity-dissipation" class="control-slider" min="0.85" max="0.995" step="0.005" value="0.97">
+      </div>
+
+      <!-- Pressure Solver Value -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">fluid pressure stiffness</span>
+          <span id="val-pressure">0.7</span>
+        </div>
+        <input type="range" id="slider-pressure" class="control-slider" min="0.1" max="1.0" step="0.05" value="0.7">
+      </div>
+
+      <!-- Pressure Iterations -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">pressure solver iterations</span>
+          <span id="val-iterations">20</span>
+        </div>
+        <input type="range" id="slider-iterations" class="control-slider" min="1" max="50" step="1" value="20">
+      </div>
+
+      <!-- SECTION: RESOLUTION & GRID -->
+      <div class="control-section-title">Resolution & Grid</div>
+
+      <!-- Sim Resolution -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">physics grid resolution</span>
+        <select id="select-sim-res" class="control-select">
+          <option value="64">64 (Fastest)</option>
+          <option value="128">128 (Normal)</option>
+          <option value="256" selected>256 (Detailed)</option>
+          <option value="512">512 (Ultra)</option>
+        </select>
+      </div>
+
+      <!-- Dye Resolution -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">color paint resolution</span>
+        <select id="select-dye-res" class="control-select">
+          <option value="256">256</option>
+          <option value="512">512</option>
+          <option value="1024">1024 (HD)</option>
+          <option value="2048" selected>2048 (4K)</option>
+        </select>
+      </div>
+
+      <!-- SECTION: CANVAS STYLING -->
+      <div class="control-section-title">Canvas Blending & CSS</div>
+
+      <!-- Canvas Blend Mode -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">blend mode</span>
+        <select id="select-blend-mode" class="control-select">
+          <option value="difference" selected>Difference</option>
+          <option value="multiply">Multiply (Ink Drop)</option>
+          <option value="screen">Screen (Neon Glow)</option>
+          <option value="normal">Normal (Opaque paint)</option>
+          <option value="overlay">Overlay</option>
+        </select>
+      </div>
+
+      <!-- CSS Blur -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">css blur filter</span>
+          <span id="val-blur">1px</span>
+        </div>
+        <input type="range" id="slider-blur" class="control-slider" min="0" max="40" step="1" value="1">
+      </div>
+
+      <!-- CSS Opacity -->
+      <div class="control-row">
+        <div class="flex justify-between">
+          <span class="control-label">canvas element opacity</span>
+          <span id="val-opacity-css">0.9</span>
+        </div>
+        <input type="range" id="slider-opacity-css" class="control-slider" min="0.1" max="1.0" step="0.05" value="0.9">
+      </div>
+
+      <!-- Custom Core Checkbox -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label text-[#7388DF] font-bold">enable custom core color</span>
+        <input type="checkbox" id="check-invert-core">
+      </div>
+
+      <!-- Middle Core Color Picker -->
+      <div id="row-core-color" class="control-row control-row-horizontal hidden">
+        <span class="control-label text-slate-300">middle core color</span>
+        <input type="color" id="picker-core-color" class="w-8 h-6 rounded cursor-pointer border-0 bg-transparent" value="#040101">
+      </div>
+
+      <!-- Core Invert Threshold Slider -->
+      <div id="row-core-threshold" class="control-row hidden">
+        <div class="flex justify-between">
+          <span class="control-label">core color blend threshold</span>
+          <span id="val-core-threshold">0.6</span>
+        </div>
+        <input type="range" id="slider-core-threshold" class="control-slider" min="0.1" max="2.0" step="0.05" value="0.6">
+      </div>
+
+      <!-- Shading Checkbox -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">specular surface shading</span>
+        <input type="checkbox" id="check-shading">
+      </div>
+
+      <!-- Paused Checkbox -->
+      <div class="control-row control-row-horizontal">
+        <span class="control-label">freeze simulation</span>
+        <input type="checkbox" id="check-paused">
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="p-3 flex flex-wrap gap-2">
+        <button id="btn-splats" class="flex-1 py-2 rounded bg-[#7388DF]/20 hover:bg-[#7388DF]/35 text-white transition-colors border border-[#7388DF]/30">Random splats</button>
+        <button id="btn-copy" class="flex-1 py-2 rounded bg-emerald-600/30 hover:bg-emerald-600/45 text-white font-bold transition-colors border border-emerald-500/40">Copy Settings</button>
+        <button id="btn-reset" class="py-2 px-3 rounded bg-white/5 hover:bg-white/10 text-white transition-colors border border-white/10">Reset</button>
+      </div>
+
+      <div class="bg-black/40 p-2 text-center text-[10px] text-slate-500 border-t border-white/5">
+        Scroll panel to adjust all factors
+      </div>
+    </div>
+  </div>
+
+  <!-- Single Light / Dark Toggle Button -->
+  <button id="theme-toggle" class="toggle-btn" aria-label="Toggle Light and Dark Mode">
+    <!-- Sun Icon (Light Mode) -->
+    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+    <!-- Moon Icon (Dark Mode) -->
+    <svg id="moon-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+  </button>
+
+  <script src="fluid.js"></script>
+  <script>
+    // 1. Theme Toggle Logic (Independent configs)
+    const btn = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+
+    let lightGradient = {
+        top: '#000000', topPos: 10,
+        mid: '#82f0d2', midPos: 50,
+        bottom: '#ffffff', bottomPos: 90
+    };
+ 
+    let darkGradient = {
+        top: '#ffffff', topPos: 10,
+        mid: '#82f0d2', midPos: 51,
+        bottom: '#000000', bottomPos: 90
+    };
+
+    btn.addEventListener('click', () => {
+      const isCurrentlyLight = !html.classList.contains('dark');
+      
+      const current = {
+          top: pickerBgTop.value,
+          topPos: sliderBgTopPos.value,
+          mid: pickerBgMid.value,
+          midPos: sliderBgMidPos.value,
+          bottom: pickerBgBottom.value,
+          bottomPos: sliderBgBottomPos.value
+      };
+      if (isCurrentlyLight) {
+          lightGradient = current;
+      } else {
+          darkGradient = current;
+      }
+
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        loadGradientSettings(lightGradient);
+      } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        loadGradientSettings(darkGradient);
+      }
+    });
+
+    function loadGradientSettings(settings) {
+        pickerBgTop.value = settings.top;
+        sliderBgTopPos.value = settings.topPos;
+        pickerBgMid.value = settings.mid;
+        sliderBgMidPos.value = settings.midPos;
+        pickerBgBottom.value = settings.bottom;
+        sliderBgBottomPos.value = settings.bottomPos;
+        updateBackgroundGradient();
+    }
+
+    // 2. Control Panel Show/Hide (Collapse)
+    const panel = document.getElementById('control-panel');
+    const header = document.getElementById('panel-header');
+    const arrow = document.getElementById('collapse-arrow');
+    const content = document.getElementById('panel-content');
+
+    header.addEventListener('click', () => {
+      panel.classList.toggle('collapsed');
+      if (panel.classList.contains('collapsed')) {
+        arrow.textContent = '▼';
+      } else {
+        arrow.textContent = '▲';
+      }
+    });
+
+    // 3. Background Gradient Pickers Logic
+    const pickerBgTop = document.getElementById('picker-bg-top');
+    const pickerBgMid = document.getElementById('picker-bg-mid');
+    const pickerBgBottom = document.getElementById('picker-bg-bottom');
+    const sliderBgTopPos = document.getElementById('slider-bg-top-pos');
+    const sliderBgMidPos = document.getElementById('slider-bg-mid-pos');
+    const sliderBgBottomPos = document.getElementById('slider-bg-bottom-pos');
+    const valBgTopPos = document.getElementById('val-bg-top-pos');
+    const valBgMidPos = document.getElementById('val-bg-mid-pos');
+    const valBgBottomPos = document.getElementById('val-bg-bottom-pos');
+    const gradientBgEl = document.querySelector('.gradient-bg');
+
+    function updateBackgroundGradient() {
+      const top = pickerBgTop.value;
+      const mid = pickerBgMid.value;
+      const bottom = pickerBgBottom.value;
+      const topPos = sliderBgTopPos.value;
+      const midPos = sliderBgMidPos.value;
+      const bottomPos = sliderBgBottomPos.value;
+      
+      valBgTopPos.textContent = topPos + '%';
+      valBgMidPos.textContent = midPos + '%';
+      valBgBottomPos.textContent = bottomPos + '%';
+      
+      gradientBgEl.style.background = `linear-gradient(180deg, ${top} ${topPos}%, ${mid} ${midPos}%, ${bottom} ${bottomPos}%)`;
+    }
+
+    function saveActiveGradientInput() {
+      const isLight = !html.classList.contains('dark');
+      const current = {
+          top: pickerBgTop.value,
+          topPos: sliderBgTopPos.value,
+          mid: pickerBgMid.value,
+          midPos: sliderBgMidPos.value,
+          bottom: pickerBgBottom.value,
+          bottomPos: sliderBgBottomPos.value
+      };
+      if (isLight) {
+          lightGradient = current;
+      } else {
+          darkGradient = current;
+      }
+    }
+
+    pickerBgTop.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+    pickerBgMid.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+    pickerBgBottom.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+    sliderBgTopPos.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+    sliderBgMidPos.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+    sliderBgBottomPos.addEventListener('input', () => { updateBackgroundGradient(); saveActiveGradientInput(); });
+
+    // Set initial background gradient
+    updateBackgroundGradient();
+
+    // 4. Real-time Bindings
+    const sliderOpacity = document.getElementById('slider-opacity');
+    const valOpacity = document.getElementById('val-opacity');
+    sliderOpacity.addEventListener('input', (e) => {
+      const o = parseFloat(e.target.value);
+      valOpacity.textContent = o;
+      if (window.fluidConfig) window.fluidConfig.INK_OPACITY = o;
+    });
+
+    const sliderDissipation = document.getElementById('slider-dissipation');
+    const valDissipation = document.getElementById('val-dissipation');
+    sliderDissipation.addEventListener('input', (e) => {
+      const d = parseFloat(e.target.value);
+      valDissipation.textContent = d;
+      if (window.fluidConfig) window.fluidConfig.DENSITY_DISSIPATION = d;
+    });
+
+    const sliderRadius = document.getElementById('slider-radius');
+    const valRadius = document.getElementById('val-radius');
+    sliderRadius.addEventListener('input', (e) => {
+      const r = parseFloat(e.target.value);
+      valRadius.textContent = r;
+      if (window.fluidConfig) window.fluidConfig.SPLAT_RADIUS = r;
+    });
+
+    const sliderVorticity = document.getElementById('slider-vorticity');
+    const valVorticity = document.getElementById('val-vorticity');
+    sliderVorticity.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      valVorticity.textContent = v;
+      if (window.fluidConfig) window.fluidConfig.CURL = v;
+    });
+
+    const sliderForce = document.getElementById('slider-force');
+    const valForce = document.getElementById('val-force');
+    sliderForce.addEventListener('input', (e) => {
+      const f = parseInt(e.target.value);
+      valForce.textContent = f;
+      if (window.fluidConfig) window.fluidConfig.SPLAT_FORCE = f;
+    });
+
+    const sliderVelDissipation = document.getElementById('slider-velocity-dissipation');
+    const valVelDissipation = document.getElementById('val-velocity-dissipation');
+    sliderVelDissipation.addEventListener('input', (e) => {
+      const vd = parseFloat(e.target.value);
+      valVelDissipation.textContent = vd;
+      if (window.fluidConfig) window.fluidConfig.VELOCITY_DISSIPATION = vd;
+    });
+
+    const sliderPressure = document.getElementById('slider-pressure');
+    const valPressure = document.getElementById('val-pressure');
+    sliderPressure.addEventListener('input', (e) => {
+      const p = parseFloat(e.target.value);
+      valPressure.textContent = p;
+      if (window.fluidConfig) window.fluidConfig.PRESSURE = p;
+    });
+
+    const sliderIterations = document.getElementById('slider-iterations');
+    const valIterations = document.getElementById('val-iterations');
+    sliderIterations.addEventListener('input', (e) => {
+      const it = parseInt(e.target.value);
+      valIterations.textContent = it;
+      if (window.fluidConfig) window.fluidConfig.PRESSURE_ITERATIONS = it;
+    });
+
+    // Invert Core controls
+    const checkInvertCore = document.getElementById('check-invert-core');
+    const rowCoreThreshold = document.getElementById('row-core-threshold');
+    const rowCoreColor = document.getElementById('row-core-color');
+    const sliderCoreThreshold = document.getElementById('slider-core-threshold');
+    const valCoreThreshold = document.getElementById('val-core-threshold');
+    const pickerCoreColor = document.getElementById('picker-core-color');
+
+    checkInvertCore.addEventListener('change', (e) => {
+      const active = e.target.checked;
+      if (window.fluidConfig) window.fluidConfig.INVERT_CORE = active;
+      if (active) {
+        rowCoreThreshold.classList.remove('hidden');
+        rowCoreColor.classList.remove('hidden');
+      } else {
+        rowCoreThreshold.classList.add('hidden');
+        rowCoreColor.classList.add('hidden');
+      }
+    });
+
+    sliderCoreThreshold.addEventListener('input', (e) => {
+      const t = parseFloat(e.target.value);
+      valCoreThreshold.textContent = t;
+      if (window.fluidConfig) window.fluidConfig.CORE_THRESHOLD = t;
+    });
+
+    pickerCoreColor.addEventListener('input', (e) => {
+      const hex = e.target.value;
+      const rgb = hexToRgb(hex);
+      if (window.fluidConfig) {
+        window.fluidConfig.CORE_COLOR = {
+          r: rgb.r / 255,
+          g: rgb.g / 255,
+          b: rgb.b / 255
+        };
+      }
+    });
+
+    // Resolution changes
+    const selectSimRes = document.getElementById('select-sim-res');
+    selectSimRes.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value);
+      if (window.fluidConfig) {
+        window.fluidConfig.SIM_RESOLUTION = val;
+        if (window.reinitFluidFramebuffers) window.reinitFluidFramebuffers();
+      }
+    });
+
+    const selectDyeRes = document.getElementById('select-dye-res');
+    selectDyeRes.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value);
+      if (window.fluidConfig) {
+        window.fluidConfig.DYE_RESOLUTION = val;
+        if (window.reinitFluidFramebuffers) window.reinitFluidFramebuffers();
+      }
+    });
+
+    // CSS styling bindings
+    const canvasEl = document.getElementById('fluid-canvas');
+    
+    const selectBlendMode = document.getElementById('select-blend-mode');
+    selectBlendMode.addEventListener('change', (e) => {
+      canvasEl.style.mixBlendMode = e.target.value;
+    });
+
+    const sliderBlur = document.getElementById('slider-blur');
+    const valBlur = document.getElementById('val-blur');
+    sliderBlur.addEventListener('input', (e) => {
+      const b = e.target.value;
+      valBlur.textContent = b + 'px';
+      canvasEl.style.filter = `blur(${b}px)`;
+    });
+
+    const sliderOpacityCss = document.getElementById('slider-opacity-css');
+    const valOpacityCss = document.getElementById('val-opacity-css');
+    sliderOpacityCss.addEventListener('input', (e) => {
+      const o = e.target.value;
+      valOpacityCss.textContent = o;
+      canvasEl.style.opacity = o;
+    });
+
+    const checkShading = document.getElementById('check-shading');
+    checkShading.addEventListener('change', (e) => {
+      if (window.fluidConfig) window.fluidConfig.SHADING = e.target.checked;
+    });
+
+    const checkPaused = document.getElementById('check-paused');
+    checkPaused.addEventListener('change', (e) => {
+      if (window.fluidConfig) window.fluidConfig.PAUSED = e.target.checked;
+    });
+
+    // Hex Color to RGB
+    const pickerColor = document.getElementById('picker-color');
+    pickerColor.addEventListener('input', (e) => {
+      const hex = e.target.value;
+      const rgb = hexToRgb(hex);
+      if (window.fluidConfig) {
+        window.fluidConfig.SPLAT_COLOR = {
+          r: (rgb.r / 255) * 0.15,
+          g: (rgb.g / 255) * 0.15,
+          b: (rgb.b / 255) * 0.15
+        };
+      }
+    });
+
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 38, g: 38, b: 38 };
+    }
+
+    // Copy Settings Logic
+    const btnCopy = document.getElementById('btn-copy');
+    btnCopy.addEventListener('click', () => {
+      if (!window.fluidConfig) return;
+      
+      const configSnapshot = {
+        ...window.fluidConfig,
+        BG_TOP_COLOR: pickerBgTop.value,
+        BG_TOP_POSITION: parseInt(sliderBgTopPos.value),
+        BG_MID_COLOR: pickerBgMid.value,
+        BG_MID_POSITION: parseInt(sliderBgMidPos.value),
+        BG_BOTTOM_COLOR: pickerBgBottom.value,
+        BG_BOTTOM_POSITION: parseInt(sliderBgBottomPos.value),
+        CSS_BLEND_MODE: selectBlendMode.value,
+        CSS_BLUR: sliderBlur.value + "px",
+        CSS_OPACITY: sliderOpacityCss.value
+      };
+
+      navigator.clipboard.writeText(JSON.stringify(configSnapshot, null, 2))
+        .then(() => {
+          const originalText = btnCopy.textContent;
+          btnCopy.textContent = "Copied! ✓";
+          btnCopy.classList.remove('bg-emerald-600/30', 'border-emerald-500/40');
+          btnCopy.classList.add('bg-emerald-500/80', 'text-black');
+          
+          setTimeout(() => {
+            btnCopy.textContent = originalText;
+            btnCopy.classList.add('bg-emerald-600/30', 'border-emerald-500/40');
+            btnCopy.classList.remove('bg-emerald-500/80', 'text-black');
+          }, 1500);
+        })
+        .catch(err => {
+          console.error("Failed to copy settings: ", err);
+          alert("Error copying settings to clipboard. See console.");
+        });
+    });
+
+    // Buttons
+    const btnSplats = document.getElementById('btn-splats');
+    btnSplats.addEventListener('click', () => {
+      if (window.triggerManualSplats) {
+        window.triggerManualSplats(Math.floor(Math.random() * 5) + 5);
+      }
+     const btnReset = document.getElementById('btn-reset');
+    btnReset.addEventListener('click', () => {
+      // Background Gradient Pickers Reset
+      pickerBgTop.value = "#000000";
+      pickerBgMid.value = "#82f0d2";
+      pickerBgBottom.value = "#ffffff";
+      sliderBgTopPos.value = 10;
+      sliderBgMidPos.value = 50;
+      sliderBgBottomPos.value = 90;
+      updateBackgroundGradient();
+ 
+      sliderOpacity.value = 45; valOpacity.textContent = 45;
+      sliderDissipation.value = 0.97; valDissipation.textContent = 0.97;
+      sliderRadius.value = 0.2; valRadius.textContent = 0.2;
+      sliderVorticity.value = 12; valVorticity.textContent = 12;
+      sliderForce.value = 8500; valForce.textContent = 8500;
+      sliderVelDissipation.value = 0.97; valVelDissipation.textContent = 0.97;
+      sliderPressure.value = 0.7; valPressure.textContent = 0.7;
+      sliderIterations.value = 20; valIterations.textContent = 20;
+      selectSimRes.value = "256";
+      selectDyeRes.value = "2048";
+      selectBlendMode.value = "normal";
+      sliderBlur.value = 1; valBlur.textContent = "1px";
+      sliderOpacityCss.value = 0.9; valOpacityCss.textContent = "0.9";
+      checkShading.checked = false;
+      checkPaused.checked = false;
+      checkInvertCore.checked = false;
+      rowCoreThreshold.classList.add('hidden');
+      rowCoreColor.classList.add('hidden');
+      sliderCoreThreshold.value = 0.6; valCoreThreshold.textContent = "0.6";
+      pickerColor.value = "#051414";
+      pickerCoreColor.value = "#040101";
+      
+      canvasEl.style.mixBlendMode = "normal";
+      canvasEl.style.filter = "blur(1px)";
+      canvasEl.style.opacity = 0.9;
+ 
+      if (window.fluidConfig) {
+        window.fluidConfig.INK_OPACITY = 45;
+        window.fluidConfig.DENSITY_DISSIPATION = 0.97;
+        window.fluidConfig.SPLAT_RADIUS = 0.2;
+        window.fluidConfig.CURL = 12;
+        window.fluidConfig.SPLAT_FORCE = 8500;
+        window.fluidConfig.VELOCITY_DISSIPATION = 0.97;
+        window.fluidConfig.PRESSURE = 0.7;
+        window.fluidConfig.PRESSURE_ITERATIONS = 20;
+        window.fluidConfig.SIM_RESOLUTION = 256;
+        window.fluidConfig.DYE_RESOLUTION = 2048;
+        window.fluidConfig.SHADING = false;
+        window.fluidConfig.PAUSED = false;
+        window.fluidConfig.INVERT_CORE = false;
+        window.fluidConfig.CORE_THRESHOLD = 0.6;
+        window.fluidConfig.CORE_COLOR = {
+          r: 0.01568627450980392,
+          g: 0.00392156862745098,
+          b: 0.00392156862745098
+        };
+        window.fluidConfig.SPLAT_COLOR = {
+          r: 0.0196078431372549,
+          g: 0.0784313725490196,
+          b: 0.0784313725490196
+        };
+        if (window.reinitFluidFramebuffers) window.reinitFluidFramebuffers();
+      }
+    });
+  </script>
+</body>
+</html>

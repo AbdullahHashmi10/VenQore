@@ -1,73 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { formatValue } from '../utils/format';
+import React from 'react';
 
-export default function GaugeChart({ data, definition, settings }) {
-    const value = parseFloat(data?.value ?? 0);
-    const unit = definition?.unit || 'percentage';
-    const precision = definition?.precision ?? 0;
+import { Gauge } from '@/Components/Charts/gauge';
 
-    // Clamp value to 0-100 for gauge track representation
-    const percentage = Math.min(100, Math.max(0, unit === 'percentage' ? value : value));
+import { EmptyPlot, useChartMotion } from './kit';
 
-    const [offset, setOffset] = useState(157); // 157 represents fully empty arc (PI * r)
+/**
+ * GaugeChart — a value against its own ceiling.
+ *
+ * ── §11 · the track carries data ────────────────────────────────────────────
+ *
+ * A gauge's unfilled notches encode the remainder — "the other 32%" — so they
+ * are a data mark and must clear 3:1 against the card, not the 1.5:1 a
+ * decorative groove gets away with. That is `--vq-chart-track-data`, which is
+ * ink-400 nudged from 2.94:1 to 3.43:1 in light and lifted to 38% white in
+ * dark, where 28% measured 2.56:1.
+ *
+ * The old version drew its arc in a literal two-stop gradient the product does
+ * not own, over a track written as a raw rgba() with a hand-written dark twin —
+ * and that track failed the 3:1 floor in both modes.
+ *
+ * The reading is printed by the gauge itself, so the frame suppresses its own
+ * headline for this chart type: "68%" twice on one card is the card telling you
+ * it does not know what it is for.
+ */
+export default function GaugeChart({ data, definition, meta }) {
+    const motion = useChartMotion();
 
-    useEffect(() => {
-        // SVG circle radius is 25, circumference is 2 * PI * 25 = 157.08
-        // For a semi-circle or arc, let's use a strokeDasharray of "157 157"
-        // and strokeDashoffset ranging from 157 (empty) to 0 (full)
-        const progress = percentage / 100;
-        const newOffset = 157 - (progress * 157);
-        const t = setTimeout(() => setOffset(newOffset), 100);
-        return () => clearTimeout(t);
-    }, [percentage]);
+    const raw = Number(data?.value);
+    if (!Number.isFinite(raw)) return <EmptyPlot label="No reading" />;
 
-    const displayValue = formatValue(value, unit, precision, settings);
+    const unit = meta?.unit || definition?.unit || 'percentage';
+    const precision = meta?.precision ?? definition?.precision ?? 0;
+
+    /* A gauge needs a ceiling. A percentage carries its own; anything else has
+       to be told, and a reading that cannot say what "full" means is not a
+       gauge — it is a number, and it is clamped rather than drawn past the end
+       of its own arc. */
+    const ceiling = Number(data?.max ?? data?.target ?? (unit === 'percentage' ? 100 : 0));
+    const pct = ceiling > 0
+        ? Math.max(0, Math.min(100, (raw / ceiling) * 100))
+        : Math.max(0, Math.min(100, raw));
 
     return (
-        <div className="flex flex-col items-center justify-center h-full w-full relative">
-            <div className="relative w-32 h-20 shrink-0">
-                <svg viewBox="0 0 60 40" className="w-full h-full overflow-visible">
-                    <defs>
-                        <linearGradient id="gaugeActiveGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="rgb(99, 102, 241)" />
-                            <stop offset="100%" stopColor="rgb(139, 92, 246)" />
-                        </linearGradient>
-                    </defs>
-
-                    {/* Background Track Arc */}
-                    <path
-                        d="M 10 35 A 20 20 0 0 1 50 35"
-                        fill="none"
-                        stroke="rgb(241, 245, 249)"
-                        className="dark:stroke-slate-800"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                    />
-
-                    {/* Progress Indicator Arc */}
-                    <path
-                        d="M 10 35 A 20 20 0 0 1 50 35"
-                        fill="none"
-                        stroke="url(#gaugeActiveGradient)"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                        strokeDasharray="62.8" // Approximate length of the 180 deg arc with r=20
-                        // 62.8 is PI * r.
-                        strokeDashoffset={62.8 - (percentage / 100) * 62.8}
-                        /* 520ms, the longest legal duration. A gauge sweeping for a
-                               full second reads as the number being computed
-                               rather than displayed — and it is already known. */
-                        className="transition-all duration-slower ease-standard"
-                    />
-                </svg>
-
-                {/* Numeric value inside gauge */}
-                <div className="absolute inset-x-0 bottom-1 flex flex-col items-center justify-end">
-                    <span className="text-xl font-semibold text-ink tracking-tight leading-none">
-                        {displayValue}
-                    </span>
-                </div>
-            </div>
-        </div>
+        <Gauge
+            value={pct}
+            centerValue={unit === 'percentage' ? raw : pct}
+            suffix="%"
+            defaultLabel={meta?.label || definition?.label || ''}
+            formatOptions={{ maximumFractionDigits: precision }}
+            activeFill="var(--chart-1)"
+            inactiveFill="var(--vq-chart-track-data)"
+            /* The arc sizes itself from its WIDTH against a fixed 21/16 box and
+               ignores the height it was given, so in a tall card it renders
+               past the bottom of the host and gets clipped by the card's own
+               overflow. .vqc-gauge drives it from the height instead. */
+            className="vqc-gauge"
+            enterTransition={motion.enterTransition}
+        />
     );
 }

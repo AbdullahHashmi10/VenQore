@@ -166,6 +166,20 @@ class HandleInertiaRequests extends Middleware
             // see App\Support\Appearance.
             'appearance' => fn () => \App\Support\Appearance::forRequest(),
             'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
+
+            // ── Modules & nav (unified shell, 2026-08-21) ─────────────────────
+            // The sidebar is DERIVED from enabled modules — never stored, so it
+            // cannot drift from the module switches (see ModuleNavBuilder).
+            // `modules` lets pages gate their own affordances the same way the
+            // Reckoner's module gate does, so the nav, the routes and the
+            // dashboard cards finally share one truth. Lazy props: evaluated
+            // only when the page asks, cached per-tenant inside ModuleService.
+            'modules' => fn () => app()->bound('current.tenant')
+                ? \App\Services\ModuleService::allVisible(app('current.tenant'), $request->user())
+                : [],
+            'nav' => fn () => app()->bound('current.tenant')
+                ? \App\Support\ModuleNavBuilder::build(app('current.tenant'), $request->user())
+                : [],
             'plan' => (function () {
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
                 if (!$tenant) return null;

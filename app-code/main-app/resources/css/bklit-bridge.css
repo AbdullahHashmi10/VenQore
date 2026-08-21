@@ -1,24 +1,142 @@
-/**
- * VQ ↔ Bklit Bridge
- * 
- * Bklit chart components use --chart-1..5 CSS variables.
- * This maps our VQ series tokens onto those names so Bklit
- * components pick up our design system automatically.
- * 
- * Add this to app.css or inject once at the app root.
- */
+/* ══════════════════════════════════════════════════════════════════════════
+   bklit → VenQore V6 token bridge
+   ──────────────────────────────────────────────────────────────────────────
+   The vendored chart library in `resources/js/Components/Charts` resolves
+   every colour through a CSS custom property. That means we do NOT fork it and
+   we do NOT restyle it — we redefine the variables it reads, and it renders in
+   VenQore clothing automatically. One file, and 120 components follow.
+
+   This is the full translation. Every name below was found by reading what the
+   components actually read (`grep -o 'var(--[a-z-]*' Components/Charts`), not
+   by guessing from the docs — the previous version of this file covered 10 of
+   them and left the other 25 undefined, which is why a bklit chart mounted in
+   this app drew black fills on invisible gridlines.
+
+   ── Why there is no dark block ────────────────────────────────────────────
+   Every value on the right-hand side is a V6 token that is itself theme-aware,
+   and `:root` IS the element the theme flips on. Re-declaring these under
+   `html.dark` would restate the same substitution and give two places to
+   forget. `.vq-chart` is here so a single chart can be scoped to a different
+   palette without touching the page.
+
+   Motion is the one thing a variable cannot reach — see §MOTION at the bottom.
+   ══════════════════════════════════════════════════════════════════════════ */
 
 :root,
-.dark {
-    /* Map VQ series tokens → Bklit chart variables */
-    --chart-1: var(--vq-series-1);
-    --chart-2: var(--vq-series-2);
-    --chart-3: var(--vq-series-3);
-    --chart-4: var(--vq-series-4);
-    --chart-5: var(--vq-series-5);
-    --chart-scale-01: color-mix(in oklch, var(--vq-series-1) 10%, transparent);
-    --chart-scale-02: color-mix(in oklch, var(--vq-series-1) 30%, transparent);
-    --chart-scale-03: color-mix(in oklch, var(--vq-series-1) 55%, transparent);
-    --chart-scale-04: color-mix(in oklch, var(--vq-series-1) 75%, transparent);
-    --chart-scale-05: var(--vq-series-1);
+.vq-chart {
+
+  /* ── Categorical series — fixed slots, never cycled. Slot 1 is the brand. ──
+     Slot 1 is the -ink variant on purpose. --vq-series-1 (#0BAA8F) measures
+     2.93:1 on a white card, under §11's 3:1 floor for a mark that encodes a
+     quantity; -ink is the same brand hue at 4.33:1, and in dark it resolves
+     back to series-1 (7.58:1). The correction lives in the token layer so no
+     chart has to know which mode it is in. */
+  --chart-1: var(--vq-series-1-ink);
+  --chart-2: var(--vq-series-2);
+  --chart-3: var(--vq-series-3);
+  --chart-4: var(--vq-series-4);
+  --chart-5: var(--vq-series-5);
+
+  /* ── Line / area ink ─────────────────────────────────────────────────── */
+  --chart-line-primary:   var(--vq-series-1-ink);
+  --chart-line-secondary: var(--vq-series-2);
+
+  /* ── Plot furniture ──────────────────────────────────────────────────── */
+  --chart-grid:               var(--vq-chart-grid);
+  --chart-label:              var(--vq-chart-label);
+  --chart-background:         var(--vq-chart-surface);
+  --chart-foreground:         var(--vq-text);
+  --chart-foreground-muted:   var(--vq-text-2);
+  --chart-segment-line:       var(--vq-line);
+  --chart-segment-background: var(--vq-sunken);
+  --chart-scale-pattern-color: var(--vq-chart-track);
+  --chart-brush-border:       var(--vq-line-strong);
+
+  /* ── Crosshair and hover indicator ───────────────────────────────────────
+     The crosshair is chrome, not data, so it takes the axis ink rather than a
+     series colour — a teal crosshair over a teal line is one line too many. */
+  --chart-crosshair:                  var(--vq-chart-axis);
+  --chart-indicator-color:            var(--vq-chart-axis);
+  --chart-indicator-secondary-color:  var(--vq-line);
+
+  /* ── Tooltip panel ───────────────────────────────────────────────────────
+     --vq-raised, not --vq-surface: a tooltip floats ABOVE a card, and in dark
+     mode a panel painted in the card's own colour disappears into it. */
+  --chart-tooltip-background: var(--vq-raised);
+  --chart-tooltip-foreground: var(--vq-text);
+  --chart-tooltip-muted:      var(--vq-text-2);
+
+  /* ── Terminal markers on a series ────────────────────────────────────── */
+  --chart-marker-background:        var(--vq-surface);
+  --chart-marker-border:            var(--vq-line);
+  --chart-marker-foreground:        var(--vq-text);
+  --chart-marker-badge-background:  var(--vq-accent-quiet);
+  --chart-marker-badge-foreground:  var(--vq-accent-text);
+
+  /* ── Sequential ramp — magnitude, never categorical ──────────────────── */
+  --chart-scale-01: var(--vq-seq-1);
+  --chart-scale-02: var(--vq-seq-2);
+  --chart-scale-03: var(--vq-seq-3);
+  --chart-scale-04: var(--vq-seq-4);
+  --chart-scale-05: var(--vq-seq-5);
+
+  /* ── shadcn base tokens bklit inherits ───────────────────────────────── */
+  --background:         var(--vq-bg);
+  --foreground:         var(--vq-text);
+  --border:             var(--vq-line);
+  --muted-foreground:   var(--vq-text-2);
+  --color-muted:        var(--vq-text-2);
+  --popover:            var(--vq-raised);
+  --popover-foreground: var(--vq-text);
+  --accent:             var(--vq-accent);
+  --shadow:             var(--vq-elev-2);
+  --text:               var(--vq-text);
+  --text-h:             var(--vq-text);
+  --code-bg:            var(--vq-sunken);
+  --social-bg:          var(--vq-sunken);
+
+  /* ── Type ────────────────────────────────────────────────────────────── */
+  --sans:    var(--vq-font-sans);
+  --mono:    var(--vq-font-numeric);
+  --heading: var(--vq-font-display);
+
+  /* ── Shimmer (loading) ───────────────────────────────────────────────── */
+  --shimmering-color: var(--vq-accent);
+
+  /* ── Tailwind literals bklit hard-codes ──────────────────────────────────
+     Three components reach for a raw Tailwind colour. Remapping them here is
+     what stops a chart introducing a palette the product does not own. */
+  --color-zinc-500:    var(--vq-text-3);
+  --color-emerald-500: var(--vq-success);
+  --color-red-500:     var(--vq-danger);
 }
+
+/* ══ MOTION ═══════════════════════════════════════════════════════════════
+   bklit's defaults break the V6 motion law and cannot be reached by a
+   variable — they are component props. Every chart mount must pass:
+
+     animationDuration = 520                            // --vq-dur-4
+     animationEasing   = "cubic-bezier(.22, 1, .36, 1)"  // --vq-ease-out
+
+   bklit's own defaults are 1100ms and a hard in-out curve, neither of which is
+   one of the four legal durations or four legal easings.
+
+   Every <Grid> keeps bklit's default orientation, which already agrees with
+   M5: horizontal = true, vertical = false. Pass strokeDasharray="3 5" — bklit
+   defaults to "4,4", which is not the dash the rest of the product draws.
+
+   Under prefers-reduced-motion pass animate={false} rather than shortening;
+   a 1ms animation still schedules a frame and still moves.
+
+   `Dashboard/charts/chartKit.jsx` exports CHART_MOTION so no card has to
+   remember any of this.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .vq-chart *,
+  .vqc-host * { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+/* Charts never draw their own axis spines — M5. bklit does not render them by
+   default; this is belt and braces against a future prop being flipped. */
+.vq-chart .visx-axis-line { display: none; }

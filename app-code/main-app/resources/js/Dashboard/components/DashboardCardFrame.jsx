@@ -1,357 +1,293 @@
 import React from 'react';
-import { HelpCircle, AlertCircle, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import {
+    AlertCircle, GripVertical, HelpCircle, Minus, Pencil,
+    Trash2, TrendingDown, TrendingUp,
+} from 'lucide-react';
+
+import NumberRoller from './NumberRoller';
+import CardPeriodPicker from './CardPeriodPicker';
+import { periodWhen } from '../periods';
+import {
+    SELF_LABELLED, formatMetric, headlineOf, isBareStat, resolveDelta,
+} from '../utils/headline';
 
 /**
- * DashboardCardFrame — VenQore Design System v2.0
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  DashboardCardFrame — the card face                                       ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
  *
- * Surfaces: --vq-surface (card), --vq-sunken (loading skeleton)
- * Text:     --vq-text / --vq-text-2 / --vq-text-3
- * Border:   --vq-line / --vq-line-soft
- * Accent:   --vq-accent-quiet / --vq-accent-text
- * Semantic: --vq-danger (error)
- * Motion:   --vq-dur-fast / --vq-ease
+ * The React half of the `.vqc` card layer in `resources/css/venqore-v6/cards.css`.
+ * Between them they are the card builder's card, in the product.
+ *
+ * ── What moved, and why it had to ───────────────────────────────────────────
+ *
+ * This file used to carry ~350 lines of inline style objects and four
+ * `onMouseEnter` handlers that mutated `style.boxShadow` by hand, because an
+ * inline style cannot express `:hover`. The styling is now CSS and this file
+ * is structure and behaviour, which is the split that lets the two stay in
+ * agreement with the builder.
+ *
+ * The headline also moved. It used to live inside StatChart, so a card showing
+ * a line chart had no number, a card showing a gauge had two, and the eight
+ * chart components each decided their own type scale. The FRAME now owns the
+ * eyebrow, the value, the delta and the window; a chart component owns the
+ * plot and nothing else. That is the only arrangement in which every card on a
+ * board reads the same way.
+ *
+ * ── The mechanisms this file is responsible for ─────────────────────────────
+ *
+ * M1  `card.style.accent` paints the fill. The budget of one is enforced
+ *     server-side; this just renders it, and in dark it also BLOOMS (M6).
+ * M2  Three type sizes: eyebrow 11px → value 38px (26px on C2, h3 on C1) →
+ *     delta at eyebrow size. Nothing between them.
+ * M3  The delta is a pill carrying a GLYPH and a number, and it is the
+ *     smallest thing on the card. The window line beside it is never tinted.
+ * M4  Top-aligned. The fit decides the box; the content sits in it.
  */
 export default function DashboardCardFrame({
     card,
     definition,
+    meta,
+    data,
+    settings,
     loading,
     error,
     isGated,
     isLocked,
+    index = 0,
     onEdit,
     onRemove,
-    children
+    onPeriodChange,
+    children,
 }) {
-    const title = card?.title_override || definition?.label || 'Metric';
-    const description = definition?.description || '';
-    const help = definition?.help || '';
+    // A card gated by plan or permission is not a card in an error state — it
+    // is a card that does not exist for this user. It leaves no hole.
+    if (isGated) return null;
 
-    /*
-     * Mechanism M1 — exactly one accent-filled card per board, and it must be
-     * the headline metric.
-     *
-     * `card.style.accent` has been persisted, sanitised, budget-enforced and
-     * validated since the editor landed, and NOTHING rendered it. The board had
-     * the data and drew every card identically, which is the one thing M1 says
-     * a board must not do: with no accent card it has not said which number
-     * matters.
-     *
-     * The fill is the mint gradient with inverted text, and in dark mode it also
-     * BLOOMS — it gains `--vq-glow-accent`, which the plain cards do not have.
-     * That bloom is M6: dark mode is a re-render, not an inversion.
-     */
+    const category = card?.category || 'C3';
     const accent = Boolean(card?.style?.accent);
+    const title = card?.title_override || meta?.label || definition?.label || 'Metric';
+    const help = definition?.help || meta?.help || '';
 
-    // Handle gated / plan downgrade state: hide card entirely from layout view
-    if (isGated) {
-        return null; 
+    const unit = meta?.unit || definition?.unit || 'decimal';
+    const precision = meta?.precision ?? definition?.precision ?? 0;
+    const direction = meta?.direction || definition?.direction || 'neutral';
+
+    const headline = headlineOf(data, definition);
+    const metric = formatMetric(headline.value, { unit, precision, settings, category });
+    const delta = resolveDelta(headline.changePct, direction);
+
+    const period = card?.period || definition?.default_period || 'today';
+    const when = periodWhen(meta, period);
+
+    /* A chart that prints its own number in its own middle does not get a
+       second one above it, and a bare stat has no body to make room for. */
+    const showHeadline = !SELF_LABELLED.has(card?.chart);
+    const showHost = !isBareStat(card) || Boolean(children);
+
+    // Default ON, matching the card builder. An explicit false turns it off.
+    const showPicker = card?.style?.periodPicker !== false && !SELF_LABELLED.has(card?.chart);
+
+    const classes = [
+        'vqc',
+        `vqc--${category.toLowerCase()}`,
+        accent && 'vqc--accent',
+        error && 'vqc--error',
+    ].filter(Boolean).join(' ');
+
+    const tools = !isLocked && (onEdit || onRemove) ? (
+        <span className="vqc-tools">
+            {/* The grip is the drag handle react-grid-layout is told about, so
+                dragging starts here and nowhere else — a card you can pick up
+                by its own chart is a card you cannot hover a data point on. */}
+            <button
+                type="button"
+                className="vqc-act vqc-grip vq-card-drag-handle"
+                title="Drag to reorder"
+                aria-label={`Reorder ${title}`}
+            >
+                <GripVertical size={13} aria-hidden="true" />
+            </button>
+            {onEdit && (
+                <button
+                    type="button"
+                    className="vqc-act vqc-edit"
+                    title="Configure card"
+                    aria-label={`Configure ${title}`}
+                    onClick={onEdit}
+                >
+                    <Pencil size={12} aria-hidden="true" />
+                </button>
+            )}
+            {onRemove && (
+                <button
+                    type="button"
+                    className="vqc-act vqc-del"
+                    title="Remove card"
+                    aria-label={`Remove ${title}`}
+                    onClick={onRemove}
+                >
+                    <Trash2 size={12} aria-hidden="true" />
+                </button>
+            )}
+        </span>
+    ) : null;
+
+    const value = (
+        <NumberRoller
+            value={metric.text}
+            title={metric.exact ?? undefined}
+            className={
+                category === 'C1' ? 'vqc-value vqc-value--xs'
+                    : category === 'C2' ? 'vqc-value vqc-value--sm'
+                        : 'vqc-value'
+            }
+        />
+    );
+
+    /* ── C1 · Tile — a label and a figure, centred, no header row ─────── */
+    if (category === 'C1') {
+        return (
+            <article className={classes} style={{ '--i': index }} id={`card-${card.id}`}>
+                {tools}
+                <Body loading={loading} error={error} category={category}>
+                    <div className="vqc-bd vqc-bd--tile">
+                        <span className="vqc-label" title={title}>{title}</span>
+                        {value}
+                        <span className="vqc-when">{when}</span>
+                    </div>
+                </Body>
+                <span className="vqc-glare" aria-hidden="true" />
+            </article>
+        );
     }
 
-    return (
-        <div
-            style={{
-                position: 'relative',
-                background: accent ? 'var(--vq-grad-mint)' : 'var(--vq-surface)',
-                border: `1px solid ${accent ? 'transparent' : 'var(--vq-line)'}`,
-                borderRadius: 'var(--vq-r-lg)',
-                padding: '16px',
-                boxShadow: accent ? 'var(--vq-glow-accent)' : 'var(--vq-elev-1)',
-                color: accent ? 'var(--vq-on-accent)' : 'var(--vq-text)',
-                display: 'flex',
-                flexDirection: 'column',
-                /*
-                 * Top-aligned, NOT space-between.
-                 *
-                 * `space-between` on a column pushes the header up and the body
-                 * down, so a card holding one number stretched that number
-                 * across whatever height the grid gave it — which is why a
-                 * three-element metric block was floating in the middle of a
-                 * 400px box with nothing above or below it.
-                 *
-                 * The fit decides the box; the content sits at the top of it.
-                 */
-                justifyContent: 'flex-start',
-                gap: '10px',
-                height: '100%',
-                userSelect: 'none',
-                transition: `border-color var(--vq-dur-fast) var(--vq-ease), box-shadow var(--vq-dur-fast) var(--vq-ease)`,
-            }}
-            className="vq-card-frame"
-            id={`card-${card.id}`}
-            onMouseEnter={e => {
-                if (accent) {
-                    e.currentTarget.style.boxShadow = 'var(--vq-glow-accent-strong)';
-                    return;
-                }
-                e.currentTarget.style.borderColor = 'var(--vq-line-strong)';
-                e.currentTarget.style.boxShadow = 'var(--vq-elev-2)';
-            }}
-            onMouseLeave={e => {
-                if (accent) {
-                    e.currentTarget.style.boxShadow = 'var(--vq-glow-accent)';
-                    return;
-                }
-                e.currentTarget.style.borderColor = 'var(--vq-line)';
-                e.currentTarget.style.boxShadow = 'var(--vq-elev-1)';
-            }}
-        >
-            {/* ── Card Header ── */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '8px',
-                flexShrink: 0,
-                marginBottom: '10px',
-            }}>
-                {/* Title + help icon */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                    {/* Drag handle doubles as title — grab region */}
-                    <span
-                        className="vq-card-drag-handle"
-                        title={description}
-                        style={{
-                            fontFamily: 'var(--vq-font-mono)',
-                            fontSize: 'var(--vq-fs-eyebrow)',
-                            lineHeight: 'var(--vq-lh-eyebrow)',
-                            letterSpacing: 'var(--vq-ls-eyebrow)',
-                            textTransform: 'uppercase',
-                            fontWeight: 'var(--vq-fw-medium)',
-                            // On the accent fill the eyebrow inverts with everything
-                            // else. --vq-text-3 on mint is roughly 1.6:1.
-                            color: accent ? 'rgb(255 255 255 / .72)' : 'var(--vq-text-3)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            maxWidth: '160px',
-                            cursor: isLocked ? 'default' : 'grab',
-                        }}
-                    >
-                        {title}
-                    </span>
-                    {help && (
-                        <div style={{ position: 'relative', flexShrink: 0 }} className="vq-help-trigger">
-                            <button
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    padding: 0,
-                                    cursor: 'help',
-                                    color: 'var(--vq-text-3)',
-                                    display: 'flex',
-                                    transition: `color var(--vq-dur-instant)`,
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.color = 'var(--vq-accent-text)';
-                                    e.currentTarget.nextSibling.style.opacity = '1';
-                                    e.currentTarget.nextSibling.style.pointerEvents = 'auto';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.color = 'var(--vq-text-3)';
-                                    e.currentTarget.nextSibling.style.opacity = '0';
-                                    e.currentTarget.nextSibling.style.pointerEvents = 'none';
-                                }}
-                            >
-                                <HelpCircle size={12} />
-                            </button>
-                            {/* Tooltip */}
-                            <div style={{
-                                position: 'absolute',
-                                left: '50%',
-                                bottom: '100%',
-                                marginBottom: '6px',
-                                transform: 'translateX(-50%)',
-                                width: '192px',
-                                background: 'var(--vq-raised)',
-                                border: '1px solid var(--vq-line)',
-                                color: 'var(--vq-text-2)',
-                                padding: '8px 10px',
-                                borderRadius: 'var(--vq-r-md)',
-                                fontSize: 'var(--vq-fs-caption)',
-                                lineHeight: 'var(--vq-lh-caption)',
-                                fontFamily: 'var(--vq-font-sans)',
-                                textAlign: 'center',
-                                opacity: 0,
-                                pointerEvents: 'none',
-                                transition: `opacity var(--vq-dur-instant)`,
-                                zIndex: 'var(--vq-z-tooltip)',
-                                boxShadow: 'var(--vq-elev-3)',
-                            }}>
-                                {help}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Edit Actions Menu (rendered if layout is unlocked) */}
-                {!isLocked && (onEdit || onRemove) && (
-                    <div style={{ position: 'relative', flexShrink: 0 }} className="vq-card-menu">
-                        <button
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                padding: '2px',
-                                cursor: 'pointer',
-                                color: 'var(--vq-text-3)',
-                                borderRadius: 'var(--vq-r-xs)',
-                                display: 'flex',
-                                transition: `color var(--vq-dur-instant), background var(--vq-dur-instant)`,
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.color = 'var(--vq-text-2)';
-                                e.currentTarget.style.background = 'var(--vq-sunken)';
-                                const menu = e.currentTarget.parentElement.querySelector('.vq-card-dropdown');
-                                if (menu) { menu.style.opacity = '1'; menu.style.pointerEvents = 'auto'; }
-                            }}
-                        >
-                            <MoreVertical size={14} />
-                        </button>
-                        
-                        <div
-                            className="vq-card-dropdown"
-                            style={{
-                                position: 'absolute',
-                                right: 0,
-                                top: '100%',
-                                marginTop: '4px',
-                                background: 'var(--vq-raised)',
-                                border: '1px solid var(--vq-line)',
-                                borderRadius: 'var(--vq-r-md)',
-                                boxShadow: 'var(--vq-elev-3)',
-                                opacity: 0,
-                                pointerEvents: 'none',
-                                transition: `opacity var(--vq-dur-fast)`,
-                                zIndex: 'var(--vq-z-dropdown)',
-                                padding: '4px',
-                                minWidth: '120px',
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.opacity = '0';
-                                e.currentTarget.style.pointerEvents = 'none';
-                            }}
-                        >
-                            {onEdit && (
-                                <button 
-                                    onClick={onEdit}
-                                    style={{
-                                        width: '100%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '7px 10px',
-                                        fontSize: 'var(--vq-fs-caption)',
-                                        fontWeight: 'var(--vq-fw-medium)',
-                                        fontFamily: 'var(--vq-font-sans)',
-                                        color: 'var(--vq-text-2)',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        borderRadius: 'var(--vq-r-sm)',
-                                        textAlign: 'left',
-                                        transition: `background var(--vq-dur-instant)`,
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-sunken)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                                >
-                                    <Edit2 size={11} />
-                                    <span>Configure</span>
-                                </button>
-                            )}
-                            {onRemove && (
-                                <button 
-                                    onClick={onRemove}
-                                    style={{
-                                        width: '100%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '7px 10px',
-                                        fontSize: 'var(--vq-fs-caption)',
-                                        fontWeight: 'var(--vq-fw-medium)',
-                                        fontFamily: 'var(--vq-font-sans)',
-                                        color: 'var(--vq-danger)',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        borderRadius: 'var(--vq-r-sm)',
-                                        textAlign: 'left',
-                                        transition: `background var(--vq-dur-instant)`,
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--vq-danger-bg)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                                >
-                                    <Trash2 size={11} />
-                                    <span>Delete</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* ── Card Body & States ── */}
-            <div style={{
-                flexGrow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                // Was `center`, which floated the number block in the middle of
-                // the card. M2's ladder reads top-down — eyebrow, value, delta —
-                // so it starts at the top and a chart fills what is left.
-                justifyContent: 'flex-start',
-                width: '100%',
-                minHeight: 0,
-                position: 'relative',
-            }}>
-                {loading ? (
-                    /* Skeleton loader — VQ sunken surface */
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                        <div style={{
-                            height: '28px',
-                            width: '62%',
-                            background: 'var(--vq-sunken)',
-                            borderRadius: 'var(--vq-r-sm)',
-                            animation: 'vq-pulse 1.6s ease-in-out infinite',
-                        }} />
-                        <div style={{
-                            height: '14px',
-                            width: '34%',
-                            background: 'var(--vq-sunken)',
-                            borderRadius: 'var(--vq-r-xs)',
-                            opacity: 0.6,
-                            animation: 'vq-pulse 1.6s ease-in-out 0.3s infinite',
-                        }} />
-                        <style>{`
-                            @keyframes vq-pulse {
-                                0%, 100% { opacity: 0.45; }
-                                50%       { opacity: 0.9; }
-                            }
-`}</style>
-                    </div>
-                ) : error ? (
-                    /* Error state */
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        color: 'var(--vq-text-3)',
-                    }}>
-                        <AlertCircle size={20} style={{ color: 'var(--vq-danger)', opacity: 0.72 }} />
-                        <span style={{
-                            fontFamily: 'var(--vq-font-mono)',
-                            fontSize: 'var(--vq-fs-eyebrow)',
-                            letterSpacing: 'var(--vq-ls-eyebrow)',
-                            textTransform: 'uppercase',
-                            color: 'var(--vq-text-3)',
-                        }}>
-                            Failed to load
+    /* ── C2 · Strip — label left, figure right, one line ──────────────── */
+    if (category === 'C2') {
+        return (
+            <article className={classes} style={{ '--i': index }} id={`card-${card.id}`}>
+                {tools}
+                <Body loading={loading} error={error} category={category}>
+                    <div className="vqc-bd vqc-bd--strip is-inline">
+                        <span className="vqc-eyebrow" title={title}>{title}</span>
+                        <span className="vqc-head">
+                            {value}
+                            {delta && <Delta delta={delta} />}
                         </span>
+                        <span className="vqc-when">{when}</span>
                     </div>
-                ) : (
-                    children
-                )}
+                </Body>
+                <span className="vqc-glare" aria-hidden="true" />
+            </article>
+        );
+    }
+
+    /* ── C3–C6 · header, number block, window, plot ───────────────────── */
+    return (
+        <article className={classes} style={{ '--i': index }} id={`card-${card.id}`}>
+            <div className="vqc-hd">
+                <span className="vqc-eyebrow" title={definition?.description || title}>
+                    {title}
+                </span>
+
+                <span className="vqc-hd-r">
+                    {help && (
+                        <button
+                            type="button"
+                            className="vqc-help"
+                            title={help}
+                            aria-label={help}
+                        >
+                            <HelpCircle size={12} aria-hidden="true" />
+                        </button>
+                    )}
+                    {showPicker && (
+                        <CardPeriodPicker
+                            value={period}
+                            definition={definition}
+                            disabled={!onPeriodChange}
+                            onChange={(next) => onPeriodChange?.(card.id, next)}
+                        />
+                    )}
+                    {tools}
+                </span>
             </div>
-        </div>
+
+            <Body loading={loading} error={error} category={category}>
+                {showHeadline && (
+                    <>
+                        <div className="vqc-head">
+                            {value}
+                            {delta && <Delta delta={delta} />}
+                        </div>
+                        <p className="vqc-when">{when}</p>
+                    </>
+                )}
+
+                {showHost && (
+                    <div className="vqc-host vq-chart" data-chart={card?.chart}>
+                        {children}
+                    </div>
+                )}
+            </Body>
+
+            <span className="vqc-glare" aria-hidden="true" />
+        </article>
+    );
+}
+
+/* ------------------------------------------------------------------ *
+ * States
+ * ------------------------------------------------------------------ */
+
+/**
+ * Loading, failed, or the card itself.
+ *
+ * The skeleton is shaped like the thing it is standing in for — eyebrow, then
+ * value, then plot — so the card does not visibly re-lay itself the moment the
+ * figures land. A generic grey box does re-lay, and on a nine-card board that
+ * is nine small jumps every time the page loads.
+ */
+function Body({ loading, error, category, children }) {
+    if (loading) {
+        const lean = category === 'C1' || category === 'C2';
+        return (
+            <div className="vqc-bd" aria-busy="true">
+                <div className="vqc-skel vqc-skel--value" />
+                <div className="vqc-skel vqc-skel--foot" />
+                {!lean && <div className="vqc-skel vqc-skel--plot" />}
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="vqc-state">
+                <span className="vqc-state-ic"><AlertCircle size={16} aria-hidden="true" /></span>
+                <span className="vqc-state-t">Couldn’t load this</span>
+                <span className="vqc-state-d">
+                    The reading didn’t come back. It will retry on the next refresh.
+                </span>
+            </div>
+        );
+    }
+
+    return <>{children}</>;
+}
+
+/* ------------------------------------------------------------------ *
+ * Delta
+ * ------------------------------------------------------------------ */
+
+/** M3 — a glyph AND a number. The colour is a third signal, never the only one. */
+function Delta({ delta }) {
+    const Icon = delta.tone === 'flat' ? Minus : (delta.rising ? TrendingUp : TrendingDown);
+    const word = delta.tone === 'flat' ? 'no change' : (delta.rising ? 'up' : 'down');
+
+    return (
+        <span className={`vqc-delta vqc-delta--${delta.tone}`}>
+            <Icon size={10} strokeWidth={2.5} aria-hidden="true" />
+            <span aria-label={`${word} ${delta.text}`}>{delta.text}</span>
+        </span>
     );
 }

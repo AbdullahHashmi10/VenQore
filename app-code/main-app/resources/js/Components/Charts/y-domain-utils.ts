@@ -7,6 +7,29 @@ export type YDomain = [number, number];
 
 /** Apply visx `nice()` to raw domain endpoints for stable grid ticks. */
 export function niceYDomain(domain: YDomain): YDomain {
+  /*
+   * A flat series has a zero-span domain, and `nice()` on [0, 0] returns
+   * [0, 0] — a scale with no range, which renders the line at an undefined
+   * position and an axis with no ticks. That is the state every card is in on
+   * a day with no takings: the figure reads "Rs 0.00" and the plot is blank,
+   * which looks broken rather than quiet.
+   *
+   * A constant reading is still a reading. Give it a scale to sit on, so the
+   * line draws flat and the axis states what flat means.
+   */
+  const [lo, hi] = domain;
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [0, 1];
+
+  if (lo === hi) {
+    // Zero sits on the floor of its own scale; any other constant is centred.
+    const span = Math.abs(lo) > 0 ? Math.abs(lo) : 1;
+    const padded: YDomain =
+      lo === 0 ? [0, span] : [lo - span * 0.5, hi + span * 0.5];
+    const flat = scaleLinear({ domain: padded, range: [0, 1], nice: true });
+    const flatDomain = flat.domain();
+    return [flatDomain[0] ?? padded[0], flatDomain[1] ?? padded[1]];
+  }
+
   const scale = scaleLinear({ domain, range: [0, 1], nice: true });
   const niceDomain = scale.domain();
   return [niceDomain[0] ?? domain[0], niceDomain[1] ?? domain[1]];

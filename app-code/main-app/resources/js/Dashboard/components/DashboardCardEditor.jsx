@@ -14,6 +14,11 @@ import {
     size as rowSize,
 } from '../layoutLaw';
 import { CHART_LABELS } from '../chartRegistry';
+import {
+    fixVariant, legalCategoriesFor, legalFitsFor, minSizeFor, resizeForChart,
+    variantOf, variantsFor,
+} from '../variantLaw';
+import { PERIOD_LABELS } from '../periods';
 
 /**
  * DashboardCardEditor — edit one card in place.
@@ -69,7 +74,12 @@ export default function DashboardCardEditor({
             category: card.category || 'C3',
             fit: card.fit || null,
             accent: Boolean(card.style?.accent),
-            periodPicker: Boolean(card.style?.periodPicker),
+            variant: variantOf(card),
+            extraKeys: card.style?.extraKeys ?? [],
+            // Default ON. The frame renders the switcher unless this is
+            // explicitly false, so the checkbox has to agree or the editor
+            // shows "off" next to a card that visibly has one.
+            periodPicker: card.style?.periodPicker !== false,
         });
     }, [card?.id, isOpen]);
 
@@ -88,20 +98,31 @@ export default function DashboardCardEditor({
         if (!draft) return [];
         const designedFor = categoriesForChart(draft.chart);
         const floor = minCategoryForChart(draft.chart);
+        /* The category floor is coarse — it cannot say that a ring with five
+           legend rows needs more height than one with two. The Variant Law
+           states the floor in grid cells, so a category with no fit big
+           enough for this card's content is not offered at all. */
+        const roomy = new Set(legalCategoriesFor(draft));
 
         return CATEGORY_KEYS
-            .filter((key) => isCategoryLegal(draft.chart, key))
+            .filter((key) => isCategoryLegal(draft.chart, key) && roomy.has(key))
             .map((key) => ({
                 key,
                 ...CATEGORIES[key],
                 recommended: designedFor.includes(key),
                 isFloor: key === floor,
             }));
-    }, [draft?.chart]);
+    }, [draft?.chart, draft?.variant, draft?.extraKeys?.length]);
 
     const fitOptions = useMemo(
-        () => (draft ? fitsFor(draft.category) : []),
-        [draft?.category],
+        () => (draft ? legalFitsFor(draft, draft.category) : []),
+        [draft?.category, draft?.chart, draft?.variant, draft?.extraKeys?.length],
+    );
+
+    /** Every look for this chart, with whether it is usable and why not. */
+    const variantOptions = useMemo(
+        () => (draft ? variantsFor(draft) : []),
+        [draft?.chart, draft?.extraKeys?.length],
     );
 
     if (!isOpen || !draft) return null;
@@ -111,24 +132,48 @@ export default function DashboardCardEditor({
      * chart's legibility floor — a stat in a C1 tile is fine, a heatmap in one
      * is not. Lift it to the floor rather than saving something illegal.
      */
+    /**
+     * Changing the chart re-sizes the card to that chart's natural size.
+     *
+     * Not "grow it if it is now too small" — discard the old size outright.
+     * It was measured for a chart that is gone, and carrying it over is what
+     * left a six-row box holding a ring that needs eight, with its period line
+     * clipped and its legend collapsed to two scrolling rows.
+     */
     const setChart = (chart) => {
         setDraft((d) => {
-            const category = isCategoryLegal(chart, d.category)
-                ? d.category
-                : minCategoryForChart(chart);
+            const next = { ...d, chart, variant: null };
+            next.variant = fixVariant(next);
+            const { category, fit } = resizeForChart(next);
 
             return {
                 ...d,
                 chart,
+                variant: next.variant,
                 category,
-                fit: category === d.category ? d.fit : defaultFit(category)?.key ?? null,
+                fit,
             };
         });
     };
 
     // A fit belongs to exactly one category, so changing category invalidates it.
     const setCategory = (category) =>
-        setDraft((d) => ({ ...d, category, fit: defaultFit(category)?.key ?? null }));
+        setDraft((d) => ({
+            ...d,
+            category,
+            fit: legalFitsFor(d, category)[0]?.key ?? defaultFit(category)?.key ?? null,
+        }));
+
+    /* A look can change what the card has to draw — `number` needs one row,
+       `plain` needs four — so the size follows it. */
+    const setVariant = (variant) =>
+        setDraft((d) => {
+            const next = { ...d, variant };
+            const fits = legalFitsFor(next, d.category);
+            if (fits.some((f) => f.key === d.fit)) return next;
+            const { category, fit } = resizeForChart(next);
+            return { ...next, category, fit };
+        });
 
     const submit = () => {
         const { w, h } = dimensionsOf(draft.category, draft.fit);
@@ -144,6 +189,8 @@ export default function DashboardCardEditor({
             style: {
                 accent: draft.accent,
                 periodPicker: draft.periodPicker,
+                variant: draft.variant,
+                extraKeys: draft.extraKeys,
             },
         });
     };
@@ -227,8 +274,26 @@ export default function DashboardCardEditor({
                     </Field>
 
                     <Field
+                        label="Look"
+                        hint={`How a ${(CHART_LABELS?.[draft.chart] || draft.chart).toLowerCase()} is drawn. A look that would render the same picture as another is offered disabled, with what it needs.`}
+                    >
+                        <Grid>
+                            {variantOptions.map(([id, label, enabled, why]) => (
+                                <Choice
+                                    key={id}
+                                    selected={draft.variant === id}
+                                    disabled={!enabled}
+                                    onClick={() => enabled && setVariant(id)}
+                                    label={label}
+                                    note={enabled ? null : why}
+                                />
+                            ))}
+                        </Grid>
+                    </Field>
+
+                    <Field
                         label="Size"
-                        hint={`${CATEGORIES[draft.category]?.role}. A card widens before it degrades.`}
+                        hint={`${CATEGORIES[draft.category]?.role}. A card widens before it degrades. This chart needs at least ${minSizeFor(draft)[0]}\u00d7${minSizeFor(draft)[1]}.`}
                     >
                         <Grid>
                             {categoryOptions.map((cat) => (
@@ -326,15 +391,6 @@ export default function DashboardCardEditor({
  * Pieces
  * ------------------------------------------------------------------ */
 
-const PERIOD_LABELS = {
-    today: 'Today',
-    week: 'Week',
-    month: 'Month',
-    quarter: 'Quarter',
-    year: 'Year',
-    all: 'All time',
-};
-
 const inputStyle = {
     width: '100%',
     height: 'var(--vq-control-lg)',
@@ -399,9 +455,20 @@ const Grid = ({ children }) => (
     </div>
 );
 
-function Choice({ selected, onClick, label, note }) {
+function Choice({ selected, onClick, label, note, disabled = false }) {
     return (
-        <button onClick={onClick} style={{ ...choiceStyle(selected), textAlign: 'left' }}>
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            /* A disabled choice stays legible and keeps its reason — it is
+               explaining a rule, not hiding an option. */
+            style={{
+                ...choiceStyle(selected),
+                textAlign: 'left',
+                opacity: disabled ? 0.45 : 1,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+            }}
+        >
             <div style={{
                 fontSize: 'var(--vq-fs-small)',
                 fontWeight: selected ? 'var(--vq-fw-semi)' : 'var(--vq-fw-medium)',

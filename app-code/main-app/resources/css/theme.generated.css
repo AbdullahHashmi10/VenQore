@@ -299,7 +299,7 @@
     --vq-neutral-900: var(--vq-ramp-ink-900);
     --vq-neutral-950: var(--vq-ramp-ink-950);
 
-    /* indigo, teal → teal */
+    /* indigo, teal → teal (teal under --vq-tw-*: V6 owns the plain name) */
     --vq-indigo-50: var(--vq-ramp-teal-50);
     --vq-indigo-100: var(--vq-ramp-teal-100);
     --vq-indigo-200: var(--vq-ramp-teal-200);
@@ -311,17 +311,17 @@
     --vq-indigo-800: var(--vq-ramp-teal-800);
     --vq-indigo-900: var(--vq-ramp-teal-900);
     --vq-indigo-950: var(--vq-ramp-teal-950);
-    --vq-teal-50: var(--vq-ramp-teal-50);
-    --vq-teal-100: var(--vq-ramp-teal-100);
-    --vq-teal-200: var(--vq-ramp-teal-200);
-    --vq-teal-300: var(--vq-ramp-teal-300);
-    --vq-teal-400: var(--vq-ramp-teal-400);
-    --vq-teal-500: var(--vq-ramp-teal-500);
-    --vq-teal-600: var(--vq-ramp-teal-600);
-    --vq-teal-700: var(--vq-ramp-teal-700);
-    --vq-teal-800: var(--vq-ramp-teal-800);
-    --vq-teal-900: var(--vq-ramp-teal-900);
-    --vq-teal-950: var(--vq-ramp-teal-950);
+    --vq-tw-teal-50: var(--vq-ramp-teal-50);
+    --vq-tw-teal-100: var(--vq-ramp-teal-100);
+    --vq-tw-teal-200: var(--vq-ramp-teal-200);
+    --vq-tw-teal-300: var(--vq-ramp-teal-300);
+    --vq-tw-teal-400: var(--vq-ramp-teal-400);
+    --vq-tw-teal-500: var(--vq-ramp-teal-500);
+    --vq-tw-teal-600: var(--vq-ramp-teal-600);
+    --vq-tw-teal-700: var(--vq-ramp-teal-700);
+    --vq-tw-teal-800: var(--vq-ramp-teal-800);
+    --vq-tw-teal-900: var(--vq-ramp-teal-900);
+    --vq-tw-teal-950: var(--vq-ramp-teal-950);
 
     /* violet, purple, fuchsia, pink → plum */
     --vq-violet-50: var(--vq-ramp-plum-50);
@@ -369,7 +369,7 @@
     --vq-pink-900: var(--vq-ramp-plum-900);
     --vq-pink-950: var(--vq-ramp-plum-950);
 
-    /* blue, sky, cyan → sky */
+    /* blue, sky, cyan → sky (sky under --vq-tw-*: V6 owns the plain name) */
     --vq-blue-50: var(--vq-ramp-sky-50);
     --vq-blue-100: var(--vq-ramp-sky-100);
     --vq-blue-200: var(--vq-ramp-sky-200);
@@ -381,17 +381,17 @@
     --vq-blue-800: var(--vq-ramp-sky-800);
     --vq-blue-900: var(--vq-ramp-sky-900);
     --vq-blue-950: var(--vq-ramp-sky-950);
-    --vq-sky-50: var(--vq-ramp-sky-50);
-    --vq-sky-100: var(--vq-ramp-sky-100);
-    --vq-sky-200: var(--vq-ramp-sky-200);
-    --vq-sky-300: var(--vq-ramp-sky-300);
-    --vq-sky-400: var(--vq-ramp-sky-400);
-    --vq-sky-500: var(--vq-ramp-sky-500);
-    --vq-sky-600: var(--vq-ramp-sky-600);
-    --vq-sky-700: var(--vq-ramp-sky-700);
-    --vq-sky-800: var(--vq-ramp-sky-800);
-    --vq-sky-900: var(--vq-ramp-sky-900);
-    --vq-sky-950: var(--vq-ramp-sky-950);
+    --vq-tw-sky-50: var(--vq-ramp-sky-50);
+    --vq-tw-sky-100: var(--vq-ramp-sky-100);
+    --vq-tw-sky-200: var(--vq-ramp-sky-200);
+    --vq-tw-sky-300: var(--vq-ramp-sky-300);
+    --vq-tw-sky-400: var(--vq-ramp-sky-400);
+    --vq-tw-sky-500: var(--vq-ramp-sky-500);
+    --vq-tw-sky-600: var(--vq-ramp-sky-600);
+    --vq-tw-sky-700: var(--vq-ramp-sky-700);
+    --vq-tw-sky-800: var(--vq-ramp-sky-800);
+    --vq-tw-sky-900: var(--vq-ramp-sky-900);
+    --vq-tw-sky-950: var(--vq-ramp-sky-950);
     --vq-cyan-50: var(--vq-ramp-sky-50);
     --vq-cyan-100: var(--vq-ramp-sky-100);
     --vq-cyan-200: var(--vq-ramp-sky-200);
@@ -428,18 +428,18 @@
     --vq-green-900: var(--vq-ramp-success-900);
     --vq-green-950: var(--vq-ramp-success-950);
 
-    /* lime → lime */
-    --vq-lime-50: var(--vq-ramp-lime-50);
-    --vq-lime-100: var(--vq-ramp-lime-100);
-    --vq-lime-200: var(--vq-ramp-lime-200);
-    --vq-lime-300: var(--vq-ramp-lime-300);
-    --vq-lime-400: var(--vq-ramp-lime-400);
-    --vq-lime-500: var(--vq-ramp-lime-500);
-    --vq-lime-600: var(--vq-ramp-lime-600);
-    --vq-lime-700: var(--vq-ramp-lime-700);
-    --vq-lime-800: var(--vq-ramp-lime-800);
-    --vq-lime-900: var(--vq-ramp-lime-900);
-    --vq-lime-950: var(--vq-ramp-lime-950);
+    /* lime → lime (lime under --vq-tw-*: V6 owns the plain name) */
+    --vq-tw-lime-50: var(--vq-ramp-lime-50);
+    --vq-tw-lime-100: var(--vq-ramp-lime-100);
+    --vq-tw-lime-200: var(--vq-ramp-lime-200);
+    --vq-tw-lime-300: var(--vq-ramp-lime-300);
+    --vq-tw-lime-400: var(--vq-ramp-lime-400);
+    --vq-tw-lime-500: var(--vq-ramp-lime-500);
+    --vq-tw-lime-600: var(--vq-ramp-lime-600);
+    --vq-tw-lime-700: var(--vq-ramp-lime-700);
+    --vq-tw-lime-800: var(--vq-ramp-lime-800);
+    --vq-tw-lime-900: var(--vq-ramp-lime-900);
+    --vq-tw-lime-950: var(--vq-ramp-lime-950);
 
     /* yellow, amber → warning */
     --vq-yellow-50: var(--vq-ramp-warning-50);
@@ -1044,7 +1044,7 @@
     --vq-neutral-900: var(--vq-ramp-ink-900);
     --vq-neutral-950: var(--vq-ramp-ink-950);
 
-    /* indigo, teal → teal */
+    /* indigo, teal → teal (teal under --vq-tw-*: V6 owns the plain name) */
     --vq-indigo-50: var(--vq-ramp-teal-50);
     --vq-indigo-100: var(--vq-ramp-teal-100);
     --vq-indigo-200: var(--vq-ramp-teal-200);
@@ -1056,17 +1056,17 @@
     --vq-indigo-800: var(--vq-ramp-teal-800);
     --vq-indigo-900: var(--vq-ramp-teal-900);
     --vq-indigo-950: var(--vq-ramp-teal-950);
-    --vq-teal-50: var(--vq-ramp-teal-50);
-    --vq-teal-100: var(--vq-ramp-teal-100);
-    --vq-teal-200: var(--vq-ramp-teal-200);
-    --vq-teal-300: var(--vq-ramp-teal-300);
-    --vq-teal-400: var(--vq-ramp-teal-400);
-    --vq-teal-500: var(--vq-ramp-teal-500);
-    --vq-teal-600: var(--vq-ramp-teal-600);
-    --vq-teal-700: var(--vq-ramp-teal-700);
-    --vq-teal-800: var(--vq-ramp-teal-800);
-    --vq-teal-900: var(--vq-ramp-teal-900);
-    --vq-teal-950: var(--vq-ramp-teal-950);
+    --vq-tw-teal-50: var(--vq-ramp-teal-50);
+    --vq-tw-teal-100: var(--vq-ramp-teal-100);
+    --vq-tw-teal-200: var(--vq-ramp-teal-200);
+    --vq-tw-teal-300: var(--vq-ramp-teal-300);
+    --vq-tw-teal-400: var(--vq-ramp-teal-400);
+    --vq-tw-teal-500: var(--vq-ramp-teal-500);
+    --vq-tw-teal-600: var(--vq-ramp-teal-600);
+    --vq-tw-teal-700: var(--vq-ramp-teal-700);
+    --vq-tw-teal-800: var(--vq-ramp-teal-800);
+    --vq-tw-teal-900: var(--vq-ramp-teal-900);
+    --vq-tw-teal-950: var(--vq-ramp-teal-950);
 
     /* violet, purple, fuchsia, pink → plum */
     --vq-violet-50: var(--vq-ramp-plum-50);
@@ -1114,7 +1114,7 @@
     --vq-pink-900: var(--vq-ramp-plum-900);
     --vq-pink-950: var(--vq-ramp-plum-950);
 
-    /* blue, sky, cyan → sky */
+    /* blue, sky, cyan → sky (sky under --vq-tw-*: V6 owns the plain name) */
     --vq-blue-50: var(--vq-ramp-sky-50);
     --vq-blue-100: var(--vq-ramp-sky-100);
     --vq-blue-200: var(--vq-ramp-sky-200);
@@ -1126,17 +1126,17 @@
     --vq-blue-800: var(--vq-ramp-sky-800);
     --vq-blue-900: var(--vq-ramp-sky-900);
     --vq-blue-950: var(--vq-ramp-sky-950);
-    --vq-sky-50: var(--vq-ramp-sky-50);
-    --vq-sky-100: var(--vq-ramp-sky-100);
-    --vq-sky-200: var(--vq-ramp-sky-200);
-    --vq-sky-300: var(--vq-ramp-sky-300);
-    --vq-sky-400: var(--vq-ramp-sky-400);
-    --vq-sky-500: var(--vq-ramp-sky-500);
-    --vq-sky-600: var(--vq-ramp-sky-600);
-    --vq-sky-700: var(--vq-ramp-sky-700);
-    --vq-sky-800: var(--vq-ramp-sky-800);
-    --vq-sky-900: var(--vq-ramp-sky-900);
-    --vq-sky-950: var(--vq-ramp-sky-950);
+    --vq-tw-sky-50: var(--vq-ramp-sky-50);
+    --vq-tw-sky-100: var(--vq-ramp-sky-100);
+    --vq-tw-sky-200: var(--vq-ramp-sky-200);
+    --vq-tw-sky-300: var(--vq-ramp-sky-300);
+    --vq-tw-sky-400: var(--vq-ramp-sky-400);
+    --vq-tw-sky-500: var(--vq-ramp-sky-500);
+    --vq-tw-sky-600: var(--vq-ramp-sky-600);
+    --vq-tw-sky-700: var(--vq-ramp-sky-700);
+    --vq-tw-sky-800: var(--vq-ramp-sky-800);
+    --vq-tw-sky-900: var(--vq-ramp-sky-900);
+    --vq-tw-sky-950: var(--vq-ramp-sky-950);
     --vq-cyan-50: var(--vq-ramp-sky-50);
     --vq-cyan-100: var(--vq-ramp-sky-100);
     --vq-cyan-200: var(--vq-ramp-sky-200);
@@ -1173,18 +1173,18 @@
     --vq-green-900: var(--vq-ramp-success-900);
     --vq-green-950: var(--vq-ramp-success-950);
 
-    /* lime → lime */
-    --vq-lime-50: var(--vq-ramp-lime-50);
-    --vq-lime-100: var(--vq-ramp-lime-100);
-    --vq-lime-200: var(--vq-ramp-lime-200);
-    --vq-lime-300: var(--vq-ramp-lime-300);
-    --vq-lime-400: var(--vq-ramp-lime-400);
-    --vq-lime-500: var(--vq-ramp-lime-500);
-    --vq-lime-600: var(--vq-ramp-lime-600);
-    --vq-lime-700: var(--vq-ramp-lime-700);
-    --vq-lime-800: var(--vq-ramp-lime-800);
-    --vq-lime-900: var(--vq-ramp-lime-900);
-    --vq-lime-950: var(--vq-ramp-lime-950);
+    /* lime → lime (lime under --vq-tw-*: V6 owns the plain name) */
+    --vq-tw-lime-50: var(--vq-ramp-lime-50);
+    --vq-tw-lime-100: var(--vq-ramp-lime-100);
+    --vq-tw-lime-200: var(--vq-ramp-lime-200);
+    --vq-tw-lime-300: var(--vq-ramp-lime-300);
+    --vq-tw-lime-400: var(--vq-ramp-lime-400);
+    --vq-tw-lime-500: var(--vq-ramp-lime-500);
+    --vq-tw-lime-600: var(--vq-ramp-lime-600);
+    --vq-tw-lime-700: var(--vq-ramp-lime-700);
+    --vq-tw-lime-800: var(--vq-ramp-lime-800);
+    --vq-tw-lime-900: var(--vq-ramp-lime-900);
+    --vq-tw-lime-950: var(--vq-ramp-lime-950);
 
     /* yellow, amber → warning */
     --vq-yellow-50: var(--vq-ramp-warning-50);

@@ -1,127 +1,208 @@
-import React from 'react';
-import { getColor } from './palette';
-import { formatValue } from '../utils/format';
+import React, { useMemo, useState } from 'react';
+import useMeasure from 'react-use-measure';
 
-export default function BreakdownChart({ data, definition, chartType = 'ring', settings }) {
-    const rawSlices = data?.slices || [];
-    
-    if (rawSlices.length === 0) {
+import { PieChart } from '@/Components/Charts/pie-chart';
+import { PieSlice } from '@/Components/Charts/pie-slice';
+import { RingChart } from '@/Components/Charts/ring-chart';
+import { Ring } from '@/Components/Charts/ring';
+import { FunnelChart } from '@/Components/Charts/funnel-chart';
+
+import { formatValue } from '../utils/format';
+import { EmptyPlot, seriesColor, useChartMotion } from './kit';
+
+/**
+ * BreakdownChart — pie, donut, ring, funnel.
+ *
+ * ── Two rules this had to start obeying ─────────────────────────────────────
+ *
+ * **Seven slices and an Other.** Past seven the palette runs out of hues that
+ * still separate for every form of colour blindness, and a pie with eleven
+ * wedges is a list that has been made harder to read. The tail is summed into
+ * Other rather than dropped, so the total still adds up.
+ *
+ * **The legend is the chart.** A wedge answers "roughly how big"; the number
+ * beside its name answers "how big". Hovering either one highlights the other,
+ * because a wedge with no label and a label with no wedge are each half a
+ * reading. The old version drew wedges with a transition that did nothing and
+ * printed percentages with no values beside them at all.
+ *
+ * ── Why the centre readout is ours and not PieCenter's ──────────────────────
+ *
+ * bklit's PieCenter only calls its render prop while a slice is hovered; at
+ * rest it falls back to its own NumberFlow block, which formats through Intl
+ * and therefore cannot spell this tenant's currency (the symbol comes from
+ * store settings, not from a locale). That would give the card one typeface
+ * and format at rest and a different one on hover. Owning the overlay costs
+ * ten lines and keeps the two states identical.
+ */
+export default function BreakdownChart({ data, definition, meta, settings, chartType = 'pie' }) {
+    const motion = useChartMotion();
+    const [hovered, setHovered] = useState(null);
+    const [dialRef, dial] = useMeasure();
+
+    const unit = meta?.unit || definition?.unit || 'decimal';
+    const precision = meta?.precision ?? definition?.precision ?? 0;
+
+    const slices = useMemo(() => foldToSeven(data?.slices), [data]);
+
+    if (!slices.length) return <EmptyPlot label="Nothing to break down" />;
+
+    const total = slices.reduce((sum, s) => sum + s.value, 0);
+    const format = (v) => formatValue(v, unit, precision, settings);
+    const active = hovered === null ? null : slices[hovered];
+
+    /* ── Funnel — stages, not shares. A funnel is ordered and lossy; a pie is
+       unordered and complete, and drawing one as the other is a lie about the
+       data. ─────────────────────────────────────────────────────────────── */
+    if (chartType === 'funnel') {
         return (
-            <div className="flex items-center justify-center h-full text-ink-muted dark:text-ink-secondary text-3xs font-bold uppercase tracking-wider select-none">
-                No Breakdown Data
+            <FunnelChart
+                className="h-full"
+                data={slices.map((s, i) => ({
+                    label: s.name,
+                    value: s.value,
+                    displayValue: format(s.value),
+                    color: seriesColor(i),
+                }))}
+                hoveredIndex={hovered}
+                onHoverChange={setHovered}
+                formatValue={format}
+                enterTransition={motion.enterTransition}
+            />
+        );
+    }
+
+    const centre = (
+        <span className="vqc-centre" aria-hidden="true">
+            <span className="vqc-centre-v">{format(active ? active.value : total)}</span>
+            <span className="vqc-centre-k">{active ? active.name : 'Total'}</span>
+        </span>
+    );
+
+    /* ── Ring — concentric arcs, one per slice, each against the total.
+       RingChart scales its own radii to fit whatever box it is given, so it
+       needs no measurement. ───────────────────────────────────────────── */
+    if (chartType === 'ring') {
+        return (
+            <div className="vqc-radial">
+                <div className="vqc-dial">
+                    <RingChart
+                        className="h-full w-full"
+                        data={slices.map((s, i) => ({
+                            label: s.name,
+                            value: s.value,
+                            maxValue: total || 1,
+                            color: seriesColor(i),
+                        }))}
+                        hoveredIndex={hovered}
+                        onHoverChange={setHovered}
+                        strokeWidth={10}
+                        ringGap={5}
+                        enterTransition={motion.enterTransition}
+                    >
+                        {slices.map((s, i) => <Ring key={s.name} index={i} />)}
+                    </RingChart>
+                    {centre}
+                </div>
+                <SliceLegend {...{ slices, total, format, hovered }} onHover={setHovered} />
             </div>
         );
     }
 
-    // Rule 2: pie/ring/sunburst cap at 7 slices + "Other"
-    let slices = [...rawSlices].sort((a, b) => b.value - a.value);
-    if (slices.length > 7) {
-        const topSlices = slices.slice(0, 7);
-        const otherSlices = slices.slice(7);
-        const otherVal = otherSlices.reduce((sum, s) => sum + s.value, 0);
-        const otherPct = otherSlices.reduce((sum, s) => sum + (s.pct || 0), 0);
-        
-        slices = [...topSlices, { name: 'Other', value: otherVal, pct: otherPct }];
-    }
-
-    const total = slices.reduce((sum, s) => sum + s.value, 0);
-
-    // Compute polar coordinates for SVG slices
-    let accumulatedAngle = 0;
-    const radius = 25;
-    const center = 30;
-
-    const getCoordinatesForPercent = (percent) => {
-        const x = Math.cos(2 * Math.PI * percent);
-        const y = Math.sin(2 * Math.PI * percent);
-        return [x, y];
-    };
-
-    const paths = slices.map((slice, index) => {
-        const valPct = total > 0 ? (slice.value / total) : 0;
-        if (valPct === 0) return null;
-
-        const startAngle = accumulatedAngle;
-        const endAngle = accumulatedAngle + valPct;
-
-        const [startX, startY] = getCoordinatesForPercent(startAngle);
-        const [endX, endY] = getCoordinatesForPercent(endAngle);
-
-        const largeArcFlag = valPct > 0.5 ? 1 : 0;
-
-        // Path for Pie
-        const pathData = [
-            `M ${center} ${center}`,
-            `L ${center + startX * radius} ${center + startY * radius}`,
-            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${center + endX * radius} ${center + endY * radius}`,
-            'Z'
-        ].join(' ');
-
-        accumulatedAngle = endAngle;
-
-        return {
-            path: pathData,
-            color: getColor(index),
-            ...slice
-        };
-    }).filter(Boolean);
-
-    const isRing = chartType === 'ring' || chartType === 'sunburst';
+    /* ── Pie and donut. `sunburst` renders as a donut: our slices are flat,
+       and a sunburst with one ring is a donut drawn the long way. ───────── */
+    const donut = chartType !== 'pie';
+    /* innerRadius is PIXELS, not a fraction — passing 0.58 gives a half-pixel
+       hole and a centre box of negative size. So the dial is measured and the
+       hole is derived from it. */
+    const size = Math.max(0, Math.min(dial.width || 0, dial.height || 0));
 
     return (
-        <div className="flex items-center justify-between h-full w-full gap-4 relative select-none">
-            {/* Visual Ring/Pie Graphic */}
-            <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
-                <svg viewBox="0 0 60 60" className="w-full h-full transform -rotate-90 overflow-visible">
-                    {paths.map((p, i) => (
-                        <path
-                            key={i}
-                            d={p.path}
-                            fill={p.color}
-                            className="transition-all duration-normal origin-center cursor-pointer"
-                        />
-                    ))}
-
-                    {/* Ring cutout */}
-                    {isRing && (
-                        <circle
-                            cx={center}
-                            cy={center}
-                            r={radius * 0.65}
-                            /* The card surface, so a pie label punches
-                               through its own slice. Asking the token layer
-                               deletes the dark_mode branch entirely:
-                               --vq-surface already flips with the mode. */
-                            fill="var(--vq-surface)"
-                            className="dark:fill-slate-900"
-                        />
-                    )}
-                </svg>
-
-                {isRing && total > 0 && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                        <span className="text-2xs font-semibold text-ink-secondary">
-                            {formatValue(total, definition?.unit, 0, settings)}
-                        </span>
-                        <span className="text-[7px] text-ink-muted font-bold uppercase tracking-wider mt-0.5">
-                            Total
-                        </span>
-                    </div>
+        <div className="vqc-radial">
+            <div className="vqc-dial" ref={dialRef}>
+                {size > 0 && (
+                    <PieChart
+                        className="h-full w-full"
+                        data={slices.map((s, i) => ({
+                            label: s.name,
+                            value: s.value,
+                            color: seriesColor(i),
+                        }))}
+                        innerRadius={donut ? Math.round(size * 0.28) : 0}
+                        hoverOffset={8}
+                        padAngle={0.02}
+                        cornerRadius={2}
+                        hoveredIndex={hovered}
+                        onHoverChange={setHovered}
+                        enterTransition={motion.enterTransition}
+                    >
+                        {slices.map((s, i) => <PieSlice key={s.name} index={i} />)}
+                    </PieChart>
                 )}
+                {donut && centre}
             </div>
-
-            {/* Slices legend */}
-            <div className="grow flex flex-col gap-1 overflow-y-auto max-h-[96px] custom-scrollbar pr-1">
-                {paths.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between gap-2 text-3xs font-bold">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-                            <span className="text-ink-secondary truncate max-w-[70px]">{p.name}</span>
-                        </div>
-                        <span className="text-ink-muted shrink-0 font-medium">{p.pct?.toFixed(0)}%</span>
-                    </div>
-                ))}
-            </div>
+            <SliceLegend {...{ slices, total, format, hovered }} onHover={setHovered} />
         </div>
     );
+}
+
+/* ------------------------------------------------------------------ *
+ * Legend
+ * ------------------------------------------------------------------ */
+
+/**
+ * Name, value, share, and a proportional rail — hovering a row lights its
+ * wedge and re-reads the middle of the dial.
+ */
+function SliceLegend({ slices, total, format, hovered, onHover }) {
+    return (
+        <div className="vqc-blg">
+            {slices.map((s, i) => {
+                const pct = total ? (s.value / total) * 100 : 0;
+                const state = hovered === null ? '' : (hovered === i ? ' is-on' : ' is-dim');
+
+                return (
+                    <button
+                        type="button"
+                        key={s.name}
+                        className={`vqc-blg-r${state}`}
+                        onMouseEnter={() => onHover(i)}
+                        onMouseLeave={() => onHover(null)}
+                        onFocus={() => onHover(i)}
+                        onBlur={() => onHover(null)}
+                    >
+                        <span className="vqc-blg-d" style={{ background: seriesColor(i) }} />
+                        <span className="vqc-blg-n" title={s.name}>{s.name}</span>
+                        <span className="vqc-blg-v">{format(s.value)}</span>
+                        <span className="vqc-blg-p">{pct.toFixed(0)}%</span>
+                        <span className="vqc-blg-bar">
+                            <i style={{ width: `${pct}%`, background: seriesColor(i) }} />
+                        </span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+/**
+ * Seven slices and an Other.
+ *
+ * Sorted descending first, so Other is genuinely the tail and not whatever
+ * happened to be at the end of the array. A tail of one keeps its own name —
+ * folding a single thing into "Other" hides a name for no gain.
+ */
+function foldToSeven(raw) {
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+
+    const clean = raw
+        .map((s) => ({ name: s.name ?? s.label ?? '-', value: Number(s.value) || 0 }))
+        .filter((s) => s.value !== 0)
+        .sort((a, b) => b.value - a.value);
+
+    if (clean.length <= 8) return clean;
+
+    const head = clean.slice(0, 7);
+    const tail = clean.slice(7);
+    return [...head, { name: 'Other', value: tail.reduce((sum, s) => sum + s.value, 0) }];
 }

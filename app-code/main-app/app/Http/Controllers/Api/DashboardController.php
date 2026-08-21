@@ -256,7 +256,7 @@ class DashboardController extends Controller
 
         $sanitized = DashboardSanitizer::sanitize($validated['cards'], $availableKeys);
 
-        DB::transaction(function () use ($dashboard, $sanitized, $tenant) {
+        DB::transaction(function () use ($dashboard, $sanitized, $tenant, $availableKeys) {
             // Retrieve all existing cards including gated/hidden ones
             $existing = $dashboard->cards()->get()->keyBy('id');
 
@@ -279,19 +279,22 @@ class DashboardController extends Controller
             }
 
             // Delete visible cards that are no longer in the layout, but
-            // preserve gated cards that were not present in the sanitized set!
-            $gatedKeys = array_diff(array_keys(ReckonerRegistry::all()), array_keys(array_filter($dashboard->cards()->get()->pluck('reading_key')->toArray())));
-            
-            foreach ($existing as $id => $card) {
-                // If it is in cleanIds, it is active.
-                // If it is gated (reading_key not currently available), we keep it!
-                if (! in_array($id, $cleanIds, true)) {
-                    if (in_array($card->reading_key, $gatedKeys, true) || ! ReckonerRegistry::exists($card->reading_key)) {
-                        // Keep gated card in place in DB
-                        continue;
-                    }
-                    $card->delete();
+            // preserve gated cards: a card whose reading the user cannot
+            // currently see was never shown to them, so its absence from the
+            // submitted layout is not a deletion. A plan downgrade → upgrade
+            // keeps the board intact. (The old computation diffed the registry
+            // against the dashboard's own keys, which only worked by accident.)
+            foreach ($existing as $cardId => $card) {
+                if (in_array($cardId, $cleanIds, true)) {
+                    continue; // still on the board
                 }
+
+                $isGated = ! in_array($card->reading_key, $availableKeys, true);
+                if ($isGated || ! ReckonerRegistry::exists($card->reading_key)) {
+                    continue; // invisible to this user — keep it in place
+                }
+
+                $card->delete();
             }
         });
 
@@ -366,9 +369,20 @@ class DashboardController extends Controller
         $cardData['x'] = 0;
         $cardData['y'] = $maxY + 2; // place on a new row
 
-        $card = $dashboard->cards()->create(array_merge([
-            'tenant_id' => $tenant->id,
-        ], $cardData));
+        $card = DB::transaction(function () use ($dashboard, $tenant, $cardData) {
+            // M1 — the accent is spent once per board. enforceAccentBudget()
+            // can only police the array handed to it, and that array is this
+            // one new card, so the card already holding the accent has to be
+            // demoted here or the board ends up with two accent fills and no
+            // way to tell which number matters.
+            if (! empty($cardData['style']['accent'])) {
+                $this->clearAccentExcept($dashboard, null);
+            }
+
+            return $dashboard->cards()->create(array_merge([
+                'tenant_id' => $tenant->id,
+            ], $cardData));
+        });
 
         return response()->json(['data' => $card], 201);
     }
@@ -448,7 +462,14 @@ class DashboardController extends Controller
         $cardData = $sanitized[0];
         unset($cardData['id']);
 
-        $card->update($cardData);
+        DB::transaction(function () use ($dashboard, $card, $cardData) {
+            // M1, same reasoning as addCard(): one accent per board.
+            if (! empty($cardData['style']['accent'])) {
+                $this->clearAccentExcept($dashboard, $card->id);
+            }
+
+            $card->update($cardData);
+        });
 
         return response()->json(['data' => $card]);
     }
@@ -578,15 +599,21 @@ class DashboardController extends Controller
                 $template->cards()->create($card->replicate(['id', 'dashboard_id'])->toArray());
             }
 
-            // If template is locked, force update is_locked flag on existing user dashboards matching role
-            if ($validated['is_locked']) {
+            // Propagate the lock to the personal dashboards of every user who
+            // currently holds this role in the store (the pivot is
+            // tenant_users). Unlocking releases them the same way, so a
+            // manager can hand the layout back. The old code had an empty
+            // whereHas closure here and never matched a row.
+            $roleUserIds = DB::table('tenant_users')
+                ->where('tenant_id', $tenant->id)
+                ->where('role', $validated['for_role'])
+                ->pluck('user_id');
+
+            if ($roleUserIds->isNotEmpty()) {
                 Dashboard::query()
                     ->where('tenant_id', $tenant->id)
-                    ->whereNotNull('user_id')
-                    ->whereHas('cards', function($q) use ($validated) {
-                        // find matching users by their role
-                    })
-                    ->update(['is_locked' => true]);
+                    ->whereIn('user_id', $roleUserIds)
+                    ->update(['is_locked' => $validated['is_locked']]);
             }
         });
 
@@ -621,6 +648,41 @@ class DashboardController extends Controller
         });
     }
 
+    /**
+     * Take the accent away from every card on this board except one.
+     *
+     * Mechanism M1 lives in three places and they must agree: the client
+     * clears optimistically so two fills never flash, `enforceAccentBudget()`
+     * polices a whole submitted board, and this polices the single-card write
+     * paths (add / patch) that the budget check cannot see past.
+     */
+    private function clearAccentExcept(Dashboard $dashboard, ?string $keepCardId): void
+    {
+        $others = $dashboard->cards()
+            ->when($keepCardId !== null, fn ($q) => $q->where('id', '!=', $keepCardId))
+            ->get();
+
+        foreach ($others as $other) {
+            $style = $other->style ?? [];
+            if (empty($style['accent'])) {
+                continue;
+            }
+
+            $style['accent'] = false;
+            $other->style = $style;
+            $other->save();
+        }
+    }
+
+    /**
+     * The default board for one user — config/dashboard_presets.php.
+     *
+     * Resolution: role board for the four task-shaped roles, else the board
+     * for the tenant's business (tenants.business_type via `aliases`, or an
+     * ai_builder preset key), else `business.default`. Readings the user
+     * cannot see (permission, plan, capability, module) are dropped and the
+     * survivors are re-packed so a dropped card never leaves a hole.
+     */
     private function getDefaultRoleCards(string $role, User $user, Tenant $tenant): array
     {
         $reckoner = app(Reckoner::class);
@@ -628,54 +690,68 @@ class DashboardController extends Controller
         $availability = $reckoner->checkAvailability($keys, $user, $tenant);
         $availableKeys = array_keys(array_filter($availability));
 
-        // Phase B1 Core defaults: sales.revenue, finance.net_profit, stock_value, balance_sheet_ok
-        $candidates = [
-            [
-                'reading_key' => 'sales.revenue',
-                'period' => 'today',
-                'chart' => 'stat',
-                'size' => '4x4',
-                'x' => 0, 'y' => 0, 'w' => 4, 'h' => 4,
-            ],
-            [
-                'reading_key' => 'finance.net_profit',
-                'period' => 'this_month',
-                'chart' => 'stat',
-                'size' => '4x4',
-                'x' => 4, 'y' => 0, 'w' => 4, 'h' => 4,
-            ],
-            [
-                'reading_key' => 'inventory.stock_value',
-                'period' => 'live',
-                'chart' => 'stat',
-                'size' => '4x4',
-                'x' => 8, 'y' => 0, 'w' => 4, 'h' => 4,
-            ],
-            [
-                'reading_key' => 'finance.balance_sheet_ok',
-                'period' => 'live',
-                'chart' => 'status',
-                'size' => '4x4',
-                'x' => 0, 'y' => 4, 'w' => 4, 'h' => 4,
-            ],
-        ];
+        $candidates = $this->presetBoard($role, $tenant);
 
+        // Drop unavailable readings, then re-pack rows left-to-right so the
+        // seeded board has no holes. Row assignment keeps the authored order.
         $clean = [];
         $x = 0;
         $y = 0;
+        $rowH = 0;
+        $hadAccent = false;
+
         foreach ($candidates as $candidate) {
-            if (in_array($candidate['reading_key'], $availableKeys, true)) {
-                if ($x + $candidate['w'] > 12) {
-                    $x = 0;
-                    $y += 4;
-                }
-                $candidate['x'] = $x;
-                $candidate['y'] = $y;
-                $clean[] = $candidate;
-                $x += $candidate['w'];
+            if (! in_array($candidate['reading_key'], $availableKeys, true)) {
+                continue;
             }
+
+            $w = (int) ($candidate['w'] ?? 3);
+            $h = (int) ($candidate['h'] ?? 2);
+
+            if ($x + $w > 12) {
+                $x = 0;
+                $y += max(1, $rowH);
+                $rowH = 0;
+            }
+
+            $candidate['x'] = $x;
+            $candidate['y'] = $y;
+            $x += $w;
+            $rowH = max($rowH, $h);
+
+            if (! empty($candidate['style']['accent'])) {
+                $hadAccent = true;
+            }
+
+            $clean[] = $candidate;
+        }
+
+        // M1 — if the authored accent card was dropped by a gate, promote the
+        // first survivor: a board with no accent has not said which number
+        // matters. (Zero cards means a store with nothing visible; fine.)
+        if (! $hadAccent && $clean !== []) {
+            $clean[0]['style'] = array_merge($clean[0]['style'] ?? [], ['accent' => true]);
         }
 
         return $clean;
+    }
+
+    /**
+     * Pick the authored board for a role + tenant from config/dashboard_presets.
+     */
+    private function presetBoard(string $role, Tenant $tenant): array
+    {
+        $roleBoards = config('dashboard_presets.roles', []);
+        if (isset($roleBoards[$role])) {
+            return $roleBoards[$role];
+        }
+
+        $business = config('dashboard_presets.business', []);
+        $aliases = config('dashboard_presets.aliases', []);
+
+        $type = strtolower((string) ($tenant->business_type ?? ''));
+        $key = $aliases[$type] ?? $type;
+
+        return $business[$key] ?? $business['default'] ?? [];
     }
 }
